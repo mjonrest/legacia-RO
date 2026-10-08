@@ -1,0 +1,329 @@
+//===== rAthena Script =======================================
+//= Plagiarism NPC
+//===== By: ==================================================
+//= Easycore
+//===== Last Updated: ========================================
+//= 20210905
+//===== Description: ========================================= 
+//= Simple Plagiarism Skill
+//= Require 'getskillname' script command:
+//=    https://rathena.org/board/files/file/4307-script-command-getskillname/
+//============================================================
+
+prontera,128,213,6	script	Plagiarism Master	747,{
+
+	mes "[ ^FF0000Plagiarism Master^000000 ]";
+	mes "Heya ^FFA500"+strcharinfo(0)+"^000000!";
+
+	if (.zeny)
+		mes "My service costs ^FF0000"+F_InsertComma(.zeny)+" Zeny^000000.";
+
+	next;
+
+	switch(select(
+		"Plagiarism Skills",
+	//	"Reproduce Skills",
+		"Cancel"
+	)) {
+
+	//------------------------------------------------
+	// Plagiarism
+	//------------------------------------------------
+	case 1:
+
+		if (.plag_skill && !getskilllv("RG_PLAGIARISM")) {
+			mes "You must have Plagiarism learned.";
+			close;
+		}
+
+		switch(select(
+			"Swordman ("+getarraysize(.SwordSkillID)+"):"+
+			"Magician ("+getarraysize(.MageSkillID)+"):"+
+			"Archer ("+getarraysize(.ArcherSkillID)+"):"+
+			"Thief ("+getarraysize(.ThiefSkillID)+"):"+
+			"Merchant ("+getarraysize(.MerchantSkillID)+"):"+
+			"Acolyte ("+getarraysize(.AcolyteSkillID)+"):"+
+			"Extended Class ("+getarraysize(.ExtendedSkillID)+"):"+
+			"Cancel"
+		)) {
+
+			case 1:
+				copyarray .@SkillID[0], .SwordSkillID[0], getarraysize(.SwordSkillID);
+				copyarray .@SkillLV[0], .SwordSkillLV[0], getarraysize(.SwordSkillLV);
+				break;
+
+			case 2:
+				copyarray .@SkillID[0], .MageSkillID[0], getarraysize(.MageSkillID);
+				copyarray .@SkillLV[0], .MageSkillLV[0], getarraysize(.MageSkillLV);
+				break;
+
+			case 3:
+				copyarray .@SkillID[0], .ArcherSkillID[0], getarraysize(.ArcherSkillID);
+				copyarray .@SkillLV[0], .ArcherSkillLV[0], getarraysize(.ArcherSkillLV);
+				break;
+
+			case 4:
+				copyarray .@SkillID[0], .ThiefSkillID[0], getarraysize(.ThiefSkillID);
+				copyarray .@SkillLV[0], .ThiefSkillLV[0], getarraysize(.ThiefSkillLV);
+				break;
+
+			case 5:
+				copyarray .@SkillID[0], .MerchantSkillID[0], getarraysize(.MerchantSkillID);
+				copyarray .@SkillLV[0], .MerchantSkillLV[0], getarraysize(.MerchantSkillLV);
+				break;
+
+			case 6:
+				copyarray .@SkillID[0], .AcolyteSkillID[0], getarraysize(.AcolyteSkillID);
+				copyarray .@SkillLV[0], .AcolyteSkillLV[0], getarraysize(.AcolyteSkillLV);
+				break;
+
+			case 7:
+				copyarray .@SkillID[0], .ExtendedSkillID[0], getarraysize(.ExtendedSkillID);
+				copyarray .@SkillLV[0], .ExtendedSkillLV[0], getarraysize(.ExtendedSkillLV);
+				break;
+
+			default:
+				close;
+		}
+		break;
+
+	//------------------------------------------------
+	// Reproduce
+	//------------------------------------------------
+	case 2:
+
+		if (!getskilllv(2285)) {
+			mes "You must have Reproduce learned.";
+			close;
+		}
+
+		switch(select(
+			"Rune Knight & Royal Guard ("+getarraysize(.Sword3rdSkillID)+"):"+
+			"Warlock & Sorcerer ("+getarraysize(.Mage3rdSkillID)+"):"+
+			"Ranger & Maestro & Wanderer ("+getarraysize(.Archer3rdSkillID)+"):"+
+			"Geneticist & Mechanic ("+getarraysize(.Merchant3rdSkillID)+"):"+
+			"Guillotine Cross & Shadow Chaser ("+getarraysize(.Thief3rdSkillID)+"):"+
+			"Arch Bishop & Sura ("+getarraysize(.Acolyte3rdSkillID)+"):"+
+			"Cancel"
+		)) {
+
+			case 1:
+				copyarray .@SkillID[0], .Sword3rdSkillID[0], getarraysize(.Sword3rdSkillID);
+				copyarray .@SkillLV[0], .Sword3rdSkillLV[0], getarraysize(.Sword3rdSkillLV);
+				break;
+
+			case 2:
+				copyarray .@SkillID[0], .Mage3rdSkillID[0], getarraysize(.Mage3rdSkillID);
+				copyarray .@SkillLV[0], .Mage3rdSkillLV[0], getarraysize(.Mage3rdSkillLV);
+				break;
+
+			case 3:
+				copyarray .@SkillID[0], .Archer3rdSkillID[0], getarraysize(.Archer3rdSkillID);
+				copyarray .@SkillLV[0], .Archer3rdSkillLV[0], getarraysize(.Archer3rdSkillLV);
+				break;
+
+			case 4:
+				copyarray .@SkillID[0], .Merchant3rdSkillID[0], getarraysize(.Merchant3rdSkillID);
+				copyarray .@SkillLV[0], .Merchant3rdSkillLV[0], getarraysize(.Merchant3rdSkillLV);
+				break;
+
+			case 5:
+				copyarray .@SkillID[0], .Thief3rdSkillID[0], getarraysize(.Thief3rdSkillID);
+				copyarray .@SkillLV[0], .Thief3rdSkillLV[0], getarraysize(.Thief3rdSkillLV);
+				break;
+
+			case 6:
+				copyarray .@SkillID[0], .Acolyte3rdSkillID[0], getarraysize(.Acolyte3rdSkillID);
+				copyarray .@SkillLV[0], .Acolyte3rdSkillLV[0], getarraysize(.Acolyte3rdSkillLV);
+				break;
+
+			default:
+				close;
+		}
+		break;
+
+	default:
+		close;
+	}
+
+	//------------------------------------------------
+	// Skill Menu
+	//------------------------------------------------
+
+	.@f = getarraysize(.@SkillID);
+
+	.@menu$ = "";
+
+	for (.@i = 0; .@i < .@f; .@i++) {
+		.@menu$ += getskillname(.@SkillID[.@i]);
+
+		if (.@i < .@f - 1)
+			.@menu$ += ":";
+	}
+
+	.@s = select(.@menu$) - 1;
+
+	if (.zeny > 0 && Zeny < .zeny) {
+		message strcharinfo(0),"Not enough Zeny.";
+		close;
+	}
+
+	close2;
+
+	if (.zeny > 0)
+		Zeny -= .zeny;
+
+	npcskill .@SkillID[.@s], .@SkillLV[.@s], 130, 275;
+
+	sleep2 1500;
+
+	unitwarp getnpcid(0), .map$, .x, .y;
+
+	end;
+
+OnInit:
+
+	setunitdata(getnpcid(0),UNPC_DEX,1000);
+	setunitdata(getnpcid(0),UNPC_ATKRANGE,12);
+	setunitdata(getnpcid(0),UNPC_MAXHP,100000);
+	setunitdata(getnpcid(0),UNPC_ATKMIN,500);
+	setunitdata(getnpcid(0),UNPC_ATKMAX,1000);
+	setunitdata(getnpcid(0),UNPC_MATKMIN,500);
+	setunitdata(getnpcid(0),UNPC_MATKMAX,2000);
+
+	getmapxy(.map$,.x,.y,BL_NPC);
+
+	.zeny = 500000;
+	.plag_skill = 1;
+
+	//------------------------------------------------
+	// Swordman
+	//------------------------------------------------
+	setarray .SwordSkillID[0],
+		5,7,62,250,251,253,254;
+
+	setarray .SwordSkillLV[0],
+		10,10,10,5,5,10,10;
+
+	//------------------------------------------------
+	// Magician
+	//------------------------------------------------
+	setarray .MageSkillID[0],
+		11,13,14,15,17,18,19,20,21,
+		80,81,83,84,85,86,88,89,90,91;
+
+	setarray .MageSkillLV[0],
+		10,10,10,10,10,10,10,10,10,
+		10,10,10,10,10,10,10,10,5,5;
+
+	//------------------------------------------------
+	// Archer
+	//------------------------------------------------
+	setarray .ArcherSkillID[0],
+		46,47,149,116,122,123;
+
+	setarray .ArcherSkillLV[0],
+		10,10,1,5,5,5;
+
+	//------------------------------------------------
+	// Thief
+	//------------------------------------------------
+	setarray .ThiefSkillID[0],
+		52,149,152,1004,141,212;
+
+	setarray .ThiefSkillLV[0],
+		10,1,1,1,10,10;
+
+	//------------------------------------------------
+	// Merchant
+	//------------------------------------------------
+	setarray .MerchantSkillID[0],
+		42,229,230;
+
+	setarray .MerchantSkillLV[0],
+		10,5,5;
+
+	//------------------------------------------------
+	// Acolyte
+	//------------------------------------------------
+	setarray .AcolyteSkillID[0],
+		28,156,24,54,68,69,70,77,79,
+		263,266,267,271;
+
+	setarray .AcolyteSkillLV[0],
+		10,1,1,5,5,5,10,10,10,
+		10,5,5,5;
+
+	//------------------------------------------------
+	// Extended Classes
+	//------------------------------------------------
+	setarray .ExtendedSkillID[0],
+		421,527,528,534,535,536,537,
+		539,540,541,542;
+
+	setarray .ExtendedSkillLV[0],
+		7,5,10,10,10,5,10,
+		5,10,5,5;
+
+
+	// ADD YOUR NEW 3RD JOB ARRAYS BELOW
+	//------------------------------------------------
+	// Rune Knight & Royal Guard
+	//------------------------------------------------
+	setarray .Sword3rdSkillID[0],
+		2006,2002,2005,2323,2310;
+
+	setarray .Sword3rdSkillLV[0],
+		5,10,5,5,10;
+
+	//------------------------------------------------
+	// Warlock & Sorcerer
+	//------------------------------------------------
+	setarray .Mage3rdSkillID[0],
+		2213,2214,2211,2210,2216,2203,2212,2202,2204,
+		2447,2446,2444,2443,2450,2448,2449,2454;
+
+	setarray .Mage3rdSkillLV[0],
+		5,5,5,5,5,5,5,5,5,
+		5,5,5,5,5,5,5,10;
+
+	//------------------------------------------------
+	// Ranger & Maestro & Wanderer
+	//------------------------------------------------
+	setarray .Archer3rdSkillID[0],
+		2236,2233,2239,2253,2254,2418,2413;
+
+	setarray .Archer3rdSkillLV[0],
+		10,10,5,5,5,5,10;
+
+	//------------------------------------------------
+	// Geneticist & Mechanic
+	//------------------------------------------------
+	setarray .Merchant3rdSkillID[0],
+		2480,2483,5003,2490,2481,2479,2482,5006;
+
+	setarray .Merchant3rdSkillLV[0],
+		5,10,5,5,10,5,5,5;
+
+	//------------------------------------------------
+	// Guillotine Cross & Shadow Chaser
+	//------------------------------------------------
+	setarray .Thief3rdSkillID[0],
+		2022,2023,2034,5001,2304,2288,2284;
+
+	setarray .Thief3rdSkillLV[0],
+		5,5,1,5,10,10,10;
+
+	//------------------------------------------------
+	// Arch Bishop & Sura
+	//------------------------------------------------
+	setarray .Acolyte3rdSkillID[0],
+		2040,2051,2054,2038,
+		2336,2332,2518,2343,2330,2344,2328,2517,2327,2337;
+
+	setarray .Acolyte3rdSkillLV[0],
+		10,5,10,10,
+		10,5,5,10,10,5,5,5,5,1;
+
+	end;
+}

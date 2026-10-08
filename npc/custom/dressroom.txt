@@ -1,0 +1,47 @@
+//============================================================ 
+//= Dressroom Add-on
+//===== By: ================================================== 
+//= Masao
+//===== Current Version: ===================================== 
+//= 1.0
+//===== Compatible With: ===================================== 
+//= rAthena SVN
+//===== Description: ========================================= 
+//= An add-on for the stylist NPC to use the Dressroom function.
+//===== Additional Comments: =================================
+//= 1.0 First Release
+//===== Contact Info: ========================================
+//= [Masao] 
+//============================================================
+function	script	F_DRESSROOM	{
+
+	if((Class >= 0 && Class <= 4052) || (Class >= 4190 && Class <=4244)){ // Job ID check so only 3rd Class chars can change costume.
+		mes "[Stylist]";
+		mes "Aku belum bisa melakukannya untukmu, kembalilah jika kamu sudah memenuhi syarat!";
+		close;
+	}
+	if(zeny < 10000){ //Edit the amount of zeny it needs to change costume here. Default = 10k Zeny.
+		mes "[Stylist]";
+		mes "Maaf, kamu tidak memiliki cukup zeny";
+		close;
+	}
+
+	mes "[Stylist]";
+	mes "Saya dapat merubah penampilanmu sesuai dengan class mu dengan harga ^FF0000" + 10000 + "^000000z!";
+	mes "Kamu ingin merubah penampilanmu sesuai dengan kostum apa?";
+	next;
+	if(select("Pulihkan Kostum:Kostum alternatif baru") == 1) {
+		set newstyle,0;
+		setlook LOOK_BODY2,0;
+		close;
+	}
+	setlook LOOK_BODY2,1;
+	set newstyle,1;
+	close;
+
+OnPCLoginEvent:
+	if(newstyle == 1){
+		setlook LOOK_BODY2,1;
+	}
+	end;
+}

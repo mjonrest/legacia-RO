@@ -1,0 +1,372 @@
+moc_para01,14,14,5	script	Master Shadow	871,{
+
+Main:
+	mes "[Master Shadow]";
+	mes "Welcome!";
+	mes "What would you like to do?";
+	next;
+
+	switch(select(
+		"Recycle",
+		"Recycle All (Below +10)",
+		"Exchange","Information",
+		"Cancel")) {
+
+	case 1:
+		goto L_Recycle;
+
+	case 2:
+		goto L_RecycleAll;
+
+	case 3:
+		goto L_Exchange;
+
+	case 4:
+		mes "[Master Shadow]";
+		mes "Shadow Essence Exchange Rate:";
+		mes "Blue Shadow (+0~+9) : "+.NormalMin+"~"+.NormalMax+" pcs";
+		mes "Blue Shadow (+10) : "+.BonusMin+"~"+.BonusMax+" pcs";
+		mes "================";
+		mes "The following Shadows can be recycled:";
+		next;
+
+		for (.@i = 0; .@i < getarraysize(.RecycleItem); .@i++) {
+			mes "^0055FF" + getitemname(.RecycleItem[.@i]) + "^000000";
+		}
+
+		next;
+		goto Main;
+	default:
+		close;
+	}
+
+
+//==================================================
+// Returns 1 if recyclable
+//==================================================
+S_IsRecycleItem:
+	for (.@i = 0; .@i < getarraysize(.RecycleItem); .@i++) {
+		if (getarg(0) == .RecycleItem[.@i])
+			return 1;
+	}
+	return 0;
+
+
+//==================================================
+// Count duplicate copies
+//==================================================
+S_CountCopies:
+
+	.@itemid = getarg(0);
+	.@count = 0;
+
+	getinventorylist;
+
+	for (.@i = 0; .@i < @inventorylist_count; .@i++) {
+
+		if (@inventorylist_id[.@i] == .@itemid)
+			.@count++;
+	}
+
+	return .@count;
+
+
+
+OnInit:
+
+	.RewardItem = 1001253;
+
+	.NormalMin = 3;
+	.NormalMax = 5;
+
+	.BonusRefine = 10;
+
+	.BonusMin = 12;
+	.BonusMax = 15;
+
+	setarray .RecycleItem[0],
+	24663,24661,24662,24664,
+	24667,24665,24668,24666,
+	24675,24677,24678,24676,
+	24681,24679,24682,24680,
+	24734,24735,
+	24737,24736;
+
+	setunittitle( getnpcid(0), "<ShadowGear NPC>" );
+	end;
+
+//==================================================
+// Recycle (Single)
+//==================================================
+L_Recycle:
+
+	getinventorylist;
+
+	.@count = 0;
+	.@menu$ = "";
+
+	deletearray .@List[0], getarraysize(.@List);
+
+	for (.@i = 0; .@i < @inventorylist_count; .@i++) {
+
+		if (!callsub(S_IsRecycleItem, @inventorylist_id[.@i]))
+			continue;
+
+		.@List[.@count] = .@i;
+
+		if (.@count > 0)
+			.@menu$ += ":";
+
+		.@menu$ += getitemname(@inventorylist_id[.@i]) + " [+" + @inventorylist_refine[.@i] + "]";
+
+		.@count++;
+	}
+
+	if (.@count == 0) {
+		mes "[Master Shadow]";
+		mes "You don't have any recyclable Shadows.";
+		close;
+	}
+
+	mes "[Master Shadow]";
+	mes "Select a Shadow to recycle.";
+	next;
+
+	.@sel = select(.@menu$) - 1;
+	.@idx = .@List[.@sel];
+
+	.@itemid = @inventorylist_id[.@idx];
+	.@refine = @inventorylist_refine[.@idx];
+
+	if (.@refine == .BonusRefine)
+		.@reward = rand(.BonusMin, .BonusMax);
+	else
+		.@reward = rand(.NormalMin, .NormalMax);
+
+	// Extra warning for +10
+	if (.@refine == .BonusRefine) {
+		mes "[Master Shadow]";
+		mes "^FF0000Warning!^000000";
+		mes "";
+		mes "You are about to recycle a ^FF0000+10 Shadow^000000.";
+		mes "This action cannot be undone.";
+		mes "";
+		mes "Reward:";
+		mes "Random ^0055FF3~5^000000 " + getitemname(.RewardItem);
+		next;
+
+		if (select("Recycle:Cancel") == 2)
+			close;
+	}
+
+	mes "[Master Shadow]";
+	mes "Selected Shadow:";
+	mes "^0055FF" + getitemname(.@itemid) + "^000000";
+	mes "Refine : ^00AA00+" + .@refine + "^000000";
+	mes "";
+
+	if (.@refine == .BonusRefine)
+		mes "Reward : Random ^0055FF3~5^000000 " + getitemname(.RewardItem);
+	else
+		mes "Reward : Random ^0055FF1~2^000000 " + getitemname(.RewardItem);
+
+	mes "";
+	mes "Recycle this Shadow?";
+	next;
+
+	if (select("Recycle:Cancel") == 2)
+		close;
+
+	if (.@refine == .BonusRefine) {
+		delitem2 .@itemid,
+			1,
+			1,
+			.@refine,
+			@inventorylist_attribute[.@idx],
+			@inventorylist_card1[.@idx],
+			@inventorylist_card2[.@idx],
+			@inventorylist_card3[.@idx],
+			@inventorylist_card4[.@idx];
+	} else {
+		delitem .@itemid, 1;
+	}
+
+	getitem .RewardItem, .@reward;
+
+	mes "[Master Shadow]";
+	mes "Recycling completed!";
+	mes "";
+	mes "You received:";
+	mes "^0055FF" + .@reward + " x " + getitemname(.RewardItem) + "^000000";
+	close;
+
+//==================================================
+// Recycle All
+//==================================================
+L_RecycleAll:
+
+	getinventorylist;
+
+	deletearray .@DeleteCount[0], getarraysize(.RecycleItem);
+
+	.@eligible = 0;
+	.@skip = 0;
+	.@reward_total = 0;
+
+	//----------------------------
+	// Scan inventory first
+	//----------------------------
+	for (.@i = 0; .@i < @inventorylist_count; .@i++) {
+
+		if (!callsub(S_IsRecycleItem,@inventorylist_id[.@i]))
+			continue;
+
+		// Skip +10 Shadows
+		if (@inventorylist_refine[.@i] == .BonusRefine) {
+			.@skip++;
+			continue;
+		}
+
+		.@eligible++;
+		.@reward_total += rand(.NormalMin,.NormalMax);
+
+		// Count each item
+		for (.@j = 0; .@j < getarraysize(.RecycleItem); .@j++) {
+			if (@inventorylist_id[.@i] == .RecycleItem[.@j]) {
+				.@DeleteCount[.@j]++;
+				break;
+			}
+		}
+	}
+
+	if (!.@eligible) {
+		mes "[Master Shadow]";
+
+		if (.@skip)
+			mes "Only +10 Shadows were found in your inventory.";
+		else
+			mes "You don't have any recyclable Shadows.";
+
+		close;
+	}
+
+	mes "[Master Shadow]";
+	mes "Recycle all eligible Shadows?";
+	mes "";
+	mes "^FF0000Only +0~+9 Shadows will be recycled.^000000";
+
+	if (.@skip)
+		mes "^0055FF"+.@skip+"^000000 +10 Shadow(s) will be skipped.";
+
+	mes "";
+	mes "^FF0000This action cannot be undone.^000000";
+	next;
+
+	if (select("Recycle All:Cancel") == 2)
+		close;
+
+	//----------------------------
+	// Delete after scan
+	//----------------------------
+	for (.@j = 0; .@j < getarraysize(.RecycleItem); .@j++) {
+
+		if (.@DeleteCount[.@j] > 0)
+			delitem .RecycleItem[.@j], .@DeleteCount[.@j];
+	}
+
+	getitem .RewardItem,.@reward_total;
+
+	mes "[Master Shadow]";
+	mes "Recycling completed!";
+	mes "";
+	mes "Recycled : ^00AAFF"+.@eligible+"^000000 Shadow(s).";
+
+	if (.@skip)
+		mes "Skipped : ^FF9900"+.@skip+"^000000 +10 Shadow(s).";
+
+	mes "";
+	mes "You received:";
+	mes "^0055FF"+.@reward_total+" x "+getitemname(.RewardItem)+"^000000";
+	close;
+
+//==================================================
+// Exchange
+//==================================================
+L_Exchange:
+
+	mes "[Master Shadow]";
+	mes "Which service do you need?";
+	next;
+
+	switch(select(
+		"Exchange to Master Shadows","Exchange to Master Shadow Box","4th Skill Master",
+		"Back")) {
+
+	case 1:
+		callshop "Master_01",1;
+		end;
+	case 2:
+		callshop "Master_02",1;
+		end;
+	case 3:
+		switch(select("Dragon Knight:Meister:Shadow Cross:Arch Mage:Cardinal:Windhawk:Imperial Guard:Biolo:Abyss Chaser:Elemental Master:Inquisitor:Troubadour Trouvere:Sky Emperor:Soul Ascetic:Shinkiro Shiranui:Night Watch:Hyper Novice:Spirit Handler")){
+		case 1:
+		callshop "Master_Dragon_Knight",1;
+		end;
+		case 2:
+		callshop "Master_Meister",1;
+		end;
+		case 3:
+		callshop "Master_Shadow_Cross",1;
+		end;
+		case 4:
+		callshop "Master_Arch_Mage",1;
+		end;
+		case 5:
+		callshop "Master_Cardinal",1;
+		end;
+		case 6:
+		callshop "Master_Windhawk",1;
+		end;
+		case 7:
+		callshop "Master_Imperial_Guard",1;
+		end;
+		case 8:
+		callshop "Master_Biolo",1;
+		end;
+		case 9:
+		callshop "Master_Abyss_Chaser",1;
+		end;
+		case 10:
+		callshop "Master_Elemental_Master",1;
+		end;
+		case 11:
+		callshop "Master_Inquisitor",1;
+		end;
+		case 12:
+		callshop "Master_Troubadour_Trouvere",1;
+		end;
+		case 13:
+		callshop "Master_Sky_Emperor",1;
+		end;
+		case 14:
+		callshop "Master_Soul_Ascetic",1;
+		end;
+		case 15:
+		callshop "Master_Shinkiro_Shiranui",1;
+		end;
+		case 16:
+		callshop "Master_Night_Watch",1;
+		end;
+		case 17:
+		callshop "Master_Hyper_Novice",1;
+		end;
+		case 18:
+		callshop "Master_Spirit_Handler",1;
+		end;
+		}
+	default:
+		goto Main;
+	}
+
+}

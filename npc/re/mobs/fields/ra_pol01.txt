@@ -1,0 +1,5 @@
+ra_pol01,0,0,0,0	monster	Burning Knight	21946,100
+ra_pol01,0,0,0,0	monster	Deadween	21949,100
+ra_pol01,0,0,0,0	monster	Dedsera	21947,100
+ra_pol01,0,0,0,0	monster	Hardrock Titan	21948,100
+ra_pol01,0,0,0,0	boss_monster	Gaia Pol	21950,1,43200000,600000,0

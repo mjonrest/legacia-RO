@@ -1,0 +1,254 @@
+// @damage holds the amount of damage dealt.
+// @damagegid holds the GID of the target (account ID if the target is a player).
+// @damagerid holds the rid of the mob
+// @damagemobid holds the id of the mob
+//	dispbottom "You've dealt "+@damage+" to target with GID "+@damagegid+" and Mob ID "+@damagemobid;
+//job_thief1
+//-	script	test	-1,{
+//OnPCAttackEvent:
+//	dispbottom "You've dealt "+@damage+" to target with GID "+@damagegid+" and Mob ID "+@damagemobid;
+//	end;
+//}
+
+-	script	mining	-1,{
+
+OnPCAttackEvent:
+	// Mining mob ID check
+	if (@damagemobid != 1003) end;
+
+	// Pickaxe check
+	if (getequipid(EQI_HAND_R) != 30020 && getequipid(EQI_HAND_L) != 30020) {
+		dispbottom "[Mining Zone]: You must wear a Pick Axe to do mining!";
+		end;
+	}
+
+	// ------------------------------------------
+	// ? Calculate total refinement bonus
+	// ------------------------------------------
+	.@ref_left   = getequiprefinerycnt(EQI_HAND_R);
+	.@ref_armor  = getequiprefinerycnt(EQI_ARMOR);
+	.@ref_garm   = getequiprefinerycnt(EQI_GARMENT);
+	.@ref_shoes  = getequiprefinerycnt(EQI_SHOES);
+
+	.@total_refine = .@ref_left + .@ref_armor + .@ref_garm + .@ref_shoes;
+
+	// ------------------------------------------
+	// ? Calculate bonus chances
+	// ------------------------------------------
+	.@bonus_common = .@total_refine / 10;     // Reward1 / Reward2
+	.@bonus_rare   = .@total_refine / 10;     // Group1–Group4
+
+	// Base chances
+	.@base_reward1 = 30;  // original: 100 / 10000
+	.@base_reward2 = 15;
+	.@base_g1 = 12;
+	.@base_g2 = 9;
+	.@base_g3 = 6;
+	.@base_g4 = 3;
+
+	// Add bonus
+	.@chance_reward1 = .@base_reward1 + .@bonus_common;
+	.@chance_reward2 = .@base_reward2 + .@bonus_common;
+
+	.@chance_g1 = .@base_g1 + .@bonus_rare;
+	.@chance_g2 = .@base_g2 + .@bonus_rare;
+	.@chance_g3 = .@base_g3 + .@bonus_rare;
+	.@chance_g4 = .@base_g4 + .@bonus_rare;
+
+	// Total roll base = 10000
+	.@roll = rand(10000);
+
+	// Gain mining EXP
+	mining_exp += 1;
+
+	// ------------------------------------------
+	// ? Reward1 / Reward2
+	// ------------------------------------------
+	if (.@roll < .@chance_reward1) {
+		setarray .@reward1[0], 7620,6240,984,985,7619,6241,6224,6226,6223,6225,6635,6439,6438;
+		.@get = .@reward1[rand(getarraysize(.@reward1))];
+		getitem .@get, 1;
+	//	announce "[Mining Zone]: "+strcharinfo(0)+" obtained "+getitemname(.@get)+" from Mining.", bc_all|bc_green;
+
+	// Reward 2
+	} else if (.@roll < .@chance_reward2) {
+		setarray .@reward2[0], 1000331,1000332,1000368,1000370,1000333,1000334,1000335,1000336;
+        .@get = .@reward2[rand(getarraysize(.@reward2))];
+		getitem .@get, 1;
+	//	announce "[Mining Zone]: "+strcharinfo(0)+" obtained new item "+getitemname(.@get)+" from Mining.", bc_all|bc_green;
+
+	// ------------------------------------------
+	// ? Rare drops
+	// ------------------------------------------
+	} else if (.@roll < .@chance_g1) {
+		setarray .@group1[0], 6585, 6584;
+		.@drop = .@group1[rand(getarraysize(.@group1))];
+		getitem .@drop, 1;
+		announce "[Mining Zone]: "+strcharinfo(0)+" obtained super rare item "+getitemname(.@drop)+"!", bc_all|bc_green;
+
+	} else if (.@roll < .@chance_g2) {
+		setarray .@group2[0], 6876, 6870;
+		.@drop = .@group2[rand(getarraysize(.@group2))];
+		getitem .@drop, 1;
+		announce "[Mining Zone]: "+strcharinfo(0)+" obtained ultra rare item "+getitemname(.@drop)+"!", bc_all|bc_green;
+
+	} else if (.@roll < .@chance_g3) {
+		setarray .@group3[0], 6871, 6877;
+		.@drop = .@group3[rand(getarraysize(.@group3))];
+		getitem .@drop, 1;
+		announce "[Mining Zone]: "+strcharinfo(0)+" obtained extremely rare item "+getitemname(.@drop)+"!", bc_all|bc_green;
+
+	} else if (.@roll < .@chance_g4) {
+		setarray .@group4[0], 6878, 6872;
+		.@drop = .@group4[rand(getarraysize(.@group4))];
+		getitem .@drop, 1;
+		announce "[Mining Zone]: "+strcharinfo(0)+" obtained LEGENDARY item "+getitemname(.@drop)+"!", bc_all|bc_yellow;
+	}
+
+	end;
+}
+
+prontera,181,216,5	script	Mining Gatekeeper	848,{
+	mes "[Gatekeeper]";
+	mes "Welcome to the Mining Zone!";
+	mes "^008800You may bring Buttefly Wing inside the mining zone.^000000";
+next;
+switch(select("Enter Mining Area","Purchase Tools","Refine Mining Equipment")) {
+	case 1: goto L_Enter;
+	case 2: mes "[Mining Shop]";
+		mes "Currency = Event Point";
+		mes "Your Current Event Point = ^00FF00"+#EVENTVARIABLE+"^000000 pts.";
+		callshop "mining_shop",1;
+		end;
+	case 3: goto L_Refine;
+}
+
+L_Enter:
+	if (Class != Job_Novice) {
+		mes "Only Novices may enter.";
+		close;
+	}
+
+	getinventorylist();
+
+	setarray .@allowed[0],
+		7620,6240,984,985,7619,6241,6224,6226,6223,6225,
+		6635,6439,6438,6876,6870,6871,6877,6878,6872,
+		30020,30021,30022,30023,1000331,1000332,1000368,1000370,1000333,1000334,1000335,1000336,
+		602;
+
+	for (.@i = 0; .@i < @inventorylist_count; .@i++) {
+		.@id = @inventorylist_id[.@i];
+		.@ok = 0;
+		for (.@j = 0; .@j < getarraysize(.@allowed); .@j++) {
+			if (.@id == .@allowed[.@j]) {
+				.@ok = 1;
+				break;
+			}
+		}
+		if (!.@ok) {
+			mes "Unapproved item: " + getitemname(.@id);
+			close;
+		}
+	}
+
+	sc_end SC_ALL;
+	sc_end SC_STRFood;
+	sc_end SC_AGIFood;
+	sc_end SC_VITFood;
+	sc_end SC_INTFood;
+	sc_end SC_DEXFood;
+	sc_end SC_LUKFood;
+
+	mes "All status effects removed.";
+	mes "Happy Mining";
+	close2;
+	warp "job_thief1", 50, 50;
+	end;
+
+L_Refine:
+	mes "[Gatekeeper]";
+	mes "You have ^0055FF" + mining_exp + "^000000 Mining EXP.";
+	next;
+
+	// Define valid refineable equipment IDs
+	setarray .@valid_ids[0], 30020, 30021, 30022, 30023;
+	
+	// Check all possible equipment slots
+	setarray .@slots[0], EQI_HAND_R, EQI_HAND_L, EQI_ARMOR, EQI_GARMENT, EQI_SHOES;
+	setarray .@slot_names$[0], "Right Hand", "Left Hand", "Armor", "Garment", "Shoes";
+
+	set .@count, 0;
+	for (.@i = 0; .@i < getarraysize(.@slots); .@i++) {
+		set .@id, getequipid(.@slots[.@i]);
+		for (.@j = 0; .@j < getarraysize(.@valid_ids); .@j++) {
+			if (.@id == .@valid_ids[.@j]) {
+				// Found valid mining equipment
+				set .@found_id[.@count], .@id;
+				set .@found_slot[.@count], .@slots[.@i];
+				set .@found_name$[.@count], getitemname(.@id) + " (" + .@slot_names$[.@i] + ") +"+getequiprefinerycnt(.@slots[.@i]);
+				.@count++;
+				break;
+			}
+		}
+	}
+
+	if (.@count == 0) {
+		mes "You don't have any mining equipment equipped in weapon/armor/garment/shoes slots.";
+		close;
+	}
+
+	mes "Select the equipment you want to refine:";
+	next;
+	set .@choice, select(.@found_name$[0], .@found_name$[1], .@found_name$[2], .@found_name$[3], .@found_name$[4]) - 1;
+
+	set .@slot, .@found_slot[.@choice];
+	set .@equip_id, .@found_id[.@choice];
+	set .@ref_lv, getequiprefinerycnt(.@slot);
+
+	if (.@ref_lv >= 20) {
+		mes "This equipment is already at +20.";
+		close;
+	}
+
+	// Cost table
+	setarray .@cost[1],
+		1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,
+		11000,12000,13000,14000,15000,16000,17000,18000,19000,20000;
+
+	set .@next_lv, .@ref_lv + 1;
+	set .@exp_needed, .@cost[.@next_lv];
+
+	if (mining_exp < .@exp_needed) {
+		mes "You need ^FF0000" + .@exp_needed + "^000000 Mining EXP to refine to +"+.@next_lv+".";
+		close;
+	}
+
+	mes "Refine "+getitemname(.@equip_id)+" to +"+.@next_lv+" for "+.@exp_needed+" EXP?";
+	if (select("Yes:No") == 2) close;
+
+	mining_exp -= .@exp_needed;
+	successrefitem .@slot;
+
+	mes "Refined to +"+.@next_lv+"!";
+	mes "Remaining Mining EXP: " + mining_exp;
+	close;
+
+Oninit:
+    while(1){
+		delwaitingroom;
+   		waitingroom getmapusers("job_thief1")+" Player[s] Mining",0;
+		sleep 1000;
+	}
+end;
+}
+
+job_thief1	mapflag	nowarp
+job_thief1	mapflag	nowarpto
+job_thief1	mapflag	nobranch
+job_thief1	mapflag	NOCASHSHOP
+job_thief1	mapflag	nocommand	99
+job_thief1	mapflag	nosave
+
+job_thief1,0,0	monster	[Event] Mining Stone	1003,300
+-	pointshop	mining_shop	-1,#EVENTVARIABLE,30020:100,30021:150,30022:150,30023:150

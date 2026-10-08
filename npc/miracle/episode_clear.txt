@@ -1,0 +1,341 @@
+prontera,164,163,3	script	Episode Skip NPC	10132,{
+	mes "[Episode Skip]";
+	if (Class < 4060) {
+	    mes "Please change your job to at least 3rd class first";
+	    close;
+	}
+	mes "Which episodes do you want to skip?";
+	mes "You must have the proper skip ticket.";
+	next;
+
+	switch(select(
+		"Skip Episode 16.1 + 16.2",
+		"Skip Episode 17.1 + 17.2",
+		"Skip Episode 18",
+		"Skip Episode 19",
+		"Never mind")) {
+
+	case 1:
+		if ( ep16_done == 1 ){
+			mes "[Episode Skip]";
+			mes "You have clear this episode.";
+			close;
+		}
+
+	if (countitem(1000282) < 1) {
+		mes "[Episode Skip]";
+		mes "You need ^FF0001Episode 16 Skip Ticket^000000 (Item ID: 1000282) to proceed.";
+		close;
+	}
+
+	if (((Weight*100)/MaxWeight) > 49) {
+		mes "You’re carrying too many items.";
+		mes "Please reduce your inventory weight first.";
+		close;
+	}
+
+	delitem 1000282, 1;
+		// Episode 16.1
+		set ep16_royal, 17;
+		set ep16_wal, 6;
+		set ep16_wig, 6;
+		set ep16_lug, 6;
+		set ep16_gaobs, 6;
+		setquest 7681; completequest 7681;
+		setquest 7682; completequest 7682;
+		setquest 7683; completequest 7683;
+		setquest 7684; completequest 7684;
+		setquest 7685; completequest 7685;
+		setquest 14469; completequest 14469;
+		setquest 14470; completequest 14470;
+		getitem 6933, 1;
+		getitem 6919, 10;
+
+		// Episode 16.2
+		set terra_gloria_main, 25;
+		setquest 7735; completequest 7735;
+		getitem 25155, 13;
+
+		mes "[Episode Skip]";
+		mes "Episode 16.1 and 16.2 have been marked as completed.";
+		mes "You received all key story and side rewards.";
+		set ep16_done,1;
+		close;
+
+	case 2:
+	if ( ep17_done == 1 ){
+			mes "[Episode Skip]";
+			mes "You have clear this episode.";
+			close;
+	}
+	if (countitem(1000287) < 1) {
+		mes "[Episode Skip]";
+		mes "You need ^FF0001Episode 17 Skip Ticket^000000 (Item ID: 1000287) to proceed.";
+		close;
+	}
+
+	if (((Weight*100)/MaxWeight) > 49) {
+		mes "You’re carrying too many items.";
+		mes "Please reduce your inventory weight first.";
+		close;
+	}
+
+	delitem 1000287, 1;
+		// Episode 17.1
+		set terra_gloria_main, 26;
+		setquest 7850; completequest 7850;
+		setquest 16360; completequest 16360;
+		setquest 17018; completequest 17018;
+		setquest 17019; completequest 17019;
+		setquest 17033; completequest 17033;
+		setquest 17034; completequest 17034;
+		setquest 17035; completequest 17035;
+
+		// Episode 17.2 main
+		set ep17_2_main, 33;
+		setquest 11615; completequest 11615;
+		setquest 11616; completequest 11616;
+		setquest 11617; completequest 11617;
+		setquest 11618; completequest 11618;
+		setquest 11620; completequest 11620;
+		setquest 18018; completequest 18018;
+
+		// Episode 17.2 side flags
+		set ep172_watergarden, 5;
+		set ep17_2_chirp, 5;
+
+		// Water Garden
+		setquest 16427; completequest 16427;
+		setquest 16428; completequest 16428;
+		setquest 16430; completequest 16430;
+		setquest 16436; completequest 16436;
+
+		// Sweety + Intruder quests
+		setquest 18019; completequest 18019;
+		setquest 18022; completequest 18022;
+		setquest 18023; completequest 18023;
+		setquest 18024; completequest 18024;
+
+		// Beta Core Recovery
+		setquest 18002; completequest 18002;
+		for (.@i = 18003; .@i <= 18012; .@i++) {
+			setquest .@i; completequest .@i;
+		}
+		setquest 18013; completequest 18013;
+
+		// Chirp Key Events
+		for (.@i = 17345; .@i <= 17347; .@i++) {
+			setquest .@i; completequest .@i;
+		}
+		setquest 17348; completequest 17348;
+
+		// Rewards (excluding EXP)
+		getitem 1000103, 398;
+		getitem 1000092, 1;
+		getitem 1000226, 10;
+		getitem 1000100, 4;
+		getitem 400127, 1;
+
+		// Episode 18 unlock
+		if ( ep18_main < 1 ){
+		set ep18_main, 1;
+		}
+		setquest 8681;
+
+		mes "[Episode Skip]";
+		mes "Episode 17.1 and 17.2 have been marked as completed.";
+		mes "All related story and side quest rewards granted.";
+		set ep17_done,1;
+		close;
+
+	case 3:
+	if ( ep18_done2 == 1 ){
+		mes "[Episode Skip]";
+		mes "You have clear this episode.";
+		close;
+	}
+	if (countitem(1000288) < 1) {
+		mes "[Episode Skip]";
+		mes "You need ^FF0001Episode 18 Skip Ticket^000000 (Item ID: 1000288) to proceed.";
+		close;
+	}
+
+	//-----------------------------
+	// Inventory weight check
+	//-----------------------------
+	if (((Weight*100)/MaxWeight) > 49) {
+		mes "You’re carrying too many items.";
+		mes "Please reduce your inventory weight first.";
+		close;
+	}
+	delitem 1000288, 1;
+	// ========================
+	// Quest Completion System (comprehensive, with array and for loop)
+	// ========================
+	setarray .@ep18_quests[0],
+		8682,8684,8685,8687,8688,8689,8692,8693,8694,8695,8696,8697,
+		11724,11725,11726,11732,11733,11735,11736,11737,11738,11739,
+		12531,12532,12533,12536,12537,12538,12539,
+		16548,16549,16550,16554,16559,16562,16563,16564,16565,16568,16569,16570,16571,16572,16573,16575,16576,16580,16584,16585,
+		17504,17505,17506,17507,17508,17509,17510,17512,17513,17514,17515,17516,17517,
+		18082,18086,18087,
+		3493,3494,3495,3496,3497,3498,3499,3500,3501,3502,3505,
+		5932,5933,5934,5935,5936,5937,5938,5939,5940,5941;
+	for (.@i = 0; .@i < getarraysize(.@ep18_quests); .@i++) {
+		if (checkquest(.@ep18_quests[.@i],PLAYTIME) == 0) setquest .@ep18_quests[.@i];
+		if (checkquest(.@ep18_quests[.@i],PLAYTIME) == 1) completequest .@ep18_quests[.@i];
+	}
+
+	// ======================
+	// Reward Distribution
+	// ======================
+	
+	// Key Items
+	getitem 400127,1;	// Ep18_Mini_Elly (Headgear)
+	getitem 1000405,500;	// Amethyst Fragments (Total from all sources)
+
+	// Experience (Sum of all quest EXP + bonus)
+	getexp 18252408 * 20,2000000 * 20;	// Base EXP from all quests
+	getexp 500000000,500000000;		// Bonus Completion EXP
+
+	// Reputation System
+	set_reputation_points REPUTATION_EP18, 5000;	// Max reputation
+
+	// ======================
+	// Map/System Unlocks
+	// ======================
+	
+	// Unlock all warps
+	setcell "ra_temple",0,0,300,300,cell_walkable,1;
+	setcell "wolfvill",0,0,300,300,cell_walkable,1;
+	
+	// Complete hidden objectives
+	setquest 11716; completequest 11716;	// Western Entrance
+	setquest 11720; completequest 11720;	// Oz Exit
+	setquest 16574; completequest 16574;	// Final Protest
+
+	// ======================
+	// World State: NPC Visibility & Variables
+	// ======================
+	// Uncloak all relevant NPCs for post-Ep18
+	cloakoffnpcself("Suad#sms02");
+	cloakoffnpcself("Maram#sms02");
+	cloakoffnpcself("Miriam#sms02");
+	cloakoffnpcself("Lamacus#sms01");
+	cloakoffnpcself("Kun#sms01");
+	cloakoffnpcself("Yopi#sms01");
+	cloakoffnpcself("Zed#sms01");
+	cloakoffnpcself("Niren#sms01");
+	cloakoffnpcself("Elly's Figure#c12_02");
+	cloakoffnpcself("Miriam#c12_02");
+	cloakoffnpcself("Maram#c12_01");
+	cloakoffnpcself("Ira#c12_01");
+	cloakoffnpcself("Goat#wms02");
+	cloakoffnpcself("Boksil#wms03");
+	// Add more as needed for your server
+
+	// Cloak temporary/quest NPCs
+	cloakonnpcself("Maram#1_2");
+	// Add more as needed for your server
+
+	// ======================
+	// Cleanup & Validation
+	// ======================
+	
+	// Force-update quest markers
+	questinfo QTYPE_QUEST, QMARK_NONE, 0;
+	questinfo QTYPE_QUEST2, QMARK_NONE, 0;
+	questinfo QTYPE_DAILYQUEST, QMARK_NONE, 0;
+
+	// Finalize progression
+	set ep18_main,57;
+	if ( ep19_main < 1 ){	// Set to final story state
+	set ep19_main, 0;
+	}
+	set ep18_done2,1;
+	close;
+
+	case 4:  // Episode 19 skip
+	if (ep18_done2 != 1) {
+		mes "[Episode Skip]";
+		mes "You must complete Episode 18 first.";
+		close;
+	}
+		if ( ep19_done == 1 ){
+			mes "[Episode Skip]";
+			mes "You have cleared this episode.";
+			close;
+		}
+		if (countitem(1001263) < 1) {
+			mes "[Episode Skip]";
+			mes "You need ^FF0001Episode 19 Skip Ticket^000000 (Item ID: 1001263) to proceed.";
+			close;
+		}
+		if (((Weight*100)/MaxWeight) > 49) {
+			mes "You're carrying too many items.";
+			mes "Please reduce your inventory weight first.";
+			close;
+		}
+		delitem 1001263, 1;
+
+		// ========================
+		// Complete all main story quests
+		// ========================
+		setarray .@ep19_quests[0],
+			18119,18120,18121,18122,18123,18129,18124,18125,18126,18127,18128,
+			17619,17620,17621,17622,17623,17624,17625,17626,17627,17628,17629,
+			17630,17631,17632,17633,17634,17635,17636,17637,17638,17639,
+			16636,16637,16638,16639,16640,16641,16642,16643,16644,16645,
+			16646,16647,16648,16649,16650,16651,16652,16653,16654,16655,
+			16656,16657,16658,16659,
+			17640,17641,17642,17643,17644,17645,17646,17647,17649;
+		for (.@i = 0; .@i < getarraysize(.@ep19_quests); .@i++) {
+			if (checkquest(.@ep19_quests[.@i], PLAYTIME) == 0)
+				setquest .@ep19_quests[.@i];
+			if (checkquest(.@ep19_quests[.@i], PLAYTIME) == 1)
+				completequest .@ep19_quests[.@i];
+		}
+
+		setquest 17650;
+		set ep19_side_sea,17;
+		// ========================
+		// Set final story variables
+		// ========================
+		set ep19_main, 100;
+		set ep19_done, 1;
+
+		// ========================
+		// Reward: Snow Flowers (total from all main story steps)
+		// ========================
+		getitem 1000608, 315;   // Ep19_Snow_Flower
+
+		// ========================
+		// Reward: Reputation points (total from all main story steps)
+		// ========================
+		add_reputation_points(REPUTATION_EP19, 280);
+
+		// ========================
+		// Reward: Experience (main story direct EXP + completion bonus)
+		// ========================
+		getexp 119725365, 7000000;   // Base and Job from story
+		getexp 500000000, 500000000; // Bonus completion EXP
+
+		// ========================
+		// Optional: Give one Transformation Scroll as souvenir
+		// ========================
+		getitem 101162, 1;   // Ep19_Rgan_Scroll
+
+		mes "[Episode Skip]";
+		mes "Episode 19 has been marked as completed.";
+		mes "You received all main story rewards.";
+		close;
+		break;
+
+	default:
+		mes "[Episode Skip]";
+		mes "Come back anytime if you have a valid ticket.";
+		close;
+	}
+
+}
+

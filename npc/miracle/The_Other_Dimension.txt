@@ -1,0 +1,621 @@
+//===== rAthena Script =======================================
+//= The Other Dimension from Tree Of Savior!
+//===== By: ==================================================
+//= Sader1992
+//= Free!!
+//https://rathena.org/board/profile/30766-sader1992/
+//===== Current Version: =====================================
+//= 1.0.6
+//===== Compatible With: ===================================== 
+//= rAthena Project
+//https://github.com/sader1992/sader_scripts
+//===== Description: =========================================
+//==== REEEEEEEEEEEEEEEEEEEEEEAD MEEEEEEEEEEEEEEEEEE!
+//==== READ ME!
+//==== if you play Tree Of Savior , you might know The Other Dimension.
+//==== The main idea is the player can join The Other Dimension it's a solo instance
+//==== he can join as much as he want , the Goal is to reach the Highest Stage impossible in 20 min or until he die!
+//==== in Tree Of Savior The Other Dimension is one stage monsters and the 2nd stage boss
+//==== endless (i didn't finish it before but the idea is to not finish it!)
+//==== The rewards are sent to the mail at the end of the week
+//==== see the config to edit it (search for OnInit)
+//==== in Tree Of Savior the rewards are coints that you get each week
+//==== you can do that and activate the shop option
+//==== there is 1 array for the items id and 2 array for the counts
+//==== the first count array is for any Participant
+//==== the other count array is if the player was the first in his class and the Participants from his class is more than .MiniParticipants
+//==== you can block classes , or even make the monsters per class (Check Add for more info)
+//==== there is a rank option to check the players's max stage per classes
+//==== there is no drop nor expin the system!
+//==== i Added 40 stage for testing and as example for you , just remove it all and build your own!
+//==== the stages i added has no balance! add it to what best for your server.
+//==== i suggest making +100 stage , make sure that no player can reach the final stage but
+//==== make it really hard not impossible!!
+//============================================================
+//==== please report any error you find
+//============================================================
+//============================================================
+/**
+  - Id: 5
+    Name: The Other Dimension
+    TimeLimit: 1230
+    IdleTimeOut: 1
+    Enter:
+      Map: 2@ods
+      X: 23
+      Y: 14
+**/
+prontera,118,160,4	script	The Other Dimension	10307,{
+	set .@npc$,"^0000FF[ ToD Gate Keeper ]^000000";
+	switch(select("Enter The Other Dimension:Shop:Rank:Information")){
+		case 1:
+			mes .@npc$;
+			if(.AllowedClasses != -1){
+				if(inarray(.AllowedClasses,Class) == -1){
+					mes "Sorry, Your Class is not Allowed in the Other Dimension";
+					end;
+				}
+			}
+			if(getcharid(1)){
+				mes "You Have To Leave Your Party!";
+				end;
+			}
+			if(instance_id(IM_CHAR))
+				instance_destroy instance_id(IM_CHAR);
+			if (instance_create(.in_name$,IM_CHAR,getcharid(0)) < 0) {
+				mes "^0000ff" + .in_name$ + " ^000000- Reservation Failed!";
+				close;
+			}
+			.@id = instance_id(IM_CHAR);
+			switch(instance_enter(.in_name$,-1,-1,getcharid(0),.@id)) {
+			case IE_OTHER:
+				mes "An unknown error has occurred.";
+				close;
+			case IE_NOINSTANCE:
+				mes "The memorial dungeon " + .in_name$ + " does not exist.";
+				close;
+			case IE_OK:
+				showdigit 1230,2;
+				InOtherDimensionDigit = true;
+				mapannounce strnpcinfo(4), strcharinfo(0) +" is entering the dungeon, " + .in_name$ + ".",bc_map,"0x00ff99",FW_NORMAL,12;
+			}
+			end;
+		case 2:
+			//Open Point Shop.
+			mes .@npc$;
+			mes "Currency : "+mesitemlink(60099);
+			callshop "ToD",1;
+			end;
+		case 3:
+			mes .@npc$;
+			query_sql("SELECT `class` FROM `" + .sql_t$ + "`",.@classes);
+			if(!getarraysize(.@classes)){
+				mes "no one has entered yet!";
+				end;
+			}
+			for(.@i=0;.@i<getarraysize(.@classes);.@i++){
+				if(inarray(.@c_list,.@classes[.@i]) == -1)
+					.@c_list[getarraysize(.@c_list)] = .@classes[.@i];
+			}
+			for(.@i=0;.@i<getarraysize(.@c_list);.@i++){
+				.@op$ += jobname(.@c_list[.@i]) + ":";
+			}
+			.@s = select(.@op$) -1;
+			query_sql("SELECT `name`,`max_round` FROM `" + .sql_t$ + "` WHERE `class` = '" + .@c_list[.@s] + "' AND `max_round` > '0' ORDER BY `max_round` DESC",.@name$,.@max_round);
+			if(!getarraysize(.@name$)){
+				mes "no one has entered yet!";
+				end;
+			}
+			for(.@i=0;.@i<getarraysize(.@name$);.@i++){
+				mes "^3702fe" + (.@i + 1) + "^000000. '^09AB36" + .@name$[.@i] + "^000000' ^ADA049 Round " + .@max_round[.@i] + "^000000";
+			}
+			end;
+		case 4:
+			mes .@npc$;
+			mes "You can join The Other Dimension as much as you want";
+			mes "The goal is to reach the highest stage as possible";
+			mes "You have 20min or until you die";
+			mes "Rewards are sent automaticly in the mail every week";
+			mes "Taming a monster does not count towards defeating them, and it will break your run!";
+			mes "there is No Drops and No Exp from the monsters!";
+			end;
+	}
+
+OnForceSndOD:
+	mes "all the rewards will be sent and the rank will be cleared!";
+	mes "Are you sure you want to do that!!";
+	if(select("no:no:yes:no") != 3)
+		end;
+//OnFriday0001: //send the rewards.
+OnFri2359:
+	query_sql("SELECT `class` FROM `" + .sql_t$ + "`",.@classes);
+	for(.@i=0;.@i<getarraysize(.@classes);.@i++) {
+		if(inarray(.@c_list,.@classes[.@i]) == -1 && inarray(.FirstClasses,.@classes[.@i]) != -1)
+			.@c_list[getarraysize(.@c_list)] = .@classes[.@i];
+	}
+
+	// Get all the `char_id`, `max_round` from `other_dimension_instance` and `account_id` from `char` table
+	query_sql("SELECT DISTINCT o.`char_id`, o.`max_round`, c.`account_id` FROM `" + .sql_t$ + "` o LEFT JOIN `char` c ON o.`char_id` = c.`char_id`", .@cid1, .@max1, .@acc_id);
+
+	// Arrays to track the highest `max_round` per `account_id`
+	set .@account_max_round[getarraysize(.@acc_id)], -1;
+
+	// Arrays to simulate lists of `char_id`s
+	setarray .@char_id_list, -1; // List of char_ids (flat array)
+	set .@start_index[getarraysize(.@acc_id)], 0; // Starting index of the list for each account
+	set .@char_count[getarraysize(.@acc_id)], 0; // Number of chars in the list for each account
+	.@current_index = 0; // Tracks the position in the flat array
+
+	// Iterate through the characters and keep track of the highest `max_round` per account
+	for(.@i = 0; .@i < getarraysize(.@acc_id); .@i++) {
+		.@aid = .@acc_id[.@i]; // Current account ID
+
+		// If this character's `max_round` is higher than the stored value, update it
+		if(.@max1[.@i] > .@account_max_round[.@aid]) {
+			.@account_max_round[.@aid] = .@max1[.@i];
+			.@start_index[.@aid] = .@current_index; // Set new start index for this account
+			.@char_count[.@aid] = 1; // Reset count to 1
+			.@char_id_list[.@current_index++] = .@cid1[.@i]; // Add the current char_id
+		}
+		// If this character's `max_round` is equal to the highest, add to the list
+		else if(.@max1[.@i] == .@account_max_round[.@aid]) {
+			.@char_id_list[.@current_index++] = .@cid1[.@i]; // Add the char_id to the flat list
+			.@char_count[.@aid]++; // Increase the count for this account
+		}
+	}
+
+// Send rewards to the character with the highest max_round per account
+for(.@i = 0; .@i < getarraysize(.@acc_id); .@i++) {
+	.@aid = .@acc_id[.@i]; // Current account ID
+
+	// Skip if the account has already been processed
+	if (.@account_max_round[.@aid] == -1) continue;
+
+	if (.@account_max_round[.@aid] > 0) { // Ensure there's a valid max_round
+		// Get the list of char_ids for this account
+		.@list_start = .@start_index[.@aid]; // Starting index
+		.@list_size = .@char_count[.@aid]; // Number of characters with the highest round
+
+		// Randomly select one character if there are multiple with the same max_round
+		.@char_id = .@char_id_list[.@list_start + rand(.@list_size)];
+		.@round = .@account_max_round[.@aid];
+
+		// Check if the character is one of the first players (optional)
+		if(inarray(.@FirstPlayrs, .@char_id) != -1) {
+			.@count = (.rewardFT * .@round);
+		} else {
+			.@count = (.rewardCN * .@round);
+		}
+
+		// Send mail
+		mail .@char_id, .sender$, .title$, .body$, 0, .rewardID, .@count, .@null, .@null, .@null, .@null, .@null;
+
+		// Mark the account as processed
+		.@account_max_round[.@aid] = -1;
+	}
+}
+	query_sql("TRUNCATE `" + .sql_t$ + "`"); //clear the sql.
+end;
+OnForceClearOD:
+	mes "rank will be cleared! without sending any rewards.";
+	mes "Are you sure you want to do that!!";
+	if(select("no:no:yes:no") != 3)
+		end;
+	query_sql("TRUNCATE `" + .sql_t$ + "`"); //clear the sql.
+end;
+OnPCLoginEvent:
+	if(InOtherDimensionDigit){
+		InOtherDimensionDigit = false;
+		showdigit 0,3;
+	}
+end;
+OnInit: //Main Config
+	//if the first element was -1 all the classes is allowed.
+	//if it's not -1 , put the classes ids for the allwed classes.
+	setarray .AllowedClasses,-1;
+	
+	//The Rewards.
+	setarray .rewardID,60099;//Array of the item ids.the max is how much the mail can handle! stay 5 for safty , too lazy to check!
+	setarray .rewardCN,1;//(PER STAGE!) Array of the item counts!.
+	setarray .rewardFT,1;//(PER STAGE!) Array of the item counts! For Who was the first on his class and the Participants in the same class was more than .MiniParticipants.
+	.MiniParticipants = 5;//IF YOU READ EVERYTHING YOU WILL KNOW WHAT IS THIS!!.
+	setarray .FirstClasses,-1;// if it is -1 than all the first players of the classes (with more than .MiniParticipants Participants) will get the rewardFT count , if not -1 put array of the classes.
+	.MaxRewardPerClass = -1;//how many player will resive the reward per class the default is -1 all the Participants will get the rewards.
+	
+	/*
+	FOR EXAMPLE WITH THE DEFAULT OPTIONS:
+	if a player cleard up to stage 6 , he will get at the end of the week the count*stage 1*6 6 from the item id 503 and 6 from 502.
+	
+	if the player was the first in his class and there was more than .MiniParticipants from that class in the rank
+	if a player cleard up to stage 6 , he will get at the end of the week the count*stage 5*6 30 from the item id 503 and 12 from 502.
+	
+	all the items will be sent via the Mail System
+	
+	IF YOU DIDN'T UNDERSTAND RE-READ.
+	*/
+	
+	//Message Information:
+	.sender$ = "Server";
+	.title$ = "The Other Dimension Rewards";
+	.body$ = "The Reward for Participating in\r\nThe Other Dimension.";
+	
+	.in_name$ = "The Other Dimension";
+	.sql_t$ = "other_dimension_instance";//do not change if you don't know what you are doing!
+	bindatcmd "ForceSndOD",strnpcinfo(3) + "::OnForceSndOD",99,99;
+	bindatcmd "ForceClearOD",strnpcinfo(3) + "::OnForceClearOD",99,99;
+
+waitingroom "The Other Dimension",0;
+end;
+}
+
+2@ods	mapflag	noteleport
+2@ods	mapflag	nomemo
+2@ods	mapflag	notrade
+2@ods	mapflag	nodrop
+2@ods	mapflag	noloot
+2@ods	mapflag	noexp
+2@ods	mapflag	nopenalty
+2@ods	mapflag	nochat
+2@ods	mapflag	novending
+2@ods	mapflag	nobranch
+2@ods	mapflag	hidemobhpbar
+2@ods,0,0,0	script	::OtherDimensionSolo	-1,{
+OnInit: //Monsters Config
+	function Add;
+	freeloop(1);
+	//Add(<Class>,<Stage id>,<mob id>,<mob count>{,<mob id>,<mob count>{,<mob id>,<mob count>}});
+	// if Class is -1 than it will aplly to all the classes that does not have custom mobs.
+	Add(-1,1,1298,30);
+	Add(-1,2,1086,1);//Golden Thief Bug   (GOLDEN_BUG)   Mob-ID#1086
+	Add(-1,3,1213,30);
+	Add(-1,4,1159,1);//Phreeoni   (PHREEONI)   Mob-ID#1159
+	Add(-1,5,1584,30);
+	Add(-1,6,1511,1);//Amon Ra   (AMON_RA)   Mob-ID#1511
+	Add(-1,7,1441,30);
+	Add(-1,8,1150,1);//Moonlight Flower   (MOONLIGHT)   Mob-ID#1150
+	Add(-1,9,1117,30);
+	Add(-1,10,1389,1);//Dracula   (DRACULA)   Mob-ID#1389
+	Add(-1,11,1620,30);
+	Add(-1,12,1688,1);//Lady Tanee   (LADY_TANEE)   Mob-ID#1688
+	Add(-1,13,1131,30);
+	Add(-1,14,1087,1);//Orc Hero   (ORK_HERO)   Mob-ID#1087
+	Add(-1,15,1290,30);
+	Add(-1,16,1059,1);//Mistress   (MISTRESS)   Mob-ID#1059
+	Add(-1,17,1883,30);
+	Add(-1,18,1147,1);//Maya   (MAYA)   Mob-ID#1147
+	Add(-1,19,1617,30);
+	Add(-1,20,1046,1);//Doppelganger   (DOPPELGANGER)   Mob-ID#1046
+	Add(-1,21,1294,30);
+	Add(-1,22,1038,1);//Osiris   (OSIRIS)   Mob-ID#1038
+	Add(-1,23,1318,30);
+	Add(-1,24,1157,1);//Pharaoh   (PHARAOH)   Mob-ID#1157
+	Add(-1,25,1201,30);
+	Add(-1,26,1190,1);//Orc Lord   (ORC_LORD)   Mob-ID#1190
+	Add(-1,27,2048,30);
+	Add(-1,28,1373,1);//Lord of Death / Lord of the Dead   (LORD_OF_DEATH)   Mob-ID#1373
+	Add(-1,29,1135,30);
+	Add(-1,30,2131,1);//Lost Dragon   (LOST_DRAGON)   Mob-ID#2131
+	Add(-1,31,1196,30);
+	Add(-1,32,1251,1);//Knight of Windstorm / Stormy Knight   (KNIGHT_OF_WINDSTORM)   Mob-ID#1251
+	Add(-1,33,2748,30);
+	Add(-1,34,1039,1);//Baphomet   (BAPHOMET)   Mob-ID#1039
+	Add(-1,35,1385,30);
+	Add(-1,36,1630,1);//Bacsojin / White Lady   (BACSOJIN_)   Mob-ID#1630
+	Add(-1,37,1148,30);
+	Add(-1,38,1112,1);//Drake   (DRAKE)   Mob-ID#1112
+	Add(-1,39,1405,30);
+	Add(-1,40,1492,1);//Incantation Samurai / Samurai Specter   (INCANTATION_SAMURAI)   Mob-ID#1492
+	Add(-1,41,1405,30);
+	Add(-1,42,1272,1);//DARK LORD #1272
+	Add(-1,43,1323,30);
+	Add(-1,44,2068,1);//Biotata #2068
+	Add(-1,45,2070,30);
+	Add(-1,46,1719,1);//Detale #1719
+	Add(-1,47,1714,30);
+	Add(-1,48,2068,1);//Gopinich #1885
+	Add(-1,49,1717,30);
+	Add(-1,50,1623,1);//rsx #1623
+	Add(-1,51,1713,30);
+	Add(-1,52,1583,1);//tao gunka #1583
+	Add(-1,53,1114,30);  // Hydra (HP: 12,900)
+	Add(-1,54,1272,1);   // Dark Lord (DARK_LORD) Mob-ID#1272
+	Add(-1,55,1095,30);  // Minorous (HP: 15,000)
+	Add(-1,56,1112,1);   // Drake (DRAKE) Mob-ID#1112
+	Add(-1,57,1180,30);  // Merman (HP: 8,800)
+	Add(-1,58,1630,1);   // Bacsojin / White Lady (BACSOJIN) Mob-ID#1630
+	Add(-1,59,1088,30);  // Orc Warrior (HP: 9,456)
+	Add(-1,60,1157,1);   // Pharaoh (PHARAOH) Mob-ID#1157
+	Add(-1,61,1120,30);  // Anolian (HP: 11,420)
+	Add(-1,62,2068,1);   // Biotata Mob-ID#2068
+	Add(-1,63,1210,30);  // Alarm (HP: 7,810)
+	Add(-1,64,1086,1);   // Golden Thief Bug (GOLDEN_BUG) Mob-ID#1086
+	Add(-1,65,1198,30);  // Minorous (HP: 12,300)
+	Add(-1,66,1492,1);   // Incantation Samurai (INCANTATION_SAMURAI) Mob-ID#1492
+	Add(-1,67,1152,30);  // Deviruchi (HP: 6,166)
+	Add(-1,68,1719,1);   // Detale Mob-ID#1719
+	Add(-1,69,1091,30);  // Minorous (HP: 6,100)
+	Add(-1,70,1059,1);   // Mistress (MISTRESS) Mob-ID#1059
+	Add(-1,71,1130,30);  // Drainliar (HP: 5,800)
+	Add(-1,72,1373,1);   // Lord of Death (LORD_OF_DEATH) Mob-ID#1373
+	Add(-1,73,1060,30);  // Orc Lord (HP: 6,640)
+	Add(-1,74,1039,1);   // Baphomet (BAPHOMET) Mob-ID#1039
+	Add(-1,75,1149,30);  // Zenorc (HP: 5,200)
+	Add(-1,76,1688,1);   // Lady Tanee (LADY_TANEE) Mob-ID#1688
+	Add(-1,77,1178,30);  // Argiope (HP: 9,000)
+	Add(-1,78,1190,1);   // Orc Lord (ORC_LORD) Mob-ID#1190
+	Add(-1,79,1049,30);  // Skeleton Worker (HP: 6,000)
+	Add(-1,80,1046,1);   // Doppelganger (DOPPELGANGER) Mob-ID#1046
+	Add(-1,81,1062,30);  // Goblin Archer (HP: 5,200)
+	Add(-1,82,1038,1);   // Osiris (OSIRIS) Mob-ID#1038
+	Add(-1,83,1073,30);  // Sandman (HP: 7,000)
+	Add(-1,84,1251,1);   // Knight of Windstorm (KNIGHT_OF_WINDSTORM) Mob-ID#1251
+	Add(-1,85,1194,30);  // Nightmare (HP: 6,000)
+	Add(-1,86,1389,1);   // Dracula (DRACULA) Mob-ID#1389
+	Add(-1,87,1165,30);  // Anubis (HP: 12,000)
+	Add(-1,88,1147,1);   // Maya (MAYA) Mob-ID#1147
+	Add(-1,89,1132,30);  // Mutant Dragonoid (HP: 10,000)
+	Add(-1,90,1511,1);   // Amon Ra (AMON_RA) Mob-ID#1511
+	Add(-1,91,1107,30);  // Kobold Archer (HP: 5,400)
+	Add(-1,92,2068,1);   // Gopinich Mob-ID#1885
+	Add(-1,93,1158,30);  // Desert Wolf (HP: 7,000)
+	Add(-1,94,1087,1);   // Orc Hero (ORK_HERO) Mob-ID#1087
+	Add(-1,95,1181,30);  // Pasana (HP: 9,000)
+	Add(-1,96,1623,1);   // RSX Mob-ID#1623
+	Add(-1,97,1179,30);  // Permeter (HP: 10,000)
+	Add(-1,98,1583,1);   // Tao Gunka Mob-ID#1583
+	Add(-1,99,1097,30);  // Arclouse (HP: 7,000)
+	Add(-1,100,1150,1);  // Moonlight Flower (MOONLIGHT) Mob-ID#1150
+	Add(-1,101,1139,30); // Rybio (HP: 8,000)
+	Add(-1,102,2131,1);  // Lost Dragon Mob-ID#2131
+	Add(-1,103,1110,30); // Clock Tower Manager (HP: 9,000)
+	Add(-1,104,1688,1);  // Lady Tanee Mob-ID#1688
+	Add(-1,105,1176,30); // Requiem (HP: 8,200)
+	Add(-1,106,2131,1);  // Lost Dragon Mob-ID#2131
+	Add(-1,107,1121,30); // Sidewinder (HP: 7,000)
+	Add(-1,108,1583,1);  // Tao Gunka Mob-ID#1583
+	Add(-1,109,1082,30);  // Khalitzburg (HP: 7,890)
+	Add(-1,110,2068,1);   // Biotata Mob-ID#2068
+	Add(-1,111,1078,30);  // Raydric (HP: 9,000)
+	Add(-1,112,1492,1);   // Incantation Samurai (INCANTATION_SAMURAI) Mob-ID#1492
+	Add(-1,113,1123,30);  // Dark Priest (HP: 8,400)
+	Add(-1,114,1688,1);   // Lady Tanee (LADY_TANEE) Mob-ID#1688
+	Add(-1,115,1080,30);  // Hunter Fly (HP: 5,600)
+	Add(-1,116,1272,1);   // Dark Lord (DARK_LORD) Mob-ID#1272
+	Add(-1,117,1074,30);  // Jokers (HP: 7,500)
+	Add(-1,118,1157,1);   // Pharaoh (PHARAOH) Mob-ID#1157
+	Add(-1,119,1140,30);  // Arclouze (HP: 7,000)
+	Add(-1,120,1039,1);   // Baphomet (BAPHOMET) Mob-ID#1039
+	Add(-1,121,1103,30);  // Goblin Leader (HP: 6,400)
+	Add(-1,122,2068,1);   // Gopinich Mob-ID#1885
+	Add(-1,123,1071,30);  // Anacondaq (HP: 5,800)
+	Add(-1,124,1150,1);   // Moonlight Flower (MOONLIGHT) Mob-ID#1150
+	Add(-1,125,1153,30);  // Evil Druid (HP: 9,500)
+	Add(-1,126,1087,1);   // Orc Hero (ORK_HERO) Mob-ID#1087
+	Add(-1,127,1137,30);  // Skeleton General (HP: 8,600)
+	Add(-1,128,1623,1);   // RSX Mob-ID#1623
+	Add(-1,129,1081,30);  // Minorous (HP: 15,000)
+	Add(-1,130,1157,1);   // Pharaoh (PHARAOH) Mob-ID#1157
+	Add(-1,131,1113,30);  // Mummy (HP: 6,500)
+	Add(-1,132,1492,1);   // Incantation Samurai (INCANTATION_SAMURAI) Mob-ID#1492
+	Add(-1,133,1181,30);  // Pasana (HP: 9,000)
+	Add(-1,134,1373,1);   // Lord of Death (LORD_OF_DEATH) Mob-ID#1373
+	Add(-1,135,1136,30);  // Rybio (HP: 8,000)
+	Add(-1,136,1688,1);   // Lady Tanee (LADY_TANEE) Mob-ID#1688
+	Add(-1,137,1164,30);  // Bathory (HP: 5,500)
+	Add(-1,138,2131,1);   // Lost Dragon Mob-ID#2131
+	Add(-1,139,1149,30);  // Zenorc (HP: 5,200)
+	Add(-1,140,1059,1);   // Mistress (MISTRESS) Mob-ID#1059
+	Add(-1,141,1110,30);  // Clock Tower Manager (HP: 9,000)
+	Add(-1,142,2068,1);   // Gopinich Mob-ID#1885
+	Add(-1,143,1061,30);  // Goblin Leader (HP: 6,400)
+	Add(-1,144,1150,1);   // Moonlight Flower (MOONLIGHT) Mob-ID#1150
+	Add(-1,145,1141,30);  // Evil Snake Lord (HP: 8,000)
+	Add(-1,146,1623,1);   // RSX Mob-ID#1623
+	Add(-1,147,1108,30);  // Arclouse (HP: 7,000)
+	Add(-1,148,1389,1);   // Dracula (DRACULA) Mob-ID#1389
+	Add(-1,149,1145,30);  // Grand Peco (HP: 8,000)
+	Add(-1,150,2068,1);   // Biotata Mob-ID#2068
+	Add(-1,151,1165,30);  // Anubis (HP: 12,000)
+	Add(-1,152,1583,1);   // Tao Gunka Mob-ID#1583
+	Add(-1,153,1180,30);  // Merman (HP: 8,800)
+	Add(-1,154,2131,1);   // Lost Dragon Mob-ID#2131
+	Add(-1,155,1073,30);  // Sandman (HP: 7,000)
+	Add(-1,156,1150,1);   // Moonlight Flower (MOONLIGHT) Mob-ID#1150
+	Add(-1,157,1146,30);  // Mimic (HP: 7,000)
+	Add(-1,158,1272,1);   // Dark Lord (DARK_LORD) Mob-ID#1272
+	Add(-1,159,1097,30);  // Arclouse (HP: 7,000)
+	Add(-1,160,1373,1);   // Lord of Death (LORD_OF_DEATH) Mob-ID#1373
+	Add(-1,161,1194,30);  // Nightmare (HP: 6,000)
+	Add(-1,162,1087,1);   // Orc Hero (ORK_HERO) Mob-ID#1087
+	Add(-1,163,1117,30);  // Chimera (HP: 7,500)
+	Add(-1,164,1688,1);   // Lady Tanee (LADY_TANEE) Mob-ID#1688
+	Add(-1,165,1176,30);  // Requiem (HP: 8,200)
+	Add(-1,166,1492,1);   // Incantation Samurai (INCANTATION_SAMURAI) Mob-ID#1492
+	Add(-1,167,1143,30);  // Ancient Mummy (HP: 9,500)
+	Add(-1,168,1157,1);   // Pharaoh (PHARAOH) Mob-ID#1157
+	Add(-1,169,1161,30);  // Sidewinder (HP: 7,000)
+	Add(-1,170,2131,1);   // Lost Dragon Mob-ID#2131
+	Add(-1,171,1183,30);  // Skeleton Worker (HP: 6,000)
+	Add(-1,172,1583,1);   // Tao Gunka Mob-ID#1583
+	Add(-1,173,1112,30);  // Drake (HP: 9,000)
+	Add(-1,174,1272,1);   // Dark Lord (DARK_LORD) Mob-ID#1272
+	Add(-1,175,1167,30);  // Verit (HP: 7,500)
+	Add(-1,176,2068,1);   // Gopinich Mob-ID#1885
+	Add(-1,177,1139,30);  // Rybio (HP: 8,000)
+	Add(-1,178,1039,1);   // Baphomet (BAPHOMET) Mob-ID#1039
+	Add(-1,179,1151,30);  // Evil Druid (HP: 9,500)
+	Add(-1,180,1086,1);   // Golden Thief Bug (GOLDEN_BUG) Mob-ID#1086
+	Add(-1,181,1104,30);  // Obeaune (HP: 6,270)
+	Add(-1,182,1059,1);   // Mistress (MISTRESS) Mob-ID#1059
+	Add(-1,183,1091,30);  // Minorous (HP: 6,100)
+	Add(-1,184,1087,1);   // Orc Hero (ORK_HERO) Mob-ID#1087
+	Add(-1,185,1120,30);  // Anolian (HP: 11,420)
+	Add(-1,186,1039,1);   // Baphomet (BAPHOMET) Mob-ID#1039
+	Add(-1,187,1110,30);  // Clock Tower Manager (HP: 9,000)
+	Add(-1,188,2131,1);   // Lost Dragon Mob-ID#2131
+	Add(-1,189,1108,30);  // Arclouse (HP: 7,000)
+	Add(-1,190,1150,1);   // Moonlight Flower Mob-ID#1150
+	Add(-1,191,1181,30);  // Pasana (HP: 9,000)
+	Add(-1,192,1087,1);   // Orc Hero Mob-ID#1087
+	Add(-1,193,1165,30);  // Anubis (HP: 12,000)
+	Add(-1,194,1583,1);   // Tao Gunka Mob-ID#1583
+	Add(-1,195,1074,30);  // Jokers (HP: 7,500)
+	Add(-1,196,1272,1);   // Dark Lord Mob-ID#1272
+	Add(-1,197,1080,30);  // Hunter Fly (HP: 5,600)
+	Add(-1,198,1688,1);   // Lady Tanee Mob-ID#1688
+	Add(-1,199,1061,30);  // Goblin Leader (HP: 6,400)
+	Add(-1,200,1157,1);   // Pharaoh Mob-ID#1157
+	Add(-1,201,1078,30);  // Raydric (HP: 9,000)
+	Add(-1,202,2068,1);   // Biotata Mob-ID#2068
+	Add(-1,203,1071,30);  // Anacondaq (HP: 5,800)
+	Add(-1,204,1039,1);   // Baphomet Mob-ID#1039
+	Add(-1,205,1145,30);  // Grand Peco (HP: 8,000)
+	Add(-1,206,2131,1);   // Lost Dragon Mob-ID#2131
+	Add(-1,207,1103,30);  // Goblin Leader (HP: 6,400)
+	Add(-1,208,1150,1);   // Moonlight Flower Mob-ID#1150
+	Add(-1,209,1082,30);  // Khalitzburg (HP: 7,890)
+	Add(-1,210,1157,1);   // Pharaoh Mob-ID#1157
+	Add(-1,211,1116,30);  // Banshee (HP: 7,000)
+	Add(-1,212,1272,1);   // Dark Lord Mob-ID#1272
+	Add(-1,213,1183,30);  // Skeleton Worker (HP: 6,000)
+	Add(-1,214,1039,1);   // Baphomet Mob-ID#1039
+	Add(-1,215,1164,30);  // Bathory (HP: 5,500)
+	Add(-1,216,1583,1);   // Tao Gunka Mob-ID#1583
+	Add(-1,217,1103,30);  // Goblin Leader (HP: 6,400)
+	Add(-1,218,2068,1);   // Gopinich Mob-ID#1885
+	Add(-1,219,1161,30);  // Sidewinder (HP: 7,000)
+	Add(-1,220,1150,1);   // Moonlight Flower Mob-ID#1150
+
+	freeloop(0);
+	.sql_t$ = "other_dimension_instance";//do not change if you don't know what you are doing
+	query_sql("CREATE TABLE IF NOT EXISTS `" + .sql_t$ + "` (`char_id` INT NOT NULL,`name` VARCHAR(32) NOT NULL,`class` INT NOT NULL,`max_round` INT NOT NULL DEFAULT '0', UNIQUE (char_id)) ENGINE=MyISAM");
+end;
+OnInstanceInit:
+	initnpctimer;
+	startnpctimer;
+	'i_id = instance_id();
+	'map$ = instance_mapname(strnpcinfo(4),'i_id);
+	'npc$ = instance_npcname(strnpcinfo(3),'i_id);
+	'owner = instance_live_info(ILI_OWNER,'i_id);
+	'owner_name$ = convertpcinfo('owner,CPC_NAME);
+	'sd = convertpcinfo('owner,CPC_ACCOUNT);
+	'class = readparam(Class,'owner);
+	if(getd(".max_round" + 'class)){
+		'max_round = getd(".max_round" + 'class);
+		'custom_mob_class = true;
+	}else{
+		'max_round = .max_round;
+	}
+	end;
+OnInstanceDestroy:
+	callsub OnSqlUpdate;
+	if(attachrid('sd)){
+		showdigit 0,3;//clear showdigit
+		InOtherDimensionDigit = false;
+	}
+end;
+OnTimer15000:
+	instance_announce 'i_id,"\r\nMonsters Will appare After 15 Seconds.",1,0xFFBF5C,FW_BOLD,42;
+end;
+OnTimer30000:
+	stopnpctimer;
+	'round = 1;
+	callsub OnSpawn;
+end;
+OnMobDead:
+	'max_count--;
+	if(!'max_count){
+		'round++;
+		sleep2 5000;
+		callsub OnSpawn;
+	}
+end;
+
+OnSpawn:
+	.@bonus_hp_rate += 10;
+	.@bonus_dmg_rate += 5;
+	.@bonus_damagetaken += -90;
+	.@bonus_hit += 2;			
+	.@bonus_flee += 1;
+	if('round > 'max_round){
+		instance_announce 'i_id,"\r\nThis Was The Final Stage",1,0xFFBF5C,FW_BOLD,42;
+		warp "SavePoint",0,0,'owner;
+		end;
+	}
+	instance_announce 'i_id,"\r\n\r\nStage : " + 'round,1,0xFFBF5C,FW_BOLD,42;
+	if('custom_mob_class == -1){
+		copyarray .@m,getd(".m_" + 'round + "_" + 'class),getarraysize(getd(".m_" + 'round + "_" + 'class));
+		copyarray .@c,getd(".c_" + 'round + "_" + 'class),getarraysize(getd(".c_" + 'round + "_" + 'class));
+	}else{
+		copyarray .@m,getd(".m_" + 'round),getarraysize(getd(".m_" + 'round));
+		copyarray .@c,getd(".c_" + 'round),getarraysize(getd(".c_" + 'round));
+	}
+	for(.@i=0;.@i<getarraysize(.@m);.@i++){
+		if(.@m[.@i] && .@c[.@i]){
+			deletearray $@mobid,getarraysize($@mobid);
+			monster 'map$,0,0,"--en--",.@m[.@i],.@c[.@i],strnpcinfo(3) + "::OnMobDead";
+			'max_count += .@c[.@i];
+			copyarray .@GID, $@mobid, getarraysize($@mobid);
+			getunitdata .@GID, .@ST;
+			.@HP = .@ST[UMOB_MAXHP] + ((.@ST[UMOB_MAXHP] * .@bonus_hp_rate ));
+			.@ATKMIN = .@ST[UMOB_ATKMIN] + ((.@ST[UMOB_ATKMIN] * .@bonus_dmg_rate));
+			.@ATKMAX = .@ST[UMOB_ATKMAX] + ((.@ST[UMOB_ATKMAX] * .@bonus_dmg_rate));
+			.@MATKMIN = .@ST[UMOB_MATKMIN] + ((.@ST[UMOB_MATKMIN] * .@bonus_dmg_rate));
+			.@MATKMAX = .@ST[UMOB_MATKMAX] + ((.@ST[UMOB_MATKMAX] * .@bonus_dmg_rate));
+			.@DAMAGETAKEN = .@ST[UMOB_DAMAGETAKEN] + ((.@ST[UMOB_DAMAGETAKEN] * .@bonus_damagetaken) /100);
+			.@HIT = .@ST[UMOB_HIT] + ((.@ST[UMOB_HIT] * .@bonus_hit));
+			.@FLEE = .@ST[UMOB_FLEE] + ((.@ST[UMOB_FLEE] * .@bonus_flee));
+			for(.@i=0;.@i<getarraysize(.@GID);.@i++){			
+			setunitdata(.@GID[.@i], UMOB_MAXHP, .@HP);
+			setunitdata(.@GID[.@i], UMOB_HP, .@HP);
+			setunitdata(.@GID[.@i], UMOB_ATKMIN, .@ATKMIN);
+			setunitdata(.@GID[.@i], UMOB_ATKMAX, .@ATKMAX);
+			setunitdata(.@GID[.@i], UMOB_MATKMIN, .@MATKMIN);
+			setunitdata(.@GID[.@i], UMOB_MATKMAX, .@MATKMAX);
+			setunitdata(.@GID[.@i], UMOB_DAMAGETAKEN, .@DAMAGETAKEN);
+			setunitdata(.@GID[.@i], UMOB_HIT, .@HIT);
+			setunitdata(.@GID[.@i], UMOB_FLEE, .@FLEE);
+			}
+		}
+	}
+end;
+
+OnSqlUpdate:
+	query_sql("SELECT `max_round`, `name` FROM `" + .sql_t$ + "` WHERE `char_id` = '" + 'owner + "'", .@max, .@name$);
+	
+	// Decrement round
+	'round -= 1;
+	
+	if (.@name$ != "") {
+		if (!.@max) { // BACKWARD COMPATIBILITY
+			query_sql("DELETE FROM `" + .sql_t$ + "` WHERE `char_id` = '" + 'owner + "'");
+		}
+		if ('round > .@max) {
+			query_sql("UPDATE `" + .sql_t$ + "` SET `max_round` = '" + 'round + "', `class` = '" + 'class + "', `name` = '" + 'owner_name$ + "' WHERE `char_id` = '" + 'owner + "'");
+		}
+	} else if ('round) {
+		query_sql("INSERT INTO `" + .sql_t$ + "` (`name`, `char_id`, `class`, `max_round`) VALUES ('" + 'owner_name$ + "', '" + 'owner + "', '" + 'class + "', '" + 'round + "')");
+	}
+return;
+
+	function Add {
+		if(getarg(0) == -1){
+			.max_round = max(getarg(1),.max_round);
+			for(.@i=2;.@i<getargcount();.@i+=2){
+				setd ".m_" + getarg(1) + "[" + .@s + "]",getarg(.@i);
+				setd ".c_" + getarg(1) + "[" + .@s + "]",getarg(.@i+1);
+				.@s++;
+			}
+		}else{
+			setd ".max_round" + getarg(0),max(getarg(1),getd(".max_round" + getarg(0)));
+			for(.@i=2;.@i<getargcount();.@i+=2){
+				setd ".m_" + getarg(1) + "_" + getarg(0) + "[" + .@s + "]",getarg(.@i);
+				setd ".c_" + getarg(1) + "_" + getarg(0) + "[" + .@s + "]",getarg(.@i+1);
+				.@s++;
+			}
+		}
+		return;
+	}
+
+}
+-	itemshop	ToD	-1,60099,60094:100,60095:100,60096:100,60097:100,60098:10

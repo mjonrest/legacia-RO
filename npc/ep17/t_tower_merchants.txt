@@ -1,0 +1,1967 @@
+// Thanatos Tower Enchanter
+// Location: Near Thanatos Tower entrance or designated area
+
+tha_t01,142,82,3	script	Headgear Enchanter	10296,{
+disable_items;
+	mes "[Thanatos Enchanter]";
+	mes "I can enchant your ^006400Crown of Good and Evil^000000 headgears.";
+	mes "Choose an option:";
+	next;
+	set .@headgear, getequipid(EQI_HEAD_TOP);
+	
+	// Validate headgear
+	if (!.@headgear) {
+		mes "Please equip a ^FF0000Crown of Good and Evil^000000 headgear first.";
+		close;
+	}
+	
+	// Allowed headgear IDs from Sheet2
+	setarray $@allowed_headgears[0],
+		400377,400381,400385,400386,400387,400388,400390,400392,400393,
+		400394,400389,400395,400378,400374,400379,400375,400383,400376,
+		400380,400391,400382,400384;
+	
+	set .@valid, 0;
+	for (set .@i, 0; .@i < getarraysize($@allowed_headgears); set .@i, .@i + 1) {
+		if (.@headgear == $@allowed_headgears[.@i]) {
+			set .@valid, 1;
+			break;
+		}
+	}
+	
+	if (!.@valid) {
+		mes "Invalid headgear. Only ^006400Crown of Good and Evil^000000 series can be enchanted.";
+		close;
+	}
+
+	// Get current cards
+	set .@card0, getequipcardid(EQI_HEAD_TOP, 0);
+	set .@card1, getequipcardid(EQI_HEAD_TOP, 1);
+	set .@card2, getequipcardid(EQI_HEAD_TOP, 2); // Slot 3 enchant
+	set .@card3, getequipcardid(EQI_HEAD_TOP, 3); // Slot 4 enchant
+	set .@refine, getequiprefinerycnt(EQI_HEAD_TOP);
+	set .@grade, getenchantgrade(EQI_HEAD_TOP);
+	.@id = getequiprandomoption(EQI_HEAD_TOP, 0, ROA_ID);
+	.@val = getequiprandomoption(EQI_HEAD_TOP, 0, ROA_VALUE);
+	.@param = getequiprandomoption(EQI_HEAD_TOP, 0, ROA_PARAM);
+
+	
+	switch(select("Slot 3 Enchant:Slot 4 Enchant:Reset Enchantments")) {
+	case 1: // Slot 3 Enchant
+		if (.@card2 != 0) {
+			mes "Slot 3 is already enchanted!";
+			close;
+		}
+		
+		mes "Slot 3 enchant costs:";
+		mes "^009900250x Piece of Sin^000000";
+		mes "^0099003x Fragment of Good Will^000000";
+		mes "^0099001x Enchant Ticket^000000";
+		mes "^FF00003,000,000 Zeny^000000";
+		next;
+		
+		if (select("Enchant Slot 3:Cancel") == 2) close;
+		
+		if (countitem(1000257) < 250 || countitem(1000263) < 3 || 
+			countitem(1000874) < 1 || Zeny < 3000000) {
+			mes "Insufficient materials!";
+			close;
+		}
+		
+		// Show enchant options
+		switch(select("Good Spell:Evil Spell")) {
+		case 1:
+			set .@enchant, 312014; // Good Spell
+			break;
+		case 2:
+			set .@enchant, 312021; // Evil Spell
+			break;
+		}
+		
+		// Remove items
+		delitem 1000257, 250; // Piece of Sin
+		delitem 1000263, 3;   // Fragment of Good Will
+		delitem 1000874, 1;   // Enchant Ticket
+		set Zeny, Zeny - 3000000;
+		
+		// Recreate headgear with enchant
+		delitem .@headgear, 1;
+//		getitem2 .@headgear, 1, 1, .@refine, 0, .@card0, .@card1, .@enchant, .@card3;
+		getitem4 .@headgear, 1, 1, .@refine, 0, .@card0, .@card1, .@enchant, .@card3, .@grade, .@id, .@val, .@param;
+		equip EQI_HEAD_TOP;
+		mes "Slot 3 enchant successful!";
+		close;
+		
+	case 2: // Slot 4 Enchant
+		// Enchant level definitions
+		setarray .@enchant_name$[0], 
+			"Tenacity", "Adamantine", "Magic Essence", 
+			"Master Archer", "Acute", "Affection";
+			
+		setarray .@enchant_lv1[0],
+			29706, 29101, 29071, 29091, 29081, 29111;
+			
+		setarray .@enchant_lv2[0],
+			29707, 29102, 29072, 29092, 29082, 29112;
+			
+		setarray .@enchant_lv3[0],
+			29708, 29103, 29073, 29093, 29083, 29113;
+		
+		// Check existing enchant
+		set .@current_enchant, .@card3;
+		set .@current_level, 0;
+		set .@enchant_idx, -1;
+		
+		if (.@current_enchant != 0) {
+			for (set .@i, 0; .@i < 6; set .@i, .@i + 1) {
+				if (.@current_enchant == .@enchant_lv1[.@i]) {
+					set .@current_level, 1;
+					set .@enchant_idx, .@i;
+					break;
+				}
+				if (.@current_enchant == .@enchant_lv2[.@i]) {
+					set .@current_level, 2;
+					set .@enchant_idx, .@i;
+					break;
+				}
+				if (.@current_enchant == .@enchant_lv3[.@i]) {
+					set .@current_level, 3;
+					set .@enchant_idx, .@i;
+					break;
+				}
+			}
+		}
+		
+		// Upgrade existing enchant
+		if (.@current_level > 0 && .@current_level < 3) {
+			mes "Current Slot 4 enchant:";
+			mes .@enchant_name$[.@enchant_idx] + " Lv" + .@current_level;
+			mes "Upgrade to Lv" + (.@current_level + 1) + "?";
+			next;
+			
+			// Show upgrade cost
+			if (.@current_level == 1) {
+				mes "^0000FFLv1 -> Lv2 Cost:^000000";
+				mes "50x Piece of Sin";
+				mes "1x Fragment of Good Will";
+				mes "1x Enchant Ticket";
+			} else if (.@current_level == 2) {
+				mes "^0000FFLv2 -> Lv3 Cost:^000000";
+				mes "1x Powerful Dimensional Essence";
+				mes "70x Piece of Sin";
+				mes "70x Fragment of Good Will";
+				mes "1x Enchant Ticket";
+			}
+			next;
+			
+			if (select("Upgrade:Cancel") == 2) close;
+			
+			// Verify materials
+			if (.@current_level == 1) {
+				if (countitem(1000257) < 50 || 
+					countitem(1000263) < 1 || 
+					countitem(1000874) < 1) {
+					mes "Insufficient materials!";
+					close;
+				}
+				
+				// Remove materials
+				delitem 1000257, 50; // Piece of Sin
+				delitem 1000263, 1;  // Fragment of Good Will
+				delitem 1000874, 1;  // Enchant Ticket
+				
+				// Set next level
+				set .@new_enchant, .@enchant_lv2[.@enchant_idx];
+			} 
+			else if (.@current_level == 2) {
+				if (countitem(7925) < 1 || 
+					countitem(1000257) < 70 || 
+					countitem(1000263) < 70 || 
+					countitem(1000874) < 1) {
+					mes "Insufficient materials!";
+					close;
+				}
+				
+				// Remove materials
+				delitem 7925, 1;      // Powerful Dimensional Essence
+				delitem 1000257, 70; // Piece of Sin
+				delitem 1000263, 70; // Fragment of Good Will
+				delitem 1000874, 1;  // Enchant Ticket
+				
+				// Set next level
+				set .@new_enchant, .@enchant_lv3[.@enchant_idx];
+			}
+			
+			// Recreate headgear
+			delitem .@headgear, 1;
+//			getitem2 .@headgear, 1, 1, .@refine, 0, .@card0, .@card1, .@card2, .@new_enchant;
+			getitem4 .@headgear, 1, 1, .@refine, 0, .@card0, .@card1, .@card2, .@new_enchant, .@grade, .@id, .@val, .@param;
+			equip EQI_HEAD_TOP;
+			mes "Upgrade successful!";
+			close;
+		}
+		
+		// New enchant
+		if (.@current_level == 3) {
+			mes "Slot 4 is already at maximum level!";
+			close;
+		}
+		
+		// New enchant options
+		mes "Choose Slot 4 enchant type:";
+		next;
+		switch(select("Random Enchant:Specific Enchant")) {
+		case 1: // Random
+			mes "^0000FFRandom Enchant Cost:^000000";
+			mes "1x Powerful Dimensional Essence";
+			mes "25x Piece of Sin";
+			mes "25x Fragment of Good Will";
+			mes "300,000 Zeny";
+			next;
+			
+			if (select("Enchant:Cancel") == 2) close;
+			
+			if (countitem(7925) < 1 || 
+				countitem(1000257) < 25 || 
+				countitem(1000263) < 25 || 
+				Zeny < 300000) {
+				mes "Insufficient materials!";
+				close;
+			}
+			
+			// Remove materials
+			delitem 7925, 1;      // Powerful Dimensional Essence
+			delitem 1000257, 25; // Piece of Sin
+			delitem 1000263, 25; // Fragment of Good Will
+			set Zeny, Zeny - 300000;
+			
+			// Random selection
+			set .@enchant_idx, rand(6);
+			set .@new_enchant, .@enchant_lv1[.@enchant_idx];
+			break;
+			
+		case 2: // Specific
+			mes "^0000FFSpecific Enchant Cost:^000000";
+			mes "2x Powerful Dimensional Essence";
+			mes "100x Piece of Sin";
+			mes "100x Fragment of Good Will";
+			mes "1x Enchant Ticket";
+			mes "3,000,000 Zeny";
+			next;
+			
+			if (select("Continue:Cancel") == 2) close;
+			
+			// Show enchant options
+			set .@menu$, "";
+			for (set .@i, 0; .@i < 6; set .@i, .@i + 1) {
+				set .@menu$, .@menu$ + .@enchant_name$[.@i] + ":";
+			}
+			set .@choice, select(.@menu$) - 1;
+			
+			// Verify materials
+			if (countitem(7925) < 2 || 
+				countitem(1000257) < 100 || 
+				countitem(1000263) < 100 || 
+				countitem(1000874) < 1 || 
+				Zeny < 3000000) {
+				mes "Insufficient materials!";
+				close;
+			}
+			
+			// Remove materials
+			delitem 7925, 2;       // Powerful Dimensional Essence
+			delitem 1000257, 100; // Piece of Sin
+			delitem 1000263, 100; // Fragment of Good Will
+			delitem 1000874, 1;   // Enchant Ticket
+			set Zeny, Zeny - 3000000;
+			
+			set .@enchant_idx, .@choice;
+			set .@new_enchant, .@enchant_lv1[.@choice];
+			break;
+		}
+		
+		// Apply new enchant
+		delitem .@headgear, 1;
+//		getitem2 .@headgear, 1, 1, .@refine, 0, .@card0, .@card1, .@card2, .@new_enchant;
+		getitem4 .@headgear, 1, 1, .@refine, 0, .@card0, .@card1, .@card2, .@new_enchant, .@grade, .@id, .@val, .@param;
+		equip EQI_HEAD_TOP;
+		mes "Enchant successful!";
+		mes "Applied: " + .@enchant_name$[.@enchant_idx] + " Lv1";
+		close;
+		
+	case 3: // Reset
+		if (.@card2 == 0 && .@card3 == 0) {
+			mes "No enchantments to reset!";
+			close;
+		}
+		
+		mes "^FF0000Reset will remove ALL enchantments!^000000";
+		mes "Cost:";
+		mes "50x Piece of Sin";
+		mes "100x Fragment of Good Will";
+		mes "1,000,000 Zeny";
+		next;
+		
+		if (select("Reset Enchantments:Cancel") == 2) close;
+		
+		if (countitem(1000257) < 50 || 
+			countitem(1000263) < 100 || 
+			Zeny < 1000000) {
+			mes "Insufficient materials!";
+			close;
+		}
+		
+		// Remove materials
+		delitem 1000257, 50; // Piece of Sin
+		delitem 1000263, 100; // Fragment of Good Will
+		set Zeny, Zeny - 1000000;
+		
+		// Recreate clean headgear
+		delitem .@headgear, 1;
+//		getitem2 .@headgear, 1, 1, .@refine, 0, .@card0, .@card1, 0, 0;
+		getitem4 .@headgear, 1, 1, .@refine, 0, .@card0, .@card1, 0, 0, .@grade, .@id, .@val, .@param;
+		equip EQI_HEAD_TOP;
+		mes "Enchantments reset successfully!";
+		close;
+	}
+}
+
+// Thanatos Tower Weapon Enchanter
+// Location: Near Thanatos Tower entrance or designated area
+
+tha_t01,154,82,3	script	Briliant Light Enchanter	10298,{
+disable_items;
+	set .@weapon, getequipid(EQI_HAND_R);
+	mes "[Thanatos Weapon Enchanter]";
+	mes "I can enchant your ^006400Brilliant Light Weapons^000000.";
+	mes "Choose an option:";
+	next;
+
+	
+	// Validate weapon
+	if (!.@weapon) {
+		mes "Please equip a ^FF0000Brilliant Light Weapon^000000 first.";
+		close;
+	}
+	
+	// Allowed weapon IDs from Sheet1
+	setarray $@allowed_weapons[0],
+		530045,590045,550094,500063,800027,550088,830026,540055,550116,
+		820021,650034,510092,640037,610045,840021,630027,570037,500066,
+		700065,810027,540060,580038,620022;
+	
+	set .@valid, 0;
+	for (set .@i, 0; .@i < getarraysize($@allowed_weapons); set .@i, .@i + 1) {
+		if (.@weapon == $@allowed_weapons[.@i]) {
+			set .@valid, 1;
+			break;
+		}
+	}
+	
+	if (!.@valid) {
+		mes "Invalid weapon. Only ^006400Brilliant Light Weapons^000000 can be enchanted.";
+		close;
+	}
+
+	// Get current cards and refine
+	set .@card0, getequipcardid(EQI_HAND_R, 0);
+	set .@card1, getequipcardid(EQI_HAND_R, 1);
+	set .@card2, getequipcardid(EQI_HAND_R, 2); // Slot 3 enchant
+	set .@card3, getequipcardid(EQI_HAND_R, 3); // Slot 4 enchant
+	set .@refine, getequiprefinerycnt(EQI_HAND_R);
+	set .@grade, getenchantgrade(EQI_HAND_R);
+	.@id = getequiprandomoption(EQI_HAND_R, 0, ROA_ID);
+	.@val = getequiprandomoption(EQI_HAND_R, 0, ROA_VALUE);
+	.@param = getequiprandomoption(EQI_HAND_R, 0, ROA_PARAM);
+
+	
+	switch(select("Slot 3 Enchant:Slot 4 Enchant:Reset Enchantments")) {
+	case 1: // Slot 3 Enchant
+		if (.@card2 != 0) {
+			// Upgrade existing enchant
+			goto L_UpgradeSlot3;
+		} else {
+			// New enchant
+			goto L_NewSlot3;
+		}
+		end;
+		
+	case 2: // Slot 4 Enchant
+		if (.@card3 != 0) {
+			// Upgrade existing enchant
+			goto L_UpgradeSlot4;
+		} else {
+			// New enchant
+			goto L_NewSlot4;
+		}
+		end;
+		
+	case 3: // Reset
+		if (.@card2 == 0 && .@card3 == 0) {
+			mes "No enchantments to reset!";
+			close;
+		}
+		
+		mes "^FF0000Reset will remove ALL enchantments!^000000";
+		mes "Cost:";
+		mes "20x Fragment of Good Will";
+		mes "1,000,000 Zeny";
+		next;
+		
+		if (select("Reset Enchantments:Cancel") == 2) close;
+		
+		if (countitem(1000263) < 20 || Zeny < 1000000) {
+			mes "Insufficient materials!";
+			close;
+		}
+		
+		// Remove materials
+		delitem 1000263, 20; // Fragment of Good Will
+		set Zeny, Zeny - 1000000;
+		
+		// Recreate clean weapon
+		delitem .@weapon, 1;
+//		getitem2 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, 0, 0;
+		getitem4 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, 0, 0, .@grade, .@id, .@val, .@param;
+		mes "Enchantments reset successfully!";
+		close;
+	}
+	
+	end;
+	
+//--------------- Slot 3 Functions ---------------//
+L_NewSlot3:
+	mes "Slot 3 enchant costs:";
+	mes "^0099001x Powerful Dimensional Essence^000000";
+	mes "^009900250x Fragment of Good Will^000000";
+	mes "^FF00003,000,000 Zeny^000000";
+	next;
+	
+	if (select("Enchant Slot 3:Cancel") == 2) close;
+	
+	if (countitem(7925) < 1 || countitem(1000263) < 250 || Zeny < 3000000) {
+		mes "Insufficient materials!";
+		close;
+	}
+	
+	// Show enchant options
+	mes "Choose Slot 3 enchant type:";
+	next;
+	switch(select("Expert Archer:Expert Magician:Expert Fighter")) {
+	case 1:
+		set .@enchant, 4832; // Expert Archer Lv1
+		set .@enchant_name$, "Expert Archer";
+		break;
+	case 2:
+		set .@enchant, 311389; // Expert Magician Lv1
+		set .@enchant_name$, "Expert Magician";
+		break;
+	case 3:
+		set .@enchant, 311384; // Expert Fighter Lv1
+		set .@enchant_name$, "Expert Fighter";
+		break;
+	}
+	
+	// Remove materials
+	delitem 7925, 1;       // Powerful Dimensional Essence
+	delitem 1000263, 250; // Fragment of Good Will
+	set Zeny, Zeny - 3000000;
+	
+	// Recreate weapon with enchant
+	delitem .@weapon, 1;
+//	getitem2 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, .@enchant, .@card3;
+	getitem4 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, .@enchant, .@card3, .@grade, .@id, .@val, .@param;
+	mes "Slot 3 enchant successful!";
+	mes "Applied: " + .@enchant_name$ + " Lv1";
+	close;
+	
+L_UpgradeSlot3:
+	// Enchant definitions
+	setarray .@archer,  4832,4833,4834,4835,4836;
+	setarray .@magician,311389,311390,311391,311392,311393;
+	setarray .@fighter, 311384,311385,311386,311387,311388;
+	
+	// Find current enchant type and level
+	set .@current_enchant, .@card2;
+	set .@current_level, 0;
+	set .@enchant_type, 0;
+	
+	for (set .@i, 0; .@i < 5; set .@i, .@i + 1) {
+		if (.@current_enchant == .@archer[.@i]) {
+			set .@current_level, .@i + 1;
+			set .@enchant_type, 1;
+			set .@enchant_name$, "Expert Archer";
+			break;
+		}
+		if (.@current_enchant == .@magician[.@i]) {
+			set .@current_level, .@i + 1;
+			set .@enchant_type, 2;
+			set .@enchant_name$, "Expert Magician";
+			break;
+		}
+		if (.@current_enchant == .@fighter[.@i]) {
+			set .@current_level, .@i + 1;
+			set .@enchant_type, 3;
+			set .@enchant_name$, "Expert Fighter";
+			break;
+		}
+	}
+	
+	if (!.@current_level) {
+		mes "Invalid enchantment detected!";
+		close;
+	}
+	
+	if (.@current_level >= 5) {
+		mes .@enchant_name$ + " is already at maximum level!";
+		close;
+	}
+	
+	// Calculate next level
+	set .@next_level, .@current_level + 1;
+	
+	// Determine upgrade cost based on level
+	switch(.@next_level) {
+	case 2:
+		mes "Upgrade to Lv2 Cost:";
+		mes "50x Fragment of Good Will";
+		break;
+	case 3:
+		mes "Upgrade to Lv3 Cost:";
+		mes "55x Fragment of Good Will";
+		break;
+	case 4:
+		mes "Upgrade to Lv4 Cost:";
+		mes "1x Powerful Dimensional Essence";
+		mes "60x Fragment of Good Will";
+		break;
+	case 5:
+		mes "Upgrade to Lv5 Cost:";
+		mes "1x Powerful Dimensional Essence";
+		mes "65x Fragment of Good Will";
+		// Extra cost for Magician Lv5
+		if (.@enchant_type == 2) {
+			mes "1x Enchant Ticket";
+		}
+		break;
+	}
+	next;
+	
+	if (select("Upgrade:Cancel") == 2) close;
+	
+	// Verify materials
+	switch(.@next_level) {
+	case 2:
+		if (countitem(1000263) < 50) {
+			mes "Insufficient materials!";
+			close;
+		}
+		break;
+	case 3:
+		if (countitem(1000263) < 55) {
+			mes "Insufficient materials!";
+			close;
+		}
+		break;
+	case 4:
+		if (countitem(7925) < 1 || countitem(1000263) < 60) {
+			mes "Insufficient materials!";
+			close;
+		}
+		break;
+	case 5:
+		if (countitem(7925) < 1 || countitem(1000263) < 65) {
+			mes "Insufficient materials!";
+			close;
+		}
+		// Extra cost for Magician
+		if (.@enchant_type == 2 && countitem(1000874) < 1) {
+			mes "You need 1x Enchant Ticket!";
+			close;
+		}
+		break;
+	}
+	
+	// Remove materials
+	switch(.@next_level) {
+	case 2:
+		delitem 1000263, 50;
+		break;
+	case 3:
+		delitem 1000263, 55;
+		break;
+	case 4:
+		delitem 7925, 1;
+		delitem 1000263, 60;
+		break;
+	case 5:
+		delitem 7925, 1;
+		delitem 1000263, 65;
+		if (.@enchant_type == 2) delitem 1000874, 1; // Enchant Ticket for Magician
+		break;
+	}
+	
+	// Get next enchant ID
+	switch(.@enchant_type) {
+	case 1: set .@new_enchant, .@archer[.@next_level-1]; break;
+	case 2: set .@new_enchant, .@magician[.@next_level-1]; break;
+	case 3: set .@new_enchant, .@fighter[.@next_level-1]; break;
+	}
+	
+	// Recreate weapon
+	delitem .@weapon, 1;
+//	getitem2 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, .@new_enchant, .@card3;
+	getitem4 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, .@new_enchant, .@card3, .@grade, .@id, .@val, .@param;
+	mes "Upgrade successful!";
+	mes "Now: " + .@enchant_name$ + " Lv" + .@next_level;
+	close;
+	
+//--------------- Slot 4 Functions ---------------//
+L_NewSlot4:
+	mes "Slot 4 enchant costs:";
+	mes "^009900150x Fragment of Good Will^000000";
+	mes "^FF00001,500,000 Zeny^000000";
+	next;
+	
+	if (select("Enchant Slot 4:Cancel") == 2) close;
+	
+	if (countitem(1000263) < 150 || Zeny < 1500000) {
+		mes "Insufficient materials!";
+		close;
+	}
+	
+	// Show enchant options
+	mes "Choose Slot 4 enchant type:";
+	next;
+	switch(select("Caster:Hit Plus:DelayAfterAttack:Sharp")) {
+	case 1:
+		set .@enchant, 311400; // Caster Lv1
+		set .@enchant_name$, "Caster";
+		break;
+	case 2:
+		set .@enchant, 311395; // Hit Plus Lv1
+		set .@enchant_name$, "Hit Plus";
+		break;
+	case 3:
+		set .@enchant, 4869; // DelayAfterAttack Lv1
+		set .@enchant_name$, "DelayAfterAttack";
+		break;
+	case 4:
+		set .@enchant, 4818; // Sharp Lv1
+		set .@enchant_name$, "Sharp";
+		break;
+	}
+	
+	// Remove materials
+	delitem 1000263, 150; // Fragment of Good Will
+	set Zeny, Zeny - 1500000;
+	
+	// Recreate weapon with enchant
+	delitem .@weapon, 1;
+//	getitem2 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, .@card2, .@enchant;
+	getitem4 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, .@card2, .@enchant, .@grade, .@id, .@val, .@param;
+	mes "Slot 4 enchant successful!";
+	mes "Applied: " + .@enchant_name$ + " Lv1";
+	close;
+	
+L_UpgradeSlot4:
+	// Enchant definitions
+	setarray .@caster,    311400,311401,311402,311403,311404;
+	setarray .@hitplus,   311395,311396,311397,311398,311399;
+	setarray .@delay,     4869,4872,4873,4881,311394;
+	setarray .@sharp,     4818,4817,4816,4843,4844;
+	
+	// Find current enchant type and level
+	set .@current_enchant, .@card3;
+	set .@current_level, 0;
+	set .@enchant_type, 0;
+	
+	for (set .@i, 0; .@i < 5; set .@i, .@i + 1) {
+		if (.@current_enchant == .@caster[.@i]) {
+			set .@current_level, .@i + 1;
+			set .@enchant_type, 1;
+			set .@enchant_name$, "Caster";
+			break;
+		}
+		if (.@current_enchant == .@hitplus[.@i]) {
+			set .@current_level, .@i + 1;
+			set .@enchant_type, 2;
+			set .@enchant_name$, "Hit Plus";
+			break;
+		}
+		if (.@current_enchant == .@delay[.@i]) {
+			set .@current_level, .@i + 1;
+			set .@enchant_type, 3;
+			set .@enchant_name$, "DelayAfterAttack";
+			break;
+		}
+		if (.@current_enchant == .@sharp[.@i]) {
+			set .@current_level, .@i + 1;
+			set .@enchant_type, 4;
+			set .@enchant_name$, "Sharp";
+			break;
+		}
+	}
+	
+	if (!.@current_level) {
+		mes "Invalid enchantment detected!";
+		close;
+	}
+	
+	if (.@current_level >= 5) {
+		mes .@enchant_name$ + " is already at maximum level!";
+		close;
+	}
+	
+	// Calculate next level
+	set .@next_level, .@current_level + 1;
+	
+	// Determine upgrade cost based on level
+	switch(.@next_level) {
+	case 2:
+		mes "Upgrade to Lv2 Cost:";
+		mes "40x Fragment of Good Will";
+		break;
+	case 3:
+		mes "Upgrade to Lv3 Cost:";
+		mes "45x Fragment of Good Will";
+		break;
+	case 4:
+		mes "Upgrade to Lv4 Cost:";
+		mes "1x Powerful Dimensional Essence";
+		mes "50x Fragment of Good Will";
+		break;
+	case 5:
+		mes "Upgrade to Lv5 Cost:";
+		mes "1x Powerful Dimensional Essence";
+		mes "55x Fragment of Good Will";
+		// Extra cost for Hit Plus Lv5
+		if (.@enchant_type == 2) {
+			mes "1x Enchant Ticket";
+		}
+		break;
+	}
+	next;
+	
+	if (select("Upgrade:Cancel") == 2) close;
+	
+	// Verify materials
+	switch(.@next_level) {
+	case 2:
+		if (countitem(1000263) < 40) {
+			mes "Insufficient materials!";
+			close;
+		}
+		break;
+	case 3:
+		if (countitem(1000263) < 45) {
+			mes "Insufficient materials!";
+			close;
+		}
+		break;
+	case 4:
+		if (countitem(7925) < 1 || countitem(1000263) < 50) {
+			mes "Insufficient materials!";
+			close;
+		}
+		break;
+	case 5:
+		if (countitem(7925) < 1 || countitem(1000263) < 55) {
+			mes "Insufficient materials!";
+			close;
+		}
+		// Extra cost for Hit Plus
+		if (.@enchant_type == 2 && countitem(1000874) < 1) {
+			mes "You need 1x Enchant Ticket!";
+			close;
+		}
+		break;
+	}
+	
+	// Remove materials
+	switch(.@next_level) {
+	case 2:
+		delitem 1000263, 40;
+		break;
+	case 3:
+		delitem 1000263, 45;
+		break;
+	case 4:
+		delitem 7925, 1;
+		delitem 1000263, 50;
+		break;
+	case 5:
+		delitem 7925, 1;
+		delitem 1000263, 55;
+		if (.@enchant_type == 2) delitem 1000874, 1; // Enchant Ticket for Hit Plus
+		break;
+	}
+	
+	// Get next enchant ID
+	switch(.@enchant_type) {
+	case 1: set .@new_enchant, .@caster[.@next_level-1]; break;
+	case 2: set .@new_enchant, .@hitplus[.@next_level-1]; break;
+	case 3: set .@new_enchant, .@delay[.@next_level-1]; break;
+	case 4: set .@new_enchant, .@sharp[.@next_level-1]; break;
+	}
+	
+	// Recreate weapon
+	delitem .@weapon, 1;
+//	getitem2 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, .@card2, .@new_enchant;
+	getitem4 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, .@card2, .@new_enchant, .@grade, .@id, .@val, .@param;
+	mes "Upgrade successful!";
+	mes "Now: " + .@enchant_name$ + " Lv" + .@next_level;
+	close;
+}
+
+tha_t01,157,82,3	script	Sinful Enchanter	10297,{
+disable_items;
+	mes "[Thanatos Weapon Enchanter]";
+	mes "I can enchant your ^006400Sinful Weapons^000000.";
+	mes "Choose an option:";
+	next;
+	
+	set .@weapon, getequipid(EQI_HAND_R);
+	if (!.@weapon) {
+		mes "Please equip a ^FF0000Sinful Weapon^000000 first.";
+		close;
+	}
+	
+	// All Sinful Weapon IDs from Sheet1
+	setarray $@allowed_weapons[0],
+		560036, 540053, 540054, 640036,  // Row 4
+		540059, 550093, 610044, 510091,  // Row 10
+		500062, 700066, 570036, 580037,  // Row 16
+		830025, 840020, 810026, 800026,  // Row 22
+		820020, 500065, 1341,   650033,  // Row 28
+		600041, 500072, 550115;          // Row 34
+	
+	set .@valid, 0;
+	for (set .@i, 0; .@i < getarraysize($@allowed_weapons); set .@i, .@i + 1) {
+		if (.@weapon == $@allowed_weapons[.@i]) {
+			set .@valid, 1;
+			break;
+		}
+	}
+	
+	if (!.@valid) {
+		mes "Invalid weapon. Only ^006400Sinful Weapons^000000 can be enchanted.";
+		close;
+	}
+
+	// Get current equipment data
+	set .@card0, getequipcardid(EQI_HAND_R, 0);
+	set .@card1, getequipcardid(EQI_HAND_R, 1);
+	set .@card2, getequipcardid(EQI_HAND_R, 2); // Slot 3
+	set .@card3, getequipcardid(EQI_HAND_R, 3); // Slot 4
+	set .@refine, getequiprefinerycnt(EQI_HAND_R);
+	set .@grade, getenchantgrade(EQI_HAND_R);
+	.@id = getequiprandomoption(EQI_HAND_R, 0, ROA_ID);
+	.@val = getequiprandomoption(EQI_HAND_R, 0, ROA_VALUE);
+	.@param = getequiprandomoption(EQI_HAND_R, 0, ROA_PARAM);
+
+	
+	switch(select("Slot 3 Enchant:Slot 4 Enchant:Reset Enchantments")) {
+	case 1: // Slot 3 Enchant
+		if (.@card2 != 0) goto L_UpgradeSlot3;
+		else goto L_NewSlot3;
+		
+	case 2: // Slot 4 Enchant
+		if (.@card3 != 0) goto L_UpgradeSlot4;
+		else goto L_NewSlot4;
+		
+	case 3: // Reset
+		if (.@card2 == 0 && .@card3 == 0) {
+			mes "No enchantments to reset!";
+			close;
+		}
+		
+		mes "^FF0000Reset will remove ALL enchantments!^000000";
+		mes "Cost:";
+		mes "20x Piece of Sin";
+		mes "1,000,000 Zeny";
+		next;
+		
+		if (select("Reset:Cancel") == 2) close;
+		
+		if (countitem(1000257) < 20 || Zeny < 1000000) {
+			mes "Insufficient materials!";
+			close;
+		}
+		
+		delitem 1000257, 20; // Piece of Sin
+		set Zeny, Zeny - 1000000;
+		delitem .@weapon, 1;
+//		getitem2 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, 0, 0;
+		getitem4 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, 0, 0, .@grade, .@id, .@val, .@param;
+		mes "Enchantments reset successfully!";
+		close;
+	}
+	end;
+	
+//--------------- Slot 3 Enchant ---------------//
+L_NewSlot3:
+	mes "Slot 3 enchant costs:";
+	mes "1x Powerful Dimensional Essence";
+	mes "250x Piece of Sin";
+	mes "3,000,000 Zeny";
+	next;
+	
+	if (select("Enchant:Cancel") == 2) close;
+	
+	if (countitem(7925) < 1 || countitem(1000257) < 250 || Zeny < 3000000) {
+		mes "Insufficient materials!";
+		close;
+	}
+	
+	mes "Choose enchant type:";
+	next;
+	switch(select("Expert Archer:Expert Magician:Expert Fighter")) {
+	case 1: set .@enchant, 4832; break;     // Archer Lv1
+	case 2: set .@enchant, 311389; break;   // Magician Lv1
+	case 3: set .@enchant, 311384; break;   // Fighter Lv1
+	}
+	
+	delitem 7925, 1;          // Powerful Essence
+	delitem 1000257, 250;     // Piece of Sin
+	set Zeny, Zeny - 3000000;
+	delitem .@weapon, 1;
+//	getitem2 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, .@enchant, .@card3;
+	getitem4 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, .@enchant, .@card3, .@grade, .@id, .@val, .@param;
+	mes "Slot 3 enchant successful!";
+	close;
+	
+L_UpgradeSlot3:
+	// Define all enchantment arrays
+	setarray .@archer,  4832,4833,4834,4835,4836;
+	setarray .@magician,311389,311390,311391,311392,311393;
+	setarray .@fighter, 311384,311385,311386,311387,311388;
+	
+	// Identify current enchant
+	set .@current, .@card2;
+	set .@level, 0;
+	for (set .@i, 0; .@i < 5; set .@i, .@i + 1) {
+		if (.@current == .@archer[.@i]) set .@level, .@i + 1;
+		if (.@current == .@magician[.@i]) set .@level, .@i + 1;
+		if (.@current == .@fighter[.@i]) set .@level, .@i + 1;
+	}
+	
+	if (.@level == 0) {
+		mes "Invalid enchantment!";
+		close;
+	}
+	if (.@level == 5) {
+		mes "Enchantment already at max level!";
+		close;
+	}
+	
+	// Set costs based on target level
+	switch(.@level) {
+	case 1: // Lv1->Lv2
+		set .@cost_item, 50;
+		set .@cost_essence, 0;
+		set .@cost_ticket, 0;
+		break;
+	case 2: // Lv2->Lv3
+		set .@cost_item, 55;
+		set .@cost_essence, 0;
+		set .@cost_ticket, 0;
+		break;
+	case 3: // Lv3->Lv4
+		set .@cost_item, 60;
+		set .@cost_essence, 1;
+		set .@cost_ticket, 0;
+		break;
+	case 4: // Lv4->Lv5
+		set .@cost_item, 65;
+		set .@cost_essence, 1;
+		// Special cost for Magician
+		if (.@current >= 311389 && .@current <= 311393) set .@cost_ticket, 1;
+		else set .@cost_ticket, 0;
+		break;
+	}
+	
+	mes "Upgrade to Lv" + (.@level + 1) + " Cost:";
+	if (.@cost_essence) mes "1x Powerful Dimensional Essence";
+	mes .@cost_item + "x Piece of Sin";
+	if (.@cost_ticket) mes "1x Enchant Ticket";
+	next;
+	
+	if (select("Upgrade:Cancel") == 2) close;
+	
+	// Verify materials
+	if (.@cost_essence && countitem(7925) < 1) {
+		mes "Need Powerful Dimensional Essence!";
+		close;
+	}
+	if (countitem(1000257) < .@cost_item) {
+		mes "Not enough Piece of Sin!";
+		close;
+	}
+	if (.@cost_ticket && countitem(1000874) < 1) {
+		mes "Need Enchant Ticket!";
+		close;
+	}
+	
+	// Remove materials
+	if (.@cost_essence) delitem 7925, 1;
+	delitem 1000257, .@cost_item;
+	if (.@cost_ticket) delitem 1000874, 1;
+	
+	// Upgrade enchant
+	set .@new_enchant, 0;
+	if (.@current >= 4832 && .@current <= 4836) set .@new_enchant, .@archer[.@level];
+	if (.@current >= 311389 && .@current <= 311393) set .@new_enchant, .@magician[.@level];
+	if (.@current >= 311384 && .@current <= 311388) set .@new_enchant, .@fighter[.@level];
+	
+	delitem .@weapon, 1;
+//	getitem2 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, .@new_enchant, .@card3;
+	getitem4 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, .@new_enchant, .@card3, .@grade, .@id, .@val, .@param;
+	mes "Upgraded to Lv" + (.@level + 1) + "!";
+	close;
+	
+//--------------- Slot 4 Enchant ---------------//
+L_NewSlot4:
+	mes "Slot 4 enchant costs:";
+	mes "150x Piece of Sin";
+	mes "1,500,000 Zeny";
+	next;
+	
+	if (select("Enchant:Cancel") == 2) close;
+	
+	if (countitem(1000257) < 150 || Zeny < 1500000) {
+		mes "Insufficient materials!";
+		close;
+	}
+	
+	mes "Choose enchant type:";
+	next;
+	switch(select("Caster:Hit Plus:DelayAfterAttack:Sharp")) {
+	case 1: set .@enchant, 311400; break; // Caster Lv1
+	case 2: set .@enchant, 311395; break; // Hit Plus Lv1
+	case 3: set .@enchant, 4869;   break; // DelayAfterAttack Lv1
+	case 4: set .@enchant, 4818;   break; // Sharp Lv1
+	}
+	
+	delitem 1000257, 150; // Piece of Sin
+	set Zeny, Zeny - 1500000;
+	delitem .@weapon, 1;
+//	getitem2 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, .@card2, .@enchant;
+	getitem4 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, .@card2, .@enchant, .@grade, .@id, .@val, .@param;
+	mes "Slot 4 enchant successful!";
+	close;
+	
+L_UpgradeSlot4:
+	// Define all enchantment arrays
+	setarray .@caster,    311400,311401,311402,311403,311404;
+	setarray .@hitplus,   311395,311396,311397,311398,311399;
+	setarray .@delay,     4869,4872,4873,4881,311394;
+	setarray .@sharp,     4818,4817,4816,4843,4844;
+	
+	// Identify current enchant
+	set .@current, .@card3;
+	set .@level, 0;
+	for (set .@i, 0; .@i < 5; set .@i, .@i + 1) {
+		if (.@current == .@caster[.@i]) set .@level, .@i + 1;
+		if (.@current == .@hitplus[.@i]) set .@level, .@i + 1;
+		if (.@current == .@delay[.@i]) set .@level, .@i + 1;
+		if (.@current == .@sharp[.@i]) set .@level, .@i + 1;
+	}
+	
+	if (.@level == 0) {
+		mes "Invalid enchantment!";
+		close;
+	}
+	if (.@level == 5) {
+		mes "Enchantment already at max level!";
+		close;
+	}
+	
+	// Set costs based on target level
+	switch(.@level) {
+	case 1: // Lv1->Lv2
+		set .@cost_item, 40;
+		set .@cost_essence, 0;
+		set .@cost_ticket, 0;
+		break;
+	case 2: // Lv2->Lv3
+		set .@cost_item, 45;
+		set .@cost_essence, 0;
+		set .@cost_ticket, 0;
+		break;
+	case 3: // Lv3->Lv4
+		set .@cost_item, 50;
+		set .@cost_essence, 1;
+		set .@cost_ticket, 0;
+		break;
+	case 4: // Lv4->Lv5
+		set .@cost_item, 55;
+		set .@cost_essence, 1;
+		// Special cost for Hit Plus
+		if (.@current >= 311395 && .@current <= 311399) set .@cost_ticket, 1;
+		else set .@cost_ticket, 0;
+		break;
+	}
+	
+	mes "Upgrade to Lv" + (.@level + 1) + " Cost:";
+	if (.@cost_essence) mes "1x Powerful Dimensional Essence";
+	mes .@cost_item + "x Piece of Sin";
+	if (.@cost_ticket) mes "1x Enchant Ticket";
+	next;
+	
+	if (select("Upgrade:Cancel") == 2) close;
+	
+	// Verify materials
+	if (.@cost_essence && countitem(7925) < 1) {
+		mes "Need Powerful Dimensional Essence!";
+		close;
+	}
+	if (countitem(1000257) < .@cost_item) {
+		mes "Not enough Piece of Sin!";
+		close;
+	}
+	if (.@cost_ticket && countitem(1000874) < 1) {
+		mes "Need Enchant Ticket!";
+		close;
+	}
+	
+	// Remove materials
+	if (.@cost_essence) delitem 7925, 1;
+	delitem 1000257, .@cost_item;
+	if (.@cost_ticket) delitem 1000874, 1;
+	
+	// Upgrade enchant
+	set .@new_enchant, 0;
+	if (.@current >= 311400 && .@current <= 311404) set .@new_enchant, .@caster[.@level];
+	if (.@current >= 311395 && .@current <= 311399) set .@new_enchant, .@hitplus[.@level];
+	if (.@current >= 4869 && .@current <= 311394) set .@new_enchant, .@delay[.@level];
+	if (.@current >= 4818 && .@current <= 4844) set .@new_enchant, .@sharp[.@level];
+	
+	delitem .@weapon, 1;
+//	getitem2 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, .@card2, .@new_enchant;
+	getitem4 .@weapon, 1, 1, .@refine, 0, .@card0, .@card1, .@card2, .@new_enchant, .@grade, .@id, .@val, .@param;
+	mes "Upgraded to Lv" + (.@level + 1) + "!";
+	close;
+}
+
+tha_t01,159,83,3	script	Boots Enchanter	412,{
+disable_items;
+	mes "[Good & Evil Boots Enchanter]";
+	mes "I Can only enchant ^00FF00Good and Evil Boots^000000.";
+	switch(select("Abyss Chaser:Troubadour&Trouvere:Hyper Novice:Imperial Guard:Arch Mage:Night Watch:Cardinal:Inquistor:Soul Asctetic:Biolo:Dragon Knight:Spirit Handler:Elemental Master:Windhawk:Sky Emperor:Meister:Shadow Cross:Shinkiro&Shiranui")){
+	case 1:
+		item_enchant(129);
+		end;
+	case 2:
+		item_enchant(130);
+		end;
+	case 3:
+		item_enchant(131);
+		end;
+	case 4:
+		item_enchant(134);
+		end;
+	case 5:
+		item_enchant(135);
+		end;
+	case 6:
+		item_enchant(136);
+		end;
+	case 7:
+		item_enchant(106);
+		end;
+	case 8:
+		item_enchant(107);
+		end;
+	case 9:
+		item_enchant(108);
+		end;
+	case 10:
+		item_enchant(109);
+		end;
+	case 11:
+		item_enchant(110);
+		end;
+	case 12:
+		item_enchant(111);
+		end;
+	case 13:
+		item_enchant(114);
+		end;
+	case 14:
+		item_enchant(115);
+		end;
+	case 15:
+		item_enchant(116);
+		end;
+	case 16:
+		item_enchant(125);
+		end;
+	case 17:
+		item_enchant(126);
+		end;
+	case 18:
+		item_enchant(127);
+		end;
+	}
+}
+
+
+tha_t01,145,82,3	script	Govil	10436,{
+disable_items;
+	switch(select("Headgear Exchange:Brilight Weapon Exchange:Sin Weapon Exchange:Boots of Good&Evil Exchange")){
+	case 1:
+		callshop "t_exchange",1;
+		end;
+	case 2:
+		callshop "bri_weapon",1;
+		end;
+	case 3:
+		callshop "sin_weapon",1;
+		end;
+	case 4:
+		callshop "goodevilboots",1;
+		end;
+	}
+}
+
+//==============================================================
+//   Sinful Accessory Enchanter
+//   Author: ChatGPT
+//==============================================================
+tha_t01,136,83,4	script	Sinfull Accessory	962,{
+
+	//--------------------------------------------------------------------
+	// Valid Sinful Accessories
+	//--------------------------------------------------------------------
+	setarray .acc_id[0],
+		490044,490046,490048,490050,490052,490054,
+		490045,490047,490049,490051,490053,490055;
+
+	//--------------------------------------------------------------------
+	// Slot 3 Enchants
+	//--------------------------------------------------------------------
+	setarray .s3_name$[0], "Anger", "Horror", "Resentment", "Regret";
+
+	setarray .s3_lv1[0],310197,310202,310207,310212;
+	setarray .s3_lv2[0],310198,310203,310208,310213;
+	setarray .s3_lv3[0],310199,310204,310209,310214;
+	setarray .s3_lv4[0],310200,310205,310210,310215;
+	setarray .s3_lv5[0],310201,310206,310211,310216;
+
+	//--------------------------------------------------------------------
+	// Slot 4 Enchants
+	//--------------------------------------------------------------------
+	setarray .s4_name$[0], "Inverse Scale", "Dragon Scale";
+
+	setarray .s4_lv1[0],310237,310242;
+	setarray .s4_lv2[0],310238,310243;
+	setarray .s4_lv3[0],310239,310244;
+	setarray .s4_lv4[0],310240,310245;
+	setarray .s4_lv5[0],310241,310246;
+
+	//--------------------------------------------------------------------
+	// Requirements
+	//--------------------------------------------------------------------
+	.@piece_id = 1000257;   // Piece of Sin
+	.@reset_item = 6417;    // Nyangvine Fruit
+
+	mes "[Sinful Enchanter]";
+	mes "I can enchant Sinful Accessories.";
+	next;
+
+	switch(select("Method 1 (Choose Type):Method 2 (Random):Reset Accessory:Cancel")) {
+
+	//--------------------------------------------------------------------
+	// METHOD 1 — Choose enchant type, random level
+	//--------------------------------------------------------------------
+	case 1:
+		if (!callsub(S_SelectAcc)) end;
+
+		// Block if already enchanted
+		.@c2 = getequipcardid(@acc_slot, 2);
+		.@c3 = getequipcardid(@acc_slot, 3);
+
+		if (.@c2 > 0 || .@c3 > 0) {
+		mes "[Warning]";
+		mes "This accessory already has enchantments.";
+		mes "Please reset it before enchanting again.";
+		close;
+		}
+
+		if (countitem(.@piece_id) < 50) {
+			mes "You need ^FF000050 Piece of Sin^000000.";
+			close;
+		}
+
+		mes "Choose Slot 3 enchant:";
+		.@ch3 = select("Anger:Horror:Resentment:Regret") - 1;
+		mes "You chose: ^00AAFF" + .s3_name$[.@ch3] + "^000000";
+		.@lv3 = rand(1,5);
+		.@slot3 = getd(".s3_lv"+.@lv3+"["+.@ch3+"]");
+
+		mes "Choose Slot 4 enchant:";
+		.@ch4 = select("Inverse Scale:Dragon Scale") - 1;
+		mes "You chose: ^00AAFF" + .s4_name$[.@ch4] + "^000000";
+		.@lv4 = rand(1,5);
+		.@slot4 = getd(".s4_lv"+.@lv4+"["+.@ch4+"]");
+		next;
+		delitem .@piece_id,50;
+		callsub(S_GiveEnchant, .@slot3, .@slot4);
+		// ? Final Result Message
+		//--------------------------------------------------------
+		mes "[Enchant Result]";
+		mes "Slot 3: ^00AAFF" + .s3_name$[.@ch3] + "^000000  (Lv ^FF0000" + .@lv3 + "^000000)";
+		mes "Slot 4: ^00AAFF" + .s4_name$[.@ch4] + "^000000  (Lv ^FF0000" + .@lv4 + "^000000)";
+		mes "Your accessory is now enchanted!";
+		close;
+
+	//--------------------------------------------------------------------
+	// METHOD 2 — Random slot3 + random slot4
+	//--------------------------------------------------------------------
+	case 2:
+		if (!callsub(S_SelectAcc)) end;
+
+		// Block if already enchanted
+		.@c2 = getequipcardid(@acc_slot, 2);
+		.@c3 = getequipcardid(@acc_slot, 3);
+
+		if (.@c2 > 0 || .@c3 > 0) {
+		mes "[Warning]";
+		mes "This accessory already has enchantments.";
+		mes "Please reset it before enchanting again.";
+		close;
+		}
+
+		if (countitem(.@piece_id) < 10) {
+			mes "You need ^00AAFF10 Piece of Sin^000000.";
+			close;
+		}
+
+		.@type3 = rand(0,3);
+		.@lv3 = rand(1,5);
+		.@slot3 = getd(".s3_lv"+.@lv3+"["+.@type3+"]");
+
+		.@type4 = rand(0,1);
+		.@lv4 = rand(1,5);
+		.@slot4 = getd(".s4_lv"+.@lv4+"["+.@type4+"]");
+
+		delitem .@piece_id,10;
+
+		callsub(S_GiveEnchant, .@slot3, .@slot4);
+
+		mes "Your accessory has been randomly enchanted!";
+		close;
+
+	//--------------------------------------------------------------------
+	// RESET ACCESSORY
+	//--------------------------------------------------------------------
+	case 3:
+		if (!callsub(S_SelectAcc)) end;
+
+		mes "Reset Options:";
+		switch(select("1,000,000z (70% Success):10 Silvervine Fruit (100%):Cancel")) {
+
+			//----------------------------------------------------------
+			// Zeny Reset (70% success)
+			//----------------------------------------------------------
+			case 1:
+				if (Zeny < 1000000) {
+					mes "You lack Zeny.";
+					close;
+				}
+				Zeny -= 1000000;
+
+				if (rand(100) < 70) {
+					callsub(S_ResetAcc);
+					mes "Reset successful!";
+				} else {
+					mes "^FF0000Reset failed! Accessory destroyed!^000000";
+					delitem getequipid(@acc_slot),1;
+				}
+				close;
+
+			//----------------------------------------------------------
+			// Nyangvine Reset (100% success)
+			//----------------------------------------------------------
+			case 2:
+				if (countitem(.@reset_item) < 10) {
+					mes "You need 10 Nyangvine Fruit.";
+					close;
+				}
+				delitem .@reset_item,10;
+				callsub(S_ResetAcc);
+				mes "Reset successful!";
+				close;
+
+			case 3:
+				close;
+		}
+
+	case 4:
+		close;
+	}
+
+
+	//======================================================================
+	// SUBROUTINES
+	//======================================================================
+//----------------------------------------------------------------------
+// Select which accessory to enchant (Left / Right, shows item name)
+//----------------------------------------------------------------------
+S_SelectAcc:
+
+	@acc_slot = 0;
+	@acc_id = 0;
+
+	.@right = getequipid(EQI_ACC_R);
+	.@left  = getequipid(EQI_ACC_L);
+
+	.@r_valid = 0;
+	.@l_valid = 0;
+
+	// Check Right Accessory
+	for (.@i=0; .@i<getarraysize(.acc_id); .@i++)
+		if (.@right == .acc_id[.@i]) .@r_valid = 1;
+
+	// Check Left Accessory
+	for (.@i=0; .@i<getarraysize(.acc_id); .@i++)
+		if (.@left == .acc_id[.@i]) .@l_valid = 1;
+
+	// If none equipped
+	if (!.@r_valid && !.@l_valid) {
+		mes "[Error]";
+		mes "You must equip a ^FF0000Sinful Accessory^000000 on Left or Right slot!";
+		return 0;
+	}
+
+	mes "[Accessory Selection]";
+	mes "Choose which accessory to enchant:";
+	next;
+
+	// Build menu
+	.@menu$ = "";
+	.@count = 0;
+
+	if (.@r_valid) {
+		.@menu$ = .@menu$ + "Right Acc (" + getitemname(.@right)+")";
+		.@count++;
+	}
+	if (.@l_valid) {
+		if (.@count) .@menu$ = .@menu$ + ":";
+		.@menu$ = .@menu$ + "Left Acc (" + getitemname(.@left)+")";
+		.@count++;
+	}
+
+	// Player chooses
+	.@sel = select(.@menu$);
+
+	// If both exist, order is Right then Left
+	if (.@r_valid && .@l_valid) {
+		if (.@sel == 1) {
+			@acc_slot = EQI_ACC_R;
+			@acc_id = .@right;
+		} else {
+			@acc_slot = EQI_ACC_L;
+			@acc_id = .@left;
+		}
+	}
+	// If only right
+	else if (.@r_valid) {
+		@acc_slot = EQI_ACC_R;
+		@acc_id = .@right;
+	}
+	// If only left
+	else if (.@l_valid) {
+		@acc_slot = EQI_ACC_L;
+		@acc_id = .@left;
+	}
+
+	return 1;
+
+	//----------------------------------------------------------------------
+	// Apply enchant (getitem2, card slot 2 = slot3 , card slot 3 = slot4)
+	//----------------------------------------------------------------------
+S_GiveEnchant:
+	.@slot3 = getarg(0);
+	.@slot4 = getarg(1);
+
+	.@acc = getequipid(@acc_slot);
+	.@ref = getequiprefinerycnt(@acc_slot);
+
+	.@card1 = getequipcardid(@acc_slot,0);
+	.@card2 = getequipcardid(@acc_slot,3);
+	.@card3 = .@slot3;
+	.@card4 = .@slot4;
+
+	delitem .@acc,1;
+	getitem2 .@acc,1,1,.@ref,0,.@card1,.@card2,.@card3,.@card4;
+	equip .@acc;
+	return;
+
+
+	//----------------------------------------------------------------------
+	// Reset accessory—remove slot3 & slot4 enchants (card2 & card3)
+	//----------------------------------------------------------------------
+S_ResetAcc:
+	.@acc = getequipid(@acc_slot);
+	.@ref = getequiprefinerycnt(@acc_slot);
+
+	.@card1 = getequipcardid(@acc_slot,0);
+	.@card4 = getequipcardid(@acc_slot,3);
+
+	delitem .@acc,1;
+	getitem2 .@acc,1,1,.@ref,0,.@card1,0,0,0;
+	equip .@acc;
+	return;
+
+OnInit:
+setunittitle( getnpcid(0), "<Enchanter>" );
+}
+
+//==============================================================
+//   Sinful Accessory Enchanter
+//   Author: ChatGPT
+//==============================================================
+tha_t01,162,83,4	script	Brilight Accessory	963,{
+
+	//--------------------------------------------------------------------
+	// Valid Sinful Accessories
+	//--------------------------------------------------------------------
+	setarray .acc_id[0],
+		490056,490058,490060,490062,490064,490066,490057,490059,490061,490063,490065,490067;
+
+	//--------------------------------------------------------------------
+	// Slot 3 Enchants
+	//--------------------------------------------------------------------
+	setarray .s3_name$[0], "Empathy", "Happiness", "Shelter", "Solace";
+
+	setarray .s3_lv1[0],310217,310222,310227,310232;
+	setarray .s3_lv2[0],310218,310223,310228,310233;
+	setarray .s3_lv3[0],310219,310224,310229,310234;
+	setarray .s3_lv4[0],310220,310225,310230,310235;
+	setarray .s3_lv5[0],310221,310226,310231,310236;
+
+	//--------------------------------------------------------------------
+	// Slot 4 Enchants
+	//--------------------------------------------------------------------
+	setarray .s4_name$[0], "Divine Evil", "Destructive Evil";
+
+	setarray .s4_lv1[0],310247,310252;
+	setarray .s4_lv2[0],310248,310253;
+	setarray .s4_lv3[0],310249,310254;
+	setarray .s4_lv4[0],310250,310255;
+	setarray .s4_lv5[0],310251,310256;
+
+	//--------------------------------------------------------------------
+	// Requirements
+	//--------------------------------------------------------------------
+	.@piece_id = 1000263;   // Piece of Sin
+	.@reset_item = 6417;    // Nyangvine Fruit
+
+	mes "[Brilight Enchanter]";
+	mes "I can enchant Brilight Accessories.";
+	next;
+
+	switch(select("Method 1 (Choose Type):Method 2 (Random):Reset Accessory:Cancel")) {
+
+	//--------------------------------------------------------------------
+	// METHOD 1 — Choose enchant type, random level
+	//--------------------------------------------------------------------
+	case 1:
+		if (!callsub(S_SelectAcc)) end;
+
+		// Block if already enchanted
+		.@c2 = getequipcardid(@acc_slot, 2);
+		.@c3 = getequipcardid(@acc_slot, 3);
+
+		if (.@c2 > 0 || .@c3 > 0) {
+		mes "[Warning]";
+		mes "This accessory already has enchantments.";
+		mes "Please reset it before enchanting again.";
+		close;
+		}
+
+		if (countitem(.@piece_id) < 50) {
+			mes "You need ^FF000050 Piece of Sin^000000.";
+			close;
+		}
+
+		mes "Choose Slot 3 enchant:";
+		.@ch3 = select("Anger:Horror:Resentment:Regret") - 1;
+		mes "You chose: ^00AAFF" + .s3_name$[.@ch3] + "^000000";
+		.@lv3 = rand(1,5);
+		.@slot3 = getd(".s3_lv"+.@lv3+"["+.@ch3+"]");
+
+		mes "Choose Slot 4 enchant:";
+		.@ch4 = select("Inverse Scale:Dragon Scale") - 1;
+		mes "You chose: ^00AAFF" + .s4_name$[.@ch4] + "^000000";
+		.@lv4 = rand(1,5);
+		.@slot4 = getd(".s4_lv"+.@lv4+"["+.@ch4+"]");
+		next;
+		delitem .@piece_id,50;
+		callsub(S_GiveEnchant, .@slot3, .@slot4);
+		// ? Final Result Message
+		//--------------------------------------------------------
+		mes "[Enchant Result]";
+		mes "Slot 3: ^00AAFF" + .s3_name$[.@ch3] + "^000000  (Lv ^FF0000" + .@lv3 + "^000000)";
+		mes "Slot 4: ^00AAFF" + .s4_name$[.@ch4] + "^000000  (Lv ^FF0000" + .@lv4 + "^000000)";
+		mes "Your accessory is now enchanted!";
+		close;
+
+	//--------------------------------------------------------------------
+	// METHOD 2 — Random slot3 + random slot4
+	//--------------------------------------------------------------------
+	case 2:
+		if (!callsub(S_SelectAcc)) end;
+
+		// Block if already enchanted
+		.@c2 = getequipcardid(@acc_slot, 2);
+		.@c3 = getequipcardid(@acc_slot, 3);
+
+		if (.@c2 > 0 || .@c3 > 0) {
+		mes "[Warning]";
+		mes "This accessory already has enchantments.";
+		mes "Please reset it before enchanting again.";
+		close;
+		}
+
+		if (countitem(.@piece_id) < 10) {
+			mes "You need ^00AAFF10 Piece of Sin^000000.";
+			close;
+		}
+
+		.@type3 = rand(0,3);
+		.@lv3 = rand(1,5);
+		.@slot3 = getd(".s3_lv"+.@lv3+"["+.@type3+"]");
+
+		.@type4 = rand(0,1);
+		.@lv4 = rand(1,5);
+		.@slot4 = getd(".s4_lv"+.@lv4+"["+.@type4+"]");
+
+		delitem .@piece_id,10;
+
+		callsub(S_GiveEnchant, .@slot3, .@slot4);
+
+		mes "Your accessory has been randomly enchanted!";
+		close;
+
+	//--------------------------------------------------------------------
+	// RESET ACCESSORY
+	//--------------------------------------------------------------------
+	case 3:
+		if (!callsub(S_SelectAcc)) end;
+
+		mes "Reset Options:";
+		switch(select("1,000,000z (70% Success):10 Silvervine Fruit (100%):Cancel")) {
+
+			//----------------------------------------------------------
+			// Zeny Reset (70% success)
+			//----------------------------------------------------------
+			case 1:
+				if (Zeny < 1000000) {
+					mes "You lack Zeny.";
+					close;
+				}
+				Zeny -= 1000000;
+
+				if (rand(100) < 70) {
+					callsub(S_ResetAcc);
+					mes "Reset successful!";
+				} else {
+					mes "^FF0000Reset failed! Accessory destroyed!^000000";
+					delitem getequipid(@acc_slot),1;
+				}
+				close;
+
+			//----------------------------------------------------------
+			// Nyangvine Reset (100% success)
+			//----------------------------------------------------------
+			case 2:
+				if (countitem(.@reset_item) < 10) {
+					mes "You need 10 Nyangvine Fruit.";
+					close;
+				}
+				delitem .@reset_item,10;
+				callsub(S_ResetAcc);
+				mes "Reset successful!";
+				close;
+
+			case 3:
+				close;
+		}
+
+	case 4:
+		close;
+	}
+
+
+	//======================================================================
+	// SUBROUTINES
+	//======================================================================
+//----------------------------------------------------------------------
+// Select which accessory to enchant (Left / Right, shows item name)
+//----------------------------------------------------------------------
+S_SelectAcc:
+
+	@acc_slot = 0;
+	@acc_id = 0;
+
+	.@right = getequipid(EQI_ACC_R);
+	.@left  = getequipid(EQI_ACC_L);
+
+	.@r_valid = 0;
+	.@l_valid = 0;
+
+	// Check Right Accessory
+	for (.@i=0; .@i<getarraysize(.acc_id); .@i++)
+		if (.@right == .acc_id[.@i]) .@r_valid = 1;
+
+	// Check Left Accessory
+	for (.@i=0; .@i<getarraysize(.acc_id); .@i++)
+		if (.@left == .acc_id[.@i]) .@l_valid = 1;
+
+	// If none equipped
+	if (!.@r_valid && !.@l_valid) {
+		mes "[Error]";
+		mes "You must equip a ^FF0000Brilight Accessory^000000 on Left or Right slot!";
+		return 0;
+	}
+
+	mes "[Accessory Selection]";
+	mes "Choose which accessory to enchant:";
+	next;
+
+	// Build menu
+	.@menu$ = "";
+	.@count = 0;
+
+	if (.@r_valid) {
+		.@menu$ = .@menu$ + "Right Acc (" + getitemname(.@right)+")";
+		.@count++;
+	}
+	if (.@l_valid) {
+		if (.@count) .@menu$ = .@menu$ + ":";
+		.@menu$ = .@menu$ + "Left Acc (" + getitemname(.@left)+")";
+		.@count++;
+	}
+
+	// Player chooses
+	.@sel = select(.@menu$);
+
+	// If both exist, order is Right then Left
+	if (.@r_valid && .@l_valid) {
+		if (.@sel == 1) {
+			@acc_slot = EQI_ACC_R;
+			@acc_id = .@right;
+		} else {
+			@acc_slot = EQI_ACC_L;
+			@acc_id = .@left;
+		}
+	}
+	// If only right
+	else if (.@r_valid) {
+		@acc_slot = EQI_ACC_R;
+		@acc_id = .@right;
+	}
+	// If only left
+	else if (.@l_valid) {
+		@acc_slot = EQI_ACC_L;
+		@acc_id = .@left;
+	}
+
+	return 1;
+
+	//----------------------------------------------------------------------
+	// Apply enchant (getitem2, card slot 2 = slot3 , card slot 3 = slot4)
+	//----------------------------------------------------------------------
+S_GiveEnchant:
+	.@slot3 = getarg(0);
+	.@slot4 = getarg(1);
+
+	.@acc = getequipid(@acc_slot);
+	.@ref = getequiprefinerycnt(@acc_slot);
+
+	.@card1 = getequipcardid(@acc_slot,0);
+	.@card2 = getequipcardid(@acc_slot,3);
+	.@card3 = .@slot3;
+	.@card4 = .@slot4;
+
+	delitem .@acc,1;
+	getitem2 .@acc,1,1,.@ref,0,.@card1,.@card2,.@card3,.@card4;
+	equip .@acc;
+	return;
+
+
+	//----------------------------------------------------------------------
+	// Reset accessory—remove slot3 & slot4 enchants (card2 & card3)
+	//----------------------------------------------------------------------
+S_ResetAcc:
+	.@acc = getequipid(@acc_slot);
+	.@ref = getequiprefinerycnt(@acc_slot);
+
+	.@card1 = getequipcardid(@acc_slot,0);
+	.@card4 = getequipcardid(@acc_slot,3);
+
+	delitem .@acc,1;
+	getitem2 .@acc,1,1,.@ref,0,.@card1,0,0,0;
+	equip .@acc;
+	return;
+
+OnInit:
+setunittitle( getnpcid(0), "<Enchanter>" );
+}
+
+tha_t01,139,83,4	script	Tha-Tower Exchanger#1	91,{
+
+Main:
+	mes "[Fragment Exchange]";
+	mes "I can combine fragments into a higher form.";
+	next;
+
+	switch(select(
+		"Exchange to Fragment of Sin",
+		"Exchange to Fragment of Fate",
+		"Cancel")) {
+
+	case 1:
+		callsub S_Sin;
+		end;
+
+	case 2:
+		callsub S_Fate;
+		end;
+
+	default:
+		mes "[Fragment Exchange]";
+		mes "Come back anytime.";
+		close;
+	}
+
+	end;
+
+// ==============================
+// Fragment of Sin
+// ==============================
+S_Sin:
+	mes "[Fragment of Sin]";
+	mes "Choose which fragment you want to combine.";
+	next;
+
+	switch(select(
+		"Fragment of Rage",
+		"Fragment of Fear",
+		"Fragment of Resentment",
+		"Fragment of Regret",
+		"Fragment of Sorrow",
+		"Back")) {
+
+	case 1: .@item = 1000243; break; // Rage
+	case 2: .@item = 1000244; break; // Fear
+	case 3: .@item = 1000245; break; // Resentment
+	case 4: .@item = 1000255; break; // Regret
+	case 5: .@item = 1000256; break; // Sorrow
+	default: goto Main;
+	}
+
+	callsub S_DoExchange, .@item, 1000257; // result = Fragment of Sin
+	end;
+
+// ==============================
+// Fragment of Fate
+// ==============================
+S_Fate:
+	mes "[Fragment of Fate]";
+	mes "Choose which fragment you want to combine.";
+	next;
+
+	switch(select(
+		"Fragment of Empathy",
+		"Fragment of Happiness",
+		"Fragment of Rest",
+		"Fragment of Condolence",
+		"Fragment of Wishes",
+		"Back")) {
+
+	case 1: .@item = 1000258; break; // Empathy
+	case 2: .@item = 1000259; break; // Happiness
+	case 3: .@item = 1000260; break; // Rest
+	case 4: .@item = 1000261; break; // Condolence
+	case 5: .@item = 1000262; break; // Wishes
+	default: goto Main;
+	}
+
+	callsub S_DoExchange, .@item, 1000263; // result = Fragment of Fate
+	end;
+
+
+// ==============================
+// Exchange Function (Bulk Supported)
+// ==============================
+S_DoExchange:
+	.@need_item = getarg(0);
+	.@reward_item = getarg(1);
+	.@need_amount = 5; // per 1 exchange
+
+	mes "[Fragment Exchange]";
+	mes "You need ^FF0000"+.@need_amount+"^000000 fragments per exchange.";
+	next;
+
+	// ==========================
+	// Select Amount
+	// ==========================
+	switch(select(
+		"Exchange x1",
+		"Exchange x50",
+		"Exchange x100",
+		"Cancel")) {
+
+		case 1: .@count = 1; break;
+		case 2: .@count = 50; break;
+		case 3: .@count = 100; break;
+		default:
+			mes "[Fragment Exchange]";
+			mes "Maybe next time.";
+			close;
+	}
+
+	.@total_need = .@need_amount * .@count;
+
+	mes "[Fragment Exchange]";
+	mes "You will exchange ^00AAFF"+.@total_need+"^000000 fragments";
+	mes "into ^00FF00"+.@count+"^000000 reward items.";
+	next;
+
+	// ==========================
+	// Check Materials
+	// ==========================
+	if (countitem(.@need_item) < .@total_need) {
+		mes "[Fragment Exchange]";
+		mes "You don't have enough fragments.";
+		close;
+	}
+
+	// ==========================
+	// Confirm
+	// ==========================
+	if (select("Confirm Exchange","Cancel") == 2) {
+		mes "[Fragment Exchange]";
+		mes "Maybe next time.";
+		close;
+	}
+
+	// ==========================
+	// Do Exchange
+	// ==========================
+	delitem .@need_item, .@total_need;
+	getitem .@reward_item, .@count;
+
+	mes "[Fragment Exchange]";
+	mes "^00FF00Exchange successful!^000000";
+	mes "You received "+.@count+" reward item(s).";
+	close;
+
+OnInit:
+setunittitle( getnpcid(0), "<Fragment-Exchange>" );
+
+}

@@ -1,0 +1,225 @@
+// Entrance NPC for Battle Rumble
+new_1-1,45,113,4	script	Novice Magic Tournament Gate	734,{
+mes "[Battle Rumble]";
+switch(select(
+	"Enter.",
+	"Information." +
+	((getgmlevel() >= 99) ? ":GM Menu." : "") +
+	":Cancel."
+)) {
+	case 1:
+		// Entry check here
+		if (!.enabled) {
+			mes "The gate is currently ^FF0000closed^000000.";
+			close;
+		}
+		goto L_CheckEntry;
+	case 2:
+		mes "You will be given rental gear for 30 minutes.";
+		mes "You must be completely clean: no items, no equipment.";
+		mes "Make sure you're ready!";
+		close;
+	case 3:
+		if (getgmlevel() >= 99) {
+			mes "[GM Menu]";
+			if (.enabled)
+				if (select("Disable Gate", "Back") == 1) .enabled = false;
+				else close;
+			else
+				if (select("Enable Gate", "Back") == 1) .enabled = true;
+				else close;
+
+			mes (.enabled) ? "Gate is ^00FF00Enabled^000000." : "Gate is ^FF0000Disabled^000000.";
+			close;
+		}
+		// fallthrough to Cancel
+	default:
+		close;
+}
+
+L_CheckEntry:
+
+	// Job must be Novice (Job ID 0), and Base Level must be 99
+	if (BaseLevel != 99 || Class != Job_Novice) {
+		mes "Only Novices at Base Level 99 may join the Battle Rumble.";
+		close;
+	}
+	// Inventory must be empty
+	getinventorylist;
+	if (@inventorylist_count) {
+		mes "You must empty your inventory first.";
+		close;
+	}
+
+	// Clear all buffs
+	sc_end SC_ALL;
+	sc_end SC_STRFood;
+	sc_end SC_AGIFood;
+	sc_end SC_VITFood;
+	sc_end SC_INTFood;
+	sc_end SC_DEXFood;
+	sc_end SC_LUKFood;
+
+	// Pick random items from each list
+	.@item1 = .item_list1[rand(getarraysize(.item_list1))];
+	.@item2 = .item_list2[rand(getarraysize(.item_list2))];
+	.@item3 = .item_list3[rand(getarraysize(.item_list3))];
+
+	// Store all rented items in a list
+	setarray .@rent_list[0],
+		.@item1,
+		.@item2,
+		.@item3,
+		24693,24694,24695,24696,24697,1639;
+
+	// Give all items with 30-minute rental duration
+	for (.@i = 0; .@i < getarraysize(.@rent_list); .@i++) {
+		rentitem .@rent_list[.@i], 1800;
+	}
+
+	// Wait for inventory to update
+	sleep2 100;
+
+	// Equip all rented items
+	getinventorylist;
+	for (.@i = 0; .@i < @inventorylist_count; .@i++) {
+		for (.@j = 0; .@j < getarraysize(.@rent_list); .@j++) {
+			if (@inventorylist_id[.@i] == .@rent_list[.@j]) {
+				equip @inventorylist_id[.@i];
+				break;
+			}
+		}
+	}
+
+	// Random warp into the battle map
+	percentheal 100,100;
+	warp "pvp_y_1-2", 0, 0;
+	end;
+
+OnInit:
+	.enabled = false; // Gate is initially closed
+
+	// Item list 1
+	setarray .item_list1[0],5909,15842,15843,15858,18740,18741,19546,19549,19667,19721,19723,
+	19807,19934,19836,19841,19935,19667,19721,19836,19841,20011,20036,20062,20099,
+	20113,20130,20135,20155,20219,20243,20247,20248,20249,20250,20302,20316,20317,
+	20374,20380,20386,20401,20450,20463,20464,20467,20472,20489,20499,31028,31039,
+	31040,31062,31123,31125,31149,31160,31166,31176,31179,31252,31329,31368,31369,
+	31370,31373,31388,31396,31405,31406,31407,31440,31494,31495,31530,31564,31565,
+	31589,31598,31607,31672,31680,31681,31707,31708,31709,31721,31849,31850,31908,
+	31978,31979,400214,400310,400311,20393;
+
+	// Item list 2
+	setarray .item_list2[0],5912,18742,18744,19291,19669,19871,20010,20136,20142,20145,
+	20146,20154,20246,20255,20312,20318,20399,20404,20430,31236,31480,31538,31568,
+	31716,31718,31763,31795,31847,31851,31924,31930,31934,410005,410049,410055,
+	410081,410087,410160,410217,410229,410231,420016;
+
+	// Item list 3
+	setarray .item_list3[0],5914,5979,20034,20132,20240,20285,20315,20323,20405,20407,
+	20448,20457,20522,31057,31142,31178,31316,31395,31432,31454,31460,31479,31498,
+	31545,31572,31583,31611,31625,31719,31731,31803,31816,31885,420010,420047,
+	420152,420163;
+}
+
+
+pvp_y_1-2,128,258,5	script	Touch Me!	10249,3,3,{
+	end;
+
+OnInit:
+	hideoffnpc strnpcinfo(0);
+	setarray .item_list[0],12347,12350,605,12029,585,12236,696,698,700,688,686,690,
+		12001,692,694,689,23193,23192,687,697,691,699,12000,12002,693,23194,695,
+		23191,14515,14514,14512,23045,12376,14593,22899,14594,14513,23079;
+	end;
+
+OnTouch:
+	// Disable NPC trigger
+	disablenpc strnpcinfo(0);
+
+	// Give random rental item
+	.@i = rand(getarraysize(.item_list));
+	.@item_id = .item_list[.@i];
+	rentitem .@item_id, 60;
+	specialeffect2 EF_PICKITEM;
+
+	sleep 120000; // wait 2 minutes
+//	sleep 5000;
+
+	// Enable it again
+	enablenpc strnpcinfo(0);
+	end;
+}
+
+pvp_y_1-2,0,0,0	script	BR_Announcer	-1,{
+OnPCKillEvent:
+	if (strcharinfo(3) == "pvp_y_1-2"){
+
+	.@map$ = "pvp_y_1-2";
+
+	// Get all players on the map
+	.@total = getmapunits(BL_PC,.@map$, .@map_units$[0]);
+
+	// Filter out GMs with level > 5
+	.@count = 0;
+	for (.@i = 0; .@i < .@total; .@i++) {
+		.@rid = .@map_units$[.@i];
+		if (getgmlevel(.@rid) <= 5) {
+			.@real_players[.@count] = .@rid;
+			.@count++;
+		}
+	}
+
+	if (.@count <= 1) {
+		if (.@count == 1) {
+			.@last_id = .@real_players[0];
+			.@name$ = rid2name(.@last_id);
+			announce "[Battle Rumble] Only one player remains: " + .@name$ + "!", 0;
+		} else {
+			announce "[Battle Rumble] No eligible players remain in the arena.", 0;
+		}
+		end;
+	}
+
+	announce "[Battle Rumble] " + .@count + " players remain:", 0;
+	for (.@i = 0; .@i < .@count; .@i++) {
+		announce " - " + rid2name(.@real_players[.@i]), 0;
+	}
+	end;
+	}
+	end;
+}
+
+pvp_y_1-2,110,236,5	duplicate(Touch Me!)	Touch Me!#01	10249,3,3
+pvp_y_1-2,65,266,5	duplicate(Touch Me!)	Touch Me!#02	10249,3,3
+pvp_y_1-2,205,213,5	duplicate(Touch Me!)	Touch Me!#03	10249,3,3
+pvp_y_1-2,101,210,5	duplicate(Touch Me!)	Touch Me!#04	10249,3,3
+pvp_y_1-2,153,175,5	duplicate(Touch Me!)	Touch Me!#05	10249,3,3
+pvp_y_1-2,212,146,5	duplicate(Touch Me!)	Touch Me!#06	10249,3,3
+pvp_y_1-2,210,180,5	duplicate(Touch Me!)	Touch Me!#07	10249,3,3
+pvp_y_1-2,185,161,5	duplicate(Touch Me!)	Touch Me!#08	10249,3,3
+pvp_y_1-2,167,138,5	duplicate(Touch Me!)	Touch Me!#09	10249,3,3
+pvp_y_1-2,145,142,5	duplicate(Touch Me!)	Touch Me!#10	10249,3,3
+pvp_y_1-2,128,154,5	duplicate(Touch Me!)	Touch Me!#11	10249,3,3
+pvp_y_1-2,124,165,5	duplicate(Touch Me!)	Touch Me!#12	10249,3,3
+pvp_y_1-2,99,151,5	duplicate(Touch Me!)	Touch Me!#13	10249,3,3
+pvp_y_1-2,110,181,5	duplicate(Touch Me!)	Touch Me!#14	10249,3,3
+pvp_y_1-2,104,208,5	duplicate(Touch Me!)	Touch Me!#15	10249,3,3
+pvp_y_1-2,62,203,5	duplicate(Touch Me!)	Touch Me!#16	10249,3,3
+pvp_y_1-2,85,167,5	duplicate(Touch Me!)	Touch Me!#17	10249,3,3
+pvp_y_1-2,58,153,5	duplicate(Touch Me!)	Touch Me!#18	10249,3,3
+pvp_y_1-2,61,174,5	duplicate(Touch Me!)	Touch Me!#19	10249,3,3
+pvp_y_1-2,95,121,5	duplicate(Touch Me!)	Touch Me!#20	10249,3,3
+pvp_y_1-2,121,112,5	duplicate(Touch Me!)	Touch Me!#21	10249,3,3
+pvp_y_1-2,121,69,5	duplicate(Touch Me!)	Touch Me!#22	10249,3,3
+pvp_y_1-2,157,50,5	duplicate(Touch Me!)	Touch Me!#23	10249,3,3
+pvp_y_1-2,50,98,5	duplicate(Touch Me!)	Touch Me!#24	10249,3,3
+pvp_y_1-2,178,72,5	duplicate(Touch Me!)	Touch Me!#25	10249,3,3
+
+
+pvp_y_1-2	mapflag	nowarp
+pvp_y_1-2	mapflag	nowarpto
+pvp_y_1-2	mapflag	nobranch
+pvp_y_1-2	mapflag	NOCASHSHOP
+pvp_y_1-2	mapflag	nocommand	99
+pvp_y_1-2	mapflag	nosave

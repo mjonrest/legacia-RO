@@ -1,0 +1,342 @@
+prontera,145,197,6	script	Kafra Employee::kaf_miracle	894,{
+
+		set .@name$,"[Kafra Emplyoee]";
+		mes "Hello Master "+strcharinfo(0)+", what can i help you?";
+		next;
+		switch(select("Save Position:Storage:Vip Storage:Claim Freebies:Reset Skill/Stats:Platinum Skill:Renter:Promotional Code")){
+		case 1:
+			mes .@name$;
+			mes "Saving position in the city of Prontera";
+			savepoint "prontera",155,181;
+			close;
+		case 2:
+			openstorage;
+			end;
+		case 3:
+		if (vip_status(VIP_STATUS_ACTIVE)) {
+			mes "I will open your Premium storage.";
+			mes "Thank you for using our service.";
+			close2;
+			openstorage2 1;
+		} else {
+			mes "Sorry, your Premium status is expired.";
+			mes "Storage will be opened but you can't put any item into it.";
+			close2;
+			openstorage2 1,STOR_MODE_GET;
+		}
+		end;
+		case 4:
+			callsub OnFreebies;
+			end;
+		case 5:
+			callsub OnReset;
+			end;
+		case 6:
+			callsub OnPlatinum;
+			end;
+		case 7:
+			callsub OnRental;
+			end;
+		case 8:
+			callsub OnPromo;
+			end;
+		}
+
+OnInit:
+
+setarray .message$[0], "Kafra Legacia","Reset Stats&Skill","Rent Mount","Platinum Skill","Freebies","Promotional Code";
+
+	while (1) {
+		for (.@i = 0; .@i < getarraysize(.message$); .@i++) {
+			delwaitingroom;
+			waitingroom .message$[.@i], 0;
+			sleep 1000; // 1 second
+		}
+	}
+	end;
+OnReset:
+	//	 		Skills,	Stats,	Both,	Limit
+	setarray .@Reset,	5000,	5000,	9000,	0;
+	mes "[Reset Girl]";
+	if(.@Reset[3] && reset_limit > .@Reset[3]) {
+		mes "Sorry you can only reset "+callfunc("F_InsertPlural",.@Reset[3],"time")+" in your life.";
+		close;
+	}
+	mes "I am the Reset Girl.";
+	mes "Reset Stats: "+ callfunc("F_InsertComma",.@Reset[1]) +"z";
+	mes "Reset Skills: "+ callfunc("F_InsertComma",.@Reset[0]) +"z";
+	mes "Reset Both: "+ callfunc("F_InsertComma",.@Reset[2]) +"z";
+	if(.@Reset[3]) mes "You may only reset "+callfunc("F_InsertPlural",.@Reset[3],"time")+", so use "+((.@Reset[3]>1)?"them":"it")+" wisely.";
+	mes "Please select the service you want:";
+	next;
+	set .@i,(select("^FF3355Reset Skills:Reset Stats:Reset Both^000000:Cancel"));
+	if(.@i > 3) close;
+	mes "[Reset Girl]";
+	if (Zeny < .@Reset[.@i-1]) {
+		mes "Sorry, you don't have enough Zeny.";
+		close;
+	}
+	if(.@Reset[3]){
+		mes "You can only reset "+callfunc("F_InsertPlural",.@Reset[3],"time")+" in your life, are you sure?";
+		if(select("Let me think:That's fine") == 1) close;
+	}
+	set Zeny, Zeny-.@Reset[.@i-1];
+	if(.@i&1){
+		sc_end_class;
+		ResetSkill;
+	}
+	if(.@i&2) ResetStatus;
+	mes "There you go!";
+	if(.@Reset[3]) set reset_limit,reset_limit + 1;
+	close;
+
+OnPlatinum:
+	mes "[Platinum Skill NPC]";
+	mes "I can give you the special skills available to your job.";
+	mes "Would you like these skills now?";
+	next;
+	if (select("Yes Please:No") == 2) {
+		mes "[Platinum Skill NPC]";
+		mes "Have a nice day... >.>";
+		close;
+	}
+	callfunc "F_GetPlatinumSkills";
+	mes "[Platinum Skill NPC]";
+	mes "There you go!";
+	close;
+
+OnRental:
+	if (ismounting()) {
+		message strcharinfo(0),"You must first remove your mount.";
+		end;
+	} else if (((eaclass()&EAJ_THIRDMASK)==EAJ_RANGER) && !countitem(6124)) {
+		if (!checkfalcon() && getskilllv("HT_FALCON") && !checkwug()) {
+			if(select(" ~ Falcon: ~ Warg")==1) setfalcon;
+			else getitem 6124,1; //Wolf's_Flute
+		} else getitem 6124,1; //Wolf's_Flute
+	} else if (((eaclass()&EAJ_THIRDMASK)==EAJ_MECHANIC) && !checkcart() && getskilllv("MC_PUSHCART")) {
+		if (!checkmadogear() && getskilllv("NC_MADOLICENCE")) {
+			if(select(" ~ Cart: ~ Mado")==1) setcart;
+			else setmadogear;
+		} else setcart;
+	} else if (!checkcart() && getskilllv("MC_PUSHCART")) setcart;
+	else if (!checkfalcon() && getskilllv("HT_FALCON") && !checkwug()) setfalcon;
+	else if (!checkriding() && !checkdragon() && getskilllv("KN_RIDING")) {
+		if ((eaclass()&EAJ_THIRDMASK)==EAJ_RUNE_KNIGHT) setdragon;
+		else setriding;
+	} else if (!checkmadogear() && getskilllv("NC_MADOLICENCE")) setmadogear;
+	else {
+		message strcharinfo(0),"You do not meet requirements to rent.";
+		end;
+	}
+	specialeffect2 EF_TEIHIT3;
+	end;
+
+OnPromo:
+	function GetGepardUID;
+	mes "[Promo Code Manager]";
+
+	function	GetGepardUID	{
+		// Adjust if you use a different method to get gepard uid
+		return getvariableofnpc("$@gepard_uid", "PromoCode Master");
+	}
+
+	if (getgroupid() >= 99) {
+		mes "Select an option:";
+		next;
+		switch(select("Create Promo Code:Claim Promo Code:Review Promo Codes:Cancel")) {
+			case 1: goto CreatePromo;
+			case 2: goto ClaimPromo;
+			case 3: goto ReviewPromo;
+			default: close;
+		}
+	} else {
+		goto ClaimPromo;
+	}
+	end;
+
+// GM - CREATE PROMO CODE
+CreatePromo:
+	mes "[Create Promo Code]";
+	mes "Enter a new promo code (max 16 characters):";
+	input .@code$;
+	if (getstrlen(.@code$) > 16) {
+		mes "Too long.";
+		close;
+	}
+	set .@code$, strtolower(.@code$);
+
+	query_sql("SELECT 1 FROM promo_codes WHERE code = '"+escape_sql(.@code$)+"'", .@exists);
+	if (.@exists) {
+		mes "Code already exists.";
+		close;
+	}
+
+	mes "Expire in how many days?";
+	input .@days, 1, 30;
+	set .@expire_time, gettimetick(2) + (.@days * 86400);
+
+	mes "How many items (1~10)?";
+	input .@item_count, 1, 10;
+
+	for (.@i = 0; .@i < .@item_count; .@i++) {
+		mes "Item #" + (.@i+1) + " - Enter Item ID:";
+		input .@item_id[.@i];
+
+		// Show item name
+		.@item_name$ = getitemname(.@item_id[.@i]);
+		if (.@item_name$ == "null") {
+			mes "^FF0000Invalid Item ID.^000000 Please try again.";
+			.@i--; // redo this iteration
+			continue;
+		}
+		mes ">> ^0055FF" + .@item_name$ + "^000000";
+
+		mes "Enter amount:";
+		input .@amount[.@i], 1, 1000;
+		mes "Added: ^0055FF" + .@item_name$ + "^000000 x" + .@amount[.@i];
+		next;
+	}
+	query_sql("INSERT INTO promo_codes (code, created_by, expire_time) VALUES ('"+escape_sql(.@code$)+"', "+getcharid(3)+", "+.@expire_time+")");
+
+	for (.@i = 0; .@i < .@item_count; .@i++) {
+		query_sql("INSERT INTO promo_code_items (code, item_id, amount) VALUES ('"+escape_sql(.@code$)+"', "+.@item_id[.@i]+", "+.@amount[.@i]+")");
+	}
+	
+	mes "Promo code '" + .@code$ + "' created with " + .@item_count + " items.";
+	for (.@i = 0; .@i < .@item_count; .@i++) {
+	.@item_name$ = getitemname(.@item_id[.@i]);
+	mes "- ^0055FF" + .@item_name$ + "^000000 x" + .@amount[.@i];
+	}
+	close;
+
+// PLAYER - CLAIM CODE
+ClaimPromo:
+	mes "[Claim Promo Code]";
+	mes "Enter promo code:";
+	input .@code$;
+	set .@code$, strtolower(.@code$);
+
+	query_sql("SELECT expire_time FROM promo_codes WHERE code = '"+escape_sql(.@code$)+"'", .@expire_time);
+	if (.@expire_time == 0) {
+		mes "Invalid promo code.";
+		close;
+	}
+	if (gettimetick(2) > .@expire_time) {
+		mes "Code expired.";
+		close;
+	}
+
+	query_sql("SELECT last_unique_id FROM login WHERE account_id = '" + getcharid(3)+ "'", .@gepard_uid$);
+
+	query_sql("SELECT 1 FROM promo_code_claims WHERE code = '"+escape_sql(.@code$)+"' AND (account_id = "+getcharid(3)+" OR last_ip = '"+getcharip()+"' OR last_unique_id = '"+escape_sql(.@gepard_uid$)+"')", .@claimed);
+	if ( .@claimed) {
+		mes "You or your device has already claimed this promo.";
+		close;
+	}
+
+	// Show rewards
+	query_sql("SELECT item_id, amount FROM promo_code_items WHERE code = '"+escape_sql(.@code$)+"'", .@item_id, .@amount);
+
+	mes "Promo Code: ^0055FF" + .@code$ + "^000000";
+	mes "Expires in: " + callfunc("TimeRemaining", .@expire_time);
+	mes "Reward Items:";
+	for (.@i = 0; .@i < getarraysize(.@item_id); .@i++) {
+		mes "- " + getitemname(.@item_id[.@i]) + " x" + .@amount[.@i];
+	}
+	next;
+	mes "Claim these items?";
+	if (select("Yes:No") == 2) close;
+
+	for (.@i = 0; .@i < getarraysize(.@item_id); .@i++)
+		getitem .@item_id[.@i], .@amount[.@i];
+
+	query_sql("INSERT INTO promo_code_claims (code, account_id, claim_time, last_ip, last_unique_id) VALUES ('"+escape_sql(.@code$)+"', "+getcharid(3)+", NOW(), '"+getcharip()+"', '"+escape_sql(.@gepard_uid$)+"')");
+
+	mes "Successfully claimed!";
+	close;
+
+// GM - REVIEW PROMO CODES
+ReviewPromo:
+	mes "[Promo Code List]";
+	query_sql("SELECT code, created_by, expire_time FROM promo_codes ORDER BY expire_time DESC LIMIT 10", .@code$, .@creator_id, .@expire_time);
+	if (getarraysize(.@code$) == 0) {
+		mes "No promo codes found.";
+		close;
+	}
+
+	mes "Select a code to review:";
+	.@menu$ = "";
+	for (.@i = 0; .@i < getarraysize(.@code$); .@i++) {
+		.@menu$ = .@menu$ + .@code$[.@i] + ":";
+	}
+	.@sel = select(.@menu$) - 1;
+	.@selected_code$ = .@code$[.@sel];
+
+	query_sql("SELECT item_id, amount FROM promo_code_items WHERE code = '"+escape_sql(.@selected_code$)+"'", .@item_id, .@amount);
+	query_sql("SELECT COUNT(*) FROM promo_code_claims WHERE code = '"+escape_sql(.@selected_code$)+"'", .@claim_count);
+	mes "Promo Code: ^0055FF" + .@selected_code$ + "^000000";
+	mes "Created by account ID: " + .@creator_id[.@sel];
+	mes "Expires in: " + callfunc("TimeRemaining", .@expire_time[.@sel]);
+	mes "Claimed by: " + .@claim_count + " player(s)";
+	mes "Items:";
+	for (.@i = 0; .@i < getarraysize(.@item_id); .@i++) {
+		mes "- " + getitemname(.@item_id[.@i]) + " x" + .@amount[.@i];
+	}
+	next;
+	if (select("Back:Delete this Promo Code") == 2) {
+		mes "Are you sure you want to ^FF0000DELETE^000000 the promo code ^0055FF" + .@selected_code$ + "^000000?";
+		if (select("Yes, delete it:No, cancel") == 1) {
+			query_sql("DELETE FROM promo_code_claims WHERE code = '"+escape_sql(.@selected_code$)+"'");
+			query_sql("DELETE FROM promo_code_items WHERE code = '"+escape_sql(.@selected_code$)+"'");
+			query_sql("DELETE FROM promo_codes WHERE code = '"+escape_sql(.@selected_code$)+"'");
+			mes "Promo code ^0055FF" + .@selected_code$ + "^000000 deleted successfully.";
+		} else {
+			mes "Deletion cancelled.";
+		}
+	}
+	close;
+
+OnFreebies:
+	mes "[Legacia]";
+	mes "something";
+	next;
+	switch(select("Freebies")){
+	case 1:
+	if (#freebies == 1){
+	mes "You have claim your freebies";
+	close;
+	}
+	if(!gepard_int_get("freebies")){
+		gepard_int_set("freebies",true);
+		mes "Enjoy your Freebies";
+		.@minutes = 3 * 1440;
+
+		// Add VIP time
+		vip_time(.@minutes);
+		getitembound callfunc("F_Rand",20307,19577,31667,31420,31050,19587,20129,19631,19832,20133,19676,20447,20458,20492),1,Bound_Account;	//porings costume
+		getitembound callfunc("F_Rand",20575,20615,20616,20595),1,Bound_Account;	//porings costume
+		getitembound 30007,5,Bound_Account;	// mvp soul
+		getitembound 13534,6,Bound_Account;	// light white pot
+		getitembound 13810,6,Bound_Account;	// light blue pot
+		getitembound 12208,3,Bound_Account;	// battle manual
+		getitembound 14592,3,Bound_Account;	// job manual
+		set #freebies,1;
+	close;
+	} else {
+		mes "Dont mess with me. You have claim yours.";
+		close;
+	}
+}
+
+}
+
+// TIME FORMAT
+function	script	TimeRemaining	{
+	.@remain = getarg(0) - gettimetick(2);
+	if (.@remain < 0) return "Expired";
+	.@d = .@remain / 86400;
+	.@h = (.@remain % 86400) / 3600;
+	.@m = (.@remain % 3600) / 60;
+	return .@d+"d "+.@h+"h "+.@m+"m";
+}

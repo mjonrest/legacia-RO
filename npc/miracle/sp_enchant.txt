@@ -1,0 +1,1179 @@
+//===== rAthena Script =======================================
+//= Special Enchant System (5 Groups, Slot2->3->4, Reset)
+//= Combined & fixed version (auto-init safeguard, exact item operations)
+//============================================================
+moc_para01,42,38,4	script	Aulion	686,{
+
+    // Ensure arrays initialized (call OnInit if needed)
+    if (!.init_done) donpcevent strnpcinfo(3)+"::OnInit";
+
+    mes "[Accessory Enchanter]";
+	mes "Hello ^00FF00"+strcharinfo(0)+"^000000, what can i help you?";
+	mes "Enchant Cost : ^FF0000"+.CostEnchant[1]+"x "+getitemname(.CostEnchant[0])+"^000000 and ^FF0000"+.CostEnchant[2]+"^000000 zeny.";
+	mes "Reset Cost : ^FF0000"+.CostReset[1]+"x "+getitemname(.CostReset[0])+"^000000 and ^FF0000"+.CostReset[2]+"^000000 zeny.";
+    switch (select("Enchant Item:Reset Item:Cancel")) {
+        case 1: callsub S_Process, 0; end;
+        case 2: callsub S_Process, 1; end;
+        default: close;
+    }
+    end;
+
+    // --------------------------------------------------------
+    // Subroutine: S_Process(<reset?>)
+    // 0 = Enchant, 1 = Reset
+    // --------------------------------------------------------
+S_Process:
+    .@reset = getarg(0);
+
+    // Cost check
+    if (.@reset) {
+        if (countitem(.CostReset[0]) < .CostReset[1] || Zeny < .CostReset[2]) {
+            mes "You need ^FF0000"+.CostReset[1]+"x "+getitemname(.CostReset[0])+"^000000 and ^FF0000"+.CostReset[2]+"^000000 zeny.";
+            close;
+        }
+    } else {
+        if (countitem(.CostEnchant[0]) < .CostEnchant[1] || Zeny < .CostEnchant[2]) {
+            mes "You need ^FF0000"+.CostEnchant[1]+"x "+getitemname(.CostEnchant[0])+"^000000 and ^FF0000"+.CostEnchant[2]+"^000000 zeny.";
+            close;
+        }
+    }
+
+    // Pull inventory list
+    getinventorylist;
+    .@n = @inventorylist_count;
+    if (.@n == 0) {
+        mes "You have no items.";
+        close;
+    }
+
+    // Build selectable list: each actual inventory item that belongs to any group (skip equipped)
+    .@menu$ = "";
+    .@c = 0;
+    for (.@i = 0; .@i < .@n; .@i++) {
+        .@id = @inventorylist_id[.@i];
+        .@equip = @inventorylist_equip[.@i];
+        if (.@equip) continue; // don't touch equipped items
+
+        // check membership in groups
+        .@group = 0;
+        if (inarray(.GroupItemID1, .@id) >= 0) .@group = 1;
+        else if (inarray(.GroupItemID2, .@id) >= 0) .@group = 2;
+        else if (inarray(.GroupItemID3, .@id) >= 0) .@group = 3;
+        else if (inarray(.GroupItemID4, .@id) >= 0) .@group = 4;
+        else if (inarray(.GroupItemID5, .@id) >= 0) .@group = 5;
+        else if (inarray(.GroupItemID6, .@id) >= 0) .@group = 6;
+
+        if (.@group == 0) continue;
+
+        // fetch refine/cards for display
+        .@ref = @inventorylist_refine[.@i];
+        .@card1 = @inventorylist_card1[.@i];
+        .@card2 = @inventorylist_card2[.@i];
+        .@card3 = @inventorylist_card3[.@i];
+        .@card4 = @inventorylist_card4[.@i];
+	.@grade  = @inventorylist_enchantgrade[.@index];
+
+	copyarray .@OptID[0],  @inventorylist_opt_id[.@index],   5;
+	copyarray .@OptVal[0], @inventorylist_opt_value[.@index], 5;
+	copyarray .@OptPar[0], @inventorylist_opt_param[.@index], 5;
+
+        // determine next enchant slot
+        if (.@card2 == 0) .@next$ = "3 left";
+        else if (.@card3 == 0) .@next$ = "2 left";
+        else if (.@card4 == 0) .@next$ = "1 left";
+        else .@next$ = "Full";
+
+        .@cand_idx[.@c] = .@i; // store inventory index
+        .@cand_group[.@c] = .@group;
+        .@menu$ += getitemname(.@id) + " [+"+.@ref+"] ^777777("+.@next$+")^000000:";
+        .@c++;
+    }
+
+    if (.@c == 0) {
+        mes "You have no enchantable items.";
+        close;
+    }
+
+    // Pick item instance
+    .@s = select(.@menu$) - 1;
+    if (.@s < 0 || .@s >= .@c) {
+        mes "Invalid selection.";
+        close;
+    }
+    .@idx = .@cand_idx[.@s];
+    .@group = .@cand_group[.@s];
+
+    // Re-read that inventory entry (ensure we have data)
+    getinventorylist;
+    // re-validate index range (inventory may have changed)
+    if (.@idx < 0 || .@idx >= @inventorylist_count) {
+        mes "Item not found (inventory changed).";
+        close;
+    }
+
+    // Read exact selected item data
+    .@id      = @inventorylist_id[.@idx];
+    .@ref     = @inventorylist_refine[.@idx];
+    .@attr    = @inventorylist_attribute[.@idx];
+    .@card1   = @inventorylist_card1[.@idx];
+    .@card2   = @inventorylist_card2[.@idx];
+    .@card3   = @inventorylist_card3[.@idx];
+    .@card4   = @inventorylist_card4[.@idx];
+	.@grade  = @inventorylist_enchantgrade[.@index];
+
+	copyarray .@OptID[0],  @inventorylist_opt_id[.@index],   5;
+	copyarray .@OptVal[0], @inventorylist_opt_value[.@index], 5;
+	copyarray .@OptPar[0], @inventorylist_opt_param[.@index], 5;
+
+
+    // Reset flow: clear slot2..4, keep refine/attr/card1
+    if (.@reset) {
+        // Remove this exact item instance
+	delitem2 .@id, 1, 1, .@ref, .@attr, .@card1, .@card2, .@card3, .@card4;
+//	delitem4 .@id, 1, 1, .@ref, .@attr, .@card1, .@card2, .@card3, .@card4, .@grade,  0, 0, 0;
+
+
+        // Give back clean version (keep card1 only)
+	getitem2 .@id, 1, 1, .@ref, .@attr, .@card1, 0, 0, 0;
+//	getitem4 .@id, 1, 1, .@ref, .@attr, .@card1, 0, 0, 0, .@grade,  0, 0, 0;
+
+
+        // Payment
+        delitem .CostReset[0], .CostReset[1];
+        Zeny -= .CostReset[2];
+
+        mes "All enchantments have been removed (Slot 2–4) from ^0055FF"+getitemname(.@id)+"^000000.";
+        close;
+    }
+
+    // Enchant flow: decide next slot (2 -> 3 -> 4)
+    .@slot = 0;
+    if (.@card2 == 0) .@slot = 2;
+    else if (.@card3 == 0) .@slot = 3;
+    else if (.@card4 == 0) .@slot = 4;
+    else {
+        mes "All enchant slots are already filled for this item.";
+        close;
+    }
+
+    // Build random pool for the selected group/slot (ignore zero entries)
+    deletearray .@pool[0], getarraysize(.@pool);
+	next;
+    switch (.@group) {
+        case 1:
+            if (.@slot == 2) { for (.@i=0; .@i<getarraysize(.GroupSlot2_1); .@i++) if (.GroupSlot2_1[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot2_1[.@i]; }
+            if (.@slot == 3) { for (.@i=0; .@i<getarraysize(.GroupSlot3_1); .@i++) if (.GroupSlot3_1[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot3_1[.@i]; }
+            if (.@slot == 4) { for (.@i=0; .@i<getarraysize(.GroupSlot4_1); .@i++) if (.GroupSlot4_1[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot4_1[.@i]; }
+            break;
+        case 2:
+            if (.@slot == 2) { for (.@i=0; .@i<getarraysize(.GroupSlot2_2); .@i++) if (.GroupSlot2_2[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot2_2[.@i]; }
+            if (.@slot == 3) { for (.@i=0; .@i<getarraysize(.GroupSlot3_2); .@i++) if (.GroupSlot3_2[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot3_2[.@i]; }
+            if (.@slot == 4) { for (.@i=0; .@i<getarraysize(.GroupSlot4_2); .@i++) if (.GroupSlot4_2[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot4_2[.@i]; }
+            break;
+        case 3:
+            if (.@slot == 2) { for (.@i=0; .@i<getarraysize(.GroupSlot2_3); .@i++) if (.GroupSlot2_3[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot2_3[.@i]; }
+            if (.@slot == 3) { for (.@i=0; .@i<getarraysize(.GroupSlot3_3); .@i++) if (.GroupSlot3_3[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot3_3[.@i]; }
+            if (.@slot == 4) { for (.@i=0; .@i<getarraysize(.GroupSlot4_3); .@i++) if (.GroupSlot4_3[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot4_3[.@i]; }
+            break;
+        case 4:
+            if (.@slot == 2) { for (.@i=0; .@i<getarraysize(.GroupSlot2_4); .@i++) if (.GroupSlot2_4[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot2_4[.@i]; }
+            if (.@slot == 3) { for (.@i=0; .@i<getarraysize(.GroupSlot3_4); .@i++) if (.GroupSlot3_4[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot3_4[.@i]; }
+            if (.@slot == 4) { for (.@i=0; .@i<getarraysize(.GroupSlot4_4); .@i++) if (.GroupSlot4_4[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot4_4[.@i]; }
+            break;
+        case 5:
+            if (.@slot == 2) { for (.@i=0; .@i<getarraysize(.GroupSlot2_5); .@i++) if (.GroupSlot2_5[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot2_5[.@i]; }
+            if (.@slot == 3) { for (.@i=0; .@i<getarraysize(.GroupSlot3_5); .@i++) if (.GroupSlot3_5[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot3_5[.@i]; }
+            if (.@slot == 4) { for (.@i=0; .@i<getarraysize(.GroupSlot4_5); .@i++) if (.GroupSlot4_5[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot4_5[.@i]; }
+            break;
+        case 6:
+            if (.@slot == 2) { for (.@i=0; .@i<getarraysize(.GroupSlot2_6); .@i++) if (.GroupSlot2_6[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot2_6[.@i]; }
+            if (.@slot == 3) { for (.@i=0; .@i<getarraysize(.GroupSlot3_6); .@i++) if (.GroupSlot3_6[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot3_6[.@i]; }
+            if (.@slot == 4) { for (.@i=0; .@i<getarraysize(.GroupSlot4_6); .@i++) if (.GroupSlot4_6[.@i]) .@pool[ getarraysize(.@pool) ] = .GroupSlot4_6[.@i]; }
+            break;
+
+    }
+
+    if (getarraysize(.@pool) == 0) {
+        mes "No registered enchants for this slot.";
+        close;
+    }
+
+    // --------------------------------------------------------
+    // Show possible enchants to the player
+    // --------------------------------------------------------
+    // Confirm cost & show current enchants
+    mes "You selected: ^0000FF" + getitemname(.@id) + "^000000 [^00FF00+"+.@ref+"^000000]";
+    mes "Current Enchants:";
+    if (.@card2 > 0) mes "^FF0000Slot 2^000000: ^0000FF" + getitemname(.@card2);
+    else mes "^FF0000Slot 2^000000: [^0000FFempty^000000]";
+    if (.@card3 > 0) mes "^FF0000Slot 3^000000: ^0000FF" + getitemname(.@card3);
+    else mes "^FF0000Slot 3^000000: [^0000FFempty^000000]";
+    if (.@card4 > 0) mes "^FF0000Slot 4^000000: ^0000FF" + getitemname(.@card4);
+    else mes "^FF0000Slot 4^000000: [^0000FFempty^000000]";
+    next;
+
+    mes "^0000FF[Possible Enchant]^000000";
+    for (.@i = 0; .@i < getarraysize(.@pool); .@i++) {
+        mes " - " + mesitemlink(.@pool[.@i]) + " ("+getitemname(.@pool[.@i])+")";
+    }
+    next;
+
+
+    mes "Cost: " + .CostEnchant[1] + "x " + mesitemlink(.CostEnchant[0]) + " + " + .CostEnchant[2] + " Zeny";
+    if (select("Yes, proceed enchant:Let me think") == 2) {
+        close;
+    }
+
+    // payment check again
+    if (countitem(.CostEnchant[0]) < .CostEnchant[1] || Zeny < .CostEnchant[2]) {
+        mes "You lack materials or Zeny.";
+        close;
+    }
+    delitem .CostEnchant[0], .CostEnchant[1];
+    Zeny -= .CostEnchant[2];
+
+    // pick random enchant
+    .@new = .@pool[ rand(getarraysize(.@pool)) ];
+
+    // Apply: remove exact item, rebuild with new card in the correct slot
+    delitem2 .@id, 1, 1, .@ref, .@attr, .@card1, .@card2, .@card3, .@card4;
+
+    if (.@slot == 2) .@card2 = .@new;
+    else if (.@slot == 3) .@card3 = .@new;
+    else if (.@slot == 4) .@card4 = .@new;
+
+	getitem2 .@id, 1, 1, .@ref, .@attr, .@card1, .@card2, .@card3, .@card4;
+//	getitem4 .@id, 1, 1, .@ref, .@attr, .@card1, .@card2, .@card3, .@card4, .@grade,  0, 0, 0;
+
+
+    mes "Enchantment applied to ^0055FF"+getitemname(.@id)+"^000000!";
+    mes "Slot "+.@slot+" : ^00AA00"+getitemname(.@new)+"^000000 (ID: "+.@new+")";
+    close;
+
+    // --------------------------------------------------------
+    // Initialization: groups & costs
+    // --------------------------------------------------------
+OnInit:
+    // Costs: [item_id, amount, zeny]
+    setarray .CostEnchant, 1000874, 2, 10000000;
+    setarray .CostReset,   1000874, 5,  5000000;
+
+    // -------- GROUP DATA (from your Excel / original lists) --------
+    // Group 1
+    setarray .GroupItemID1[0], 490035;
+    setarray .GroupSlot2_1[0], 29026,4891,4811,4883,4818,4832,4805,4804,310854;
+    setarray .GroupSlot3_1[0], 29026,4892,4810,4896,4817,4833,4850,310855,4949;
+    setarray .GroupSlot4_1[0], 4898,4950,310195;
+
+    // Group 2
+    setarray .GroupItemID2[0], 490570,490290;
+    setarray .GroupSlot2_2[0], 4709,4739,4749,4719,4729,4759,4853,4854,4855,4856,4857,4858,311072;
+    setarray .GroupSlot3_2[0], 4709,4739,4749,4719,4729,4759,4853,4854,4855,4856,4857,4858,29436,4876,4879,29509,29371,310012;
+    setarray .GroupSlot4_2[0], 4853,4854,4855,4856,4857,4858,29243,29372,310337,311909;
+
+    // Group 3
+    setarray .GroupItemID3[0], 490545,490706;
+    setarray .GroupSlot2_3[0], 312032,310318,29373;
+    setarray .GroupSlot3_3[0], 312032,310318,29373;
+    setarray .GroupSlot4_3[0], 310012,29509,29371,311890;
+
+    // Group 4 (your updated list)
+    setarray .GroupItemID4[0], 28520,28430,28533,28513,28438,28411,28573,28434,32204,28372,28551,28485,28433,28598,28561,28379,28491,28386,28492,28596,28564,28531,28507,32262,28594,28560,32263,28484,490149,490110,490029,490113,490102,490037,490031,490068,490098,490013,490083,490076,490079,490130,490038,490096,490118,490141,490146,490145,490183,490193,490104,32206;
+    setarray .GroupSlot2_4[0], 4706,4736,4746,4716,4726,4756,4853,4854,4855,4856,4857,4858,27412;
+    setarray .GroupSlot3_4[0], 4706,4736,4746,4716,4726,4756,4853,4854,4855,4856,4857,4858,29246;
+    setarray .GroupSlot4_4[0], 4706,4736,4746,4716,4726,4756,300229,310648,310649,310650,310651,310652,4879,4875,4877,4876,4803;
+
+    // Group 5
+    setarray .GroupItemID5[0], 490381;
+    setarray .GroupSlot2_5[0], 310321,311074,311072,29724,311073,311075,311439,311883,312421;
+    setarray .GroupSlot3_5[0], 310321,311074,311072,29724,311073,311075,311439,311883,312421;
+    setarray .GroupSlot4_5[0], 29509,29371;
+
+    setarray .GroupItemID6[0], 490207;
+    setarray .GroupSlot2_6[0], 4706,4736,4746,4716,4726,4756,29649,29650,29246,29243;
+    setarray .GroupSlot3_6[0], 4706,4736,4746,4716,4726,4756,29649,29650,311074,310318;
+    setarray .GroupSlot4_6[0], 4706,4736,4746,4716,4726,4756,29373,29438,29436,4876,4879;
+
+
+    .init_done = 1;
+    setunittitle( getnpcid(0), "<Accessory Enchanter>" );
+    end;
+}
+
+
+//===== rAthena Script =======================================
+//= Headgear Enchant System (expanded from sp_enc_head.txt)
+//= Split into chunks for easy copy/paste
+//============================================================
+moc_para01,44,38,4	script	Desmond	684,{
+
+    if (!.init_done) donpcevent strnpcinfo(3)+"::OnInit";
+
+    mes "[Armor Enchanter]";
+    mes "Hello, ^00FF00"+strcharinfo(0)+"^000000!";
+    mes "Enchant Cost : ^FF0000"+.CostEnchant[1]+"x "+getitemname(.CostEnchant[0])+"^000000 and ^FF0000"+.CostEnchant[2]+"^000000 zeny.";
+    mes "Reset Cost : ^FF0000"+.CostReset[1]+"x "+getitemname(.CostReset[0])+"^000000 and ^FF0000"+.CostReset[2]+"^000000 zeny.";
+	next;
+    switch(select("Enchant Item:Reset Item:Cancel")) {
+        case 1: callsub S_Process,0; end;
+        case 2: callsub S_Process,1; end;
+        default: close;
+    }
+
+S_Process:
+    .@reset = getarg(0);
+
+    // Cost check
+    if (.@reset) {
+        if (countitem(.CostReset[0]) < .CostReset[1] || Zeny < .CostReset[2]) {
+            mes "You need ^FF0000"+.CostReset[1]+"x "+getitemname(.CostReset[0])+"^000000 and ^FF0000"+.CostReset[2]+"^000000 zeny.";
+            close;
+        }
+    } else {
+        if (countitem(.CostEnchant[0]) < .CostEnchant[1] || Zeny < .CostEnchant[2]) {
+            mes "You need ^FF0000"+.CostEnchant[1]+"x "+getitemname(.CostEnchant[0])+"^000000 and ^FF0000"+.CostEnchant[2]+"^000000 zeny.";
+            close;
+        }
+    }
+
+    // Pull inventory list
+    getinventorylist;
+    .@n = @inventorylist_count;
+    if (.@n == 0) { mes "You have no items."; close; }
+
+    // Build selectable list
+    .@menu$ = "";
+    .@c = 0;
+    for (.@i = 0; .@i < .@n; .@i++) {
+        .@id = @inventorylist_id[.@i];
+        if (@inventorylist_equip[.@i]) continue; // skip equipped
+
+        // check group
+        .@group = 0;
+        if (inarray(.GroupItemID1, .@id) >= 0) .@group = 1;
+        else if (inarray(.GroupItemID2, .@id) >= 0) .@group = 2;
+        else if (inarray(.GroupItemID3, .@id) >= 0) .@group = 3;
+        else if (inarray(.GroupItemID4, .@id) >= 0) .@group = 4;
+        else if (inarray(.GroupItemID5, .@id) >= 0) .@group = 5;
+        else if (inarray(.GroupItemID6, .@id) >= 0) .@group = 6;
+        else if (inarray(.GroupItemID7, .@id) >= 0) .@group = 7;
+        else if (inarray(.GroupItemID8, .@id) >= 0) .@group = 8;
+        else if (inarray(.GroupItemID9, .@id) >= 0) .@group = 9;
+        else if (inarray(.GroupItemID10, .@id) >= 0) .@group = 10;
+	else if (inarray(.GroupItemID11, .@id) >= 0) .@group = 11;
+	else if (inarray(.GroupItemID12, .@id) >= 0) .@group = 12;
+	else if (inarray(.GroupItemID13, .@id) >= 0) .@group = 13;
+	else if (inarray(.GroupItemID14, .@id) >= 0) .@group = 14;
+	else if (inarray(.GroupItemID15, .@id) >= 0) .@group = 15;
+	else if (inarray(.GroupItemID16, .@id) >= 0) .@group = 16;
+	else if (inarray(.GroupItemID17, .@id) >= 0) .@group = 17;
+	else if (inarray(.GroupItemID18, .@id) >= 0) .@group = 18;
+	else if (inarray(.GroupItemID19, .@id) >= 0) .@group = 19;
+	else if (inarray(.GroupItemID20, .@id) >= 0) .@group = 20;
+	else if (inarray(.GroupItemID21, .@id) >= 0) .@group = 21;
+	else if (inarray(.GroupItemID22, .@id) >= 0) .@group = 22;
+	else if (inarray(.GroupItemID23, .@id) >= 0) .@group = 23;
+	else if (inarray(.GroupItemID24, .@id) >= 0) .@group = 24;
+	else if (inarray(.GroupItemID25, .@id) >= 0) .@group = 25;
+	else if (inarray(.GroupItemID26, .@id) >= 0) .@group = 26;
+	else if (inarray(.GroupItemID27, .@id) >= 0) .@group = 27;
+	else if (inarray(.GroupItemID28, .@id) >= 0) .@group = 28;
+	else if (inarray(.GroupItemID29, .@id) >= 0) .@group = 29;
+	else if (inarray(.GroupItemID30, .@id) >= 0) .@group = 30;
+	else if (inarray(.GroupItemID31, .@id) >= 0) .@group = 31;
+	else if (inarray(.GroupItemID32, .@id) >= 0) .@group = 32;
+	else if (inarray(.GroupItemID33, .@id) >= 0) .@group = 33;
+	else if (inarray(.GroupItemID34, .@id) >= 0) .@group = 34;
+	else if (inarray(.GroupItemID35, .@id) >= 0) .@group = 35;
+	else if (inarray(.GroupItemID36, .@id) >= 0) .@group = 36;
+	else if (inarray(.GroupItemID37, .@id) >= 0) .@group = 37;
+	else if (inarray(.GroupItemID38, .@id) >= 0) .@group = 38;
+	else if (inarray(.GroupItemID39, .@id) >= 0) .@group = 39;
+	else if (inarray(.GroupItemID40, .@id) >= 0) .@group = 40;
+	else if (inarray(.GroupItemID41, .@id) >= 0) .@group = 41;
+	else if (inarray(.GroupItemID42, .@id) >= 0) .@group = 42;
+	else if (inarray(.GroupItemID43, .@id) >= 0) .@group = 43;
+	else if (inarray(.GroupItemID44, .@id) >= 0) .@group = 44;
+	else if (inarray(.GroupItemID45, .@id) >= 0) .@group = 45;
+	else if (inarray(.GroupItemID46, .@id) >= 0) .@group = 46;
+	else if (inarray(.GroupItemID47, .@id) >= 0) .@group = 47;
+	else if (inarray(.GroupItemID48, .@id) >= 0) .@group = 48;
+	else if (inarray(.GroupItemID49, .@id) >= 0) .@group = 49;
+	else if (inarray(.GroupItemID50, .@id) >= 0) .@group = 50;
+	else if (inarray(.GroupItemID51, .@id) >= 0) .@group = 51;
+	else if (inarray(.GroupItemID52, .@id) >= 0) .@group = 52;
+	else if (inarray(.GroupItemID53, .@id) >= 0) .@group = 53;
+	else if (inarray(.GroupItemID54, .@id) >= 0) .@group = 54;
+	else if (inarray(.GroupItemID55, .@id) >= 0) .@group = 55;
+	else if (inarray(.GroupItemID56, .@id) >= 0) .@group = 56;
+	else if (inarray(.GroupItemID57, .@id) >= 0) .@group = 57;
+	else if (inarray(.GroupItemID58, .@id) >= 0) .@group = 58;
+	else if (inarray(.GroupItemID59, .@id) >= 0) .@group = 59;
+
+
+
+        if (.@group == 0) continue;
+
+        .@ref = @inventorylist_refine[.@i];
+        .@card1 = @inventorylist_card1[.@i];
+        .@card2 = @inventorylist_card2[.@i];
+        .@card3 = @inventorylist_card3[.@i];
+        .@card4 = @inventorylist_card4[.@i];
+	.@grade  = @inventorylist_enchantgrade[.@index];
+
+	// Detect which slots are valid for this group
+	.@has2 = getarraysize(getd(".GroupSlot2_" + .@group));
+	.@has3 = getarraysize(getd(".GroupSlot3_" + .@group));
+	.@has4 = getarraysize(getd(".GroupSlot4_" + .@group));
+
+	// Build status text
+	if (.@has2 && .@card2 == 0)
+	    .@next$ = "slot2 empty";
+	else if (.@has3 && .@card3 == 0)
+	    .@next$ = "slot3 empty";
+	else if (.@has4 && .@card4 == 0)
+	    .@next$ = "slot4 empty";
+	else
+	    .@next$ = "Full";
+
+        .@cand_idx[.@c] = .@i;
+        .@cand_group[.@c] = .@group;
+        .@menu$ += getitemname(.@id) + " [+"+.@ref+"] ^777777("+.@next$+")^000000:";
+        .@c++;
+    }
+
+    if (.@c == 0) { mes "You have no enchantable items."; close; }
+
+    // Pick selection
+    .@s = select(.@menu$) - 1;
+    .@idx = .@cand_idx[.@s];
+    .@group = .@cand_group[.@s];
+
+    getinventorylist;
+    if (.@idx < 0 || .@idx >= @inventorylist_count) { mes "Item not found."; close; }
+
+    .@id      = @inventorylist_id[.@idx];
+    .@ref     = @inventorylist_refine[.@idx];
+    .@attr    = @inventorylist_attribute[.@idx];
+    .@card1   = @inventorylist_card1[.@idx];
+    .@card2   = @inventorylist_card2[.@idx];
+    .@card3   = @inventorylist_card3[.@idx];
+    .@card4   = @inventorylist_card4[.@idx];
+	.@grade  = @inventorylist_enchantgrade[.@index];
+
+    // Reset path
+    if (.@reset) {
+	delitem2 .@id, 1, 1, .@ref, .@attr, .@card1, .@card2, .@card3, .@card4;
+//	delitem4 .@id, 1, 1, .@ref, .@attr, .@card1, .@card2, .@card3, .@card4, .@grade, 0, 0, 0;
+	getitem2 .@id, 1, 1, .@ref, .@attr, .@card1, 0, 0, 0;
+//	getitem4 .@id, 1, 1, .@ref, .@attr, .@card1, 0, 0, 0, .@grade,  0, 0, 0;
+        delitem .CostReset[0], .CostReset[1];
+        Zeny -= .CostReset[2];
+        mes "All enchantments removed!";
+        close;
+    }
+
+    // Determine next slot
+	.@slot = 0;
+	if (.@card2 == 0 && getarraysize(getd(".GroupSlot2_"+.@group)) > 0) .@slot = 2;
+	else if (.@card3 == 0 && getarraysize(getd(".GroupSlot3_"+.@group)) > 0) .@slot = 3;
+	else if (.@card4 == 0 && getarraysize(getd(".GroupSlot4_"+.@group)) > 0) .@slot = 4;
+
+    // Build random pool
+    deletearray .@pool[0], getarraysize(.@pool);
+    switch (.@group) {
+        case 1:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_1, getarraysize(.GroupSlot2_1);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_1, getarraysize(.GroupSlot3_1);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_1, getarraysize(.GroupSlot4_1);
+            break;
+        case 2:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_2, getarraysize(.GroupSlot2_2);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_2, getarraysize(.GroupSlot3_2);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_2, getarraysize(.GroupSlot4_2);
+            break;
+        case 3:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_3, getarraysize(.GroupSlot2_3);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_3, getarraysize(.GroupSlot3_3);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_3, getarraysize(.GroupSlot4_3);
+            break;
+        case 4:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_4, getarraysize(.GroupSlot2_4);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_4, getarraysize(.GroupSlot3_4);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_4, getarraysize(.GroupSlot4_4);
+            break;
+        case 5:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_5, getarraysize(.GroupSlot2_5);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_5, getarraysize(.GroupSlot3_5);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_5, getarraysize(.GroupSlot4_5);
+            break;
+        case 6:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_6, getarraysize(.GroupSlot2_6);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_6, getarraysize(.GroupSlot3_6);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_6, getarraysize(.GroupSlot4_6);
+            break;
+        case 7:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_7, getarraysize(.GroupSlot2_7);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_7, getarraysize(.GroupSlot3_7);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_7, getarraysize(.GroupSlot4_7);
+            break;
+        case 8:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_8, getarraysize(.GroupSlot2_8);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_8, getarraysize(.GroupSlot3_8);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_8, getarraysize(.GroupSlot4_8);
+            break;
+        case 9:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_9, getarraysize(.GroupSlot2_9);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_9, getarraysize(.GroupSlot3_9);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_9, getarraysize(.GroupSlot4_9);
+            break;
+        case 10:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_10, getarraysize(.GroupSlot2_10);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_10, getarraysize(.GroupSlot3_10);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_10, getarraysize(.GroupSlot4_10);
+            break;
+        case 11:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_11, getarraysize(.GroupSlot2_11);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_11, getarraysize(.GroupSlot3_11);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_11, getarraysize(.GroupSlot4_11);
+            break;
+        case 12:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_12, getarraysize(.GroupSlot2_12);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_12, getarraysize(.GroupSlot3_12);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_12, getarraysize(.GroupSlot4_12);
+            break;
+        case 13:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_13, getarraysize(.GroupSlot2_13);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_13, getarraysize(.GroupSlot3_13);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_13, getarraysize(.GroupSlot4_13);
+            break;
+        case 14:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_14, getarraysize(.GroupSlot2_14);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_14, getarraysize(.GroupSlot3_14);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_14, getarraysize(.GroupSlot4_14);
+            break;
+        case 15:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_15, getarraysize(.GroupSlot2_15);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_15, getarraysize(.GroupSlot3_15);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_15, getarraysize(.GroupSlot4_15);
+            break;
+        case 16:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_16, getarraysize(.GroupSlot2_16);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_16, getarraysize(.GroupSlot3_16);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_16, getarraysize(.GroupSlot4_16);
+            break;
+        case 17:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_17, getarraysize(.GroupSlot2_17);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_17, getarraysize(.GroupSlot3_17);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_17, getarraysize(.GroupSlot4_17);
+            break;
+        case 18:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_18, getarraysize(.GroupSlot2_18);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_18, getarraysize(.GroupSlot3_18);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_18, getarraysize(.GroupSlot4_18);
+            break;
+        case 19:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_19, getarraysize(.GroupSlot2_19);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_19, getarraysize(.GroupSlot3_19);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_19, getarraysize(.GroupSlot4_19);
+            break;
+        case 20:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_20, getarraysize(.GroupSlot2_20);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_20, getarraysize(.GroupSlot3_20);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_20, getarraysize(.GroupSlot4_20);
+            break;
+        case 21:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_21, getarraysize(.GroupSlot2_21);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_21, getarraysize(.GroupSlot3_21);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_21, getarraysize(.GroupSlot4_21);
+            break;
+        case 22:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_22, getarraysize(.GroupSlot2_22);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_22, getarraysize(.GroupSlot3_22);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_22, getarraysize(.GroupSlot4_22);
+            break;
+        case 23:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_23, getarraysize(.GroupSlot2_23);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_23, getarraysize(.GroupSlot3_23);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_23, getarraysize(.GroupSlot4_23);
+            break;
+
+        case 24:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_24, getarraysize(.GroupSlot2_24);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_24, getarraysize(.GroupSlot3_24);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_24, getarraysize(.GroupSlot4_24);
+            break;
+        case 25:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_25, getarraysize(.GroupSlot2_25);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_25, getarraysize(.GroupSlot3_25);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_25, getarraysize(.GroupSlot4_25);
+            break;
+        case 26:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_26, getarraysize(.GroupSlot2_26);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_26, getarraysize(.GroupSlot3_26);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_26, getarraysize(.GroupSlot4_26);
+            break;
+        case 27:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_27, getarraysize(.GroupSlot2_27);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_27, getarraysize(.GroupSlot3_27);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_27, getarraysize(.GroupSlot4_27);
+            break;
+        case 28:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_28, getarraysize(.GroupSlot2_28);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_28, getarraysize(.GroupSlot3_28);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_28, getarraysize(.GroupSlot4_28);
+            break;
+        case 29:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_29, getarraysize(.GroupSlot2_29);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_29, getarraysize(.GroupSlot3_29);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_29, getarraysize(.GroupSlot4_29);
+            break;
+        case 30:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_30, getarraysize(.GroupSlot2_30);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_30, getarraysize(.GroupSlot3_30);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_30, getarraysize(.GroupSlot4_30);
+            break;
+        case 31:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_31, getarraysize(.GroupSlot2_31);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_31, getarraysize(.GroupSlot3_31);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_31, getarraysize(.GroupSlot4_31);
+            break;
+        case 32:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_32, getarraysize(.GroupSlot2_32);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_32, getarraysize(.GroupSlot3_32);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_32, getarraysize(.GroupSlot4_32);
+            break;
+        case 33:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_33, getarraysize(.GroupSlot2_33);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_33, getarraysize(.GroupSlot3_33);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_33, getarraysize(.GroupSlot4_33);
+            break;
+
+        case 34:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_34, getarraysize(.GroupSlot2_34);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_34, getarraysize(.GroupSlot3_34);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_34, getarraysize(.GroupSlot4_34);
+            break;
+        case 35:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_35, getarraysize(.GroupSlot2_35);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_35, getarraysize(.GroupSlot3_35);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_35, getarraysize(.GroupSlot4_35);
+            break;
+        case 36:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_36, getarraysize(.GroupSlot2_36);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_36, getarraysize(.GroupSlot3_36);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_36, getarraysize(.GroupSlot4_36);
+            break;
+        case 37:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_37, getarraysize(.GroupSlot2_37);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_37, getarraysize(.GroupSlot3_37);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_37, getarraysize(.GroupSlot4_37);
+            break;
+        case 38:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_38, getarraysize(.GroupSlot2_38);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_38, getarraysize(.GroupSlot3_38);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_38, getarraysize(.GroupSlot4_38);
+            break;
+        case 39:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_39, getarraysize(.GroupSlot2_39);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_39, getarraysize(.GroupSlot3_39);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_39, getarraysize(.GroupSlot4_39);
+            break;
+        case 40:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_40, getarraysize(.GroupSlot2_40);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_40, getarraysize(.GroupSlot3_40);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_40, getarraysize(.GroupSlot4_40);
+            break;
+        case 41:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_41, getarraysize(.GroupSlot2_41);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_41, getarraysize(.GroupSlot3_41);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_41, getarraysize(.GroupSlot4_41);
+            break;
+        case 42:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_42, getarraysize(.GroupSlot2_42);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_42, getarraysize(.GroupSlot3_42);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_42, getarraysize(.GroupSlot4_42);
+            break;
+        case 43:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_43, getarraysize(.GroupSlot2_43);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_43, getarraysize(.GroupSlot3_43);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_43, getarraysize(.GroupSlot4_43);
+            break;
+        case 44:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_44, getarraysize(.GroupSlot2_44);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_44, getarraysize(.GroupSlot3_44);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_44, getarraysize(.GroupSlot4_44);
+            break;
+        case 45:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_45, getarraysize(.GroupSlot2_45);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_45, getarraysize(.GroupSlot3_45);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_45, getarraysize(.GroupSlot4_45);
+            break;
+        case 46:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_46, getarraysize(.GroupSlot2_46);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_46, getarraysize(.GroupSlot3_46);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_46, getarraysize(.GroupSlot4_46);
+            break;
+        case 47:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_47, getarraysize(.GroupSlot2_47);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_47, getarraysize(.GroupSlot3_47);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_47, getarraysize(.GroupSlot4_47);
+            break;
+        case 48:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_48, getarraysize(.GroupSlot2_48);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_48, getarraysize(.GroupSlot3_48);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_48, getarraysize(.GroupSlot4_48);
+            break;
+        case 49:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_49, getarraysize(.GroupSlot2_49);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_49, getarraysize(.GroupSlot3_49);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_49, getarraysize(.GroupSlot4_49);
+            break;
+        case 50:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_50, getarraysize(.GroupSlot2_50);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_50, getarraysize(.GroupSlot3_50);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_50, getarraysize(.GroupSlot4_50);
+            break;
+        case 51:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_51, getarraysize(.GroupSlot2_51);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_51, getarraysize(.GroupSlot3_51);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_51, getarraysize(.GroupSlot4_51);
+            break;
+        case 52:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_52, getarraysize(.GroupSlot2_52);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_52, getarraysize(.GroupSlot3_52);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_52, getarraysize(.GroupSlot4_52);
+            break;
+        case 53:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_53, getarraysize(.GroupSlot2_53);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_53, getarraysize(.GroupSlot3_53);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_53, getarraysize(.GroupSlot4_53);
+            break;
+        case 54:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_54, getarraysize(.GroupSlot2_54);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_54, getarraysize(.GroupSlot3_54);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_54, getarraysize(.GroupSlot4_54);
+            break;
+        case 55:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_55, getarraysize(.GroupSlot2_55);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_55, getarraysize(.GroupSlot3_55);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_55, getarraysize(.GroupSlot4_55);
+            break;
+        case 56:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_56, getarraysize(.GroupSlot2_56);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_56, getarraysize(.GroupSlot3_56);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_56, getarraysize(.GroupSlot4_56);
+            break;
+        case 57:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_57, getarraysize(.GroupSlot2_57);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_57, getarraysize(.GroupSlot3_57);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_57, getarraysize(.GroupSlot4_57);
+            break;
+        case 58:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_58, getarraysize(.GroupSlot2_58);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_58, getarraysize(.GroupSlot3_58);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_58, getarraysize(.GroupSlot4_58);
+            break;
+        case 59:
+            if (.@slot==2) copyarray .@pool, .GroupSlot2_59, getarraysize(.GroupSlot2_59);
+            if (.@slot==3) copyarray .@pool, .GroupSlot3_59, getarraysize(.GroupSlot3_59);
+            if (.@slot==4) copyarray .@pool, .GroupSlot4_59, getarraysize(.GroupSlot4_59);
+            break;
+
+
+    }
+
+// Safety: check pool size before picking
+.@size = getarraysize(.@pool);
+
+if (.@size < 1) {
+    mes "No enchants for this slot.";
+    close;
+}
+
+    mes "You selected: ^0000FF" + getitemname(.@id) + "^000000 [^00FF00+"+.@ref+"^000000]";
+    mes "Current Enchants:";
+    if (.@card2 > 0) mes "^FF0000Slot 2^000000: ^0000FF" + getitemname(.@card2);
+    else mes "^FF0000Slot 2^000000: [^0000FFempty^000000]";
+    if (.@card3 > 0) mes "^FF0000Slot 3^000000: ^0000FF" + getitemname(.@card3);
+    else mes "^FF0000Slot 3^000000: [^0000FFempty^000000]";
+    if (.@card4 > 0) mes "^FF0000Slot 4^000000: ^0000FF" + getitemname(.@card4);
+    else mes "^FF0000Slot 4^000000: [^0000FFempty^000000]";
+    next;
+
+
+// Show pool to player
+mes "Enchant pool:";
+for (.@i = 0; .@i < .@size; .@i++)
+    mes " - " + mesitemlink(.@pool[.@i]) + " ("+getitemname(.@pool[.@i])+")";
+//    mes " - " + getitemname(.@pool[.@i]);
+next;
+
+mes "Proceed with enchant?";
+if (select("Yes:Cancel") == 2) close;
+
+delitem .CostEnchant[0], .CostEnchant[1];
+Zeny -= .CostEnchant[2];
+
+// Choose enchant safely
+if (.@size == 1)
+    .@new = .@pool[0];          // only one option, no need for rand
+else
+    .@new = .@pool[rand(.@size)]; // multiple options, use rand
+
+	delitem2 .@id, 1, 1, .@ref, .@attr, .@card1, .@card2, .@card3, .@card4;
+//	delitem4 .@id, 1, 1, .@ref, .@attr, .@card1, .@card2, .@card3, .@card4, .@grade,  0, 0, 0;
+    if (.@slot==2) .@card2=.@new;
+    else if (.@slot==3) .@card3=.@new;
+    else if (.@slot==4) .@card4=.@new;
+	getitem2 .@id,1,1,.@ref,.@attr,.@card1,.@card2,.@card3,.@card4;
+//	getitem4 .@id, 1, 1, .@ref, .@attr, .@card1, .@card2, .@card3, .@card4, .@grade,  0, 0, 0;
+
+    mes "Enchant applied!";
+    close;
+
+OnInit:
+    // Costs (same as accessory enchant)
+    setarray .CostEnchant, 1000874, 2, 10000000;
+    setarray .CostReset,   1000874, 5,  5000000;
+
+    // --- Groups from sp_enc_head.txt ---
+    // Group 1 : 18934
+    setarray .GroupItemID1[0], 18934;
+    setarray .GroupSlot3_1[0], 29648;
+    setarray .GroupSlot4_1[0], 29012,29372,29243,29379,4900,4801,4946,4706,4736,4746,4716,4726,4756,4853,4854,4855,4856,4857,4858;
+
+    // Group 2 : 18804
+    setarray .GroupItemID2[0], 18804;
+    setarray .GroupSlot3_2[0], 29588;
+    setarray .GroupSlot4_2[0], 29012,29243,29248,4900,4801,4946,4706,4736,4746,4716,4726,4756,4853,4854,4855,4856,4857,4858;
+
+    // Group 3 : 5930
+    setarray .GroupItemID3[0], 5930;
+    setarray .GroupSlot3_3[0], 29588;
+    setarray .GroupSlot4_3[0], 29012,29243,29248,4900,4801,4946,4944,4817,4810,4833,4896,310855,4706,4736,4746,4716,4726,4756;
+
+    // Group 4 : 5965
+    setarray .GroupItemID4[0], 5965;
+    setarray .GroupSlot3_4[0], 29588;
+    setarray .GroupSlot4_4[0], 29012,29243,29248,4900,4801,4946,4944,4817,4810,4833,4896,310855,4706,4736,4746,4716,4726,4756;
+
+    // Group 5 : 5969
+    setarray .GroupItemID5[0], 5969;
+    setarray .GroupSlot3_5[0], 29588;
+    setarray .GroupSlot4_5[0], 29012,29372,29243,29248,4900,4801,4946,4944,4817,4810,4833,4896,310855,4706,4736,4746,4716,4726,4756;
+
+    // Group 6 : 19140
+    setarray .GroupItemID6[0], 19140;
+    setarray .GroupSlot3_6[0], 29588;
+    setarray .GroupSlot4_6[0], 29012,29372,29243,29248,4900,4801,4946,4944,4817,4810,4833,4896,310855,4706,4736,4746,4716,4726,4756;
+
+    // Group 7 : 19116
+    setarray .GroupItemID7[0], 19116;
+    setarray .GroupSlot3_7[0], 29243,29248,4900,4801,4946,4944,4817,4810,4833,4896,310855,4702,4732,4742,4712,4722,4752;
+    setarray .GroupSlot4_7[0], 29012,29372,29243,29248,4900,4801,4946,4944,4817,4810,4833,4896,310855,4706,4736,4746,4716,4726,4756;
+
+    // Group 8 : 19273,19380
+    setarray .GroupItemID8[0], 19273,19380;
+    setarray .GroupSlot2_8[0], 29012,4817,4818,4811,4810,4832,4833,4883,4896,29136,29135;
+    setarray .GroupSlot3_8[0], 29012,4817,4818,4811,4810,4832,4833,4883,4896;
+    setarray .GroupSlot4_8[0], 4902,4789,29241,29238,29240,29236,4807,4900,4801,29373,29374;
+
+    // Group 9 : 19274
+    setarray .GroupItemID9[0], 19274;
+    setarray .GroupSlot2_9[0], 4701,4731,4741,4711,4721,4751,29012;
+    setarray .GroupSlot3_9[0], 4793,4788,29237,29239,4764,29236,29012;
+    setarray .GroupSlot4_9[0], 4867,4801,4807,4767,4897,29012;
+
+    // Group 10 : 19272
+    setarray .GroupItemID10[0], 19272;
+    setarray .GroupSlot2_10[0], 29012,29248,29374,4950,29243,4883,4896,310854,310855,27398,4900,29372;
+    setarray .GroupSlot3_10[0], 29012,29248,29374,4950,29243,4883,4896,310854,310855,27398,4900,29372;
+    setarray .GroupSlot4_10[0], 29371;
+
+    // Group 11 : 19445
+    setarray .GroupItemID11[0], 19445;
+    setarray .GroupSlot2_11[0], 4701,4731,4741,4711,4721,4751;
+    setarray .GroupSlot3_11[0], 4818,4817,4811,4832,4815;
+    setarray .GroupSlot4_11[0], 29241,29238,29240,4944,29243,29012;
+
+    // Group 12 : 420028,420112
+    setarray .GroupItemID12[0], 420028,420112;
+    setarray .GroupSlot2_12[0], 27399,4701,4731,4741,4711,4721,4751,29012;
+    setarray .GroupSlot3_12[0], 27400,4788,29237,29239,4764,29012;
+    setarray .GroupSlot4_12[0], 4928,29243,29246;
+
+    // Group 13 : 420006,19499,420068
+    setarray .GroupItemID13[0], 420006,19499,420068;
+    setarray .GroupSlot2_13[0], 4701,4731,4741,4711,4721,4751,29012;
+    setarray .GroupSlot3_13[0], 4793,4788,29237,29239,4764,29236,29012;
+    setarray .GroupSlot4_13[0], 4867,4928,29243,29246;
+
+    // Group 14 : 19311
+    setarray .GroupItemID14[0], 19311;
+    setarray .GroupSlot2_14[0], 29012,4946,4950,4817,29136,4810,4833,4814,310855,4944,310991,4801;
+    setarray .GroupSlot3_14[0], 29012,4946,4950,4817,29136,4810,4833,4814,310855,4944,310991,4801;
+    setarray .GroupSlot4_14[0], 29371,29436;
+
+    // Group 15 : 19381
+    setarray .GroupItemID15[0], 19381;
+    setarray .GroupSlot2_15[0], 29012,4701,4731,4741,4711,4721,4751;
+    setarray .GroupSlot3_15[0], 29012,4793,4788,29237,29239,4764,29236;
+    setarray .GroupSlot4_15[0], 4867,4801,4767,4897,29243;
+
+    // Group 16 : 410025
+    setarray .GroupItemID16[0], 410025;
+    setarray .GroupSlot2_16[0], 4704,4734,4744,4714,4724,4754;
+    setarray .GroupSlot3_16[0], 4704,4734,4744,4714,4724,4754;
+    setarray .GroupSlot4_16[0], 29012,4704,4734,4744,4714,4724,4754,4881,29248,29243;
+
+    // Group 17 : 19437
+    setarray .GroupItemID17[0], 19437;
+    setarray .GroupSlot2_17[0], 29012,29135,4818,4811,4832,4815,29136,4817,4810,4833,4814,4807;
+    setarray .GroupSlot3_17[0], 29012,29135,4818,4811,4832,4815,29136,4817,4810,4833,4814,4807;
+    setarray .GroupSlot4_17[0], 4902,4789,29238,29240,29248;
+
+    // Group 18 : 19436
+    setarray .GroupItemID18[0], 19436;
+    setarray .GroupSlot3_18[0], 29012,29375,4900,4801,4946,4944,4767,4897,4817,4810,4833,4872,29372,29243;
+    setarray .GroupSlot4_18[0], 29012,29375,4900,4801,4946,4944,4767,4897,4817,4810,4833,4872,29372,29243;
+
+    // Group 19 : 400187
+    setarray .GroupItemID19[0], 400187;
+    setarray .GroupSlot3_19[0], 4857,4853,4854,4855,4856,4858,4900,4944,29372,29243,29649,29650;
+    setarray .GroupSlot4_19[0], 4857,4853,4854,4855,4856,4858,4900,4944,29372,29243,29649,29650,310758;
+
+    // Group 20 : 400177,400396
+    setarray .GroupItemID20[0], 400177,400396;
+    setarray .GroupSlot2_20[0], 4857,4853,4854,4855,4856,4858,4900,4944,29372,29243,29649,29650;
+    setarray .GroupSlot3_20[0], 4857,4853,4854,4855,4856,4858,4900,4944,29372,29243,29649,29650,310758;
+    setarray .GroupSlot4_20[0], 4704,4705,4706,4714,4715,4716,4734,4735,4736,4744,4745,4746,4724,4725,4726,4754,4755,4756,27412,300229,310648,310649,310650,310651,310652,4876,4879,29436;
+
+    // Group 21 : 19379
+    setarray .GroupItemID21[0], 19379;
+    setarray .GroupSlot2_21[0], 29012,29248,4900,4801,29135,4818,4811,4832,4815,29136,4817,4810,4833,4814,4946,4944,29372;
+    setarray .GroupSlot3_21[0], 29012,29248,4900,4801,29135,4818,4811,4832,4815,29136,4817,4810,4833,4814,4946,4944,29372;
+    setarray .GroupSlot4_21[0], 29509;
+
+    // Group 22 : 19327,19306,28502,19246,19112
+    setarray .GroupItemID22[0], 19327,19306,28502,19246,19112;
+    setarray .GroupSlot2_22[0], 4857,4853,4854,4855,4856,4858,29649,29650,29373;
+    setarray .GroupSlot3_22[0], 4857,4853,4854,4855,4856,4858,29243,29372,27412;
+    setarray .GroupSlot4_22[0], 4704,4734,4744,4714,4724,4754,300229,310648,310649,310650,310651,310652;
+
+    // Group 23 : 420164
+    setarray .GroupItemID23[0], 420164;
+    setarray .GroupSlot2_23[0], 4879,4704,4734,4744,4714,4724,4754;
+    setarray .GroupSlot3_23[0], 311420,310318,4704,4734,4744,4714,4724,4754;
+    setarray .GroupSlot4_23[0], 4704,4734,4744,4714,4724,4754,29246,29243;
+
+    // Group 24 : 19443,19445
+    setarray .GroupItemID24[0], 19443,19445;
+    setarray .GroupSlot2_24[0], 4701,4731,4741,4711,4721,4751;
+    setarray .GroupSlot3_24[0], 4818,29135,4811,4832,4815;
+    setarray .GroupSlot4_24[0], 29241,29238,29240,4944,29243,29012;
+
+    // Group 25 : 420110
+    setarray .GroupItemID25[0], 420110;
+    setarray .GroupSlot2_25[0], 29724,4853,4854,4855,4856,4857,4858;
+    setarray .GroupSlot3_25[0], 311366,27400,4853,4854,4855,4856,4857,4858;
+    setarray .GroupSlot4_25[0], 4709,4739,4749,4719,4729,4759,29246,29243;
+
+    // Group 26 : 420158
+    setarray .GroupItemID26[0], 420158;
+    setarray .GroupSlot2_26[0], 311072,4853,4854,4855,4856,4857,4858;
+    setarray .GroupSlot3_26[0], 311366,311420,4853,4854,4855,4856,4857,4858;
+    setarray .GroupSlot4_26[0], 4709,4739,4749,4719,4729,4759,29246,29243;
+
+    // Group 27 : 22106
+    setarray .GroupItemID27[0], 22106;
+    setarray .GroupSlot3_27[0], 29646;
+    setarray .GroupSlot4_27[0], 29135,4818,4811,4832,4815,4869;
+
+    // Group 28 : 22143
+    setarray .GroupItemID28[0], 22143;
+    setarray .GroupSlot2_28[0], 4810,4817,29136,4814,4833,4872,4706,4736,4746,4716,4726,4756;
+    setarray .GroupSlot3_28[0], 4810,4817,29136,4814,4833,4872,29214,29215,29216,29217,29218,29219,29220,29221,29222;
+    setarray .GroupSlot4_28[0], 29244,29245,29246,29247,29248;
+
+    // Group 29 : 22195
+    setarray .GroupItemID29[0], 22195;
+    setarray .GroupSlot3_29[0], 29012,4946,4950,29214,29215,29216,29217,29218,29219,29220,29221,29222;
+    setarray .GroupSlot4_29[0], 29012,4946,4950,29214,29215,29216,29217,29218,29219,29220,29221,29222;
+
+    // Group 30 : 22223,22225,470049,470053
+    setarray .GroupItemID30[0], 22223,22225,470049,470053;
+    setarray .GroupSlot2_30[0], 29244,29245,29246,29247,29248,29375,29376,29377,29378,29379;
+    setarray .GroupSlot3_30[0], 4853,4854,4855,4856,4857,4858,4704,4705,4706,4734,4735,4736,4744,4745,4746,4714,4715,4716,4724,4725,4726,4754,4755,4756,300229,310648,310649,310650,310651,310652;
+    setarray .GroupSlot4_30[0], 29509,29371;
+
+    // Group 31 : 470028,470037,470106,470007,470004
+    setarray .GroupItemID31[0], 470028,470037,470106,470007,470004;
+    setarray .GroupSlot2_31[0], 29244,29245,29246,29247,29248,29375,29376,29377,29378,29379;
+    setarray .GroupSlot3_31[0], 4853,4854,4855,4856,4857,4858,4704,4705,4706,4734,4735,4736,4744,4745,4746,4714,4715,4716,4724,4725,4726,4754,4755,4756,300229,310648,310649,310650,310651,310652;
+    setarray .GroupSlot4_31[0], 4853,4854,4855,4856,4857,4858,4704,4705,4706,4734,4735,4736,4744,4745,4746,4714,4715,4716,4724,4725,4726,4754,4755,4756,300229,310648,310649,310650,310651,310652,29509,29371;
+
+    // Group 32 : 22221,470005,470052
+    setarray .GroupItemID32[0], 22221,470005,470052;
+    setarray .GroupSlot3_32[0], 4853,4854,4855,4856,4857,4858,4704,4705,4706,4734,4735,4736,4744,4745,4746,4714,4715,4716,4724,4725,4726,4754,4755,4756,300229,310648,310649,310650,310651,310652;
+    setarray .GroupSlot4_32[0], 4853,4854,4855,4856,4857,4858,4704,4705,4706,4734,4735,4736,4744,4745,4746,4714,4715,4716,4724,4725,4726,4754,4755,4756,300229,310648,310649,310650,310651,310652,29509,29371;
+
+    // Group 33 : 470051
+    setarray .GroupItemID33[0], 470051;
+    setarray .GroupSlot3_33[0], 4853,4854,4855,4856,4857,4858,4704,4705,4706,4734,4735,4736,4744,4745,4746,4714,4715,4716,4724,4725,4726,4754,4755,4756,300229,310648,310649,310650,310651,310652;
+    setarray .GroupSlot4_33[0], 4853,4854,4855,4856,4857,4858,4704,4705,4706,4734,4735,4736,4744,4745,4746,4714,4715,4716,4724,4725,4726,4754,4755,4756,300229,310648,310649,310650,310651,310652;
+
+    // Group 34 : 470050
+    setarray .GroupItemID34[0], 470050;
+    setarray .GroupSlot3_34[0], 4853,4854,4855,4856,4857,4858,4704,4705,4706,4734,4735,4736,4744,4745,4746,4714,4715,4716,4724,4725,4726,4754,4755,4756,300229,310648,310649,310650,310651,310652;
+    setarray .GroupSlot4_34[0], 4853,4854,4855,4856,4857,4858,4704,4705,4706,4734,4735,4736,4744,4745,4746,4714,4715,4716,4724,4725,4726,4754,4755,4756,300229,310648,310649,310650,310651,310652,29509,29371,29509;
+
+    // Group 35 : 470092,470063,470078,470083
+    setarray .GroupItemID35[0], 470092,470063,470078,470083;
+    setarray .GroupSlot2_35[0], 29243,29372,29012,29214,29215,29216,29217,29218,29219,29220,29221,29222;
+    setarray .GroupSlot3_35[0], 29244,29245,29246,29247,29248,29375,29376,29377,29378,29379,29214,29215,29216,29217,29218,29219,29220,29221,29222;
+    setarray .GroupSlot4_35[0], 4879,4875,4876;
+
+    // Group 36 : 470009
+    setarray .GroupItemID36[0], 470009;
+    setarray .GroupSlot2_36[0], 29244,29245,29246,29247,29248,29375,29376,29377,29378,29379;
+    setarray .GroupSlot3_36[0], 4853,4854,4855,4856,4857,4858,4704,4705,4706,4734,4735,4736,4744,4745,4746,4714,4715,4716,4724,4725,4726,4754,4755,4756,300229,310648,310649,310650,310651,310652;
+    setarray .GroupSlot4_36[0], 4853,4854,4855,4856,4857,4858,4704,4705,4706,4734,4735,4736,4744,4745,4746,4714,4715,4716,4724,4725,4726,4754,4755,4756,300229,310648,310649,310650,310651,310652,29509,29371;
+
+    // Group 37 : 470128
+    setarray .GroupItemID37[0], 470128;
+    setarray .GroupSlot2_37[0], 29214,29215,29216,29217,29218,29219,29220,29221,29222,29373,29649,29650,29379;
+    setarray .GroupSlot3_37[0], 29214,29215,29216,29217,29218,29219,29220,29221,29222,29373,29649,29650,310337;
+    setarray .GroupSlot4_37[0], 29509,29371;
+
+    // Group 38 : 470278
+    setarray .GroupItemID38[0], 470278;
+    setarray .GroupSlot2_38[0], 29509,29371,310318,29649,29650;
+    setarray .GroupSlot3_38[0], 311074,311072,29724,311073,311075,311439,311883,312421,310318,29649,29650;
+    setarray .GroupSlot4_38[0], 313328;
+
+    // Group 39 : 470180
+    setarray .GroupItemID39[0], 470180;
+    setarray .GroupSlot2_39[0], 311422,29214,29215,29216,29217,29218,29219,29220,29221,29222,310318,29243;
+    setarray .GroupSlot3_39[0], 29509,29371;
+    setarray .GroupSlot4_39[0], 311365;
+
+    // Group 40 : 470254
+    setarray .GroupItemID40[0], 470254;
+    setarray .GroupSlot2_40[0], 4853,4854,4855,4856,4857,4858,310198;
+    setarray .GroupSlot3_40[0], 312475;
+    setarray .GroupSlot4_40[0], 4853,4854,4855,4856,4857,4858,310198,311075;
+
+    // Group 41 : 470035
+    setarray .GroupItemID41[0], 470035;
+    setarray .GroupSlot2_41[0], 29243,29372,29012,29214,29215,29216,29217,29218,29219,29220,29221,29222;
+    setarray .GroupSlot3_41[0], 29244,29245,29246,29247,29248,29375,29376,29377,29378,29379,29214,29215,29216,29217,29218,29219,29220,29221,29222;
+    setarray .GroupSlot4_41[0], 4879,4875,4876;
+
+    // Group 42 : 470243
+    setarray .GroupItemID42[0], 470243;
+    setarray .GroupSlot2_42[0], 29509,29371;
+    setarray .GroupSlot3_42[0], 29214,29215,29216,29217,29218,29219,29220,29221,29222,29373,29649,29650,29585,311422;
+    setarray .GroupSlot4_42[0], 310197;
+
+    // Group 43 : 480045
+    setarray .GroupItemID43[0], 480045;
+    setarray .GroupSlot2_43[0], 4853,4854,4855,4856,4857,4858,4818,29135,4811,4832,4815,4869,27400;
+    setarray .GroupSlot3_43[0], 4853,4854,4855,4856,4857,4858,4817,29136,4810,4833,4814,4872,27400,29585;
+    setarray .GroupSlot4_43[0], 310321;
+
+    // Group 44 : 20857
+    setarray .GroupItemID44[0], 20857;
+    setarray .GroupSlot3_44[0], 29647;
+    setarray .GroupSlot4_44[0], 4818,29135,4811,4832,4815,4869,4805,29012,4946,4949,4853,4854,4855,4856,4857,4858;
+
+    // Group 45 : 20815
+    setarray .GroupItemID45[0], 20815;
+    setarray .GroupSlot3_45[0], 29588;
+    setarray .GroupSlot4_45[0], 29650,4818,4832,4810,4814,4853,4854,4855,4856,4857,4858;
+
+    // Group 46 : 20854,480044
+    setarray .GroupItemID46[0], 20854,480044;
+    setarray .GroupSlot3_46[0], 29012,4946,4949,29214,29215,29216,29217,29218,29219,29220,29221,29222;
+    setarray .GroupSlot4_46[0], 29012,4946,4949,29214,29215,29216,29217,29218,29219,29220,29221,29222;
+
+    // Group 47 : 20858
+    setarray .GroupItemID47[0], 20858;
+    setarray .GroupSlot2_47[0], 4810,29136,4817,4814,4833,4872,4706,4736,4746,4716,4726,4756;
+    setarray .GroupSlot3_47[0], 4811,29135,4818,4815,4832,4869,29214,29215,29216,29217,29218,29219,29220,29221,29222;
+    setarray .GroupSlot4_47[0], 29244,29245,29246,29247,29248;
+
+    // Group 48 : 20991
+    setarray .GroupItemID48[0], 20991;
+    setarray .GroupSlot2_48[0], 27398,27397,29214,29215,29216,29217,29218,29219,29220,29221,29222,4812,25067;
+    setarray .GroupSlot3_48[0], 29371;
+    setarray .GroupSlot4_48[0], 311905,310269;
+
+    // Group 49 : 480114
+    setarray .GroupItemID49[0], 480114;
+    setarray .GroupSlot2_49[0], 27398,27397,29214,29215,29216,29217,29218,29219,29220,29221,29222,4825,25067;
+    setarray .GroupSlot3_49[0], 29509;
+    setarray .GroupSlot4_49[0], 311905,310269;
+
+    // Group 50 : 480319
+    setarray .GroupItemID50[0], 480319;
+    setarray .GroupSlot2_50[0], 4709,4739,4749,4719,4729,4759,27398,310318,27397,25067;
+    setarray .GroupSlot3_50[0], 311439,311883,4879,29436,4876;
+    setarray .GroupSlot4_50[0], 312420;
+
+    // Group 51 : 480188
+    setarray .GroupItemID51[0], 480188;
+    setarray .GroupSlot2_51[0], 27398,27397,310318,25067,4709,4739,4749,4719,4729,4759;
+    setarray .GroupSlot3_51[0], 311074,311075,4879,29436,4876;
+    setarray .GroupSlot4_51[0], 300389;
+
+    // Group 52 : 2367
+    setarray .GroupItemID52[0], 2367;
+    setarray .GroupSlot3_52[0], 29012,29246,4900,4801,4947,29242,29235,4818,29135,4811,4832,4815,4869;
+    setarray .GroupSlot4_52[0], 29012,29246,4900,4801,4947,29242,29235,4818,29135,4811,4832,4815,4869;
+
+    // Group 53 : 15374
+    setarray .GroupItemID53[0], 15374;
+    setarray .GroupSlot3_53[0], 29243,29012,4801,29235,29376;
+    setarray .GroupSlot4_53[0], 29243,29012,4801,29235,29376;
+
+    // Group 54 : 15209
+    setarray .GroupItemID54[0], 15209;
+    setarray .GroupSlot3_54[0], 29012,29246,4947,4950,29242,4818,29135,4811,4832,4815,4869,4900;
+    setarray .GroupSlot4_54[0], 29012,29246,4947,4950,29242,4818,29135,4811,4832,4815,4869,4900;
+
+    // Group 55 : 15191
+    setarray .GroupItemID55[0], 15191;
+    setarray .GroupSlot2_55[0], 29012,29246,4900,4801,4947,29242,29235,29135,4818,29135,4811,4832,4815,4869;
+    setarray .GroupSlot3_55[0], 29012,29246,4900,4801,4947,29242,29235,29135,4818,29135,4811,4832,4815,4869;
+    setarray .GroupSlot4_55[0], 4879;
+
+    // Group 56 : 15213
+    setarray .GroupItemID56[0], 15213;
+    setarray .GroupSlot2_56[0], 29135,4818,29135,4811,4832,4815,4869,4706,4736,4746,4716,4726,4756;
+    setarray .GroupSlot3_56[0], 29135,4818,29135,4811,4832,4815,4869,29214,29215,29216,29217,29218,29219,29220,29221,29222;
+    setarray .GroupSlot4_56[0], 29246,29247,29248,29375,29376;
+
+    // Group 57 : 15137
+    setarray .GroupItemID57[0], 15137;
+    setarray .GroupSlot2_57[0], 29243,4902,29241,29238,29240,4801,29236,29376,4844,29137,4825,4835,4812,4869;
+    setarray .GroupSlot3_57[0], 29243,29012,4902,29241,29238,29240,4801,29214,29215,29216,29217,29218,29219,29220,29221,29222,29373;
+    setarray .GroupSlot4_57[0], 311905,310269;
+
+    // Group 58 : 450220
+    setarray .GroupItemID58[0], 450220;
+    setarray .GroupSlot2_58[0], 29302,29303,29304,29305,29306,29307,29308,29309;
+    setarray .GroupSlot3_58[0], 29214,29215,29216,29217,29218,29219,29220,29221,29222;
+    setarray .GroupSlot4_58[0], 300229,310648,310649,310650,310651,310652,29509,29371,29591;
+
+    // Group 59 : 450165
+    setarray .GroupItemID59[0], 450165;
+    setarray .GroupSlot2_59[0], 29012,29248,4900,4801,4818,29135,4811,4832,4815,4869,29242;
+    setarray .GroupSlot3_59[0], 29012,29248,4900,4801,4818,29135,4811,4832,4815,4869,29242,29302,29303,29304,29305,29306,29307,29308,29309;
+    setarray .GroupSlot4_59[0], 29509;
+
+    // Done
+    .init_done = 1;
+    setunittitle(getnpcid(0), "<Armor Enchanter>");
+    end;
+}

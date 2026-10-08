@@ -1,0 +1,264 @@
+Header:
+  Type: BARTER_DB
+  Version: 2
+
+Body:
+  - Name: remorse_item
+    Items:
+      - Index: 0
+        Item: Sakray_Fury
+        Zeny: 100000
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 50
+      - Index: 1
+        Item: Sakray_Regret
+        Zeny: 100000
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 50
+      - Index: 2
+        Item: Sakray_Fury2
+        Zeny: 150000
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 250
+      - Index: 3
+        Item: Sakray_Regret2
+        Zeny: 150000
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 250
+  - Name: remorse_weapon
+    Items:
+      - Index: 0
+        Item: Poenetentia_Box1
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 1
+        Item: Poenetentia_Box2
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 2
+        Item: Poenitentia_Ensis
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 3
+        Item: Poenitentia_Catapulta
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 4
+        Item: Poenitentia_Ascia
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 5
+        Item: Poenitentia_Clava
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 6
+        Item: Poenitentia_Pendulus
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 7
+        Item: Poenitentia_Ligula
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 8
+        Item: Poenitentia_Termes
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 9
+        Item: Poenitentia_Virga
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 10
+        Item: Poenitentia_Scipio
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 11
+        Item: Poenitentia_Codex
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 12
+        Item: Poenitentia_Liber
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 13
+        Item: Poenitentia_Crystallum
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 14
+        Item: Poenitentia_Caestus
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 15
+        Item: Poenitentia_Ungula
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 16
+        Item: Poenitentia_Manus
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 17
+        Item: Poenitentia_Mucro
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 18
+        Item: Poenitentia_Tenon
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 19
+        Item: Poenetentia_Dilacero
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 20
+        Item: Poenitentia_Nervus
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 21
+        Item: Poenetentia_Attendo
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 22
+        Item: Poenitentia_Chorda
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 23
+        Item: Poenitentia_Flagellum
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 24
+        Item: Poenitentia_Foramen
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 25
+        Item: Poenitentia_Penet
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 26
+        Item: Poenitentia_Veloci
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 27
+        Item: Poenitentia_Ruina
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 28
+        Item: Poenitentia_Orbis
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 29
+        Item: Poenitentia_Sol
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 30
+        Item: Poenitentia_Jana
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 31
+        Item: Poenitentia_Radius
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 32
+        Item: Poenitentia_Ramus
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 33
+        Item: Poenitentia_Planta
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 34
+        Item: Poenitentia_Ferrum
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+      - Index: 35
+        Item: Poenetentia_Vatia
+        RequiredItems:
+          - Index: 0
+            Item: Mine_As
+            Amount: 700
+  - Name: remorse_reform
+    Items:
+      - Index: 0
+        Item: C_Armor_Reform_1
+        Zeny: 10000000
+      - Index: 1
+        Item: C_Armor_Reform_2
+        Zeny: 20000000
+      - Index: 2
+        Item: Thanos_Refine_Hammer
+        Zeny: 15000000

@@ -1,0 +1,77 @@
+moc_para01,21,37,4	script	Zeny Gacha Machine	506,{
+
+	// ===============================
+	// CONFIG
+	// ===============================
+	set .Cost, 750000; // 10m Zeny per roll
+
+	mes "[Zeny Gacha Machine]";
+	mes "Welcome!";
+	mes "Each roll costs ^FF0000"+callfunc("F_Comma",.Cost)+" Zeny^000000.";
+	mes "You will get ^0000FFRefine^000000 OR ^0000FFGrade^000000 Materials.";
+	next;
+
+	switch(select("Roll x1","Roll x50","Roll x100","Cancel")) {
+		case 1: .@amount = 1; break;
+		case 2: .@amount = 50; break;
+		case 3: .@amount = 100; break;
+		default: close;
+	}
+
+	.@totalCost = .Cost * .@amount;
+
+	if (Zeny < .@totalCost) {
+		mes "[Zeny Gacha Machine]";
+		mes "You need ^FF0000"+.@totalCost+" Zeny^000000.";
+		close;
+	}
+
+	Zeny -= .@totalCost;
+
+	mes "[Zeny Gacha Machine]";
+	mes "Rolling "+.@amount+" time(s)...";
+	next;
+
+	// ==========================
+	// START LOOP
+	// ==========================
+	for (.@i = 0; .@i < .@amount; .@i++) {
+
+		.@roll = rand(100);
+
+		// ULTRA (1%)
+		if (.@roll <= 1) {
+			setarray .@pool[0],
+				1000325,1000326,1000327,1000328;
+
+		// RARE (4%)
+		} else if (.@roll <= 2) {
+			setarray .@pool[0],
+				1000331,1000332,1000368,1000370,
+				1000333,1000334,1000335,1000336;
+
+		// SEMI (5%)
+		} else if (.@roll <= 4) {
+			setarray .@pool[0],
+				7620,6240,7619,6241,6226,
+				6225,6635,6439,6438,1000337;
+
+		// UNCOMMON (20%)
+		} else if (.@roll <= 50) {
+			setarray .@pool[0],
+				984,985,1000322,6223,6224;
+
+		// COMMON (70%)
+		} else {
+			setarray .@pool[0],
+				984,985,1000322,6223,6224;
+		}
+
+		.@reward = .@pool[rand(getarraysize(.@pool))];
+		getitem .@reward,1;
+	}
+
+	mes "[Zeny Gacha Machine]";
+	mes "All rewards have been given!";
+	close;
+}

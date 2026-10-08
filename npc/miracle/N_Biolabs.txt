@@ -1,0 +1,993 @@
+lighthalzen,321,218,3	script	Ohno Tohiro	784,{
+	set .name$,"[Ohno Tohiro]";
+	mes .name$;
+	mes "I'm looking for something";
+	mes ". . . . .";
+	next;
+	switch(select("Umba Umba?:Who are you?:About the Rumors!")){
+		case 1:
+			mes .name$;
+			mes "Why so rude!!";
+			close;
+		case 2:
+			mes .name$;
+			mes "Im looking for something";
+			mes "Old people from my tribe tells me something..";
+			next;
+			mes "I dont get it too much, but they keep telling me";
+			mes "^ff0000Nightmare has come,Nightmare has come^000000";
+			mes ". . . . .";
+			mes "^ff0000Noone will survive^000000!!";
+			close;
+		case 3:
+			mes .name$;
+			mes "This is a dangerous place?";
+			mes "I can warp you there!";
+			next;
+			switch(select("Return to the Tomb of Honor for 100,000z:10 Research Charts")){
+				case 1:
+				if (Zeny < 100000){
+				mes .name$;
+				mes "You need to pay 100,000z";
+				close;
+				}
+				set Zeny,Zeny-100000;
+				warp "lhz_dun05",0,0;
+				break;
+				case 2:
+				if (countitem(7347) < 10) {
+				mes .name$;
+				mes "You need to give me 10 Research Charts";
+				close;
+				}
+				delitem 7347,10;
+				warp "lhz_dun05",0,0;
+				break;
+		}
+	}
+}
+lighthalzen,355,312,5	script	Victimized Soul's Mind	999,{	
+
+set .name$,"[Victimized Soul's Mind]";
+//.name$ = Victimized Soul's Mind;
+setarray .@items[0],13431,13421,1189,1196,1435,1433,1490,13062,13069,13061,13046,13070,13047,1393,1311,1392,16017,16000,16010,16001,18110,18109,18111,1745,18103,1290,1284,1285,1291,1647,2005,2004,1659,1646,1654,1584,2161,1930,1984,1830;
+.@item_size = getarraysize( .@items );
+for( .@i = 0; .@i < .@item_size; .@i++ ){
+.@count = countitem(.@items[.@i]);
+.@menu$ = .@menu$ + (( .@count ) ? getitemname( .@items[.@i] ) :"")+":";
+}
+mes .name$;
+mes "Whats Your problem?";
+next;
+switch(select("About The Fragments:Just Walk Through")){
+case 1:
+mes .name$;
+mes "I can defrag Your equip into Energy Fragments!!";
+next;
+mes .name$;
+mes "Your equipment will disappear after Defragment";
+mes "Show me what you got!!";
+next;
+.@s = select( .@menu$ ) -1;
+mes .name$;
+mes "Items : "+getitemname(.@items[.@s]);
+mes "Total : "+countitem(.@items[.@s]);
+next;
+switch(select("Defrag:Change my mind")){
+case 1:
+if ( countitem(.@items[.@s]) == 1){
+delitem .@items[.@s],1;
+getitem 6820,rand(1,3);
+close;
+}
+mes .name$;
+mes "How many number you want to exchange??";
+input .@input;
+if ( .@input > countitem(.@items[.@s])){
+next;
+mes .name$;
+mes "You dont have that number of item";
+close;
+}
+delitem .@items[.@s],.@input;
+getitem 6820,rand(1,3);
+close;
+case 2:
+close;
+}
+case 2:
+mes  .name$;
+mes "*ignoring you";
+close;
+}
+}
+
+lighthalzen,242,186,3	script	Old Man Richard	573,{
+set.player,getcharid(3);
+set .name$,"[Old Man Richard]";
+mes .name$;
+mes "What are you doing here young man?";
+mes "Young man this day so energetic";
+next;
+switch(select("Story Untold:Seeking true power")){
+case 1:
+mes .name$;
+mes "I dont have much time to tell you this things";
+next;
+mes .name$;
+mes "But you will know it once you enter the nightmare labs";
+close;
+case 2:
+mes .name$;
+mes "You can find the powers inside you!";
+mes ". . . . .";
+mes "You have to gain it";
+next;
+switch(select("Exchange my soul:How to gain it?")){
+case 1:
+mes .name$;
+mes "I will exchange your souls and energy fragment into a powerfull headgears";
+next;
+mes .name$;
+mes "The much souls and energy you have, the more easier way to get your power";
+next;
+switch(select("Rune Knight Power:Royal Guard Power:Warlock Power:Sorcerer Power:Ranger Power:Minstrel Power:Wanderer Power:Mechanic Power:Genetic Power:Guillotine Cross Power:Shadow Chaser Power:Arch Bishop Power:Sura Power")){
+case 1:
+mes .name$;
+mes "select which path you want";
+next;
+switch(select("Safe path:Risk path")){
+case 1:
+if (countitem(19961) < 0 && countitem(6814) < 5 && countitem(6820) < 100){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+delitem 19961,1,.player;
+delitem 6814,5,.player;
+delitem 6820,100,.player;
+getitembound 18971,1,Bound_Account,.player;
+specialeffect 440;
+npctalk "Success to gain your power";
+end;
+case 2:
+if (countitem(19961) < 1 && countitem(6814) < 1 && countitem(6820) < 20){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+if(rand(100) < 40){		//40% chance to success
+delitem 19961,1,.player;
+delitem 6814,1,.player;
+delitem 6820,20,.player;
+getitembound 18971,1,Bound_Account,.player;
+specialeffect 300;
+npctalk "Success to gain your power";
+end;
+}
+delitem 19961,1,.player;
+delitem 6814,1,.player;
+delitem 6820,20,.player;
+specialeffect 306;
+npctalk "Fail to gain your power";
+end;
+}
+
+case 2:
+mes .name$;
+mes "select which path you want";
+next;
+switch(select("Safe path:Risk path")){
+case 1:
+if (countitem(19972) < 1 && countitem(6814) < 5 && countitem(6820) < 100){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+delitem 19972,1,.player;
+delitem 6814,5,.player;
+delitem 6820,100,.player;
+getitembound 18983,1,Bound_Account,.player;
+specialeffect 440;
+npctalk "Success to gain your power";
+end;
+case 2:
+if (countitem(19972) < 1 && countitem(6814) < 1 && countitem(6820) < 20){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+if(rand(100) < 40){		//40% chance to success
+delitem 19972,1,.player;
+delitem 6814,1,.player;
+delitem 6820,20,.player;
+getitembound 18983,1,Bound_Account,.player;
+specialeffect 300;
+npctalk "Success to gain your power";
+end;
+}
+delitem 19972,1,.player;
+delitem 6814,1,.player;
+delitem 6820,20,.player;
+specialeffect 306;
+npctalk "Fail to gain your power";
+end;
+}
+
+case 3:
+mes .name$;
+mes "select which path you want";
+next;
+switch(select("Safe path:Risk path")){
+case 1:
+if (countitem(19968) < 1 && countitem(6817) < 5 && countitem(6820) < 100){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+delitem 19968,1,.player;
+delitem 6817,5,.player;
+delitem 6820,100,.player;
+getitembound 18978,1,Bound_Account,.player;
+specialeffect 440;
+npctalk "Success to gain your power";
+end;
+case 2:
+if (countitem(19968) < 1 && countitem(6817) < 1 && countitem(6820) < 20){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+if(rand(100) < 40){		//40% chance to success
+delitem 19968,1,.player;
+delitem 6817,1,.player;
+delitem 6820,20,.player;
+getitembound 18978,1,Bound_Account,.player;
+specialeffect 300;
+npctalk "Success to gain your power";
+end;
+}
+delitem 19968,1,.player;
+delitem 6817,1,.player;
+delitem 6820,20,.player;
+specialeffect 306;
+npctalk "Fail to gain your power";
+end;
+}
+
+case 4:
+mes .name$;
+mes "select which path you want";
+next;
+switch(select("Safe path:Risk path")){
+case 1:
+if (countitem(19970) < 1 && countitem(6817) < 5 && countitem(6820) < 100){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+delitem 19970,1,.player;
+delitem 6817,5,.player;
+delitem 6820,100,.player;
+getitembound 18980,1,Bound_Account,.player;
+specialeffect 440;
+npctalk "Success to gain your power";
+end;
+case 2:
+if (countitem(19970) < 1 && countitem(6817) < 1 && countitem(6820) < 20){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+if(rand(100) < 40){		//40% chance to success
+delitem 19970,1,.player;
+delitem 6817,1,.player;
+delitem 6820,20,.player;
+getitembound 18980,1,Bound_Account,.player;
+specialeffect 300;
+npctalk "Success to gain your power";
+end;
+}
+delitem 19970,1,.player;
+delitem 6817,1,.player;
+delitem 6820,20,.player;
+specialeffect 306;
+npctalk "Fail to gain your power";
+end;
+}
+
+case 5:
+mes .name$;
+mes "select which path you want";
+next;
+switch(select("Safe path:Risk path")){
+case 1:
+if (countitem(19974) < 1 && countitem(6818) < 5 && countitem(6820) < 100){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+delitem 19974,1,.player;
+delitem 6818,5,.player;
+delitem 6820,100,.player;
+getitembound 18984,1,Bound_Account,.player;
+specialeffect 440;
+npctalk "Success to gain your power";
+end;
+case 2:
+if (countitem(19974) < 1 && countitem(6818) < 1 && countitem(6820) < 20){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+if(rand(100) < 40){		//40% chance to success
+delitem 19974,1,.player;
+delitem 6818,1,.player;
+delitem 6820,20,.player;
+getitembound 18984,1,Bound_Account,.player;
+specialeffect 300;
+npctalk "Success to gain your power";
+end;
+}
+delitem 19974,1,.player;
+delitem 6818,1,.player;
+delitem 6820,20,.player;
+specialeffect 306;
+npctalk "Fail to gain your power";
+end;
+}
+
+case 6:
+mes .name$;
+mes "select which path you want";
+next;
+switch(select("Safe path:Risk path")){
+case 1:
+if (countitem(19966) < 1 && countitem(6818) < 5 && countitem(6820) < 100){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+delitem 19966,1,.player;
+delitem 6818,5,.player;
+delitem 6820,100,.player;
+getitembound 18976,1,Bound_Account,.player;
+specialeffect 440;
+npctalk "Success to gain your power";
+end;
+case 2:
+if (countitem(19966) < 1 && countitem(6818) < 1 && countitem(6820) < 20){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+if(rand(100) < 40){		//40% chance to success
+delitem 19966,1,.player;
+delitem 6818,1,.player;
+delitem 6820,20,.player;
+getitembound 18976,1,Bound_Account,.player;
+specialeffect 300;
+npctalk "Success to gain your power";
+end;
+}
+delitem 19966,1,.player;
+delitem 6818,1,.player;
+delitem 6820,20,.player;
+specialeffect 306;
+npctalk "Fail to gain your power";
+end;
+}
+
+case 7:
+mes .name$;
+mes "select which path you want";
+next;
+switch(select("Safe path:Risk path")){
+case 1:
+if (countitem(19971) < 1 && countitem(6818) < 5 && countitem(6820) < 100){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+delitem 19971,1,.player;
+delitem 6818,5,.player;
+delitem 6820,100,.player;
+getitembound 18981,1,Bound_Account,.player;
+specialeffect 440;
+npctalk "Success to gain your power";
+end;
+case 2:
+if (countitem(19971) < 1 && countitem(6818) < 1 && countitem(6820) < 20){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+if(rand(100) < 40){		//40% chance to success
+delitem 19971,1,.player;
+delitem 6818,1,.player;
+delitem 6820,20,.player;
+getitembound 18981,1,Bound_Account,.player;
+specialeffect 300;
+npctalk "Success to gain your power";
+end;
+}
+delitem 19971,1,.player;
+delitem 6818,1,.player;
+delitem 6820,20,.player;
+specialeffect 306;
+npctalk "Fail to gain your power";
+end;
+}
+
+
+case 8:
+mes .name$;
+mes "select which item you prefer";
+next;
+switch(select("Red:Yellow")){
+case 1:
+mes .name$;
+mes "Select which path you want";
+next;
+switch(select("Safe path:Risk path")){
+case 1:
+if (countitem(19963) < 1 && countitem(6815) < 5 && countitem(6820) < 100){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+delitem 19963,1,.player;
+delitem 6815,5,.player;
+delitem 6820,100,.player;
+getitembound 18973,1,Bound_Account,.player;
+specialeffect 440;
+npctalk "Success to gain your power";
+end;
+case 2:
+if (countitem(19963) < 1 && countitem(6815) < 1 && countitem(6820) < 20){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+if(rand(100) < 40){		//40% chance to success
+delitem 19963,1,.player;
+delitem 6815,1,.player;
+delitem 6820,20,.player;
+getitembound 18973,1,Bound_Account,.player;
+specialeffect 300;
+npctalk "Success to gain your power";
+end;
+}
+delitem 19963,1,.player;
+delitem 6815,1,.player;
+delitem 6820,20,.player;
+specialeffect 306;
+npctalk "Fail to gain your power";
+end;
+}
+
+case 2:
+mes .name$;
+mes "Select which path you want";
+next;
+switch(select("Safe path:Risk path")){
+case 1:
+if (countitem(19964) < 1 && countitem(6815) < 5 && countitem(6820) < 100){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+delitem 19964,1,.player;
+delitem 6815,5,.player;
+delitem 6820,100,.player;
+getitembound 18974,1,Bound_Account,.player;
+specialeffect 440;
+npctalk "Success to gain your power";
+end;
+case 2:
+if (countitem(19964) < 1 && countitem(6815) < 1 && countitem(6820) < 20){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+if(rand(100) < 40){		//40% chance to success
+delitem 19964,1,.player;
+delitem 6815,1,.player;
+delitem 6820,20,.player;
+getitembound 18974,1,Bound_Account,.player;
+specialeffect 300;
+npctalk "Success to gain your power";
+end;
+}
+delitem 19964,1,.player;
+delitem 6815,1,.player;
+delitem 6820,20,.player;
+specialeffect 306;
+npctalk "Fail to gain your power";
+end;
+}
+}
+
+case 9:
+mes .name$;
+mes "select which path you want";
+next;
+switch(select("Safe path:Risk path")){
+case 1:
+if (countitem(19967) < 1 && countitem(6815) < 5 && countitem(6820) < 100){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+delitem 19967,1,.player;
+delitem 6815,5,.player;
+delitem 6820,100,.player;
+getitembound 18977,1,Bound_Account,.player;
+specialeffect 440;
+npctalk "Success to gain your power";
+end;
+case 2:
+if (countitem(19967) < 1 && countitem(6815) < 1 && countitem(6820) < 20){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+if(rand(100) < 40){		//40% chance to success
+delitem 19967,1,.player;
+delitem 6815,1,.player;
+delitem 6820,20,.player;
+getitembound 18977,1,Bound_Account,.player;
+specialeffect 300;
+npctalk "Success to gain your power";
+end;
+}
+delitem 19967,1,.player;
+delitem 6815,1,.player;
+delitem 6820,20,.player;
+specialeffect 306;
+npctalk "Fail to gain your power";
+end;
+}
+
+case 10:
+mes .name$;
+mes "select which path you want";
+next;
+switch(select("Safe path:Risk path")){
+case 1:
+if (countitem(19973) < 1 && countitem(6816) < 5 && countitem(6820) < 100){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+delitem 19973,1,.player;
+delitem 6816,5,.player;
+delitem 6820,100,.player;
+getitembound 18982,1,Bound_Account,.player;
+specialeffect 440;
+npctalk "Success to gain your power";
+end;
+case 2:
+if (countitem(19973) < 1 && countitem(6816) < 1 && countitem(6820) < 20){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+if(rand(100) < 40){		//40% chance to success
+delitem 19973,1,.player;
+delitem 6816,1,.player;
+delitem 6820,20,.player;
+getitembound 18982,1,Bound_Account,.player;
+specialeffect 300;
+npctalk "Success to gain your power";
+end;
+}
+delitem 19973,1,.player;
+delitem 6816,1,.player;
+delitem 6820,20,.player;
+specialeffect 306;
+npctalk "Fail to gain your power";
+end;
+}
+
+case 11:
+mes .name$;
+mes "select which path you want";
+next;
+switch(select("Safe path:Risk path")){
+case 1:
+if (countitem(19965) < 1 && countitem(6816) < 5 && countitem(6820) < 100){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+delitem 19965,1,.player;
+delitem 6816,5,.player;
+delitem 6820,100,.player;
+getitembound 18975,1,Bound_Account,.player;
+specialeffect 440;
+npctalk "Success to gain your power";
+end;
+case 2:
+if (countitem(19965) < 1 && countitem(6816) < 1 && countitem(6820) < 20){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+if(rand(100) < 40){		//40% chance to success
+delitem 19965,1,.player;
+delitem 6816,1,.player;
+delitem 6820,20,.player;
+getitembound 18975,1,Bound_Account,.player;
+specialeffect 300;
+npctalk "Success to gain your power";
+end;
+}
+delitem 19965,1,.player;
+delitem 6816,1,.player;
+delitem 6820,20,.player;
+specialeffect 306;
+npctalk "Fail to gain your power";
+end;
+}
+
+case 12:
+mes .name$;
+mes "select which path you want";
+next;
+switch(select("Safe path:Risk path")){
+case 1:
+if (countitem(19962) < 1 && countitem(6819) < 5 && countitem(6820) < 100){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+delitem 19962,1,.player;
+delitem 6819,5,.player;
+delitem 6820,100,.player;
+getitembound 18972,1,Bound_Account,.player;
+specialeffect 440;
+npctalk "Success to gain your power";
+end;
+case 2:
+if (countitem(19962) < 1 && countitem(6819) < 1 && countitem(6820) < 20){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+if(rand(100) < 40){		//40% chance to success
+delitem 19962,1,.player;
+delitem 6819,1,.player;
+delitem 6820,20,.player;
+getitembound 18972,1,Bound_Account,.player;
+specialeffect 300;
+npctalk "Success to gain your power";
+end;
+}
+delitem 19962,1,.player;
+delitem 6819,1,.player;
+delitem 6820,20,.player;
+specialeffect 306;
+npctalk "Fail to gain your power";
+end;
+}
+
+case 13:
+mes .name$;
+mes "select which path you want";
+next;
+switch(select("Safe path:Risk path")){
+case 1:
+if (countitem(19969) < 1 && countitem(6819) < 5 && countitem(6820) < 100){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+delitem 19969,1,.player;
+delitem 6819,5,.player;
+delitem 6820,100,.player;
+getitembound 18979,1,Bound_Account,.player;
+specialeffect 440;
+npctalk "Success to gain your power";
+end;
+case 2:
+if (countitem(19969) < 1 && countitem(6819) < 1 && countitem(6820) < 20){
+mes .name$;
+mes "You Dont meet the requirement";
+close;
+}
+close2;
+npctalk "*Good and Bad spirit Surround Him*";
+sleep 2000;
+specialeffect 908;
+sleep 1000;
+specialeffect 909;
+sleep 1000;
+npctalk "Let this powers become yours";
+sleep 2000;
+if(rand(100) < 40){		//40% chance to success
+delitem 19969,1,.player;
+delitem 6819,1,.player;
+delitem 6820,20,.player;
+getitembound 18979,1,Bound_Account,.player;
+specialeffect 300;
+npctalk "Success to gain your power";
+end;
+}
+delitem 19969,1,.player;
+delitem 6819,1,.player;
+delitem 6820,20,.player;
+specialeffect 306;
+npctalk "Fail to gain your power";
+end;
+}
+}
+case 2:
+	mes .name$;
+	mes "There are new monster thats look like human inside the sewer";
+	next;
+	mes .name$;
+	mes "You have to go to 5th floor and kill them";
+	mes "They actually drop ingredients you need";
+	next;
+	mes .name$;
+	mes "find ^FF0000Victimized Soul's Mind^000000 for more info about energy fragments";
+	close;
+}
+}
+}
+
+
+
+
+
+
+
+
+
+
+			
+			

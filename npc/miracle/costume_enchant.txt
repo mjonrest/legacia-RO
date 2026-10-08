@@ -1,0 +1,712 @@
+//==============================================================
+// LegaciaRO - Costume Enchant NPC
+//==============================================================
+//
+// COSTUME POSITIONS
+// -----------------
+// Costume Upper  : EQI_COSTUME_HEAD_TOP
+// Costume Middle : EQI_COSTUME_HEAD_MID
+// Costume Lower  : EQI_COSTUME_HEAD_LOW
+//
+// ENCHANTMENT IDS
+// ----------------
+// Ending 0 = 80%
+// Ending 1 = 19%
+// Ending 2 =  1%
+//
+// Available Enchant IDs:
+//
+// 4700, 4701, 4702
+// 4730, 4731, 4732
+// 4740, 4741, 4742
+// 4710, 4711, 4712
+// 4720, 4721, 4722
+// 4750, 4751, 4752
+//
+// ENCHANT SYSTEM
+// ---------------
+// Every enchant attempt immediately generates
+// enchantments for ALL 4 slots.
+//
+// Each slot rolls independently:
+//
+// Tier 1 = 80%
+// Tier 2 = 19%
+// Tier 3 =  1%
+//
+// Example:
+//
+// Slot 1 = Tier 1
+// Slot 2 = Tier 1
+// Slot 3 = Tier 2
+// Slot 4 = Tier 3
+//
+// Existing enchantments are replaced.
+//
+// COST
+// ----
+// Enchant Material = .@enchant_cost
+// Zeny             = 500,000
+//
+// RE-ENCHANT
+// ----------
+// Re-enchanting is unlimited.
+//
+// Every re-enchant completely replaces
+// all 4 existing enchantments.
+//
+// BOUND
+// -----
+// Bound costume:
+//     getitembound2(..., Bound_Account)
+//
+// Normal costume:
+//     getitem2(...)
+//
+//==============================================================
+
+
+prontera,138,223,5	script	Costume Enchanter	620,{
+
+	//----------------------------------------------------------
+	// CONFIGURATION
+	//----------------------------------------------------------
+
+	//==========================================================
+	// ENCHANT MATERIAL ITEM ID
+	//==========================================================
+	//
+	// Change this ID if you want to use another material.
+	//
+	// Current:
+	// 501 = Red Potion
+	//
+	//==========================================================
+
+	.@enchant_cost = 30007;
+
+	.@zeny_cost = 500000;
+
+
+	//----------------------------------------------------------
+	// MAIN MENU
+	//----------------------------------------------------------
+
+	mes "[Costume Enchanter]";
+	mes "Welcome.";
+	mes "I can enchant your costume headgear.";
+	next;
+
+	switch(select(
+		"Enchant My Costume",
+		"Information"
+	)) {
+
+		//------------------------------------------------------
+		// INFORMATION
+		//------------------------------------------------------
+
+		case 2:
+
+			mes "[Costume Enchanter]";
+			mes "You can enchant the following costumes:";
+			mes "";
+			mes "^0000FF• Costume Upper^000000";
+			mes "^0000FF• Costume Middle^000000";
+			mes "^0000FF• Costume Lower^000000";
+			mes "";
+			mes "Each enchant attempt will generate";
+			mes "^0000FF4 enchantments at once.^000000";
+
+			next;
+
+			mes "[Costume Enchanter]";
+			mes "Each slot has an independent";
+			mes "enchantment tier chance:";
+			mes "";
+			mes "Tier 1 : ^0000FF80%^000000";
+			mes "Tier 2 : ^0000FF19%^000000";
+			mes "Tier 3 : ^0000FF1%^000000";
+
+			next;
+
+			mes "[Costume Enchanter]";
+			mes "All four slots are enchanted";
+			mes "during every attempt.";
+			mes "";
+			mes "Existing enchantments will";
+			mes "^FF0000be replaced^000000.";
+			mes "";
+			mes "Each slot rolls independently.";
+
+			next;
+
+			mes "[Costume Enchanter]";
+			mes "Each enchant attempt costs:";
+			mes "";
+			mes "5x ^0000FF" +
+				((.@enchant_cost > 0) ?
+				getitemname(.@enchant_cost) :
+				"Enchant Material") +
+				"^000000";
+			mes "";
+			mes "^FF0000500,000 Zeny^000000";
+
+			close;
+
+
+		//------------------------------------------------------
+		// ENCHANT COSTUME
+		//------------------------------------------------------
+
+		case 1:
+
+			//--------------------------------------------------
+			// SELECT COSTUME POSITION
+			//--------------------------------------------------
+
+			mes "[Costume Enchanter]";
+			mes "Which costume do you want to enchant?";
+			next;
+
+			.@choice = select(
+				"Costume Upper",
+				"Costume Middle",
+				"Costume Lower",
+				"Cancel"
+			);
+
+			if (.@choice == 4)
+				close;
+
+
+			//--------------------------------------------------
+			// SET EQUIPMENT POSITION
+			//--------------------------------------------------
+
+			switch (.@choice) {
+
+				case 1:
+
+					.@equip_slot = EQI_COSTUME_HEAD_TOP;
+					.@position$ = "Costume Upper";
+
+					break;
+
+
+				case 2:
+
+					.@equip_slot = EQI_COSTUME_HEAD_MID;
+					.@position$ = "Costume Middle";
+
+					break;
+
+
+				case 3:
+
+					.@equip_slot = EQI_COSTUME_HEAD_LOW;
+					.@position$ = "Costume Lower";
+
+					break;
+			}
+
+
+			//--------------------------------------------------
+			// CHECK WHETHER COSTUME IS EQUIPPED
+			//--------------------------------------------------
+
+			if (!getequipisequiped(.@equip_slot)) {
+
+				mes "[Costume Enchanter]";
+				mes "You are not wearing a costume in";
+				mes "^0000FF" + .@position$ + "^000000.";
+				close;
+			}
+
+
+			//--------------------------------------------------
+			// CHECK ENCHANT MATERIAL CONFIGURATION
+			//--------------------------------------------------
+
+			if (.@enchant_cost <= 0) {
+
+				mes "[Costume Enchanter]";
+				mes "^FF0000NPC CONFIGURATION ERROR^000000";
+				mes "";
+				mes "The enchant material item ID";
+				mes "has not been configured.";
+				mes "";
+				mes "Please set:";
+				mes "^0000FF.@enchant_cost^000000";
+				mes "to your desired item ID.";
+
+				close;
+			}
+
+
+			//--------------------------------------------------
+			// READ EQUIPPED COSTUME
+			//--------------------------------------------------
+
+			.@costume_id = getequipid(.@equip_slot);
+
+			.@card0 = getequipcardid(.@equip_slot,0);
+			.@card1 = getequipcardid(.@equip_slot,1);
+			.@card2 = getequipcardid(.@equip_slot,2);
+			.@card3 = getequipcardid(.@equip_slot,3);
+
+
+			//--------------------------------------------------
+			// DISPLAY CURRENT COSTUME
+			//--------------------------------------------------
+
+			mes "[Costume Enchanter]";
+			mes "Selected costume:";
+			mes "^0000FF" + getitemname(.@costume_id) + "^000000";
+			mes "";
+			mes "Current enchantments:";
+			mes "";
+
+			if (.@card0)
+				mes "Slot 1 : ^00AA00" +
+					getitemname(.@card0) +
+					"^000000";
+			else
+				mes "Slot 1 : ^777777Empty^000000";
+
+
+			if (.@card1)
+				mes "Slot 2 : ^00AA00" +
+					getitemname(.@card1) +
+					"^000000";
+			else
+				mes "Slot 2 : ^777777Empty^000000";
+
+
+			if (.@card2)
+				mes "Slot 3 : ^00AA00" +
+					getitemname(.@card2) +
+					"^000000";
+			else
+				mes "Slot 3 : ^777777Empty^000000";
+
+
+			if (.@card3)
+				mes "Slot 4 : ^00AA00" +
+					getitemname(.@card3) +
+					"^000000";
+			else
+				mes "Slot 4 : ^777777Empty^000000";
+
+
+			next;
+
+
+			//--------------------------------------------------
+			// CHECK MATERIAL
+			//--------------------------------------------------
+
+			if (countitem(.@enchant_cost) < 5) {
+
+				mes "[Costume Enchanter]";
+				mes "You don't have the required";
+				mes "enchantment material.";
+				mes "";
+				mes "Required:";
+				mes "5x ^0000FF" +
+					getitemname(.@enchant_cost) +
+					"^000000";
+
+				close;
+			}
+
+
+			//--------------------------------------------------
+			// CHECK ZENY
+			//--------------------------------------------------
+
+			if (Zeny < .@zeny_cost) {
+
+				mes "[Costume Enchanter]";
+				mes "You don't have enough Zeny.";
+				mes "";
+				mes "Required:";
+				mes "^FF0000500,000 Zeny^000000";
+
+				close;
+			}
+
+
+			//--------------------------------------------------
+			// CONFIRM ENCHANTMENT
+			//--------------------------------------------------
+
+			mes "[Costume Enchanter]";
+			mes "Are you sure you want to enchant";
+			mes "this costume?";
+			mes "";
+			mes "Costume:";
+			mes "^0000FF" +
+				getitemname(.@costume_id) +
+				"^000000";
+			mes "";
+			mes "The enchantment will generate";
+			mes "^0000FF4 new enchantments^000000.";
+			mes "";
+			mes "All existing enchantments";
+			mes "^FF0000will be replaced^000000.";
+			mes "";
+			mes "Material:";
+			mes "5x ^0000FF" +
+				getitemname(.@enchant_cost) +
+				"^000000";
+			mes "";
+			mes "Zeny:";
+			mes "^FF0000500,000^000000";
+
+			next;
+
+
+			//--------------------------------------------------
+			// CONFIRM
+			//--------------------------------------------------
+
+			if (select(
+				"Enchant Costume",
+				"Cancel"
+			) == 2)
+				close;
+
+
+			//--------------------------------------------------
+			// RE-CHECK EVERYTHING BEFORE CONSUMPTION
+			//--------------------------------------------------
+
+			// Check material again
+
+			if (countitem(.@enchant_cost) < 5) {
+
+				mes "[Costume Enchanter]";
+				mes "You no longer have the required";
+				mes "enchantment material.";
+
+				close;
+			}
+
+
+			// Check Zeny again
+
+			if (Zeny < .@zeny_cost) {
+
+				mes "[Costume Enchanter]";
+				mes "You no longer have enough Zeny.";
+
+				close;
+			}
+
+
+			// Check costume again
+
+			if (!getequipisequiped(.@equip_slot)) {
+
+				mes "[Costume Enchanter]";
+				mes "Your costume is no longer equipped.";
+
+				close;
+			}
+
+
+			//--------------------------------------------------
+			// RE-READ COSTUME
+			//--------------------------------------------------
+
+			.@costume_id = getequipid(.@equip_slot);
+
+
+			//--------------------------------------------------
+			// RESET ALL ENCHANTMENTS
+			//--------------------------------------------------
+			//
+			// IMPORTANT:
+			//
+			// We intentionally DO NOT read the old enchantments
+			// here.
+			//
+			// Every enchant attempt creates 4 completely new
+			// enchantments.
+			//
+			//--------------------------------------------------
+
+			.@card0 = 0;
+			.@card1 = 0;
+			.@card2 = 0;
+			.@card3 = 0;
+
+
+			//--------------------------------------------------
+			// ENCHANT TABLES
+			//--------------------------------------------------
+
+			// Tier 1 = 80%
+
+			setarray .@Tier1[0],
+				4700,
+				4730,
+				4740,
+				4710,
+				4720,
+				4750;
+
+
+			// Tier 2 = 19%
+
+			setarray .@Tier2[0],
+				4701,
+				4731,
+				4741,
+				4711,
+				4721,
+				4751;
+
+
+			// Tier 3 = 1%
+
+			setarray .@Tier3[0],
+				4702,
+				4732,
+				4742,
+				4712,
+				4722,
+				4752;
+
+
+			//--------------------------------------------------
+			// ROLL SLOT 1
+			//
+			// 80% = Tier 1
+			// 19% = Tier 2
+			//  1% = Tier 3
+			//--------------------------------------------------
+
+			.@enchant_roll = rand(1,100);
+
+			if (.@enchant_roll <= 80) {
+
+				.@card0 = .@Tier1[rand(0,5)];
+
+			}
+			else if (.@enchant_roll <= 99) {
+
+				.@card0 = .@Tier2[rand(0,5)];
+
+			}
+			else {
+
+				.@card0 = .@Tier3[rand(0,5)];
+
+			}
+
+
+			//--------------------------------------------------
+			// ROLL SLOT 2
+			//
+			// 80% = Tier 1
+			// 19% = Tier 2
+			//  1% = Tier 3
+			//--------------------------------------------------
+
+			.@enchant_roll = rand(1,100);
+
+			if (.@enchant_roll <= 80) {
+
+				.@card1 = .@Tier1[rand(0,5)];
+
+			}
+			else if (.@enchant_roll <= 99) {
+
+				.@card1 = .@Tier2[rand(0,5)];
+
+			}
+			else {
+
+				.@card1 = .@Tier3[rand(0,5)];
+
+			}
+
+
+			//--------------------------------------------------
+			// ROLL SLOT 3
+			//
+			// 80% = Tier 1
+			// 19% = Tier 2
+			//  1% = Tier 3
+			//--------------------------------------------------
+
+			.@enchant_roll = rand(1,100);
+
+			if (.@enchant_roll <= 80) {
+
+				.@card2 = .@Tier1[rand(0,5)];
+
+			}
+			else if (.@enchant_roll <= 99) {
+
+				.@card2 = .@Tier2[rand(0,5)];
+
+			}
+			else {
+
+				.@card2 = .@Tier3[rand(0,5)];
+
+			}
+
+
+			//--------------------------------------------------
+			// ROLL SLOT 4
+			//
+			// 80% = Tier 1
+			// 19% = Tier 2
+			//  1% = Tier 3
+			//--------------------------------------------------
+
+			.@enchant_roll = rand(1,100);
+
+			if (.@enchant_roll <= 80) {
+
+				.@card3 = .@Tier1[rand(0,5)];
+
+			}
+			else if (.@enchant_roll <= 99) {
+
+				.@card3 = .@Tier2[rand(0,5)];
+
+			}
+			else {
+
+				.@card3 = .@Tier3[rand(0,5)];
+
+			}
+
+
+			//--------------------------------------------------
+			// DETERMINE WHETHER ORIGINAL COSTUME IS BOUND
+			//--------------------------------------------------
+			//
+			// countbound() returns all different bound item IDs.
+			//
+			// @bound_items[]  = item IDs
+			// @bound_amount[] = amounts
+			//
+			//--------------------------------------------------
+
+			.@is_bound = 0;
+
+			.@bound_count = countbound();
+
+			for (.@i = 0; .@i < .@bound_count; .@i++) {
+
+				if (@bound_items[.@i] == .@costume_id) {
+
+					.@is_bound = 1;
+					break;
+
+				}
+			}
+
+
+			//--------------------------------------------------
+			// CONSUME ENCHANT MATERIAL
+			//--------------------------------------------------
+
+			delitem .@enchant_cost,5;
+
+
+			//--------------------------------------------------
+			// CONSUME ZENY
+			//--------------------------------------------------
+
+			Zeny -= .@zeny_cost;
+
+
+			//--------------------------------------------------
+			// REMOVE ORIGINAL COSTUME
+			//--------------------------------------------------
+
+			delitem .@costume_id,1;
+
+
+			//--------------------------------------------------
+			// RETURN COSTUME WITH 4 NEW ENCHANTMENTS
+			//--------------------------------------------------
+
+			if (.@is_bound) {
+
+				getitembound2 .@costume_id,1,1,0,0,
+					.@card0,
+					.@card1,
+					.@card2,
+					.@card3,
+					Bound_Account;
+
+				equip .@costume_id;
+
+			}
+			else {
+
+				getitem2 .@costume_id,1,1,0,0,
+					.@card0,
+					.@card1,
+					.@card2,
+					.@card3;
+
+				equip .@costume_id;
+
+			}
+
+
+			//--------------------------------------------------
+			// SUCCESS MESSAGE
+			//--------------------------------------------------
+
+			mes "[Costume Enchanter]";
+			mes "^00AA00Enchanting successful!^000000";
+			mes "";
+			mes "Costume:";
+			mes "^0000FF" +
+				getitemname(.@costume_id) +
+				"^000000";
+			mes "";
+			mes "New Enchantments:";
+			mes "";
+
+			mes "Slot 1 : ^00AA00" +
+				getitemname(.@card0) +
+				"^000000";
+
+			mes "Slot 2 : ^00AA00" +
+				getitemname(.@card1) +
+				"^000000";
+
+			mes "Slot 3 : ^00AA00" +
+				getitemname(.@card2) +
+				"^000000";
+
+			mes "Slot 4 : ^00AA00" +
+				getitemname(.@card3) +
+				"^000000";
+
+
+			//--------------------------------------------------
+			// BOUND MESSAGE
+			//--------------------------------------------------
+
+			if (.@is_bound) {
+
+				mes "";
+				mes "^FF0000The costume remains Account Bound.^000000";
+
+			}
+
+			close;
+	}
+}

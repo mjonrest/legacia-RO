@@ -1,0 +1,8 @@
+prontera,199,174,3	script	AFK Area	857,{
+	atcommand "@afk";
+	end;
+
+OnInit:
+waitingroom "Click me to AFK",0;
+end;
+}

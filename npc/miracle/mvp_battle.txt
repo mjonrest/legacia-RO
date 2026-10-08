@@ -1,0 +1,237 @@
+prontera,150,150,5	script	MVP Battle	100,{
+	
+	OnStart:
+		mapwarp "poring_w02", "prontera", 150, 150;
+		killmonster "poring_w02", "All";
+		.start = 1;
+		announce .npc$ + " We are going to have a Monster Battle Event.", bc_all;
+		sleep 7000;
+		announce .npc$ + " For those who want to join, you can participate by using @mbjoin", bc_all;
+		sleep 7000;
+		announce .npc$ + " We will start the event after 1 minute", bc_all;
+		sleep 60000;
+		announce .npc$ + " The entry to the event is now closed", bc_all;
+		.start = 2;
+		sleep 7000;
+		
+		if (getmapusers("poring_w02") < 1) {
+			announce .npc$ + " Not enough participants to continue the event", 0;
+			.start = 0;
+			end;
+		}
+		
+		mapannounce "poring_w02", .npc$ + " The rules for this event is simple", bc_map;
+		sleep 7000;
+		mapannounce "poring_w02", .npc$ + " Two Monster's will spawn at the center of the map and will attack each other", bc_map;
+		sleep 7000;
+		mapannounce "poring_w02", .npc$ + " Before these Monster's spawn, I will give you 1 minute to make a bet", bc_map;
+		sleep 7000;
+		mapannounce "poring_w02", .npc$ + " The bet cost for this event is " + F_InsertComma(.bet_cost) + " Event Point and when your chosen Monster wins you'll get as much as " + F_InsertComma(.bet_rewd) + " event point !!!", bc_map;
+		sleep 7000;
+		mapannounce "poring_w02", .npc$ + " All good?? Let's start betting !!!", bc_map;
+		
+		.start = 3;
+		sleep 55000;
+		mapannounce "poring_w02", .npc$ + " Betting will close in 5...", bc_map;
+		sleep 1000;
+		mapannounce "poring_w02", .npc$ + " 4...", bc_map;
+		sleep 1000;
+		mapannounce "poring_w02", .npc$ + " 3...", bc_map;
+		sleep 1000;
+		mapannounce "poring_w02", .npc$ + " 2...", bc_map;
+		sleep 1000;
+		mapannounce "poring_w02", .npc$ + " 1...", bc_map;
+		sleep 1000;
+		.start = 4;
+		mapannounce "poring_w02", .npc$ + " Betting is now closed !!!", bc_map;
+		
+		sleep 7000;
+		mapannounce "poring_w02", .npc$ + " Let's get ready to RUMBLE !!!", bc_map;
+		
+		.@mid = .MVP[rand(.size)];
+	//	.@mid2 = .MVP[rand(.size)];
+		monster "poring_w02", 77, 83, "Monster A", .@mid, 1, strnpcinfo(1) + "::OnDie1", Size_Large, AI_NONE;
+		.ma = $@mobid;
+		monster "poring_w02", 84, 83, "Monster B", .@mid, 1, strnpcinfo(1) + "::OnDie2", Size_Large, AI_ATTACK;
+		.mb = $@mobid;
+		
+		unitattack .ma, .mb;
+		unitattack .mb, .ma;
+		
+		end;
+		
+	OnDie1:
+		unittalk .mb, "[Monster B] Mwahaha!~ Such a weak opponent!";
+		sleep 7000;
+		.start = 0;
+		addrid(5, 0, "poring_w02");
+		
+		if (2 == @mvp_bet) {
+			message strcharinfo(0),"Congratulations! You won the event, Good choice!";
+			#EVENTVARIABLE += .bet_rewd;
+		}
+		else { message strcharinfo(0),"Not a good luck... Try it again later"; }
+		@mvp_bet = 0;
+		setpcblock PCBLOCK_ATTACK | PCBLOCK_IMMUNE, false;
+		warp "SavePoint", 0, 0;
+		killmonster "poring_w02", "All";
+		end;
+		
+	OnDie2:
+		unittalk .ma, "[Monster A] Mwahaha!~ Such a weak opponent!";
+		sleep 7000;
+		.start = 0;
+		addrid(5, 0, "poring_w02");
+		
+		if (1 == @mvp_bet) {
+			message strcharinfo(0),"Congratulations! You won the event, Good choice!";
+			#EVENTVARIABLE += .bet_rewd;
+		}
+		else { message strcharinfo(0),"Not a good luck... Try it again later"; }
+		@mvp_bet = 0;
+		setpcblock PCBLOCK_ATTACK | PCBLOCK_IMMUNE, false; 
+		warp "SavePoint", 0, 0;
+		killmonster "poring_w02", "All";
+		end;
+		
+	OnEventJoin:
+		if (!.start)
+			message strcharinfo(0), "The event is not active.";
+		else if (.start != 1)
+			message strcharinfo(0), "The event is not yet allowing participants to enter.";
+		else {
+			setpcblock PCBLOCK_ATTACK | PCBLOCK_IMMUNE, true;
+			switch (rand(1,4)) {
+				case 1:
+					warp "poring_w02", 89, 83;
+					break;
+				case 2:
+					warp "poring_w02", 72, 82;
+					break;
+				case 3:
+					warp "poring_w02", 80, 73;
+					break;
+				case 4:
+					warp "poring_w02", 76, 91;
+					break;
+			}
+		}
+		end;
+	
+	OnInit:
+		//top barricade
+		setwall "poring_w02",76,87,1,0,0,"top";
+		setwall "poring_w02",77,87,1,0,0,"top1";
+		setwall "poring_w02",78,87,1,0,0,"top2";
+		setwall "poring_w02",79,87,1,0,0,"top3";
+		setwall "poring_w02",80,87,1,0,0,"top4";
+		setwall "poring_w02",81,87,1,0,0,"top5";
+		setwall "poring_w02",82,87,1,0,0,"top6";
+		setwall "poring_w02",83,87,1,0,0,"top7";
+		setwall "poring_w02",84,87,1,0,0,"top8";
+		setwall "poring_w02",85,87,1,0,0,"top9";
+
+		//left barricade
+		setwall "poring_w02",76,86,1,0,0,"left";
+		setwall "poring_w02",76,85,1,0,0,"left1";
+		setwall "poring_w02",76,84,1,0,0,"left2";
+		setwall "poring_w02",76,83,1,0,0,"left3";
+		setwall "poring_w02",76,82,1,0,0,"left4";
+		setwall "poring_w02",76,81,1,0,0,"left5";
+		setwall "poring_w02",76,80,1,0,0,"left6";
+		setwall "poring_w02",76,79,1,0,0,"left7";
+		setwall "poring_w02",76,78,1,0,0,"left8";
+
+		//bot barricade
+		setwall "poring_w02",77,78,1,0,0,"bot";
+		setwall "poring_w02",78,78,1,0,0,"bot1";
+		setwall "poring_w02",79,78,1,0,0,"bot2";
+		setwall "poring_w02",80,78,1,0,0,"bot3";
+		setwall "poring_w02",81,78,1,0,0,"bot4";
+		setwall "poring_w02",82,78,1,0,0,"bot5";
+		setwall "poring_w02",83,78,1,0,0,"bot6";
+		setwall "poring_w02",84,78,1,0,0,"bot7";
+		setwall "poring_w02",85,78,1,0,0,"bot8";
+
+		//right barricade
+		setwall "poring_w02",85,79,1,0,0,"right";
+		setwall "poring_w02",85,80,1,0,0,"right1";
+		setwall "poring_w02",85,81,1,0,0,"right2";
+		setwall "poring_w02",85,82,1,0,0,"right3";
+		setwall "poring_w02",85,83,1,0,0,"right4";
+		setwall "poring_w02",85,84,1,0,0,"right5";
+		setwall "poring_w02",85,85,1,0,0,"right6";
+		setwall "poring_w02",85,86,1,0,0,"right7";
+
+
+
+		bindatcmd "mbjoin", strnpcinfo(1) + "::OnEventJoin";
+		bindatcmd "mbstart", strnpcinfo(1) + "::OnStart", 99, 99;
+		
+		// List of MVP's
+		setarray .MVP[0], 1634,1635,1636,1637,1638,1639,2221,2222,2223,2224,2225,2226,2227,3208,3209,3210,3211,3212,3213;
+		.size = getarraysize(.MVP);
+	
+		.npc$ = "[Monster Battle Event]";
+		
+		.bet_cost = 20; // 20 Event Point
+		.bet_rewd = 100; // 100 Event Point
+		
+		end;
+}
+
+poring_w02,81,88,3	script	MVP Bet Girl	612,{
+	mes "[MVP Bet Girl]";
+	if (!getvariableofnpc(.start, "MVP Battle")) {
+		mes "The event is not active right now.";
+		close;
+	}
+	else if (getvariableofnpc(.start, "MVP Battle") != 3) {
+		mes "Sorry, betting is not available right now.";
+		close;
+	}
+	else if (Zeny < getvariableofnpc(.bet_cost, "MVP Battle")) {
+		mes "You don't have enough Zeny to bet.";
+		close;
+	}
+	else if (@mvp_bet) {
+		mes "You already placed your bet.";
+		close;
+	}
+	else {
+		mes "Your current Event point : "+#EVENTVARIABLE+" pts.";
+		if ( #EVENTVARIABLE < getvariableofnpc(.bet_cost, "MVP Battle") ){
+		mes "Sorry but you dont have enough Event point to bet";
+		close;
+		}
+		mes "Which MVP will you bet on this match???";
+		next;
+		.@s = select("MVP A:MVP B");
+		mes "[MVP Bet Girl]";
+		mes "Are you sure you want to bet " + F_InsertComma(getvariableofnpc(.bet_cost, "MVP Battle")) + "z on " + (.@s == 1 ? "MVP A" : "MVP B") + "?";
+		next;
+		if (select("Yes:No") == 2) close;
+		if (getvariableofnpc(.start, "MVP Battle") != 3) {
+			mes "[MVP Bet Girl]";
+			mes "Oops! Betting has already closed.";
+			close;
+		}
+		#EVENTVARIABLE -= getvariableofnpc(.bet_cost, "MVP Battle");
+		@mvp_bet = .@s;
+		mes "[MVP Bet Girl]";
+		mes "Good luck! You bet " + F_InsertComma(getvariableofnpc(.bet_cost, "MVP Battle")) + "z on " + (.@s == 1 ? "MVP A" : "MVP B") + ".";
+		mapannounce "poring_w02","[ Bet Girl ] : "+strcharinfo(0)+" just place a bet", bc_blue|bc_map;
+		close;
+	}
+	end;
+}
+
+poring_w02	mapflag	monster_noteleport
+poring_w02	mapflag	noskill
+poring_w02	mapflag	noloot
+poring_w02	mapflag	noitemconsumption
+poring_w02	mapflag	nomemo
+poring_w02	mapflag	nosave	SavePoint
+poring_w02	mapflag	nowarpto
+poring_w02	mapflag	nowarp
+poring_w02	mapflag	noteleport

@@ -1,0 +1,75 @@
+-	script	PvP_GvG_Job3_Only	-1,{
+
+OnPCLoadMapEvent:
+
+	.@map$ = strcharinfo(3);
+	.@eac = eaclass();
+
+	// Only act on PvP / GvG maps
+	if (
+		!getmapflag(.@map$, MF_PVP) &&
+		!getmapflag(.@map$, MF_GVG) &&
+		!getmapflag(.@map$, MF_GVG_CASTLE)
+	)
+		end;
+
+	// ? Block ALL 4th jobs
+	if (.@eac & EAJL_FOURTH) {
+		dispbottom "4th Jobs are not allowed in PvP / GvG.";
+		warp "prontera",156,191;
+		end;
+	}
+
+	// ? Explicitly block specific job IDs
+	switch (Class) {
+		case 4302:
+		case 4303:
+		case 4304:
+		case 4305:
+		case 4306:
+		case 4307:
+		case 4308:
+			dispbottom "This class is not allowed in PvP / GvG.";
+			warp "prontera",156,191;
+			end;
+	}
+
+	// ? Allow ONLY 3rd jobs
+	if (!(.@eac & EAJL_THIRD)) {
+		dispbottom "Only 3rd classes are allowed in PvP / GvG.";
+		warp "prontera",156,191;
+		end;
+	}
+	end;
+}
+
+prontera,166,206,3	script	Level Reducer	620,{
+
+	mes "[Level Reducer]";
+	.@eac = eaclass();
+
+	// Only 3rd jobs, no 4th
+	if (!(.@eac & EAJL_THIRD) || (.@eac & EAJL_FOURTH)) {
+		mes "Only 3rd classes can use this service.";
+		close;
+	}
+
+	if (BaseLevel <= 150) {
+		mes "Your Base Level is already 150 or lower.";
+		close;
+	}
+
+	mes "This will permanently reduce your Base Level to ^FF0000150^000000.";
+	mes "All EXP above that level will be lost.";
+	mes "You will need to re-farm levels if you want them back.";
+
+	if (select("Proceed with reduction:Cancel") == 2)
+		close;
+
+	.@diff = BaseLevel - 150;
+
+	atcommand "@blvl -" + .@diff;
+
+	mes "Your Base Level has been reduced to 150.";
+	close;
+}

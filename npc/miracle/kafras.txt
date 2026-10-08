@@ -1,0 +1,35 @@
+// Main Town
+prontera,145,197,6	script	Kafra Employee::kaf_miracle	894,{
+	//cutin "kafra_05",2;
+	callfunc "F_KafSetPay";
+	mes "[Kafra Employee]";
+	mes "The Kafra Corporation";
+	mes "is always working to provide";
+	mes "you with convenient services.";
+	mes "How may I be of assistance?";
+	callfunc "F_Kafra",5,0,1,60,930;
+
+	M_Save:
+		savepoint "prontera",155,181;
+		callfunc "F_KafEnd",0,1,"in the city of Prontera";
+OnInit:
+/**
+	while (1) {
+showscript "Kafra Miracle";
+sleep 100;
+}
+**/
+waitingroom "Kafra Miracle",0;
+}
+
+// Function: Sets variables for Payon Kafras ---------------------------------
+function	script	F_KafSetPay	{
+	cleararray @wrpC$[0],"",getarraysize(@wrpC$);
+	setarray @wrpD$[0], "Alberta", "Prontera", "Morroc";
+	setarray @wrpP[0], 1200, 1200, 1200;
+	set @wrpC$[0], @wrpD$[0]+" -> "+@wrpP[0];
+	set @wrpC$[1], @wrpD$[1]+" -> "+@wrpP[1];
+	set @wrpC$[2], @wrpD$[2]+" -> "+@wrpP[2];
+	set @wrpC$[3], "Cancel";
+	return;
+}

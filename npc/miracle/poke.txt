@@ -1,0 +1,711 @@
+function	script	bulba	{
+	if (getmercinfo(1)){mercenary_delete;}
+	set .@pokemon,getarg(0);
+	set .@poke,getequipid(EQI_ARMOR);
+        set .@skill, getequipcardid(EQI_ARMOR, 2);
+        set .@iv, getequipcardid(EQI_ARMOR, 3);
+	if ( .@skill == 0 ) set poke_skill,0;
+	if ( .@iv == 0 ) set ivs,0;
+	mes "[PokeDex]";
+	mes "Analyzing Your Pokemon";
+	sleep2 1000;
+	mes "You summon "+getmonsterinfo(.@pokemon,0)+".";
+	sleep2 1000;
+	if ( .@skill == 0 ){
+	mes "Your pokemon dont have any skill.";
+	} else
+	mes "Your pokemon have skill : "+getitemname(.@skill)+".";
+	sleep2 1000;
+	mes "Your pokemon have IVS : "+ivs+".";
+	sleep2 1000;
+	mes "Analyzing done.";
+	mercenary_create .@pokemon,-1;
+	unequip EQI_ARMOR;
+	end;
+}
+
+-	script	poke_cmd	-1,{
+
+OnPCLogoutEvent:
+	if (getmercinfo(0)){mercenary_delete;}
+	set poke_skill,0;
+	set ivs,0;
+	end;
+
+	OnInit:
+		bindatcmd "pokebuff",strnpcinfo(3) + "::OnAtcommand";
+		end;
+	OnAtcommand:
+		.@Delay = 10*60;
+		if (!getmercinfo(0)){
+		dispbottom "You dont have pokemon on your side";
+		end;
+		}
+		if ( poke_skill == 0){
+		dispbottom "Seems like your pokemon cant use any skill";
+		end;
+		}
+		dispbottom "Your pokemon can use "+getskillname(poke_skill)+" at level "+ivs+".";
+		if (#HD > gettimetick(2)){
+		dispbottom "You have to wait "+Time2Str(#HD)+" to re-cast pokemon skill";
+		end;
+		}
+		#HD = gettimetick(2) + .@Delay;
+		unitskilluseid getmercinfo(8),poke_skill,ivs,getcharid(3),3;
+		end;
+	}
+
+
+prontera,102,234,5	script	Evolution Master	532,{
+        set .@skill, getequipcardid(EQI_ARMOR, 2);
+        set .@iv, getequipcardid(EQI_ARMOR, 3);
+
+if (getmercinfo(0)){mercenary_delete;}
+	mes "[Evolution Master]";
+	mes "Hello, I can help you evolve your Pokémon!";
+	mes "Bring me a Pokémon and the required stone.";
+	next;
+
+	// Initialize evolution data
+	callfunc "InitEvoData";
+
+	// Get player's inventory
+	getinventorylist;
+	.@size = @inventorylist_count;
+	if (.@size == 0) {
+		mes "Your inventory is empty!";
+		close;
+	}
+
+	.@count = 0;
+	for (.@i = 0; .@i < .@size; .@i++){
+	.@item_id = @inventorylist_id[.@i];
+
+
+	// Must be in Pokémon ID range
+	if (.@item_id < 30445 || .@item_id > 30999) continue;
+
+	// Check if this Pokémon has a defined evolution
+	if (!atoi($@normal_evo$[.@item_id]) && !atoi($@mega_evo$[.@item_id])) continue;
+
+	// Add to menu
+	.@menu$[.@count] = getitemname(.@item_id);
+	.@item_ids[.@count] = .@item_id;
+	.@inv_index[.@count] = .@i;
+	.@count++;
+}
+	if (.@count == 0) {
+		mes "You don't have any Pokémon that can evolve.";
+		close;
+	}
+
+	// Show Pokémon selection menu
+	.@menu$[.@count] = "Cancel";
+	.@choice = select(implode(.@menu$, ":"));
+	if (.@choice > .@count) {
+		close;
+	}
+	.@index = .@choice - 1;
+	.@base_id = .@item_ids[.@index];
+	.@inv_ref = @inventorylist_index[.@inv_index[.@index]];
+	.@inv_slot = .@inv_index[.@index];
+	.@card3 = @inventorylist_card3[.@inv_slot];
+	.@card4 = @inventorylist_card4[.@inv_slot];
+
+
+// Final selection logic
+next;
+.@normal_paths$ = getd("$@normal_evo$[" + .@base_id + "]");
+.@mega_paths$ = getd("$@mega_evo$[" + .@base_id + "]");
+
+// Normalize both
+if (.@normal_paths$ == "0") set .@normal_paths$, "";
+if (.@mega_paths$ == "0") set .@mega_paths$, "";
+
+	.@option_count = 0;
+	mes "You choose "+getitemname(.@item_id)+".";
+	if ( .@card3 == 0 ){
+	mes "Your pokemon dont have any skill.";
+	} else {
+	mes "Your pokemon have skill : "+getitemname(.@card3)+".";
+	mes "Your pokemon have "+getitemname(.@card4)+".";
+	}
+// Normal Evolution options
+	if (.@normal_paths$ != "") {
+		.@temp$ = .@normal_paths$ + ",";
+		.@start = 0;
+		.@option_count = 0;
+		while (true) {
+			.@pos = strpos(.@temp$, ",", .@start);
+			if (.@pos == -1) break;
+
+			.@value$ = "";
+			for (.@i = .@start; .@i < .@pos; .@i++) {
+				.@ch$ = charat(.@temp$, .@i);
+				if (.@ch$ >= "0" && .@ch$ <= "9")
+					.@value$ = .@value$ + .@ch$;
+			}
+			.@target_id = atoi(.@value$);
+			if (.@target_id > 0) {
+				.@option$[.@option_count] = "Evolve to " + getitemname(.@target_id) + " (Evo Stone)";
+				.@evo_type[.@option_count] = 0;
+				.@target_ids[.@option_count] = .@target_id;
+				.@option_count++;
+			}
+			.@start = .@pos + 1;
+		}
+	}
+
+// Mega Evolution options
+	if (.@mega_paths$ != "") {
+		.@temp$ = .@mega_paths$ + ",";
+		.@start = 0;
+		while (true) {
+			.@pos = strpos(.@temp$, ",", .@start);
+			if (.@pos == -1) break;
+
+			.@value$ = "";
+			for (.@i = .@start; .@i < .@pos; .@i++) {
+				.@ch$ = charat(.@temp$, .@i);
+				if (.@ch$ >= "0" && .@ch$ <= "9")
+					.@value$ = .@value$ + .@ch$;
+			}
+			.@target_id = atoi(.@value$);
+			if (.@target_id > 0) {
+				.@option$[.@option_count] = "Mega Evolve to " + getitemname(.@target_id) + " (Mega Stone)";
+				.@evo_type[.@option_count] = 1;
+				.@target_ids[.@option_count] = .@target_id;
+				.@option_count++;
+			}
+			.@start = .@pos + 1;
+		}
+	}
+	// No valid evolutions
+	if (.@option_count == 0) {
+		mes "This Pokémon has no available evolutions.";
+		close;
+	}
+
+	// Show evolution options
+	.@option$[.@option_count] = "Cancel";
+	.@choice = select(implode(.@option$, ":"));
+	if (.@choice > .@option_count) {
+		close;
+	}
+	.@evo_index = .@choice - 1;
+	.@target_id = .@target_ids[.@evo_index];
+	.@type = .@evo_type[.@evo_index];
+
+	// Check stone requirements
+	if (.@type == 0) { // Normal
+		.@stone = 30429;
+		.@stone_name$ = "Evo Stone";
+	} else { // Mega
+		.@stone = 30430;
+		.@stone_name$ = "Mega Stone";
+	}
+
+	if (countitem(.@stone) < 10) {
+		mes "You need at least 10 " + .@stone_name$ + "!";
+		close;
+	}
+
+	// Perform evolution
+	delitem2 .@base_id, 1,1,0,0,0,0,.@card3,.@card4;
+	delitem .@stone, 10;
+	getitem2 .@target_id, 1,1,0,0,0,0,.@card3,.@card4;
+
+	mes "Congratulations!";
+	mes "Your " + getitemname(.@base_id) + " evolved into " + getitemname(.@target_id) + "!";
+	close;
+
+OnInit:
+	// Build evolution database
+	callfunc "InitEvoData";
+	end;
+}
+
+
+
+function	script	InitEvoData	{
+	// Clear existing data
+	deletearray $@normal_evo$, 0;
+	deletearray $@mega_evo$, 0;
+
+	// ========================
+	// NORMAL EVOLUTION DATABASE
+	// ========================
+	set $@normal_evo$[30445], "30446";
+	set $@normal_evo$[30446], "30447";
+	set $@normal_evo$[30448], "30449";
+	set $@normal_evo$[30449], "30450";
+	set $@normal_evo$[30451], "30452";
+	set $@normal_evo$[30452], "30453";
+	set $@normal_evo$[30458], "30459";
+	set $@normal_evo$[30459], "30460";
+	set $@normal_evo$[30461], "30462";
+	set $@normal_evo$[30462], "30463";
+	set $@normal_evo$[30465], "30466";
+	set $@normal_evo$[30466], "30467";
+	set $@normal_evo$[30468], "30469";
+	set $@normal_evo$[30848], "30470";
+	set $@normal_evo$[30470], "30849,30499";
+	set $@normal_evo$[30471], "30472";
+	set $@normal_evo$[30472], "30976";
+	set $@normal_evo$[30473], "30688";
+	set $@normal_evo$[30474], "30475";
+	set $@normal_evo$[30475], "30476";
+	set $@normal_evo$[30477], "30478";
+	set $@normal_evo$[30478], "30479";
+	set $@normal_evo$[30480], "30481";
+	set $@normal_evo$[30481], "30977";
+	set $@normal_evo$[30482], "30483";
+	set $@normal_evo$[30483], "30484";
+	set $@normal_evo$[30486], "30487";
+	set $@normal_evo$[30487], "30488";
+	set $@normal_evo$[30490], "30491";
+	set $@normal_evo$[30491], "30492";
+	set $@normal_evo$[30493], "30494";
+	set $@normal_evo$[30494], "30495";
+	set $@normal_evo$[30496], "30497";
+	set $@normal_evo$[30500], "30501";
+	set $@normal_evo$[30501], "30502";
+	set $@normal_evo$[30503], "30527";
+	set $@normal_evo$[30505], "30531";
+	set $@normal_evo$[30507], "30689,30690,30691,30692,30693,30694,30695,30696";
+	set $@normal_evo$[30956], "30508,30952";
+	set $@normal_evo$[30952], "30953";
+	set $@normal_evo$[30518], "30519";
+	set $@normal_evo$[30519], "30520";
+	set $@normal_evo$[30521], "30522";
+	set $@normal_evo$[30522], "30523";
+	set $@normal_evo$[30524], "30525";
+	set $@normal_evo$[30525], "30526";
+	set $@normal_evo$[30537], "30538";
+	set $@normal_evo$[30540], "30541";
+	set $@normal_evo$[30541], "30542";
+	set $@normal_evo$[30543], "30544";
+	set $@normal_evo$[30544], "30545";
+	set $@normal_evo$[30546], "30547";
+	set $@normal_evo$[30547], "30548";
+	set $@normal_evo$[30549], "30550";
+	set $@normal_evo$[30550], "30551";
+	set $@normal_evo$[30552], "30553";
+	set $@normal_evo$[30553], "30554";
+	set $@normal_evo$[30558], "30559";
+	set $@normal_evo$[30559], "30560";
+	set $@normal_evo$[30565], "30566";
+	set $@normal_evo$[30566], "30567";
+	set $@normal_evo$[30569], "30570";
+	set $@normal_evo$[30570], "30571";
+	set $@normal_evo$[30573], "30574";
+	set $@normal_evo$[30574], "30575";
+	set $@normal_evo$[30579], "30580";
+	set $@normal_evo$[30580], "30581";
+	set $@normal_evo$[30582], "30583,30585";
+	set $@normal_evo$[30583], "30584";
+	set $@normal_evo$[30585], "30586";
+	set $@normal_evo$[30587], "30588";
+	set $@normal_evo$[30588], "30589";
+	set $@normal_evo$[30590], "30591";
+	set $@normal_evo$[30591], "30592";
+	set $@normal_evo$[30593], "30594";
+	set $@normal_evo$[30594], "30595,30597";
+	set $@normal_evo$[30602], "30603";
+	set $@normal_evo$[30603], "30604";
+	set $@normal_evo$[30606], "30607";
+	set $@normal_evo$[30609], "30610";
+	set $@normal_evo$[30612], "30613";
+	set $@normal_evo$[30613], "30614";
+	set $@normal_evo$[30615], "30616";
+	set $@normal_evo$[30618], "30619";
+	set $@normal_evo$[30619], "30620";
+	set $@normal_evo$[30621], "30622";
+	set $@normal_evo$[30624], "30625";
+	set $@normal_evo$[30629], "30630,30632";
+	set $@normal_evo$[30633], "30634";
+	set $@normal_evo$[30634], "30635";
+	set $@normal_evo$[30637], "30638";
+	set $@normal_evo$[30638], "30639";
+	set $@normal_evo$[30655], "30656";
+	set $@normal_evo$[30656], "30657";
+	set $@normal_evo$[30658], "30659";
+	set $@normal_evo$[30659], "30660";
+	set $@normal_evo$[30661], "30662";
+	set $@normal_evo$[30662], "30663";
+	set $@normal_evo$[30664], "30665";
+	set $@normal_evo$[30665], "30666";
+	set $@normal_evo$[30667], "30668";
+	set $@normal_evo$[30668], "30669";
+	set $@normal_evo$[30670], "30671";
+	set $@normal_evo$[30671], "30672";
+	set $@normal_evo$[30674], "30675";
+	set $@normal_evo$[30677], "30678";
+	set $@normal_evo$[30680], "30681";
+	set $@normal_evo$[30681], "30682";
+	set $@normal_evo$[30683], "30684";
+	set $@normal_evo$[30685], "30686";
+	set $@normal_evo$[30686], "30687";
+	set $@normal_evo$[30698], "30699";
+	set $@normal_evo$[30699], "30700";
+	set $@normal_evo$[30701], "30702";
+	set $@normal_evo$[30703], "30704";
+	set $@normal_evo$[30704], "30705";
+	set $@normal_evo$[30719], "30720";
+	set $@normal_evo$[30725], "30726";
+	set $@normal_evo$[30729], "30730";
+	set $@normal_evo$[30730], "30731";
+	set $@normal_evo$[30732], "30733";
+	set $@normal_evo$[30733], "30734";
+	set $@normal_evo$[30735], "30736";
+	set $@normal_evo$[30736], "30737";
+	set $@normal_evo$[30740], "30741";
+	set $@normal_evo$[30741], "30742";
+	set $@normal_evo$[30743], "30744";
+	set $@normal_evo$[30744], "30745";
+	set $@normal_evo$[30746], "30747";
+	set $@normal_evo$[30747], "30748";
+	set $@normal_evo$[30749], "30750";
+	set $@normal_evo$[30750], "30751";
+	set $@normal_evo$[30752], "30753";
+	set $@normal_evo$[30754], "30755";
+	set $@normal_evo$[30756], "30757";
+	set $@normal_evo$[30757], "30758";
+	set $@normal_evo$[30759], "30760";
+	set $@normal_evo$[30760], "30761";
+	set $@normal_evo$[30762], "30763";
+	set $@normal_evo$[30763], "30764";
+	set $@normal_evo$[30765], "30766";
+	set $@normal_evo$[30767], "30768";
+	set $@normal_evo$[30770], "30771";
+	set $@normal_evo$[30772], "30773";
+	set $@normal_evo$[30774], "30775";
+	set $@normal_evo$[30775], "30776";
+	set $@normal_evo$[30777], "30778";
+	set $@normal_evo$[30793], "30794";
+	set $@normal_evo$[30795], "30796";
+	set $@normal_evo$[30796], "30797";
+	set $@normal_evo$[30798], "30799";
+	set $@normal_evo$[30799], "30800";
+	set $@normal_evo$[30801], "30802";
+	set $@normal_evo$[30802], "30803";
+	set $@normal_evo$[30804], "30805";
+	set $@normal_evo$[30805], "30806";
+	set $@normal_evo$[30807], "30808";
+	set $@normal_evo$[30808], "30809";
+	set $@normal_evo$[30810], "30811";
+	set $@normal_evo$[30811], "30812";
+	set $@normal_evo$[30814], "30815";
+	set $@normal_evo$[30815], "30816";
+	set $@normal_evo$[30817], "30818";
+	set $@normal_evo$[30818], "30819";
+	set $@normal_evo$[30820], "30821";
+	set $@normal_evo$[30821], "30822";
+	set $@normal_evo$[30823], "30824";
+	set $@normal_evo$[30825], "30826";
+	set $@normal_evo$[30827], "30828";
+	set $@normal_evo$[30828], "30829,30830";
+	set $@normal_evo$[30832], "30833";
+	set $@normal_evo$[30833], "30834";
+	set $@normal_evo$[30835], "30836";
+	set $@normal_evo$[30837], "30838";
+	set $@normal_evo$[30840], "30841";
+	set $@normal_evo$[30841], "30842";
+	set $@normal_evo$[30850], "30851";
+	set $@normal_evo$[30851], "30852";
+	set $@normal_evo$[30853], "30854";
+	set $@normal_evo$[30854], "30855";
+	set $@normal_evo$[30856], "30857";
+	set $@normal_evo$[30857], "30858";
+	set $@normal_evo$[30859], "30860,30861,30862";
+	set $@normal_evo$[30863], "30864";
+	set $@normal_evo$[30865], "30866";
+	set $@normal_evo$[30867], "30868";
+	set $@normal_evo$[30869], "30870";
+	set $@normal_evo$[30870], "30871";
+	set $@normal_evo$[30872], "30873";
+	set $@normal_evo$[30874], "30875";
+	set $@normal_evo$[30880], "30881";
+	set $@normal_evo$[30882], "30883";
+	set $@normal_evo$[30883], "30884";
+	set $@normal_evo$[30889], "30890";
+	set $@normal_evo$[30890], "30891,30893";
+	set $@normal_evo$[30900], "30892,30894,30895";
+	set $@normal_evo$[30896], "30897";
+	set $@normal_evo$[30902], "30903";
+	set $@normal_evo$[30905], "30906";
+	set $@normal_evo$[30906], "30907";
+	set $@normal_evo$[30908], "30909";
+	set $@normal_evo$[30909], "30910";
+	set $@normal_evo$[30911], "30912";
+	set $@normal_evo$[30912], "30913";
+	set $@normal_evo$[30914], "30915";
+	set $@normal_evo$[30916], "30917";
+	set $@normal_evo$[30917], "30918";
+	set $@normal_evo$[30919], "30920";
+	set $@normal_evo$[30921], "30922";
+	set $@normal_evo$[30923], "30924";
+	set $@normal_evo$[30924], "30925";
+	set $@normal_evo$[30926], "30927";
+	set $@normal_evo$[30927], "30928";
+	set $@normal_evo$[30929], "30930";
+	set $@normal_evo$[30930], "30931";
+	set $@normal_evo$[30932], "30933";
+	set $@normal_evo$[30933], "30934";
+	set $@normal_evo$[30935], "30936";
+	set $@normal_evo$[30937], "30938";
+	set $@normal_evo$[30938], "30939";
+	set $@normal_evo$[30940], "30941,30942";
+	set $@normal_evo$[30943], "30944";
+	set $@normal_evo$[30945], "30946";
+	set $@normal_evo$[30947], "30948";
+	set $@normal_evo$[30948], "30949";
+	set $@normal_evo$[30950], "30951";
+	set $@normal_evo$[30954], "30955";
+	set $@normal_evo$[30957], "30958";
+	set $@normal_evo$[30959], "30960";
+	set $@normal_evo$[30961], "30962,30963";
+	set $@normal_evo$[30965], "30964";
+	set $@normal_evo$[30967], "30966";
+	set $@normal_evo$[30969], "30968";
+	set $@normal_evo$[30972], "30973,30974";
+
+	// ========================
+	// MEGA EVOLUTION DATABASE
+	// ========================
+	set $@mega_evo$[30447], "30457";
+	set $@mega_evo$[30450], "30454,30455";
+	set $@mega_evo$[30453], "30456";
+	set $@mega_evo$[30463], "30464";
+	set $@mega_evo$[30467], "30504";
+	set $@mega_evo$[30484], "30485";
+	set $@mega_evo$[30488], "30489";
+	set $@mega_evo$[30497], "30498";
+	set $@mega_evo$[30527], "30528";
+	set $@mega_evo$[30531], "30532";
+	set $@mega_evo$[30509], "30510";
+	set $@mega_evo$[30514], "30516,30517";
+	set $@mega_evo$[30529], "30530";
+	set $@mega_evo$[30533], "30534";
+	set $@mega_evo$[30538], "30539";
+	set $@mega_evo$[30560], "30561";
+	set $@mega_evo$[30567], "30568";
+	set $@mega_evo$[30571], "30572";
+	set $@mega_evo$[30575], "30576";
+	set $@mega_evo$[30595], "30596";
+	set $@mega_evo$[30597], "30697";
+	set $@mega_evo$[30598], "30599";
+	set $@mega_evo$[30600], "30601";
+	set $@mega_evo$[30604], "30605";
+	set $@mega_evo$[30607], "30608";
+	set $@mega_evo$[30610], "30611";
+	set $@mega_evo$[30616], "30617";
+	set $@mega_evo$[30622], "30623";
+	set $@mega_evo$[30625], "30626";
+	set $@mega_evo$[30627], "30628";
+	set $@mega_evo$[30630], "30631";
+	set $@mega_evo$[30635], "30636";
+	set $@mega_evo$[30639], "30640";
+	set $@mega_evo$[30645], "30646";
+	set $@mega_evo$[30647], "30648";
+	set $@mega_evo$[30649], "30650";
+	set $@mega_evo$[30651], "30652";
+	set $@mega_evo$[30672], "30673";
+	set $@mega_evo$[30675], "30676";
+	set $@mega_evo$[30678], "30679";
+	set $@mega_evo$[30707], "30708";
+	set $@mega_evo$[30709], "30710";
+	set $@mega_evo$[30738], "30739";
+	set $@mega_evo$[30812], "30813";
+	set $@mega_evo$[30843], "30844";
+	
+	return;
+}
+
+/** ONLY TESTING NOT NECESSARY
+prontera,104,234,5	script	TestEvo	123,{
+	mes "[Test Evo]";
+	
+	set .@base_id, 30582;
+	set $@normal_evo$$[30582], "30583,30585";
+	.@normal_paths$ = getd("$@normal_evo$$[" + .@base_id + "]");
+.@debug_len = getstrlen(.@normal_paths$);
+for (.@j = 0; .@j < .@debug_len; .@j++) {
+	dispbottom "char[" + .@j + "] = '" + charat(.@normal_paths$, .@j) + "'";
+}
+dispbottom "raw string = [" + .@normal_paths$ + "]";
+
+.@temp$ = .@normal_paths$ + ",";
+.@start = 0;
+.@option_count = 0;
+
+while (true) {
+	.@pos = strpos(.@temp$, ",", .@start);
+	if (.@pos == -1) break;
+
+	// manual safe substr
+	.@value$ = "";
+	for (.@i = .@start; .@i < .@pos; .@i++) {
+		.@ch$ = charat(.@temp$, .@i);
+		if (.@ch$ >= "0" && .@ch$ <= "9") {
+			.@value$ = .@value$ + .@ch$;
+		}
+	}
+	.@target_id = atoi(.@value$);
+
+	if (.@target_id > 0) {
+		.@option$[.@option_count] = "Evolve to [" + .@target_id + "]";
+		.@target_ids[.@option_count] = .@target_id;
+		.@option_count++;
+	}
+
+	.@start = .@pos + 1;
+}
+	if (.@option_count == 0) {
+		mes "No evolutions found.";
+		close;
+	}
+
+	.@option$[.@option_count] = "Cancel";
+	.@choice = select(implode(.@option$, ":"));
+	if (.@choice > .@option_count) close;
+
+	mes "You chose: " + .@option$[.@choice - 1];
+	close;
+}
+**/
+
+function	script	CleanDigitsOnly	{
+	.@raw$ = getarg(0);
+	.@clean$ = "";
+	.@len = getstrlen(.@raw$);
+	for (.@i = 0; .@i < .@len; .@i++) {
+		.@ch = charat(.@raw$, .@i);
+		// Keep only digits
+		if (.@ch >= "0" && .@ch <= "9") {
+			.@clean$ = .@clean$ + .@ch;
+		}
+	}
+	return .@clean$;
+}
+
+function	script	SafeSubstr	{
+	.@s$ = getarg(0);
+	.@start = getarg(1);
+	.@length = getarg(2);
+
+	// Validate input
+	if (.@length <= 0) return "";
+	if (getstrlen(.@s$) <= .@start) return "";
+
+	// Slice safely
+	set .@i, 0;
+	set .@result$, "";
+	while (.@i < .@length && (.@start + .@i) < getstrlen(.@s$)) {
+		set .@result$, .@result$ + charat(.@s$, .@start + .@i);
+		set .@i, .@i + 1;
+	}
+	return .@result$;
+}
+
+/////////////////////////////// CATCHING SYSTEM ///////////////////////////
+
+prontera,99,232,5	script	Pokemon Radar#1	556,{
+	mes "[Pokemon Radar]";
+	mes "Current Pokemon Spawn location :";
+	set .@size, query_sql( "select Poke_Name, Spawn_Map from pokemon where Poke_ID > 0"+ .@idp, .@idn$, .@idm$ );
+	for (set .@c, 0; .@c < .@size; set .@c, .@c + 1)
+		mes (.@c + 1) +"^000000 ^0000FF" + .@idn$[.@c] +"^000000 spawn at ^FF0000" + .@idm$[.@c] +"^000000.";
+	close;
+}
+
+prontera,102,238,5	script	Pokemon Recycle#0	626,{
+	mes "[Pokemon Recycle]";
+	mes "You can earn Evo Stone or Mega stone by recycling unused pokemon";
+	next;
+	mes "[Pokemon Recycle]";
+	// Get player's inventory
+	getinventorylist;
+	.@size = @inventorylist_count;
+	if (.@size == 0) {
+		mes "Your inventory is empty!";
+		close;
+	}
+
+	.@count = 0;
+	for (.@i = 0; .@i < .@size; .@i++) {
+	.@item_id = @inventorylist_id[.@i];
+
+
+	// Must be in Pokémon ID range
+	if (.@item_id < 30445 || .@item_id > 30999) continue;
+
+	// Add to menu
+	.@menu$[.@count] = getitemname(.@item_id);
+	.@item_ids[.@count] = .@item_id;
+	.@inv_index[.@count] = .@i;
+	.@count++;
+}
+	if (.@count == 0) {
+		mes "You don't have any Pokémon in your inventory.";
+		close;
+	}
+
+	// Show Pokémon selection menu
+	.@menu$[.@count] = "Cancel";
+	.@choice = select(implode(.@menu$, ":"));
+	if (.@choice > .@count) {
+		close;
+	}
+	.@index = .@choice - 1;
+	.@base_id = .@item_ids[.@index];
+	.@inv_ref = @inventorylist_index[.@inv_index[.@index]];
+	.@inv_slot = .@inv_index[.@index];
+	.@card3 = @inventorylist_card3[.@inv_slot];
+	.@card4 = @inventorylist_card4[.@inv_slot];
+
+	mes "You Choose "+getitemname(.@base_id)+".";
+	if ( .@card3 == 0 ){
+	mes "Your pokemon dont have any skill.";
+	} else {
+	mes "Your pokemon have skill : "+getitemname(.@card3)+".";
+	mes "Your pokemon have "+getitemname(.@card4)+".";
+	}
+	next;
+	switch(select("Proceed")){
+	case 1:
+	mes "[Pokemon Recycle]";
+	delitem2 .@base_id,1,1,0,0,0,0,.@card3,.@card4;
+	if ( rand(1,10000) < 1000){
+	mes "You get 1 Evo Stone";
+	getitem 30429,1;
+	close;
+	}
+	if ( rand(1,10000) < 200){
+	mes "You get 1 Mega Stone";
+	getitem 30430,1;
+	close;
+	}
+	mes "You get nothing, try again later";
+	close;
+	}
+}
+
+prontera,96,232,5	script	Pokeball Seller	715,{
+	set .@name$,"[Ryan]";
+	mes .@name$;
+	mes "You can use Activity Point or Event Point to purchase pokeballs";
+	mes "Your Activity Point : "+#HourlyRewards+" pts.";
+	mes "Your Event Point : "+#EVENTVARIABLE+" pts.";
+	switch(select(">> Use Activity Point:>> Use Event Point")){
+	case 1:
+		callshop "UseActivity",1;
+		end;
+	case 2:
+		callshop "UseEvent",1;
+		end;
+	}
+}
+
+-	pointshop	UseActivity	-1,#HourlyRewards,30431:10,30432:30,30433:60
+-	pointshop	UseEvent	-1,#EVENTVARIABLE,30431:3,30432:10,30433:30

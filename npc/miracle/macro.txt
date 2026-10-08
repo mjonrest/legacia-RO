@@ -1,0 +1,45 @@
+//====================================================
+// Macro Detection System
+//====================================================
+
+-	script	MacroDetection	-1,{
+
+OnInit:
+	initnpctimer;
+
+	// Maps to check for macro users
+	setarray $noMacroMaps$[0],"abyss_03","abyss_02";
+
+	end;
+
+OnTimer3600000:
+	initnpctimer;
+
+	// Attach player
+	addrid(0);
+
+	.@map$ = strcharinfo(3);
+
+	// Check if player is inside monitored maps
+	for (.@i = 0; .@i < getarraysize($noMacroMaps$); .@i++) {
+
+		if (.@map$ == $noMacroMaps$[.@i]) {
+			callsub S_MacroCheck;
+			break;
+		}
+	}
+
+	end;
+
+
+//====================================
+// Macro Check Routine
+//====================================
+S_MacroCheck:
+
+	// Call your macro detection function
+	macro_detector();
+
+	return;
+
+}

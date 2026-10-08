@@ -1,0 +1,9 @@
+moc_akhet,0,0	monster	Sturdy Medjed	22396,23,5000
+moc_akhet,0,0	monster	Medjed	22395,60,5000
+moc_akhet,0,0	monster	Sturdy Heka	22402,14,5000
+moc_akhet,0,0	monster	Heka	22401,35,5000
+moc_akhet,0,0	monster	Sturdy Medjay	22398,23,5000
+moc_akhet,0,0	monster	Medjay	22397,60,5000
+moc_akhet,0,0	monster	Sturdy Ophois	22400,20,5000
+moc_akhet,0,0	monster	Ophois	22399,55,5000
+moc_akhet,0,0,0,0	boss_monster	Guide of Dead	22404,1,3600000,600000,0

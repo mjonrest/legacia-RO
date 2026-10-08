@@ -1,0 +1,398 @@
+prontera,136,170,4	script	World Boss	10308,{
+
+set .@kills,30000;
+
+query_sql "SELECT `kill_count` FROM `world_boss` WHERE `set` = 'wb' ", .@kill_count;
+mes "[ World Boss ]";
+if ( $world_boss_active == 0 ) mes "Status : ^FF0000Inactive^000000";
+if ( $world_boss_active == 1 ) mes "Status : ^00FF00Active^000000";
+if ( $world_boss_active == 2 ) mes "Status : ^00FF00Preparing^000000";
+if ( $world_boss_active == 3 ) mes "Status : ^00FF00Cleaning^000000";
+mes "Collected Souls - [ ^0000FF"+.@kill_count+"^000000 ]";
+mes "=============================";
+mes "Reward:";
+mes "<ITEM>World Boss Reward<INFO>30007</INFO></ITEM>";
+mes "=============================";
+next;
+
+	// Dynamically build menu
+	set .@menu$, "";
+	set .@opt_id, 0;
+
+	if ($world_boss_active == 1) {
+		.@menu$ = .@menu$ + "Enter Map:";
+		setarray .@opt[.@opt_id++], 1;
+	}
+	if (.@kill_count >= .@kills && $world_boss_active == 0) {
+		.@menu$ = .@menu$ + "Summon World Boss:";
+		setarray .@opt[.@opt_id++], 2;
+	}
+	if ($world_boss_active >= 2) {
+		.@menu$ = .@menu$ + "Information";
+		setarray .@opt[.@opt_id++], 3;
+	}
+
+	// If no menu, show fallback information
+	if (.@menu$ == "") {
+		mes "[ World Boss ]";
+		mes "Each monster kill by a player increases the soul count by 1.";
+		mes "=============================";
+		mes "When "+callfunc("F_Comma",.@kills)+" souls are collected, anyone can summon the World Boss.";
+		close;
+	}
+
+	set .@s, select(.@menu$) - 1;
+
+	switch (.@opt[.@s]) {
+		case 1:
+			announce "[World Boss]: "+strcharinfo(0)+" just enter World Boss Map!",0,0x00FF00;
+			warp "ordeal_2-1", 149, 149;
+			end;
+
+		case 2:
+			// Re-check the values to avoid race condition
+			query_sql "SELECT `kill_count` FROM `world_boss` WHERE `set` = 'wb' ", .@kill_count;
+			mes "[ World Boss ]";
+			mes "Hello " + strcharinfo(0) + ", do you wish to summon the World Boss?";
+			next;
+			switch(select("Let me think again:Yes, Please")) {
+				case 1:
+					mes "[ World Boss ]";
+					mes "Please take your time.";
+					mes "You will involve all the people in Midgard.";
+					close;
+
+				case 2:
+					// Another immediate re-check of active status (in case someone else started summon meanwhile)
+					if ($world_boss_active != 0) {
+						mes "[ World Boss ]";
+						mes "Sorry, the World Boss is not available for summoning right now.";
+						mes "Current status: " + $world_boss_active + ".";
+						close;
+					}
+					// Ensure there are still enough souls
+					if (.@kill_count < .@kills) {
+						mes "[ World Boss ]";
+						mes "There are not enough souls to summon the World Boss anymore.";
+						mes "Collected Souls: " + callfunc("F_Comma",.@kill_count) + " (need "+callfunc("F_Comma",.@kills)+").";
+						close;
+					}
+
+					// Reserve the summon right away to block other players
+					set $world_boss_active, 2; // Preparing
+					// Subtract the required souls in DB atomically (best-effort)
+					query_sql "UPDATE `world_boss` SET `kill_count` = `kill_count` - "+.@kills+" WHERE `set` = 'wb'";
+
+					// Re-query to display new value (not strictly necessary)
+					query_sql "SELECT `kill_count` FROM `world_boss` WHERE `set` = 'wb' ", .@kill_count;
+
+					announce "[World Boss]: " + strcharinfo(0) + " just summoned the World Boss!", 0;
+					// Trigger any server-side logic (spawn, timers, etc.)
+					donpcevent "World Boss::OnSummon";
+					close;
+			}
+			end;
+
+		case 3:
+			mes "[ World Boss ]";
+			mes "Each monster kill by a player increases the soul count by 1.";
+			mes "=============================";
+			mes "When "+callfunc("F_Comma",.@kills)+" souls are collected, anyone can summon the World Boss.";
+			close;
+	}
+
+OnNPCKillEvent:
+	if($world_boss_active > 0) end;
+	query_sql "UPDATE `world_boss` SET `kill_count` = `kill_count`+1 WHERE `set` = 'wb'";
+	end;
+
+OnSummon:
+	$world_boss_active = 2;
+	sleep 5000;
+	announce "[World Boss]: Attention All, World boss has awaken!",0;
+	sleep (10 * 1000);
+	announce "[World Boss]: The seal will break and Gate will open in 5 minutes",0;
+	sleep (1 * 1000);
+	announce "[World Boss]: For all adventurers please prepare yourself",0;
+	sleep (4 * 60 * 1000);
+	announce "[World Boss]: 1 minutes left",0;
+	sleep (1 * 60 * 1000);
+	announce "[World Boss]: Gate has open. WORLD BOSS WILL VANISH IF NOT FINISH AFTER 1 HOUR.",0;
+	$world_boss_active = 1;
+	monster "ordeal_2-1",149,273,"[WB] Demonic Chaos Dragon",3328,1,strnpcinfo(0)+"::OnMobDead";
+	.GID = $@mobid[0];
+	
+	// Spawn initial guardians
+	donpcevent strnpcinfo(0)+"::OnSpawnGuardians";
+	
+	// Start regen check and guardian respawn check
+	donpcevent strnpcinfo(0)+"::OnStartRegen";
+	donpcevent strnpcinfo(0)+"::OnCheckGuardianRespawn";
+	
+	setnpctimer 0;
+	initnpctimer;
+	end;
+
+OnStartRegen:
+	// Start periodic regen based on alive guardians
+	while ($world_boss_active == 1) {
+		sleep 5000; // Check every 5 seconds
+		
+		// Count alive guardians
+		.@alive_guardians = mobcount("ordeal_2-1", "World Boss::OnGuardDead");
+		
+	//	if (.@alive_guardians > 0) {
+			// Calculate regen percentage: 2% base + 2% per alive guardian
+			.@regen_percent = 5 + (5 * .@alive_guardians);
+			
+			// Get boss current HP and Max HP
+			getunitdata .GID, .@wb;
+			.@current_hp = .@wb[2];
+			.@max_hp = .@wb[3];
+			
+			// Calculate regen amount
+			.@regen_amount = .@max_hp * .@regen_percent / 100;
+			
+			// Apply regen (capped at max HP)
+			.@new_hp = min(.@current_hp + .@regen_amount, .@max_hp);
+			setunitdata .GID, UMOB_HP, .@new_hp;
+			
+			// Optional: Announce to map when regen happens
+			// mapannounce "ordeal_2-1", "[World Boss] regenerates " + .@regen_percent + "% HP (" + .@alive_guardians + " guardians alive)!", bc_map;
+			unittalk .GID,"HP Regen " + .@regen_percent + "%",bc_area;
+	//	}
+	}
+	end;
+
+OnSpawnGuardians:
+	// Spawn 7 guardians
+	monster "ordeal_2-1", 245, 245, "[WB] Guardian", 2408, 1, "World Boss::OnGuardDead";
+	monster "ordeal_2-1", 273, 149, "[WB] Guardian", 2408, 1, "World Boss::OnGuardDead";
+	monster "ordeal_2-1", 245, 52, "[WB] Guardian", 2408, 1, "World Boss::OnGuardDead";
+	monster "ordeal_2-1", 149, 26, "[WB] Guardian", 2408, 1, "World Boss::OnGuardDead";
+	monster "ordeal_2-1", 54, 54, "[WB] Guardian", 2408, 1, "World Boss::OnGuardDead";
+	monster "ordeal_2-1", 26, 150, "[WB] Guardian", 2408, 1, "World Boss::OnGuardDead";
+	monster "ordeal_2-1", 53, 245, "[WB] Guardian", 2408, 1, "World Boss::OnGuardDead";
+	
+	// Reset guardian respawn timer
+	$guardian_respawn_time = 0;
+	
+	mapannounce "ordeal_2-1", "[World Boss]: 7 Guardians have appeared! Kill them to lower the boss's regeneration!", 0;
+	end;
+
+OnGuardDead:
+	// When a guardian dies, check if all are dead
+	.@alive_guardians = mobcount("ordeal_2-1", "World Boss::OnGuardDead");
+	
+	if (.@alive_guardians <= 0) {
+		// All guardians dead, start respawn timer (5 minutes)
+		$guardian_respawn_time = gettimetick(2) + (5 * 60);
+		mapannounce "ordeal_2-1", "[World Boss]: All guardians have been defeated! Boss regeneration lowered! Guardians will respawn in 5 minutes.", 0;
+	}
+	end;
+
+OnCheckGuardianRespawn:
+	// Check every 30 seconds if guardians need to respawn
+	while ($world_boss_active == 1) {
+		sleep 30000; // Check every 30 seconds
+		
+		// Check if all guardians are dead and 5 minutes have passed
+		.@alive_guardians = mobcount("ordeal_2-1", "World Boss::OnGuardDead");
+		
+		if (.@alive_guardians <= 0 && $guardian_respawn_time > 0 && gettimetick(2) >= $guardian_respawn_time) {
+			// Respawn guardians
+			donpcevent strnpcinfo(0)+"::OnSpawnGuardians";
+			$guardian_respawn_time = 0;
+		}
+	}
+	end;
+
+OnTimer3600000:
+	stopnpctimer;
+	setnpctimer 0;
+	announce "[World Boss]: Seems like Nobody can defeat World Boss, The Gate suddenly close.",0;
+	mapwarp "ordeal_2-1","prontera",156,191,0;
+	killmonsterall "ordeal_2-1",0;
+	$world_boss_active = 0;
+	$guardian_respawn_time = 0;
+	end;
+
+	
+OnMobDead:
+	stopnpctimer;
+	setnpctimer 0;
+	getitem 30007,rand(15,25);
+	announce "[World Boss] Demonic Chaos Dragon has been slained by "+strcharinfo(0)+"!!",0;
+	mapannounce "ordeal_2-1","[WB] Demonic Chaos Dragon : This cant be Possible. I've been beaten by mortals",0;
+	sleep 5000;
+	mapannounce "ordeal_2-1","You may leave thru World Boss Spirit and claim your rewards.",0;
+	$world_boss_active = 3;
+	
+	// Kill all guardians when boss dies
+	killmonster "ordeal_2-1", "World Boss::OnGuardDead";
+	$guardian_respawn_time = 0;
+	
+	enablenpc "World Boss Spirit";
+	end;
+
+OnInit:
+	disablenpc "World Boss Spirit";
+	$world_boss_active = 0;
+	$guardian_respawn_time = 0;
+	freeloop(1);
+	while(1){
+		query_sql "SELECT `kill_count` FROM `world_boss` WHERE `set` = 'wb' ", .@kill_count;
+		waitingroom "Souls : ["+.@kill_count+"]",0;
+		sleep 2000; //= 1 Second Refresh
+		delwaitingroom;
+	}
+	freeloop(0);
+	end;
+}
+
+ordeal_2-1,149,273,0	script	World Boss Spirit	10045,{
+
+	getitem 30007, rand(15,25);
+	warp "prontera",156,191;
+
+	// Start periodic empty-map check
+	addtimer 3000, strnpcinfo(3) + "::OnCheckMap";
+	end;
+
+OnCheckMap:
+	if (getmapusers("ordeal_2-1") > 0) {
+		// Still players inside, check again later
+		addtimer 3000, strnpcinfo(3) + "::OnCheckMap";
+		end;
+	}
+
+	// Map is empty ? cleanup
+	disablenpc strnpcinfo(3);
+	$world_boss_active = 0;
+	$guardian_respawn_time = 0;
+
+	announce "[World Boss]: The World Boss event has ended.", 0;
+	end;
+}
+-	script	wbannouncer	-1,{
+OnMinute00:
+OnMinute10:
+OnMinute20:
+OnMinute30:
+OnMinute40:
+OnMinute50:
+	if ( $world_boss_active == 2) {
+	announce "World Boss will awake soon",0,0xff0000;
+	end;
+	}
+	if ( $world_boss_active == 1) {
+	announce "World Boss is currently active",0,0xff0000;
+	end;
+	}
+	if ( $world_boss_active == 0) {
+	query_sql "SELECT `kill_count` FROM `world_boss` WHERE `set` = 'wb' ", .@kill_count;
+	announce "World Boss Souls : "+callfunc("F_InsertComma",.@kill_count)+" collected.",0,0xff0000;
+	end;
+	}
+}
+-	script	wbcondition	-1,{
+OnPCLoginEvent:
+	if ( strcharinfo(3) == "ordeal_2-1" && $world_boss_active == 0){
+		warp "prontera",156,191;
+		end;
+		}
+OnPCDieEvent:
+	if(strcharinfo(3) == "ordeal_2-1"){
+		mes "[World Boss Angel]";
+		mes "Do you want to be resurrected?";
+		switch(select("Yes:Please send me back to town")){
+		case 1:
+		mes "--------------------------------------";
+		mes "--------------------------------------";
+		mes "You will be ressurect in 5 second";
+		sleep2 5000;
+		warp "ordeal_2-1",149,149;
+		percentheal 100,100;
+		specialeffect2 EF_INCAGILITY;
+		sc_start SC_INCREASEAGI,(5 * 60 * 1000),10;
+		specialeffect2 EF_BLESSING;
+		sc_start SC_BLESSING,(5 * 60 * 1000),10;
+		end;
+		case 2:
+		warp "prontera",156,191;
+		}
+	}
+}
+
+ordeal_2-1	mapflag	nowarp	99
+ordeal_2-1	mapflag	nowarpto	99
+ordeal_2-1	mapflag	nocommand	99
+ordeal_2-1	mapflag	nobranch
+ordeal_2-1	mapflag	noteleport	99
+ordeal_2-1	mapflag	nogo	99
+
+-	script	afk_kicker	-1,{
+OnInit:
+	setarray .@map_name$, "ordeal_2-1";
+	.@size_map = getarraysize( .@map_name$ );
+	for ( .@i = 0; .@i < .@size_map; .@i++ )
+		setmapflag .@map_name$[.@i], mf_loadevent;
+	.bg_map$ = implode( .@map_name$, "|" );
+	end;
+OnPCLoadMapEvent:
+	if ( !compare( .bg_map$, strcharinfo(3) ) || @loop_bg ) end;
+	@loop_bg++;
+	while( compare( .bg_map$, strcharinfo(3) )) {
+		sleep2 10000;
+		if( checkidle() > 60 && checkidle() <= 70 )
+			announce "Dont Afk or you will get kicked from World Boss Room", bc_self;
+		else if( checkidle() > 90 && checkidle() <= 100 )
+			announce "you got 30 seconds to move", bc_self;
+		else if( checkidle() > 120 ) {
+			warp "SavePoint", 0, 0;
+			break;
+		}
+	}
+	@loop_bg = 0;
+	end;
+}
+
+function	script	F_Comma	{
+	.@n$ = ""+getarg(0); // convert to string
+	.@len = getstrlen(.@n$);
+	.@res$ = "";
+
+	// handle negative numbers
+	.@neg = 0;
+	if (charat(.@n$,0) == "-") {
+		.@neg = 1;
+		.@n$ = substr(.@n$,1,.@len-1);
+		.@len = getstrlen(.@n$);
+	}
+
+	for (.@i = .@len - 1; .@i >= 0; .@i--) {
+		.@res$ = charat(.@n$,.@i) + .@res$;
+		.@count++;
+		if (.@count == 3 && .@i > 0) {
+			.@res$ = "," + .@res$;
+			.@count = 0;
+		}
+	}
+
+	if (.@neg) .@res$ = "-" + .@res$;
+
+	return .@res$;
+}
+
+
+/** SQL
+
+CREATE TABLE `world_boss` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `set` VARCHAR(50) NOT NULL DEFAULT 'wb', -- identifier, used in script WHERE condition
+  `kill_count` BIGINT UNSIGNED NOT NULL DEFAULT 0, -- total souls collected
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `set_unique` (`set`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+**/

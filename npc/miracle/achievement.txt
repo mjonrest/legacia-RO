@@ -1,0 +1,401 @@
+prontera,143,189,5	script	Achievement Master	4_F_KAFRA1,{
+
+//====================================
+// MAIN MENU
+//====================================
+OnOpen:
+	mes "[Achievement Master]";
+
+	callsub S_ShowStatus;
+	callsub S_ShowCoinTotal;
+
+	next;
+
+	switch(select("Claim Max Level Reward:Close")) {
+
+		case 1:
+			callsub S_MaxLevelClaim;
+			close;
+
+		default:
+			close;
+	}
+
+//====================================
+// SUB : SHOW STATUS
+//====================================
+S_ShowStatus:
+
+	mes "^0099FF=== Your Achievement Progress ===^000000";
+	mes " ";
+
+	//====================================
+	// ?? Instance Achievement
+	//====================================
+	mes "^0055FF[ Instance Completion ]^000000";
+	mes "Completed: " + #instance_achieve_count + " times";
+
+	setarray .@inst_m[0],1,5,10,25,50,100;
+
+	.@found = 0;
+	for (.@i = 0; .@i < getarraysize(.@inst_m); .@i++) {
+		if (#instance_achieve_count < .@inst_m[.@i]) {
+			mes "Next Target: " + .@inst_m[.@i];
+			.@found = 1;
+			break;
+		}
+	}
+
+	if (!.@found) {
+		mes "^00FF00MAX REACHED^000000";
+		mes "Waiting for future instance tiers...";
+	}
+
+	//====================================
+	// ?? Max Level Achievement
+	//====================================
+	mes " ";
+	mes "^0055FF[ Max Level Achievement ]^000000";
+
+	if (#achieve_maxlevel_claimed)
+		mes "Status: ^00AA00COMPLETED^000000";
+	else {
+		mes "Status: ^FF0000NOT CLAIMED^000000";
+		mes "Requirement: Base 275 / Job 60";
+	}
+
+	//====================================
+	// ? PvP Activity
+	//====================================
+	mes " ";
+	mes "^0055FF[ PvP Activity ]^000000";
+	mes "Activity Count: " + #achieve_pvp_count;
+
+	setarray .@pvp_m[0],10,25,100;
+
+	.@found = 0;
+	for (.@i = 0; .@i < getarraysize(.@pvp_m); .@i++) {
+		if (#achieve_pvp_count < .@pvp_m[.@i]) {
+			mes "Next Target: " + .@pvp_m[.@i];
+			.@found = 1;
+			break;
+		}
+	}
+
+	if (!.@found) {
+		mes "^00FF00MAX REACHED^000000";
+		mes "Waiting for future PvP tiers...";
+	}
+
+	//====================================
+	// ?? MVP Hunt
+	//====================================
+	mes " ";
+	mes "^0055FF[ MVP Hunt ]^000000";
+	mes "MVP Killed: " + #achieve_mvp_count;
+
+	setarray .@mvp_m[0],10,25,50,100,200,500;
+
+	.@found = 0;
+	for (.@i = 0; .@i < getarraysize(.@mvp_m); .@i++) {
+		if (#achieve_mvp_count < .@mvp_m[.@i]) {
+			mes "Next Target: " + .@mvp_m[.@i];
+			.@found = 1;
+			break;
+		}
+	}
+
+	if (!.@found) {
+		mes "^00FF00MAX REACHED^000000";
+		mes "Waiting for future MVP tiers...";
+	}
+
+	return;
+
+//====================================
+// SUB : SHOW COIN TOTAL
+//====================================
+S_ShowCoinTotal:
+
+	mes " ";
+	mes "^FFCC00Total Coins Earned from Achievement:^000000";
+	mes "^00FF00" + #achievement_coin_total + " pcs^000000";
+	return;
+
+//====================================
+// SUB : MAX LEVEL CLAIM
+//====================================
+S_MaxLevelClaim:
+
+	if (#achieve_maxlevel_claimed) {
+		mes "[Achievement]";
+		mes "You already claimed this reward.";
+		return;
+	}
+
+	if (BaseLevel < 275 || JobLevel < 60) {
+		mes "[Achievement]";
+		mes "Requirement not met.";
+		mes "Base Level 275 & Job Level 60 required.";
+		return;
+	}
+	if(!gepard_int_get("achieve_lvl")){
+	gepard_int_set("achieve_lvl",true);
+	getitem 30018,1000;
+
+	#achieve_maxlevel_claimed = 1;
+	#achievement_coin_total += 1000;
+
+	mes "[Achievement]";
+	mes "Congratulations!";
+	mes "You received ^00FF001000 Achievement Coins^000000!";
+
+	announce strcharinfo(0) + " has reached MAX LEVEL and claimed Achievement Reward!", bc_all;
+	return;
+	} else {
+		mes "Dont mess with me. You have claim yours.";
+		close;
+	}
+
+OnInit:
+//waitingroom "[New] Achievement",0;
+questinfo QTYPE_EVENT3, QMARK_YELLOW;
+bindatcmd "achievement", strnpcinfo(3) + "::OnOpen";
+	end;
+
+}
+
+//==================================================
+// ACHIEVEMENT FUNCTIONS (PLAYER ATTACHED SAFE)
+//==================================================
+
+//--------------------------------------------------
+// PvP Achievement Check
+//--------------------------------------------------
+function	script	F_CheckPvPAchievement	{
+
+	.@count = #achieve_pvp_count;
+
+	setarray .@m[0],10,25,100;
+	setarray .@r[0],500,1000,1500;
+
+	for (.@i = 0; .@i < getarraysize(.@m); .@i++) {
+
+		// skip if already claimed this milestone
+		if (#achieve_pvp_claimed >= .@m[.@i])
+			continue;
+
+		if (.@count >= .@m[.@i]) {
+
+			.@amount = .@r[.@i];
+
+			getitem 30018, .@amount;
+			#achievement_coin_total += .@amount;
+
+			#achieve_pvp_claimed = .@m[.@i];
+
+			dispbottom "PvP Achievement Unlocked!", 0xFFD700;
+			dispbottom "Activity " + .@m[.@i] + " Reward: " + .@amount + " pcs", 0xFFFF00;
+
+			announce strcharinfo(0) + " reached PvP Activity " + .@m[.@i] + "!", bc_all;
+
+			break; // only one reward per check
+		}
+	}
+	return;
+}
+
+//--------------------------------------------------
+// MVP Achievement Check
+//--------------------------------------------------
+function	script	F_CheckMVPAchievement	{
+
+	.@count = #achieve_mvp_count;
+
+	setarray .@m[0],50,100,200,500;
+	setarray .@r[0],300,450,750,1000;
+
+	for (.@i = 0; .@i < getarraysize(.@m); .@i++) {
+
+		// skip if already claimed
+		if (#achieve_mvp_claimed >= .@m[.@i])
+			continue;
+
+		if (.@count >= .@m[.@i]) {
+
+			.@amount = .@r[.@i];
+
+			getitem 30018, .@amount;
+			#achievement_coin_total += .@amount;
+
+			#achieve_mvp_claimed = .@m[.@i];
+
+			dispbottom "MVP Achievement Unlocked!", 0xFFD700;
+			dispbottom "MVP Killed " + .@m[.@i] + " Reward: " + .@amount + " pcs", 0xFFFF00;
+
+			announce strcharinfo(0) + " has slain " + .@m[.@i] + " MVPs!", bc_all;
+
+			break;
+		}
+	}
+	return;
+}
+
+-	script	Achievement_PvP_Hook	-1,{
+
+OnPCKillEvent:
+
+	.@killer_aid = getcharid(3);
+	.@victim_aid = killedrid;
+
+	if (.@killer_aid == .@victim_aid)
+		end;
+
+	query_sql(
+		"SELECT last_ip, last_unique_id FROM login WHERE account_id = " + .@killer_aid,
+		.@k_ip$, .@k_uid$
+	);
+
+	query_sql(
+		"SELECT last_ip, last_unique_id FROM login WHERE account_id = " + .@victim_aid,
+		.@v_ip$, .@v_uid$
+	);
+
+	if (.@k_ip$ != "" && .@k_ip$ == .@v_ip$) {
+		dispbottom "PvP Achievement not counted (same IP detected).";
+		end;
+	}
+
+	if (.@k_uid$ != "" && .@k_uid$ == .@v_uid$) {
+		dispbottom "PvP Achievement not counted (same device detected).";
+		end;
+	}
+	if (#achieve_pvp_count >= 100) end; // max value
+	#achieve_pvp_count += 1;
+	dispbottom "Achievement activity detected! added to your log",0xFFFF00;
+
+	callfunc "F_CheckPvPAchievement";
+	end;
+
+
+// OPTIONAL: REMOVE THIS IF YOU DON'T WANT DOUBLE COUNT
+OnPCDieEvent:
+	if (getmapflag(strcharinfo(3), mf_pvp) || getmapflag(strcharinfo(3), mf_gvg)) {
+	if (#achieve_pvp_count >= 100) end; // max value
+		#achieve_pvp_count += 1;
+		dispbottom "Achievement activity detected! added to your log",0xFFFF00;
+
+		callfunc "F_CheckPvPAchievement";
+	}
+	end;
+
+}
+
+-	script	Achievement_MVP_Hook	-1,{
+
+OnNPCKillEvent:
+	.@mobid = killedrid;
+
+	if (getmonsterinfo(.@mobid, MOB_MODE) & MD_MVP) {
+	if (#achieve_mvp_count >= 500) end; // max value
+		#achieve_mvp_count += 1;
+		dispbottom "Achievement activity detected! added to your log",0xFFFF00;
+
+		callfunc "F_CheckMVPAchievement";
+	}
+	end;
+
+}
+
+/**
+
+DROP TABLE IF EXISTS `achievement_account_log`;
+
+CREATE TABLE `achievement_account_log` (
+  `account_id` INT NOT NULL PRIMARY KEY,
+  `char_id` INT NOT NULL,
+  `char_name` VARCHAR(30),
+
+  `instance_count` INT DEFAULT 0,
+  `instance_claimed` INT DEFAULT 0,
+
+  `pvp_count` INT DEFAULT 0,
+  `mvp_count` INT DEFAULT 0,
+
+  `maxlevel_claimed` INT DEFAULT 0,
+  `coin_total` INT DEFAULT 0,
+
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+**/
+
+function	script	F_SaveAchievementLog	{
+
+	.@acc = getcharid(3);
+	.@cid = getcharid(0);
+	.@name$ = strcharinfo(0);
+
+	//========================================
+	// READ ACCOUNT VARIABLES FROM SQL
+	//========================================
+	query_sql("SELECT `value` FROM acc_reg_num WHERE account_id="+.@acc+" AND `key`='#instance_achieve_count'", .@inst);
+	query_sql("SELECT `value` FROM acc_reg_num WHERE account_id="+.@acc+" AND `key`='#instance_achieve_claimed'", .@inst_claim);
+
+	query_sql("SELECT `value` FROM acc_reg_num WHERE account_id="+.@acc+" AND `key`='#achieve_pvp_count'", .@pvp);
+	query_sql("SELECT `value` FROM acc_reg_num WHERE account_id="+.@acc+" AND `key`='#achieve_pvp_claimed'", .@pvp_claim);
+
+	query_sql("SELECT `value` FROM acc_reg_num WHERE account_id="+.@acc+" AND `key`='#achieve_mvp_count'", .@mvp);
+	query_sql("SELECT `value` FROM acc_reg_num WHERE account_id="+.@acc+" AND `key`='#achieve_mvp_claimed'", .@mvp_claim);
+
+	query_sql("SELECT `value` FROM acc_reg_num WHERE account_id="+.@acc+" AND `key`='#achieve_maxlevel_claimed'", .@max);
+	query_sql("SELECT `value` FROM acc_reg_num WHERE account_id="+.@acc+" AND `key`='#achievement_coin_total'", .@coin);
+
+	//========================================
+	// FALLBACK (if SQL returned NULL)
+	//========================================
+	if (.@inst < 0)        .@inst       = #instance_achieve_count;
+	if (.@inst_claim < 0)  .@inst_claim = #instance_achieve_claimed;
+
+	if (.@pvp < 0)         .@pvp        = #achieve_pvp_count;
+	if (.@pvp_claim < 0)   .@pvp_claim  = #achieve_pvp_claimed;
+
+	if (.@mvp < 0)         .@mvp        = #achieve_mvp_count;
+	if (.@mvp_claim < 0)   .@mvp_claim  = #achieve_mvp_claimed;
+
+	if (.@max < 0)         .@max        = #achieve_maxlevel_claimed;
+	if (.@coin < 0)        .@coin       = #achievement_coin_total;
+
+	//========================================
+	// UPSERT INTO LOG TABLE
+	//========================================
+	query_sql(
+		"INSERT INTO achievement_account_log "+
+		"(account_id,char_id,char_name,instance_count,instance_claimed,pvp_count,pvp_claimed,mvp_count,mvp_claimed,maxlevel_claimed,coin_total) VALUES ("+
+		.@acc+","+.@cid+",'"+escape_sql(.@name$)+"',"+
+		.@inst+","+.@inst_claim+","+.@pvp+","+.@pvp_claim+","+.@mvp+","+.@mvp_claim+","+.@max+","+.@coin+") "+
+		"ON DUPLICATE KEY UPDATE "+
+		"char_id="+.@cid+","+
+		"char_name='"+escape_sql(.@name$)+"',"+
+		"instance_count="+.@inst+","+
+		"instance_claimed="+.@inst_claim+","+
+		"pvp_count="+.@pvp+","+
+		"pvp_claimed="+.@pvp_claim+","+
+		"mvp_count="+.@mvp+","+
+		"mvp_claimed="+.@mvp_claim+","+
+		"maxlevel_claimed="+.@max+","+
+		"coin_total="+.@coin
+	);
+
+	dispbottom "[Achievement] Progress snapshot saved.", 0x00FF00;
+	return;
+}
+
+-	script	loginlogout_achievement	-1,{
+OnPCLoginEvent:
+	callfunc "F_SaveAchievementLog";
+	end;
+OnPCLogoutEvent:
+	callfunc "F_SaveAchievementLog";
+	end;
+}

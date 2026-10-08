@@ -1,0 +1,12 @@
+//===== rAthena Script =======================================
+//= Mapflag: Adjust Skill Damage.
+//===== Description: ========================================= 
+//= Enables skill damage adjustment. All adjustments in
+//= skill_damage_db.txt for 'Map' type 16 will be applied.
+//= See the mapflag documentation for details about extra
+//= parameters.
+//===== Additional Comments: ================================= 
+//= 1.0 Initial script. [Cydh]
+//============================================================
+
+//guild_vs3	mapflag	skill_damage	all,BL_PC,-99

@@ -1,0 +1,29 @@
+// Color Nicks by Functor
+
+// Group ID, Text Color, Shadow Color
+
+// ----- Light Theme -----
+1,  0xF5F5F5, 0xCC3333    // Ruby
+2,  0xF5F5F5, 0x3366CC    // Sapphire
+3,  0xF5F5F5, 0x339966    // Emerald
+4,  0xF5F5F5, 0x7A3DB8    // Amethyst
+5,  0xF5F5F5, 0xCC6633    // Copper
+6,  0xF5F5F5, 0x008B8B    // Teal
+7,  0xF5F5F5, 0xB03060    // Rose
+8,  0xF5F5F5, 0x556B2F    // Olive
+
+// ----- Dark Theme -----
+9,  0x303030, 0xFF5555    // Scarlet
+10, 0x303030, 0x4DA6FF    // Azure
+11, 0x303030, 0x55DD88    // Mint
+12, 0x303030, 0xCC88FF    // Orchid
+13, 0x303030, 0xFFAA44    // Amber
+14, 0x303030, 0x44DDFF    // Aqua
+15, 0x303030, 0xFF66CC    // Sakura
+16, 0x303030, 0xDDDD55    // Lemon
+
+// ----- Special -----
+17, 0xCC3333, 0xF5F5F5    // Cosmic (Black + Neon Purple)
+18, 0x404040, 0xFFFFFF    // Inverted
+19, 0x101010, 0x00FFCC    // Cyber (Black + Neon Cyan)
+20, 0x2E2E2E, 0xFFD700    // Black + Gold

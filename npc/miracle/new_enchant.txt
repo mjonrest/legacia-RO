@@ -1,0 +1,12 @@
+moc_para01,44,15,3	script	Special Enchanter	1930,{
+	set .@name$,"[Special Enchanter]";
+	mes .@name$;
+	mes "Hello, ^0000FF"+strcharinfo(0)+"^000000. How are you today?";
+	mes "What can i help you?";
+	switch(select("Enchant Madbunny LT")){
+	case 1:
+		close2;
+		item_enchant(15);
+		end;
+	}
+}

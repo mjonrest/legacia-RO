@@ -1,0 +1,444 @@
+//===== Saphira Ro Scripts ================================== 
+//= No double login in one map
+//===== By: ================================================== 
+//= Tauro
+//===== Current Version: =====================================
+//= 1.1
+//===== Compatible With: =====================================
+//= rAthena SVN
+//===== Description: =========================================
+//= Avoid double login in 1 designated map and has unique_id
+//= by gepard
+//===== Comments: ============================================
+//= Edit line 34 to use gepard authenticator or ip
+//=	Edit line 73 if you use the system by ip
+//=	Edit line 36 maps and loadevent maps in line 98
+//= The account id that the script takes is the lowest eg: 
+//= 2000055, 2000080 the id 2000080 will be the one that 
+//= always ejects from the map even if it enters first. 
+//= If you want to prevent these accounts from collapsing,
+//= you must add the lowest id 2000055 on line 72. 
+//===== Changes: =============================================
+//= 1.1 Add $MapsWorks$ for prevent the script from working in 
+//= other scripts that have loadevent 
+//= 1.1 Update error of getmapxy for new commands
+//===== Contact Info: ========================================
+//= [Tauro] 
+//= Discord: Trinity#7962
+//============================================================
+/**
+-	script	mvp_dl_map	-1,{
+	end;
+
+OnInit:
+	// 1= if you have gepard 0=if you do not use gepard
+	set .Gepard,1;
+	// Maps for prevent the script from working in other scripts that have loadevent
+	setarray $MapsWorks$[0],"moc_pryd06","ra_fild03","ra_fild04","ve_fild01","ve_fild02","lou_dun03","prt_maze03",
+				"abbey03","gl_chyard","abyss_03","gef_dun02","gef_dun01","treasure02","pay_fild10","gon_dun03",
+				"abbey02","xmas_fild01","ra_san05","prt_sewb4","mosk_dun03","thor_v03","ama_dun03",
+				"kh_dun02","xmas_dun02","ayo_dun02","anthell02","mjolnir_04","pay_dun04",
+				"gef_fild03","gef_fild10","moc_pryd04","in_sphinx5","moc_fild17","ein_dun02","beach_dun",
+				"tur_dun04","odin_tem03","jupe_core","lhz_dun02","niflheim","moc_fild22";
+	end;
+	
+OnPCLoadMapEvent:
+	if (.Gepard == 1) {
+		query_sql("SELECT last_unique_id FROM `login` WHERE account_id = "+getcharid(3)+"", .@UniqueId$);
+		query_sql("SELECT account_id FROM `login` WHERE last_unique_id = '"+.@UniqueId$+"'", .@CuentaId);
+		for(set .@i ,0;.@i<getarraysize(.@CuentaId);set .@i,.@i+1) {
+			if(attachrid(.@CuentaId[.@i])) {
+				if (.@CuentaId == 2000002) {
+					set .@j,0;
+				} else {
+					.@map$ = strcharinfo(3);
+					for( .@q = 0; .@q < 41; .@q++){
+						if (.@map$ == $MapsWorks$[.@q]){
+							set .@j,.@j+1;
+							set .@error,getcharid(3,strcharinfo(0));
+						}
+					}
+				}
+			}	
+		}
+		detachrid;
+	
+	attachrid .@error;
+	if(.@j > 1) {
+		dispbottom "Sorry, Double Login is not allowed on this map.";
+		warp "prontera",156,183;
+	}
+
+	end;
+	} else {
+		query_sql("SELECT last_ip FROM `login` WHERE account_id = "+getcharid(3)+"", .@UltimaIp$);
+		query_sql("SELECT account_id FROM `login` WHERE last_ip = '"+.@UltimaIp$+"'", .@CuentaId);
+		for(set .@i ,0;.@i<getarraysize(.@CuentaId);set .@i,.@i+1) {
+			if(attachrid(.@CuentaId[.@i])) {
+//if .Gepard is 0 add id of accounts to which the system will not affect, brothers, couple, gms, etc ... .@CuentaId == accountId
+				if (.@CuentaId == 2000000 || .@cuentaId == 2000156 || .@CuentaId == 2000249 || .@CuentaId == 2000031 || .@CuentaId == 2000050 || .@CuentaId == 2000021 || .@CuentaId == 2000073 || .@CuentaId == 2000029) {
+					set .@j,0;
+				} else {
+					.@map$ = strcharinfo(3);
+					for(set .@q,0; .@q <=getarraysize($MapsWorks$); set .@q,.@q+1){
+						if (.@map$ == $MapsWorks$[.@q]){
+							set .@j,.@j+1;
+							set .@error,getcharid(3,strcharinfo(0));
+						}
+					}
+				}
+			}	
+		}
+		detachrid;
+	
+	attachrid .@error;
+	if(.@j > 1) {
+		dispbottom "Sorry, Double Login is not allowed on this map.";
+		warp "prontera",156,183;
+	}
+
+	end;
+	}
+}
+
+-	script	hm_dl_map	-1,{
+	end;
+
+OnInit:
+	// 1= if you have gepard 0=if you do not use gepard
+	set .Gepard,1;
+	// Maps for prevent the script from working in other scripts that have loadevent
+	setarray $MapsWorks2$[0],"prt_in";
+	end;
+	
+OnPCLoadMapEvent:
+	if (.Gepard == 1) {
+		query_sql("SELECT last_unique_id FROM `login` WHERE account_id = "+getcharid(3)+"", .@UniqueId$);
+		query_sql("SELECT account_id FROM `login` WHERE last_unique_id = '"+.@UniqueId$+"'", .@CuentaId);
+		for(set .@i ,0;.@i<getarraysize(.@CuentaId);set .@i,.@i+1) {
+			if(attachrid(.@CuentaId[.@i])) {
+				if (.@CuentaId == 2000002) {
+					set .@j,0;
+				} else {
+					.@map$ = strcharinfo(3);
+					for(set .@q,0; .@q <=getarraysize($MapsWorks2$); set .@q,.@q+1){
+						if (.@map$ == $MapsWorks2$[.@q]){
+							set .@j,.@j+1;
+							set .@error,getcharid(3,strcharinfo(0));
+						}
+					}
+				}
+			}	
+		}
+		detachrid;
+	
+	attachrid .@error;
+	if(.@j > 1) {
+		dispbottom "Sorry, Double Login is not allowed on this map.";
+		warp "prontera",156,183;
+	}
+
+	end;
+	} else {
+		query_sql("SELECT last_ip FROM `login` WHERE account_id = "+getcharid(3)+"", .@UltimaIp$);
+		query_sql("SELECT account_id FROM `login` WHERE last_ip = '"+.@UltimaIp$+"'", .@CuentaId);
+		for(set .@i ,0;.@i<getarraysize(.@CuentaId);set .@i,.@i+1) {
+			if(attachrid(.@CuentaId[.@i])) {
+//if .Gepard is 0 add id of accounts to which the system will not affect, brothers, couple, gms, etc ... .@CuentaId == accountId
+				if (.@CuentaId == 2000000 || .@cuentaId == 2000156 || .@CuentaId == 2000249 || .@CuentaId == 2000031 || .@CuentaId == 2000050 || .@CuentaId == 2000021 || .@CuentaId == 2000073 || .@CuentaId == 2000029) {
+					set .@j,0;
+				} else {
+					.@map$ = strcharinfo(3);
+					for(set .@q,0; .@q <=getarraysize($MapsWorks2$); set .@q,.@q+1){
+						if (.@map$ == $MapsWorks2$[.@q]){
+							set .@j,.@j+1;
+							set .@error,getcharid(3,strcharinfo(0));
+						}
+					}
+				}
+			}	
+		}
+		detachrid;
+	
+	attachrid .@error;
+	if(.@j > 1) {
+		dispbottom "Sorry, Double Login is not allowed on this map.";
+		warp "prontera",156,183;
+	}
+
+	end;
+	}
+}
+**/
+
+-	script	pvp_mvp_dl_map	-1,{
+	end;
+
+OnInit:
+	// 1= if you have gepard 0=if you do not use gepard
+	set .Gepard,1;
+	// Maps for prevent the script from working in other scripts that have loadevent
+	setarray $MapsWorks3$[0],"guild_vs1","guild_vs4","guild_vs2","guild_vs3","guild_vs5","pvp_y_1-2";
+	end;
+	
+OnPCLoadMapEvent:
+	if (.Gepard == 1) {
+		query_sql("SELECT last_unique_id FROM `login` WHERE account_id = "+getcharid(3)+"", .@UniqueId$);
+		query_sql("SELECT account_id FROM `login` WHERE last_unique_id = '"+.@UniqueId$+"'", .@CuentaId);
+		for(set .@i ,0;.@i<getarraysize(.@CuentaId);set .@i,.@i+1) {
+			if(attachrid(.@CuentaId[.@i])) {
+				if (.@CuentaId == 2000002) {
+					set .@j,0;
+				} else {
+					.@map$ = strcharinfo(3);
+					for(set .@q,0; .@q <=getarraysize($MapsWorks3$); set .@q,.@q+1){
+						if (.@map$ == $MapsWorks3$[.@q]){
+							set .@j,.@j+1;
+							set .@error,getcharid(3,strcharinfo(0));
+						}
+					}
+				}
+			}	
+		}
+		detachrid;
+	
+	attachrid .@error;
+	if(.@j > 1) {
+		dispbottom "Sorry, Double Login is not allowed on this map.";
+		warp "prontera",156,183;
+	}
+
+	end;
+	} else {
+		query_sql("SELECT last_ip FROM `login` WHERE account_id = "+getcharid(3)+"", .@UltimaIp$);
+		query_sql("SELECT account_id FROM `login` WHERE last_ip = '"+.@UltimaIp$+"'", .@CuentaId);
+		for(set .@i ,0;.@i<getarraysize(.@CuentaId);set .@i,.@i+1) {
+			if(attachrid(.@CuentaId[.@i])) {
+//if .Gepard is 0 add id of accounts to which the system will not affect, brothers, couple, gms, etc ... .@CuentaId == accountId
+				if (.@CuentaId == 2000000 || .@cuentaId == 2000156 || .@CuentaId == 2000249 || .@CuentaId == 2000031 || .@CuentaId == 2000050 || .@CuentaId == 2000021 || .@CuentaId == 2000073 || .@CuentaId == 2000029) {
+					set .@j,0;
+				} else {
+					.@map$ = strcharinfo(3);
+					for(set .@q,0; .@q <=getarraysize($MapsWorks3$); set .@q,.@q+1){
+						if (.@map$ == $MapsWorks3$[.@q]){
+							set .@j,.@j+1;
+							set .@error,getcharid(3,strcharinfo(0));
+						}
+					}
+				}
+			}	
+		}
+		detachrid;
+	
+	attachrid .@error;
+	if(.@j > 1) {
+		dispbottom "Sorry, Double Login is not allowed on this map.";
+		warp "prontera",156,183;
+	}
+
+	end;
+	}
+}
+
+-	script	wb_mvp_dl_map	-1,{
+	end;
+
+OnInit:
+	// 1= if you have gepard 0=if you do not use gepard
+	set .Gepard,1;
+	// Maps for prevent the script from working in other scripts that have loadevent
+	setarray $MapsWorks4$[0],"ordeal_2-1","new_1-1","ordeal_3-1";
+	end;
+	
+OnPCLoadMapEvent:
+	if (.Gepard == 1) {
+		query_sql("SELECT last_unique_id FROM `login` WHERE account_id = "+getcharid(3)+"", .@UniqueId$);
+		query_sql("SELECT account_id FROM `login` WHERE last_unique_id = '"+.@UniqueId$+"'", .@CuentaId);
+		for(set .@i ,0;.@i<getarraysize(.@CuentaId);set .@i,.@i+1) {
+			if(attachrid(.@CuentaId[.@i])) {
+				if (.@CuentaId == 2000002) {
+					set .@j,0;
+				} else {
+					.@map$ = strcharinfo(3);
+					for(set .@q,0; .@q <=getarraysize($MapsWorks4$); set .@q,.@q+1){
+						if (.@map$ == $MapsWorks4$[.@q]){
+							set .@j,.@j+1;
+							set .@error,getcharid(3,strcharinfo(0));
+						}
+					}
+				}
+			}	
+		}
+		detachrid;
+	
+	attachrid .@error;
+	if(.@j > 1) {
+		dispbottom "Sorry, Double Login is not allowed on this map.";
+		warp "prontera",156,183;
+	}
+
+	end;
+	} else {
+		query_sql("SELECT last_ip FROM `login` WHERE account_id = "+getcharid(3)+"", .@UltimaIp$);
+		query_sql("SELECT account_id FROM `login` WHERE last_ip = '"+.@UltimaIp$+"'", .@CuentaId);
+		for(set .@i ,0;.@i<getarraysize(.@CuentaId);set .@i,.@i+1) {
+			if(attachrid(.@CuentaId[.@i])) {
+//if .Gepard is 0 add id of accounts to which the system will not affect, brothers, couple, gms, etc ... .@CuentaId == accountId
+				if (.@CuentaId == 2000000 || .@cuentaId == 2000156 || .@CuentaId == 2000249 || .@CuentaId == 2000031 || .@CuentaId == 2000050 || .@CuentaId == 2000021 || .@CuentaId == 2000073 || .@CuentaId == 2000029) {
+					set .@j,0;
+				} else {
+					.@map$ = strcharinfo(3);
+					for(set .@q,0; .@q <=getarraysize($MapsWorks4$); set .@q,.@q+1){
+						if (.@map$ == $MapsWorks4$[.@q]){
+							set .@j,.@j+1;
+							set .@error,getcharid(3,strcharinfo(0));
+						}
+					}
+				}
+			}	
+		}
+		detachrid;
+	
+	attachrid .@error;
+	if(.@j > 1) {
+		dispbottom "Sorry, Double Login is not allowed on this map.";
+		warp "prontera",156,183;
+	}
+
+	end;
+	}
+}
+
+-	script	et_map	-1,{
+
+OnInit:
+	// 1 = using Gepard UID, 0 = using IP check
+	.Gepard = 1;
+
+	// Endless Tower base maps
+	setarray .ETMaps$[0],
+		"1@tower","2@tower","3@tower","4@tower","5@tower","6@tower";
+
+	end;
+
+//====================================================
+// MAIN CHECK (runs when player loads a map)
+//====================================================
+OnPCLoadMapEvent:
+
+	// Get base instance map name (removes #0001)
+	.@map$ = instance_mapname(strcharinfo(3));
+
+	// Check if player is inside Endless Tower
+	.@isET = 0;
+	for (.@i = 0; .@i < getarraysize(.ETMaps$); .@i++) {
+		if (.@map$ == .ETMaps$[.@i]) {
+			.@isET = 1;
+			break;
+		}
+	}
+
+	// Not Endless Tower ? ignore
+	if (!.@isET)
+		end;
+
+	// Also ensure it's an instance
+	if (instance_id() == 0)
+		end;
+
+	//--------------------------------------------------
+	// GEPARD MODE (UNIQUE ID)
+	//--------------------------------------------------
+	if (.Gepard) {
+
+		query_sql("SELECT last_unique_id FROM login WHERE account_id = "+getcharid(3), .@uid$);
+		query_sql("SELECT account_id FROM login WHERE last_unique_id = '"+.@uid$+"'", .@acc);
+
+		.@count = 0;
+		.@target = 0;
+
+		for (.@i = 0; .@i < getarraysize(.@acc); .@i++) {
+			if (attachrid(.@acc[.@i])) {
+
+				// GM or allowed account (edit if needed)
+				if (.@acc[.@i] == 2000002) {
+					detachrid;
+					continue;
+				}
+
+				if (instance_mapname(strcharinfo(3)) == .@map$) {
+					.@count++;
+					.@target = getcharid(3);
+				}
+				detachrid;
+			}
+		}
+
+	//--------------------------------------------------
+	// IP MODE
+	//--------------------------------------------------
+	} else {
+
+		query_sql("SELECT last_ip FROM login WHERE account_id = "+getcharid(3), .@ip$);
+		query_sql("SELECT account_id FROM login WHERE last_ip = '"+.@ip$+"'", .@acc);
+
+		.@count = 0;
+		.@target = 0;
+
+		for (.@i = 0; .@i < getarraysize(.@acc); .@i++) {
+			if (attachrid(.@acc[.@i])) {
+
+				// Allowed accounts (edit list if needed)
+				if (
+					.@acc[.@i] == 2000000 ||
+					.@acc[.@i] == 2000156 ||
+					.@acc[.@i] == 2000249 ||
+					.@acc[.@i] == 2000031 ||
+					.@acc[.@i] == 2000050 ||
+					.@acc[.@i] == 2000021 ||
+					.@acc[.@i] == 2000073 ||
+					.@acc[.@i] == 2000029
+				) {
+					detachrid;
+					continue;
+				}
+
+				if (instance_mapname(strcharinfo(3)) == .@map$) {
+					.@count++;
+					.@target = getcharid(3);
+				}
+				detachrid;
+			}
+		}
+	}
+
+	//--------------------------------------------------
+	// FINAL CHECK
+	//--------------------------------------------------
+	if (.@count > 1 && .@target) {
+		if (attachrid(.@target)) {
+			dispbottom "Sorry, Double Login is not allowed inside Endless Tower.";
+			warp "prontera",156,183;
+		}
+		detachrid;
+	}
+
+	end;
+}
+
+//loadevents
+//prt_in	mapflag	loadevent
+guild_vs2	mapflag	loadevent
+guild_vs1	mapflag	loadevent
+guild_vs3	mapflag	loadevent
+guild_vs4	mapflag	loadevent
+guild_vs5	mapflag	loadevent
+pvp_y_1-2	mapflag	loadevent
+ordeal_2-1	mapflag	loadevent
+new_1-1	mapflag	loadevent
+1@tower	mapflag	loadevent
+2@tower	mapflag	loadevent
+3@tower	mapflag	loadevent
+4@tower	mapflag	loadevent
+5@tower	mapflag	loadevent
+6@tower	mapflag	loadevent

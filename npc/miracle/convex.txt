@@ -1,0 +1,172 @@
+/**
+-- Run this once against your main rAthena SQL database.
+-- (The npc script also issues this same statement at OnInit as a
+-- safety net, so this file is optional but recommended for clarity
+-- and for inspecting/backing up the table outside the game.)
+ 
+CREATE TABLE IF NOT EXISTS `mvp_monitor` (
+  `map` VARCHAR(32) NOT NULL,
+  `mvp_id` INT NOT NULL DEFAULT 0,
+  `mvp_name` VARCHAR(50) NOT NULL DEFAULT '',
+  `alive` TINYINT(1) NOT NULL DEFAULT 0,
+  `pos_x` SMALLINT NOT NULL DEFAULT 0,
+  `pos_y` SMALLINT NOT NULL DEFAULT 0,
+  `respawn_time` BIGINT NOT NULL DEFAULT 0,
+  `last_update` BIGINT NOT NULL DEFAULT 0,
+  PRIMARY KEY (`map`)
+) ENGINE=InnoDB;
+**/
+//===== rAthena Script =======================================
+//= MVP Monitoring System v3 - SQL backed, single NPC, no loops
+//= at runtime, no NPCs placed on the tracked maps themselves.
+//===== Description: =========================================
+//= Records live MVP status into a SQL table `mvp_monitor`, one
+//= row per map, always readable regardless of who is online or
+//= where.
+//=
+//= Run this once against your main SQL DB before using the script
+//= (the OnInit block also issues it with IF NOT EXISTS as a
+//= safety net, so this is optional but recommended):
+//=
+//=   CREATE TABLE IF NOT EXISTS `mvp_monitor` (
+//=     `map` VARCHAR(32) NOT NULL,
+//=     `mvp_id` INT NOT NULL DEFAULT 0,
+//=     `mvp_name` VARCHAR(50) NOT NULL DEFAULT '',
+//=     `alive` TINYINT(1) NOT NULL DEFAULT 0,
+//=     `pos_x` SMALLINT NOT NULL DEFAULT 0,
+//=     `pos_y` SMALLINT NOT NULL DEFAULT 0,
+//=     `respawn_time` BIGINT NOT NULL DEFAULT 0,
+//=     `last_update` BIGINT NOT NULL DEFAULT 0,
+//=     PRIMARY KEY (`map`)
+//=   ) ENGINE=InnoDB;
+//=
+//= Requires the new forcemapspawn() script command (see script.cpp
+//= patch) - it forces a map's Dynamic Mobs spawn list to load right
+//= now instead of waiting for the first player to visit, which is
+//= the only reason data would otherwise be missing for empty maps.
+//=
+//= Only two things ever run this script:
+//=   OnInit          - runs ONCE at server/npc load. Loops over the
+//=                      fixed 40-map list ONE TIME (not a runtime/
+//=                      repeating loop) and force-spawns + records
+//=                      every map immediately, so every row exists
+//=                      from the moment the server is up, whether
+//=                      or not anyone ever visits those maps.
+//=   OnNPCKillEvent  - fires server-wide on every un-labeled mob
+//=                      kill; cheaply filters for MVP-class kills
+//=                      via getmonsterinfo(.., MOB_MVPEXP), then
+//=                      re-records using the killer's own current
+//=                      map (strcharinfo(PC_MAP)) - no self-map
+//=                      filtering needed since there's only one NPC.
+//=
+//= IMPORTANT: your MVP spawn lines must leave the <mob_event> field
+//= EMPTY, or OnNPCKillEvent will never fire for that monster's death
+//= (the engine calls "<event>::OnMyMobDead" instead). Example fix:
+//=   pay_dun04,120,115,0,0	boss_monster	Moonlight Flower	1150,1,3600000,600000,,1,2
+//=============================================================
+
+function	script	F_MVPRecord	{
+	.@map$ = getarg(0);
+	.@now = gettimetick(2);
+
+	if (!getmvpinfo(.@map$)) {
+		query_sql("INSERT INTO `mvp_monitor` (`map`,`alive`,`last_update`) VALUES ('" + escape_sql(.@map$) + "',0," + .@now + ") "
+			+ "ON DUPLICATE KEY UPDATE `alive`=0,`last_update`=" + .@now);
+		return;
+	}
+
+	.@respawn_ts = .@mvp_alive ? 0 : .@now + .@mvp_respawn;
+
+	query_sql("INSERT INTO `mvp_monitor` (`map`,`mvp_id`,`mvp_name`,`alive`,`pos_x`,`pos_y`,`respawn_time`,`last_update`) VALUES ('"
+		+ escape_sql(.@map$) + "'," + .@mvp_id + ",'" + escape_sql(.@mvp_name$) + "'," + .@mvp_alive + ","
+		+ .@mvp_x + "," + .@mvp_y + "," + .@respawn_ts + "," + .@now + ") "
+		+ "ON DUPLICATE KEY UPDATE `mvp_id`=" + .@mvp_id + ",`mvp_name`='" + escape_sql(.@mvp_name$) + "',`alive`=" + .@mvp_alive
+		+ ",`pos_x`=" + .@mvp_x + ",`pos_y`=" + .@mvp_y + ",`respawn_time`=" + .@respawn_ts + ",`last_update`=" + .@now);
+
+	return;
+}
+
+-	script	MVPMonitor	-1,{
+	end;
+
+OnInit:
+	query_sql("CREATE TABLE IF NOT EXISTS `mvp_monitor` ("
+		+ "`map` VARCHAR(32) NOT NULL, `mvp_id` INT NOT NULL DEFAULT 0, `mvp_name` VARCHAR(50) NOT NULL DEFAULT '', "
+		+ "`alive` TINYINT(1) NOT NULL DEFAULT 0, `pos_x` SMALLINT NOT NULL DEFAULT 0, `pos_y` SMALLINT NOT NULL DEFAULT 0, "
+		+ "`respawn_time` BIGINT NOT NULL DEFAULT 0, `last_update` BIGINT NOT NULL DEFAULT 0, PRIMARY KEY (`map`)) ENGINE=InnoDB");
+
+	setarray .@mvp_map$[0],
+		"moc_pryd06","ra_fild03","ra_fild04","ve_fild01","ve_fild02",
+		"lou_dun03","prt_maze03","abbey03","gl_chyard","abyss_03",
+		"gef_dun02","gef_dun01","treasure02","pay_fild11","gon_dun03",
+		"abbey02","xmas_fild01","ra_san05","prt_sewb4","mosk_dun03",
+		"thor_v03","ama_dun03","kh_dun02","ayo_dun02","anthell02",
+		"mjolnir_04","pay_dun04","gef_fild02","gef_fild10","moc_pryd04",
+		"in_sphinx5","moc_fild17","ein_dun02","xmas_dun02","beach_dun",
+		"tur_dun04","odin_tem03","jupe_core","lhz_dun02","moc_fild22";
+	.@size = getarraysize(.@mvp_map$);
+	for (.@i = 0; .@i < .@size; .@i++) {
+		forcemapspawn(.@mvp_map$[.@i]);
+		callfunc "F_MVPRecord", .@mvp_map$[.@i];
+	}
+	end;
+
+OnNPCKillEvent:
+	if (getmonsterinfo(killedrid, MOB_MVPEXP) <= 0) end;
+	callfunc "F_MVPRecord", strcharinfo(3);
+	end;
+}
+
+// ---- Viewer NPC: lists every recorded MVP status ----
+
+prontera,157,198,4	script	MVP List	857,{
+L_Menu:
+	// Refresh every known map live before showing anything, so this
+	// isn't dependent on OnNPCKillEvent having fired correctly.
+	.@n = query_sql("SELECT `map` FROM `mvp_monitor`", .@allmap$);
+	for (.@i = 0; .@i < .@n; .@i++)
+		callfunc "F_MVPRecord", .@allmap$[.@i];
+
+	.@rows = query_sql("SELECT `map`,`mvp_name`,`alive`,`pos_x`,`pos_y`,`respawn_time` FROM `mvp_monitor` "
+		+ "WHERE `mvp_name` != '' ORDER BY `alive` DESC, `map` ASC",
+		.@map$, .@name$, .@alive, .@x, .@y, .@respawn);
+
+	if (.@rows <= 0) {
+		mes "[MVP List]";
+		mes "No MVP records found yet.";
+		close;
+	}
+	.@menu$ = "";
+	for (.@i = 0; .@i < .@rows; .@i++) {
+		if (.@alive[.@i])
+			.@menu$ += "^00AA00" + .@name$[.@i] + "^000000 ["+.@map$[.@i]+"] (Alive)";
+		else
+			.@menu$ += "^AA0000" + .@name$[.@i] + "^000000 ["+.@map$[.@i]+"] (Dead)";
+		.@menu$ += ":";
+	}
+	mes "[MVP List]";
+	mes "Select an MVP to see its details.";
+	next;
+	.@sel = select(.@menu$) - 1;
+	mes "[MVP List]";
+	mes "MVP Name : " + .@name$[.@sel];
+	mes "Map : " + .@map$[.@sel];
+
+	if (.@alive[.@sel]) {
+		mes "Status : ^00AA00Alive^000000";
+		mes "Current Coordinate : " + .@x[.@sel] + ", " + .@y[.@sel];
+	} else {
+		.@remain = .@respawn[.@sel] - gettimetick(2);
+		if (.@remain < 0)
+			.@remain = 0;
+		mes "Status : ^AA0000Dead^000000";
+		mes "Respawn Time : " + (.@remain / 60) + "m " + (.@remain % 60) + "s";
+	}
+	next;
+
+	if (select("Back to list:Close") == 1) {
+		next;
+		goto L_Menu;
+	}
+	close;
+}

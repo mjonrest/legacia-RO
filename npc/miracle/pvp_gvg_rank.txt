@@ -1,0 +1,805 @@
+/**
+CREATE TABLE IF NOT EXISTS `pvp_activity` (
+	`account_id` INT UNSIGNED NOT NULL,
+	`char_id` INT UNSIGNED NOT NULL,
+	`name` VARCHAR(30) NOT NULL,
+
+	`kills` INT UNSIGNED NOT NULL DEFAULT 0,
+	`deaths` INT UNSIGNED NOT NULL DEFAULT 0,
+
+	`killing_streak` INT UNSIGNED NOT NULL DEFAULT 0,
+	`death_streak` INT UNSIGNED NOT NULL DEFAULT 0,
+
+	`best_killing_streak` INT UNSIGNED NOT NULL DEFAULT 0,
+	`best_death_streak` INT UNSIGNED NOT NULL DEFAULT 0,
+
+	`updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+		ON UPDATE CURRENT_TIMESTAMP,
+
+	PRIMARY KEY (`account_id`),
+	INDEX `idx_pvp_kills` (`kills`),
+	INDEX `idx_pvp_deaths` (`deaths`),
+	INDEX `idx_pvp_best_kill_streak` (`best_killing_streak`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+CREATE TABLE IF NOT EXISTS `gvg_activity` (
+	`account_id` INT UNSIGNED NOT NULL,
+	`char_id` INT UNSIGNED NOT NULL,
+	`name` VARCHAR(30) NOT NULL,
+
+	`kills` INT UNSIGNED NOT NULL DEFAULT 0,
+	`deaths` INT UNSIGNED NOT NULL DEFAULT 0,
+
+	`killing_streak` INT UNSIGNED NOT NULL DEFAULT 0,
+	`death_streak` INT UNSIGNED NOT NULL DEFAULT 0,
+
+	`best_killing_streak` INT UNSIGNED NOT NULL DEFAULT 0,
+	`best_death_streak` INT UNSIGNED NOT NULL DEFAULT 0,
+
+	`emperium_damage` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+
+	`updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+		ON UPDATE CURRENT_TIMESTAMP,
+
+	PRIMARY KEY (`account_id`),
+	INDEX `idx_gvg_kills` (`kills`),
+	INDEX `idx_gvg_deaths` (`deaths`),
+	INDEX `idx_gvg_best_kill_streak` (`best_killing_streak`),
+	INDEX `idx_gvg_emperium_damage` (`emperium_damage`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `pvp_activity_history` (
+	`month` CHAR(7) NOT NULL,
+	`account_id` INT UNSIGNED NOT NULL,
+	`char_id` INT UNSIGNED NOT NULL,
+	`name` VARCHAR(30) NOT NULL,
+
+	`kills` INT UNSIGNED NOT NULL DEFAULT 0,
+	`deaths` INT UNSIGNED NOT NULL DEFAULT 0,
+	`killing_streak` INT UNSIGNED NOT NULL DEFAULT 0,
+	`death_streak` INT UNSIGNED NOT NULL DEFAULT 0,
+	`best_killing_streak` INT UNSIGNED NOT NULL DEFAULT 0,
+	`best_death_streak` INT UNSIGNED NOT NULL DEFAULT 0,
+
+	PRIMARY KEY (`month`, `account_id`),
+	INDEX `idx_month_kills` (`month`, `kills`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+CREATE TABLE IF NOT EXISTS `gvg_activity_history` (
+	`month` CHAR(7) NOT NULL,
+	`account_id` INT UNSIGNED NOT NULL,
+	`char_id` INT UNSIGNED NOT NULL,
+	`name` VARCHAR(30) NOT NULL,
+
+	`kills` INT UNSIGNED NOT NULL DEFAULT 0,
+	`deaths` INT UNSIGNED NOT NULL DEFAULT 0,
+	`killing_streak` INT UNSIGNED NOT NULL DEFAULT 0,
+	`death_streak` INT UNSIGNED NOT NULL DEFAULT 0,
+	`best_killing_streak` INT UNSIGNED NOT NULL DEFAULT 0,
+	`best_death_streak` INT UNSIGNED NOT NULL DEFAULT 0,
+	`emperium_damage` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+
+	PRIMARY KEY (`month`, `account_id`),
+	INDEX `idx_month_kills` (`month`, `kills`),
+	INDEX `idx_month_emperium` (`month`, `emperium_damage`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+ALTER TABLE `gvg_activity`
+ADD COLUMN `emperium_breaks` INT UNSIGNED NOT NULL DEFAULT 0
+AFTER `emperium_damage`;
+
+ALTER TABLE `gvg_activity_history`
+ADD COLUMN `emperium_breaks` INT UNSIGNED NOT NULL DEFAULT 0
+AFTER `emperium_damage`;
+**/
+
+//===== rAthena Script =======================================
+//= PvP / GvG Activity System
+//===== Version ==============================================
+//= 1.0
+//===== Features =============================================
+//=
+//= PvP:
+//= - Kills
+//= - Deaths
+//= - Killing Streak
+//= - Death Streak
+//= - Best Killing Streak
+//= - Best Death Streak
+//=
+//= GvG / WoE:
+//= - Kills
+//= - Deaths
+//= - Killing Streak
+//= - Death Streak
+//= - Best Killing Streak
+//= - Best Death Streak
+//= - Emperium Damage
+//=
+//= Anti Abuse:
+//= - Compare login.last_unique_id
+//=
+//= Classification:
+//= - mf_pvp  -> PvP
+//= - mf_gvg + WoE active -> GvG
+//=
+//============================================================
+
+-	script	PvP_GvG_Activity	-1,{
+
+OnInit:
+
+	//========================================================
+	// CONFIGURATION
+	//========================================================
+
+	// Emperium Monster ID
+	.EmperiumID = 1288;
+
+	// GM level allowed to reset
+	.GMLevel = 99;
+
+	//========================================================
+	// END CONFIGURATION
+	//========================================================
+
+	end;
+
+OnNPCKillEvent:
+	if (killedrid != .EmperiumID)
+		end;
+
+	.@map$ = strcharinfo(3);
+
+	// Must be a GvG map
+	if (!getmapflag(.@map$,mf_gvg))
+		end;
+
+	// WoE must currently be active
+	if (!(agitcheck() || agitcheck2() || agitcheck3()))
+		end;
+
+	.@aid = getcharid(3);
+	.@cid = getcharid(0);
+	.@name$ = strcharinfo(0);
+
+	if (!.@aid || !.@cid)
+		end;
+
+	query_sql(
+		"INSERT INTO gvg_activity "
+		+"(account_id,char_id,name,emperium_breaks) "
+		+"VALUES ("+.@aid+","+.@cid+",'"+escape_sql(.@name$)+"',1) "
+		+"ON DUPLICATE KEY UPDATE "
+		+"char_id="+.@cid+","
+		+"name='"+escape_sql(.@name$)+"',"
+		+"emperium_breaks=emperium_breaks+1"
+	);
+
+	end;
+
+
+	//========================================================
+	// PLAYER KILLS
+	//========================================================
+
+OnPCKillEvent:
+
+	// -------------------------------------------------------
+	// killer account ID
+	// -------------------------------------------------------
+
+	.@killer_aid = getcharid(3);
+
+	if (!.@killer_aid)
+		end;
+
+	// -------------------------------------------------------
+	// victim account ID
+	// killedrid is the victim account ID
+	// -------------------------------------------------------
+
+	.@victim_aid = killedrid;
+
+	if (!.@victim_aid)
+		end;
+
+	// Prevent self-kill / invalid case
+	if (.@killer_aid == .@victim_aid)
+		end;
+
+
+	//========================================================
+	// CHECK KILLER MAP
+	//========================================================
+
+	.@killer_map$ = strcharinfo(3);
+
+	.@killer_pvp = getmapflag(.@killer_map$,mf_pvp);
+	.@killer_gvg = getmapflag(.@killer_map$,mf_gvg);
+
+
+	//========================================================
+	// DETERMINE ACTIVITY TYPE
+	//========================================================
+
+	.@activity = 0;
+
+	// GvG has priority over PvP
+	if (.@killer_gvg &&
+		(agitcheck() || agitcheck2() || agitcheck3())) {
+
+		.@activity = 2;
+
+	}
+	else if (.@killer_pvp) {
+
+		.@activity = 1;
+
+	}
+	else {
+
+		// Not a PvP/GvG map
+		end;
+
+	}
+
+
+	//========================================================
+	// CHECK VICTIM MAP
+	//========================================================
+	//
+	// We attach to the victim temporarily.
+	// This lets us verify that both players are
+	// participating in the same activity.
+	//
+	// ========================================================
+
+	.@killer_map_activity = .@activity;
+
+	.@killer_map$ = strcharinfo(3);
+
+	if (!attachrid(.@victim_aid))
+		end;
+
+	.@victim_map$ = strcharinfo(3);
+
+	.@victim_pvp = getmapflag(.@victim_map$,mf_pvp);
+	.@victim_gvg = getmapflag(.@victim_map$,mf_gvg);
+
+	.@victim_activity = 0;
+
+	if (.@victim_gvg &&
+		(agitcheck() || agitcheck2() || agitcheck3())) {
+
+		.@victim_activity = 2;
+
+	}
+	else if (.@victim_pvp) {
+
+		.@victim_activity = 1;
+
+	}
+
+	// Return to killer
+	attachrid(.@killer_aid);
+
+
+	//========================================================
+	// BOTH PLAYERS MUST BE IN SAME ACTIVITY
+	//========================================================
+
+	if (.@killer_map_activity != .@victim_activity)
+		end;
+
+
+	//========================================================
+	// ANTI-ABUSE CHECK
+	//========================================================
+	//
+	// Compare login.last_unique_id
+	//
+	// Same unique ID = do not count the kill.
+	//
+	// ========================================================
+
+	.@killer_uid$ = "";
+	.@victim_uid$ = "";
+
+	query_sql(
+	"SELECT `last_unique_id` "
+	+"FROM `login` "
+	+"WHERE `account_id` = "+.@killer_aid,
+	.@killer_uid$
+	);
+
+	query_sql(
+	"SELECT `last_unique_id` "
+	+"FROM `login` "
+	+"WHERE `account_id` = "+.@victim_aid,
+	.@victim_uid$
+	);
+
+	// Same login/device identifier
+	if (.@killer_uid$ != "" &&
+		.@victim_uid$ != "" &&
+		.@killer_uid$ == .@victim_uid$) {
+
+		end;
+
+	}
+
+
+	//========================================================
+	// RECORD
+	//========================================================
+
+	if (.@activity == 1) {
+
+		//====================================================
+		// NORMAL PvP
+		//====================================================
+
+		callsub S_RecordPvPKill,
+			.@killer_aid,
+			.@victim_aid;
+
+	}
+	else if (.@activity == 2) {
+
+		//====================================================
+		// GvG / WoE
+		//====================================================
+
+		callsub S_RecordGvGKill,
+			.@killer_aid,
+			.@victim_aid;
+
+	}
+
+	end;
+
+
+	//========================================================
+	// RECORD PvP KILL
+	//========================================================
+
+S_RecordPvPKill:
+
+	.@killer_aid = getarg(0);
+	.@victim_aid = getarg(1);
+
+	// -------------------------------------------------------
+	// Get killer information
+	// -------------------------------------------------------
+
+	.@killer_name$ = rid2name(.@killer_aid);
+
+	// -------------------------------------------------------
+	// Get victim information
+	// -------------------------------------------------------
+
+	.@victim_name$ = rid2name(.@victim_aid);
+
+	// -------------------------------------------------------
+	// Create/update killer record
+	// -------------------------------------------------------
+
+	query_sql(
+		"INSERT INTO pvp_activity "
+		+"(account_id,char_id,name,kills,deaths,killing_streak,"
+		+"death_streak,best_killing_streak,best_death_streak) "
+		+"VALUES ("
+		+.@killer_aid+","
+		+getcharid(0)+","
+		+"'"+escape_sql(.@killer_name$)+"',"
+		+"1,0,1,0,1,0"
+		+") "
+		+"ON DUPLICATE KEY UPDATE "
+		+"char_id="+getcharid(0)+","
+		+"name='"+escape_sql(.@killer_name$)+"',"
+		+"kills=kills+1,"
+		+"killing_streak=killing_streak+1,"
+		+"death_streak=0,"
+		+"best_killing_streak="
+		+"GREATEST(best_killing_streak,killing_streak)"
+	);
+
+
+	// -------------------------------------------------------
+	// Update victim
+	// -------------------------------------------------------
+
+	if (attachrid(.@victim_aid)) {
+
+		.@victim_charid = getcharid(0);
+
+		query_sql(
+			"INSERT INTO pvp_activity "
+			+"(account_id,char_id,name,kills,deaths,killing_streak,"
+			+"death_streak,best_killing_streak,best_death_streak) "
+			+"VALUES ("
+			+.@victim_aid+","
+			+.@victim_charid+","
+			+"'"+escape_sql(strcharinfo(0))+"',"
+			+"0,1,0,1,0,1"
+			+") "
+			+"ON DUPLICATE KEY UPDATE "
+			+"char_id="+.@victim_charid+","
+			+"name='"+escape_sql(strcharinfo(0))+"',"
+			+"deaths=deaths+1,"
+			+"killing_streak=0,"
+			+"death_streak=death_streak+1,"
+			+"best_death_streak="
+			+"GREATEST(best_death_streak,death_streak)"
+		);
+
+		attachrid(.@killer_aid);
+
+	}
+
+	return;
+
+
+	//========================================================
+	// RECORD GvG KILL
+	//========================================================
+
+S_RecordGvGKill:
+
+	.@killer_aid = getarg(0);
+	.@victim_aid = getarg(1);
+
+	.@killer_name$ = rid2name(.@killer_aid);
+	.@victim_name$ = rid2name(.@victim_aid);
+
+
+	// -------------------------------------------------------
+	// Killer
+	// -------------------------------------------------------
+
+	query_sql(
+		"INSERT INTO gvg_activity "
+		+"(account_id,char_id,name,kills,deaths,killing_streak,"
+		+"death_streak,best_killing_streak,best_death_streak,"
+		+"emperium_damage) "
+		+"VALUES ("
+		+.@killer_aid+","
+		+getcharid(0)+","
+		+"'"+escape_sql(.@killer_name$)+"',"
+		+"1,0,1,0,1,0,0"
+		+") "
+		+"ON DUPLICATE KEY UPDATE "
+		+"char_id="+getcharid(0)+","
+		+"name='"+escape_sql(.@killer_name$)+"',"
+		+"kills=kills+1,"
+		+"killing_streak=killing_streak+1,"
+		+"death_streak=0,"
+		+"best_killing_streak="
+		+"GREATEST(best_killing_streak,killing_streak)"
+	);
+
+
+	// -------------------------------------------------------
+	// Victim
+	// -------------------------------------------------------
+
+	if (attachrid(.@victim_aid)) {
+
+		.@victim_charid = getcharid(0);
+
+		query_sql(
+			"INSERT INTO gvg_activity "
+			+"(account_id,char_id,name,kills,deaths,killing_streak,"
+			+"death_streak,best_killing_streak,best_death_streak,"
+			+"emperium_damage) "
+			+"VALUES ("
+			+.@victim_aid+","
+			+.@victim_charid+","
+			+"'"+escape_sql(strcharinfo(0))+"',"
+			+"0,1,0,1,0,1,0"
+			+") "
+			+"ON DUPLICATE KEY UPDATE "
+			+"char_id="+.@victim_charid+","
+			+"name='"+escape_sql(strcharinfo(0))+"',"
+			+"deaths=deaths+1,"
+			+"killing_streak=0,"
+			+"death_streak=death_streak+1,"
+			+"best_death_streak="
+			+"GREATEST(best_death_streak,death_streak)"
+		);
+
+		attachrid(.@killer_aid);
+
+	}
+
+	return;
+
+	//========================================================
+	// EMPERIUM DAMAGE
+	//========================================================
+
+OnPCAttackEvent:
+
+	// No damage
+	if (@damage <= 0)
+		end;
+
+	// Only WoE/GvG
+	.@map$ = strcharinfo(3);
+
+	if (!getmapflag(.@map$,mf_gvg))
+		end;
+
+	if (!(agitcheck() || agitcheck2() || agitcheck3()))
+		end;
+
+	// Must be Emperium
+	if (@damagemobid != .EmperiumID)
+		end;
+
+	// Add damage
+	query_sql(
+		"INSERT INTO gvg_activity "
+		+"(account_id,char_id,name,emperium_damage) "
+		+"VALUES ("
+		+getcharid(3)+","
+		+getcharid(0)+","
+		+"'"+escape_sql(strcharinfo(0))+"',"
+		+@damage
+		+") "
+		+"ON DUPLICATE KEY UPDATE "
+		+"char_id="+getcharid(0)+","
+		+"name='"+escape_sql(strcharinfo(0))+"',"
+		+"emperium_damage=emperium_damage+"+@damage
+	);
+
+	end;
+
+
+	//========================================================
+	// PLAYER MENU
+	//========================================================
+
+OnTalk:
+
+	mes "[PvP / GvG Activity]";
+	mes "What would you like to check?";
+	next;
+	.@menu = select(
+		"PvP Ranking",
+		"PvP My Statistics",
+		"GvG Ranking",
+		"GvG My Statistics",
+		"Emperium Damage Ranking",
+		"Cancel"
+	);
+
+	switch (.@menu) {
+
+		case 1:
+			callsub S_PvPRanking;
+			break;
+
+		case 2:
+			callsub S_PvPMyStats;
+			break;
+
+		case 3:
+			callsub S_GvGRanking;
+			break;
+
+		case 4:
+			callsub S_GvGMyStats;
+			break;
+
+		case 5:
+			callsub S_EmperiumRanking;
+			break;
+
+	}
+
+	close;
+
+
+	//========================================================
+	// PvP RANKING
+	//========================================================
+
+S_PvPRanking:
+
+	mes "[PvP Ranking]";
+	mes "Top 10 players this month:";
+	mes "";
+
+	.@count = query_sql(
+		"SELECT name,kills,deaths "
+		+"FROM pvp_activity "
+		+"ORDER BY kills DESC, deaths ASC "
+		+"LIMIT 10",
+		.@name$,
+		.@kills,
+		.@deaths
+	);
+
+	if (!.@count) {
+		mes "There is currently no PvP activity.";
+		return;
+	}
+
+	for (.@i = 0; .@i < .@count; .@i++) {
+
+		mes (.@i + 1)+". "
+			+.@name$[.@i]
+			+" - "+.@kills[.@i]+" Kills"
+			+" / "+.@deaths[.@i]+" Deaths";
+
+	}
+
+	return;
+
+
+	//========================================================
+	// PvP MY STATISTICS
+	//========================================================
+
+S_PvPMyStats:
+
+	.@aid = getcharid(3);
+
+	.@count = query_sql(
+		"SELECT kills,deaths,killing_streak,death_streak,"
+		+"best_killing_streak,best_death_streak "
+		+"FROM pvp_activity "
+		+"WHERE account_id="+.@aid,
+		.@kills,
+		.@deaths,
+		.@killing_streak,
+		.@death_streak,
+		.@best_killing_streak,
+		.@best_death_streak
+	);
+
+	mes "[My PvP Statistics]";
+	mes "";
+
+	if (!.@count) {
+		mes "You have no PvP statistics yet.";
+		return;
+	}
+
+	mes "Kills: "+.@kills;
+	mes "Deaths: "+.@deaths;
+	mes "Current Kill Streak: "+.@killing_streak;
+	mes "Current Death Streak: "+.@death_streak;
+	mes "Best Kill Streak: "+.@best_killing_streak;
+	mes "Best Death Streak: "+.@best_death_streak;
+
+	return;
+
+
+	//========================================================
+	// GvG RANKING
+	//========================================================
+
+S_GvGRanking:
+
+	mes "[GvG Ranking]";
+	mes "Top 10 players this month:";
+	mes "";
+
+	.@count = query_sql(
+		"SELECT name,kills,deaths "
+		+"FROM gvg_activity "
+		+"ORDER BY kills DESC, deaths ASC "
+		+"LIMIT 10",
+		.@name$,
+		.@kills,
+		.@deaths
+	);
+
+	if (!.@count) {
+		mes "There is currently no GvG activity.";
+		return;
+	}
+
+	for (.@i = 0; .@i < .@count; .@i++) {
+
+		mes (.@i + 1)+". "
+			+.@name$[.@i]
+			+" - "+.@kills[.@i]+" Kills"
+			+" / "+.@deaths[.@i]+" Deaths";
+
+	}
+
+	return;
+
+
+	//========================================================
+	// GvG MY STATISTICS
+	//========================================================
+
+S_GvGMyStats:
+
+	.@aid = getcharid(3);
+
+	.@count = query_sql(
+		"SELECT kills,deaths,killing_streak,death_streak,"
+		+"best_killing_streak,best_death_streak,emperium_damage "
+		+"FROM gvg_activity "
+		+"WHERE account_id="+.@aid,
+		.@kills,
+		.@deaths,
+		.@killing_streak,
+		.@death_streak,
+		.@best_killing_streak,
+		.@best_death_streak,
+		.@emperium_damage
+	);
+
+	mes "[My GvG Statistics]";
+	mes "";
+
+	if (!.@count) {
+		mes "You have no GvG statistics yet.";
+		return;
+	}
+
+	mes "Kills: "+.@kills;
+	mes "Deaths: "+.@deaths;
+	mes "Current Kill Streak: "+.@killing_streak;
+	mes "Current Death Streak: "+.@death_streak;
+	mes "Best Kill Streak: "+.@best_killing_streak;
+	mes "Best Death Streak: "+.@best_death_streak;
+	mes "Emperium Damage: "+.@emperium_damage;
+
+	return;
+
+
+	//========================================================
+	// EMPERIUM DAMAGE RANKING
+	//========================================================
+
+S_EmperiumRanking:
+
+	mes "[Emperium Damage Ranking]";
+	mes "Top 10 players this month:";
+	mes "";
+
+	.@count = query_sql(
+		"SELECT name,emperium_damage "
+		+"FROM gvg_activity "
+		+"ORDER BY emperium_damage DESC "
+		+"LIMIT 10",
+		.@name$,
+		.@damage
+	);
+
+	if (!.@count) {
+		mes "There is currently no Emperium damage recorded.";
+		return;
+	}
+
+	for (.@i = 0; .@i < .@count; .@i++) {
+
+		mes (.@i + 1)+". "
+			+.@name$[.@i]
+			+" - "+.@damage[.@i];
+
+	}
+
+	return;
+}
+
+
+//============================================================
+// NPC
+//============================================================
+
+prontera,150,180,4	script	PvP/GvG Activity	100,{
+	doevent "PvP_GvG_Activity::OnTalk";
+	end;
+}

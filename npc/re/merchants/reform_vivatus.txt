@@ -1,0 +1,67 @@
+grademk,48,169,3	script	Ester	10039,{
+	set .@name$,"[Ester Item Reform]";
+	mes .@name$;
+	mes "Choose your desire item reform";
+	switch(select("Purification Ritual:Advanced Purification Ritual:Enchantment")){
+	case 1:
+		item_reform("Consecrate_Weapon_1");
+		end;
+	case 2:
+		item_reform("Consecrate_Weapon_2");
+		end;
+	case 3:
+		close2;
+		callshop "consecenc",0;;
+		end;
+
+	}
+
+OnInit:
+	setunittitle(getnpcid(0), "<Item Reform Vivantus>");
+	end;
+}
+
+-	shop	consecenc	-1,100650:20000000,100651:20000000,100652:20000000,100653:20000000
+
+grademk,51,169,3	script	Whoopi	10057,{
+	set .@name$,"[Whoopi Item Reform]";
+	mes .@name$;
+	mes "Choose your desire item reform";
+	switch(select("Flame Varmundt Equipment:Glade Varmundt Equipment:Ice Varmundt Equipment:Death Varmundt Equipment:Soul Ring(Right):Soul Ring(Left):Venom Ring(Right):Venom Ring(Left):Temple Ring(Right):Temple Ring(Left)")){
+	case 1:
+		item_reform("Barmund_Flame_Reform");
+		end;
+	case 2:
+		item_reform("Barmund_Plain_Reform");
+		end;
+	case 3:
+		item_reform("Barmund_Ice_Reform");
+		end;
+	case 4:
+		item_reform("Barmund_Death_Reform");
+		end;
+	case 5:
+		item_reform("Barmund_Soul_Reform");
+		end;
+	case 6:
+		item_reform("Barmund_S_Reform");
+		end;
+	case 7:
+		item_reform("Barmund_Venom_Reform");
+		end;
+	case 8:
+		item_reform("Barmund_V_Reform");
+		end;
+	case 9:
+		item_reform("Barmund_Temple_Reform");
+		end;
+	case 10:
+		item_reform("Barmund_T_Reform");
+		end;
+	}
+
+OnInit:
+	setunittitle(getnpcid(0), "<Item Reform Varmundt>");
+	end;
+}
+

@@ -1,0 +1,182 @@
+//==================================================
+// Halloween Daily Quest (SQL Version)
+// Location: prontera,150,150
+// Tracks by account_id
+// Resets daily at 00:00
+// Includes Status Checker
+// Author: ChatGPT (for Hendrick Thea)
+//==================================================
+
+/**
+
+CREATE TABLE IF NOT EXISTS `halloween_daily` (
+  `account_id` INT UNSIGNED NOT NULL,
+  `quest_date` DATE NOT NULL,
+  `quest_type` TINYINT NOT NULL, -- 1 = Item, 2 = Monster
+  `target_id` INT NOT NULL,
+  `amount` INT NOT NULL,
+  `progress` INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (`account_id`, `quest_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE halloween_daily ADD COLUMN completed TINYINT(1) DEFAULT 0;
+
+**/
+//---------------------------
+// Main Quest NPC
+//---------------------------
+prontera,145,185,5	script	Halloween Spirit	471,{
+
+	function GenerateQuest;
+
+	.@accid = getcharid(3);
+	.@today$ = gettimestr("%Y-%m-%d",21);
+
+	mes "[Halloween Spirit]";
+	mes "Happy Halloween! What brings you here today?";
+	next;
+
+	switch(select("Take / Check Today's Quest:Check Halloween Points:Halloween Shop:Leave")) {
+	// =========================================================
+	// ?? Daily Quest System
+	// =========================================================
+	case 1:
+		// Fetch quest data
+		query_sql("SELECT quest_date, quest_type, target_id, amount, progress, completed FROM halloween_daily WHERE account_id = " + .@accid, .@q_date$, .@q_type, .@q_target, .@q_amount, .@q_progress, .@q_done);
+
+		// Reset if outdated or missing
+		if (.@q_date$ == "" || .@q_date$ != .@today$) {
+			query_sql("DELETE FROM halloween_daily WHERE account_id = " + .@accid);
+			GenerateQuest(.@accid, .@today$);
+			query_sql("SELECT quest_type, target_id, amount, progress, completed FROM halloween_daily WHERE account_id = " + .@accid, .@q_type, .@q_target, .@q_amount, .@q_progress, .@q_done);
+			mes "[Halloween Spirit]";
+			mes "A new Halloween task has been prepared for you!";
+			next;
+		}
+		else if (.@q_done == 1) {
+			mes "[Halloween Spirit]";
+			mes "You’ve already completed today’s quest!";
+			mes "Come back tomorrow for a new one.";
+			close;
+		}
+
+		// Display quest details
+		mes "[Halloween Spirit]";
+		mes "Your current quest:";
+		if (.@q_type == 1) {
+			mes "- Collect " + .@q_amount + "x ^FFA500" + mesitemlink(.@q_target) + "^000000.";
+			mes "Items in inventory: " + countitem(.@q_target);
+		} else {
+			mes "- Defeat " + .@q_amount + "x ^FFA500" + getmonsterinfo(.@q_target,MOB_NAME) + "^000000.";
+			mes "Progress: " + .@q_progress + "/" + .@q_amount;
+		}
+		next;
+
+		// Completion check
+		if (.@q_type == 1) {
+			if (countitem(.@q_target) >= .@q_amount) {
+				mes "[Halloween Spirit]";
+				mes "Excellent! You’ve brought everything I asked for!";
+				delitem .@q_target, .@q_amount;
+				set .@reward,rand(10,30);
+				set #HALLOWEEN_POINT, #HALLOWEEN_POINT + .@reward;
+				query_sql("UPDATE halloween_daily SET completed = 1 WHERE account_id = " + .@accid);
+				mes "You’ve earned ^00FF00"+.@reward+"^000000 Halloween Points!";
+				close;
+			} else {
+				mes "[Halloween Spirit]";
+				mes "You’re still missing some items. Come back once you have them all!";
+				close;
+			}
+		} else if (.@q_type == 2) {
+			if (.@q_progress >= .@q_amount) {
+				mes "[Halloween Spirit]";
+				mes "Fantastic! You’ve completed today’s monster hunt!";
+				set .@reward,rand(10,30);
+				set #HALLOWEEN_POINT, #HALLOWEEN_POINT + .@reward;
+				query_sql("UPDATE halloween_daily SET completed = 1 WHERE account_id = " + .@accid);
+				mes "You’ve earned ^00FF00"+.@reward+"^000000 Halloween Points!";
+				close;
+			} else {
+				mes "[Halloween Spirit]";
+				mes "Keep going! You still have more monsters to defeat.";
+				close;
+			}
+		}
+		end;
+
+	// =========================================================
+	// ?? Check Points
+	// =========================================================
+	case 2:
+		mes "[Halloween Spirit]";
+		mes "You currently have ^FFA500" + #HALLOWEEN_POINT + "^000000 Halloween Points.";
+		mes "Keep completing daily quests to earn more!";
+		close;
+
+	// =========================================================
+	// ?? Shop
+	// =========================================================
+	case 3:
+		mes "[Halloween Spirit]";
+		mes "You currently have ^FFA500" + #HALLOWEEN_POINT + "^000000 Halloween Points.";
+		callshop "Halloween",1;
+		end;
+
+
+	// =========================================================
+	// ?? Exit
+	// =========================================================
+	default:
+		mes "[Halloween Spirit]";
+		mes "Enjoy your Halloween adventure!";
+		close;
+	}
+	end;
+
+	// =========================================================
+	// ?? Local Function: GenerateQuest
+	// =========================================================
+	function GenerateQuest {
+		.@accid = getarg(0);
+		.@today$ = getarg(1);
+
+		// Random quest type (1 = Collect, 2 = Hunt)
+		.@type = rand(1,2);
+
+		// Item Pool (collect)
+		setarray .ItemPool[0],7225,7220,7206,7222,7209,7210,7208,7223,7207,7217,7213,7215,957,938,7752,932,7198,7298,1023;
+		// Monster Pool (hunt)
+		setarray .MobPool[0],1117,1118,1121,1007,1008,1013,1015,1016,1031,1051,1054,1076,1077,1023,1180,1026,1189,1114,1063,1058,1682,1179,1163,1276;
+
+		if (.@type == 1) {
+			.@target = .ItemPool[rand(getarraysize(.ItemPool))];
+			.@amount = rand(250,500);
+		} else {
+			.@target = .MobPool[rand(getarraysize(.MobPool))];
+			.@amount = rand(250,500);
+		}
+
+		query_sql("INSERT INTO halloween_daily (account_id, quest_date, quest_type, target_id, amount, progress, completed) VALUES ("+.@accid+", '"+.@today$+"', "+.@type+", "+.@target+", "+.@amount+", 0, 0)");
+		return;
+	}
+}
+
+// ============================================================
+// ?? Global Halloween Monster Tracker
+// ============================================================
+-	script	Halloween_MonsterTracker	-1,{
+	OnNPCKillEvent:
+		.@mob = killedrid;
+		.@accid = getcharid(3);
+		.@today$ = gettimestr("%Y-%m-%d",21);
+
+		query_sql("SELECT target_id, amount, progress, completed FROM halloween_daily WHERE account_id = "+.@accid+" AND quest_date = '"+.@today$+"' AND quest_type = 2", .@target, .@amount, .@progress, .@done);
+
+		if (.@done == 0 && .@target && .@mob == .@target && .@progress < .@amount)
+			query_sql("UPDATE halloween_daily SET progress = progress + 1 WHERE account_id = "+.@accid+" AND quest_date = '"+.@today$+"' AND completed = 0");
+	end;
+}
+
+
+-	pointshop	Halloween	-1,#HALLOWEEN_POINT,12535:5,12534:5,30002:2,6635:10,1000288:300,30007:50,7621:20,31834:300,31833:300,19910:300,20543:300,20174:300,20395:300,31607:300,20588:300,400204:300,400716:300,400431:300,31832:300,31852:300,19903:300,27344:500

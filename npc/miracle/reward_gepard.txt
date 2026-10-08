@@ -1,0 +1,180 @@
+prontera,139,174,6	script	Crazy Frog	614,{
+	mes "[Miracle]";
+	mes "something";
+	next;
+	switch(select("Freebies:Compensation I:Freebies2:Freebies3:Freebies4")){
+	case 1:
+	if (#freebies == 1){
+	mes "You have claim your freebies";
+	close;
+	}
+	if(!gepard_int_get("freebies")){
+		gepard_int_set("freebies",true);
+		mes "Enjoy your Freebies";
+		getitembound callfunc("F_Rand",20307,19577,31667,31420,31050,19587,20129,19631,19832,20133,19676,20447,20458,20492),1,Bound_Account;	//porings costume
+		getitembound callfunc("F_Rand",20575,20615,20616,20595),1,Bound_Account;	//porings costume
+		Zeny = Zeny + 1000000;
+		callfunc "getPremium", 7 * 24 * 3600;
+		getitembound 30016,50,Bound_Account;
+		getitembound 6228,2,Bound_Account;
+		getitembound 6232,5,Bound_Account;
+		getitembound 30005,3,Bound_Account;
+		getitembound 1000103,1000,Bound_Account;
+		getitembound 1000104,600,Bound_Account;
+		getitembound 1000282,1,Bound_Account;	//skip ep 16
+		getitembound 1000287,1,Bound_Account;	//skip ep 17
+		getitembound 1000288,1,Bound_Account;	//skip ep 18
+		getitembound 30002,10,Bound_Account;
+		set #freebies,1;
+	close;
+	} else {
+		mes "Dont mess with me. You have claim yours.";
+		close;
+	}
+	case 2:
+	if (#com1 == 1){
+	mes "You have claim your Compensation 1 Reward";
+	close;
+	}
+	if(!gepard_int_get("com1")){
+		gepard_int_set("com1",true);
+		mes "Enjoy your Reward";
+		callfunc "getPremium", 7 * 24 * 3600;
+		getitembound 30007,25,Bound_Account;
+		set #com1,1;
+	close;
+	} else {
+		mes "Dont mess with me. You have claim yours.";
+		close;
+	}
+	case 3:
+	if (#freebies2 == 1){
+	mes "You have claim your freebies";
+	close;
+	}
+	if(!gepard_int_get("freebies2")){
+		gepard_int_set("freebies2",true);
+		mes "Enjoy your Freebies";
+		getitembound 30002,600,Bound_Account;
+		set #freebies2,1;
+	close;
+	} else {
+		mes "Dont mess with me. You have claim yours.";
+		close;
+	}
+	case 4:
+	if (#freebies3 == 1){
+	mes "You have claim your freebies";
+	close;
+	}
+	if(!gepard_int_get("freebies3")){
+		gepard_int_set("freebies3",true);
+		mes "Enjoy your Freebies";
+		getitembound 1000103,3000,Bound_Account;
+		getitembound 1000104,600,Bound_Account;
+		getitembound 30002,1000,Bound_Account;
+		getitembound 12535,20,Bound_Account;
+		Zeny = Zeny + 1000000;
+		set #freebies3,1;
+	close;
+	} else {
+		mes "Dont mess with me. You have claim yours.";
+		close;
+	}
+	case 5:
+	if (#freebies4 == 1){
+	mes "You have claim your freebies";
+	close;
+	}
+		if(!gepard_int_get("freebies4")){
+		gepard_int_set("freebies4",true);
+		mes "I am giving you Equipment depends on your selected Job";
+		mes "--------------------";
+		mes "Please choose what job do you like?";
+		switch(select("Knight:Crusader:Hunter:Wizard:Sage:Blacksmith:Alchemist:Rogue")){
+		case 1:
+			getitembound2 21052,1,1,12,0,0,0,29594,4834,Bound_Account;	//weapon
+			getitembound2 450127,1,1,11,0,0,310128,310128,310108,Bound_Account;	//armor
+			getitembound2 480020,1,1,11,0,0,310119,310104,310104,Bound_Account;	//garment
+			getitembound2 470022,1,1,11,0,0,310125,310096,310096,Bound_Account;	//shoes
+			getitembound2 490024,1,1,0,0,0,310085,310085,310085,Bound_Account;	//acc1
+			getitembound2 490025,1,1,0,0,0,310089,310089,310089,Bound_Account;	//acc2
+			set #freebies4,1;
+			end;
+		case 2:
+			getitembound2 32350,1,1,12,0,0,0,29601,4813,Bound_Account;	//weapon
+			getitembound2 450128,1,1,11,0,0,310132,310132,310100,Bound_Account;	//armor
+			getitembound2 480021,1,1,11,0,0,310119,310103,310103,Bound_Account;	//garment
+			getitembound2 470023,1,1,11,0,0,310111,310096,310096,Bound_Account;	//shoes
+			getitembound2 490026,1,1,0,0,0,310084,310084,310084,Bound_Account;	//acc1
+			getitembound2 490027,1,1,0,0,0,310088,310088,310088,Bound_Account;	//acc2
+			set #freebies4,1;
+			end;
+		case 3:
+			getitembound2 18185,1,1,12,0,0,0,29600,4834,Bound_Account;	//weapon
+			getitembound2 450127,1,1,11,0,0,310158,310158,310108,Bound_Account;	//armor
+			getitembound2 480020,1,1,11,0,0,310119,310104,310104,Bound_Account;	//garment
+			getitembound2 470022,1,1,11,0,0,310111,310096,310096,Bound_Account;	//shoes
+			getitembound2 490024,1,1,0,0,0,310085,310085,310085,Bound_Account;	//acc1
+			getitembound2 490025,1,1,0,0,0,310089,310089,310089,Bound_Account;	//acc2
+			set #freebies4,1;
+			end;
+		case 4:
+			getitembound2 26158,1,1,12,0,0,0,29598,4813,Bound_Account;	//weapon
+			getitembound2 450128,1,1,11,0,0,310145,310145,310100,Bound_Account;	//armor
+			getitembound2 480021,1,1,11,0,0,310119,310103,310103,Bound_Account;	//garment
+			getitembound2 470023,1,1,11,0,0,310111,310096,310096,Bound_Account;	//shoes
+			getitembound2 490026,1,1,0,0,0,310084,310084,310084,Bound_Account;	//acc1
+			getitembound2 490027,1,1,0,0,0,310088,310088,310088,Bound_Account;	//acc2
+			set #freebies4,1;
+			end;
+		case 5:
+			getitembound2 26159,1,1,12,0,0,0,29604,4813,Bound_Account;	//weapon
+			getitembound2 450128,1,1,11,0,0,310149,310149,310100,Bound_Account;	//armor
+			getitembound2 480021,1,1,11,0,0,310119,310103,310103,Bound_Account;	//garment
+			getitembound2 470023,1,1,11,0,0,310111,310096,310096,Bound_Account;	//shoes
+			getitembound2 490026,1,1,0,0,0,310084,310084,310084,Bound_Account;	//acc1
+			getitembound2 490027,1,1,0,0,0,310088,310088,310088,Bound_Account;	//acc2
+			set #freebies4,1;
+			end;
+		case 6:
+			getitembound2 1333,1,1,12,0,0,0,29595,4808,Bound_Account;	//weapon
+			getitembound2 450127,1,1,11,0,0,310135,310135,310108,Bound_Account;	//armor
+			getitembound2 480020,1,1,11,0,0,310119,310104,310104,Bound_Account;	//garment
+			getitembound2 470022,1,1,11,0,0,310125,310096,310096,Bound_Account;	//shoes
+			getitembound2 490024,1,1,0,0,0,310086,310086,310086,Bound_Account;	//acc1
+			getitembound2 490025,1,1,0,0,0,310085,310085,310085,Bound_Account;	//acc2
+			set #freebies4,1;
+			end;
+		case 7:
+			getitembound2 16093,1,1,12,0,0,0,29602,4834,Bound_Account;	//weapon
+			getitembound2 450127,1,1,11,0,0,310136,310136,310108,Bound_Account;	//armor
+			getitembound2 480020,1,1,11,0,0,310119,310103,310103,Bound_Account;	//garment
+			getitembound2 470022,1,1,11,0,0,310111,310096,310096,Bound_Account;	//shoes
+			getitembound2 490024,1,1,0,0,0,310086,310086,310086,Bound_Account;	//acc1
+			getitembound2 490025,1,1,0,0,0,310089,310089,310089,Bound_Account;	//acc2
+			set #freebies4,1;
+			end;
+		case 8:
+			getitembound2 28768,1,1,12,0,0,0,29603,4813,Bound_Account;	//weapon
+			getitembound2 450128,1,1,11,0,0,310143,310143,310100,Bound_Account;	//armor
+			getitembound2 480021,1,1,11,0,0,310119,310103,310103,Bound_Account;	//garment
+			getitembound2 470023,1,1,11,0,0,310111,310096,310096,Bound_Account;	//shoes
+			getitembound2 490026,1,1,0,0,0,310084,310084,310084,Bound_Account;	//acc1
+			getitembound2 490027,1,1,0,0,0,310088,310088,310088,Bound_Account;	//acc2
+			set #freebies4,1;
+			end;
+		}
+	} else {
+		mes "Dont mess with me. You have claim yours.";
+		close;
+	}
+
+
+
+}
+
+OnInit:
+waitingroom "Miracle Reward",0;
+end;
+}

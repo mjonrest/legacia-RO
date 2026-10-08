@@ -1,0 +1,78 @@
+prontera,184,212,3	script	Princess Mary	640,{
+	set .@aura1,get_aura_part(1);
+	set .@aura2,get_aura_part(2);
+	set .@aura3,get_aura_part(3);
+	set .@name$,"[Princess Mary]";
+
+	if (!#prmm){
+	mes .@name$;
+	mes "You must become VIP to use my service";
+	close;
+	}
+	if ( Zeny < 100000000 ){
+	mes .@name$;
+	mes "I can help you to get your own Auras. Seems like ^00FF00Game Master^000000 too stingy for y'all";
+	mes "But I need ^FF0000100,000,000^000000 to able to provide you 1 Aura. You can get 3 Aura combination";
+	close;
+	}
+
+	mes .@name$;
+	mes "It seems like you have ^FF0000100,000,000^000000 already..";
+	setarray .@auras_max[1], 152, 117, 35;
+
+	set .@s, select("Aura 1 part:Aura 2 part:Aura 3 part");
+	set .@revert, get_aura_part(.@s);
+
+	set .@current, 0;
+
+	while(1)
+	{
+		set_aura_part(.@s, .@current);
+		message strcharinfo(0),"Aura "+ .@s +" part == " + .@current;
+		set .@menu$, "Next (^0055FF"+((.@current!=.@auras_max[.@s])?.@current+1:1)+"^000000):Previous (^0055FF"+((.@current!=1 && .@current!=0)?.@current-1:.@auras_max[.@s])+"^000000):Jump to...:Revert to original (^0055FF"+.@revert+"^000000):Confirm";
+
+		switch (prompt(.@menu$)) 
+		{
+			case 1: 
+				set .@current, ((.@current!=.@auras_max[.@s])?.@current+1:1);
+			break;
+			case 2:
+				set .@current, ((.@current!=1 && .@current!=0)?.@current-1:.@auras_max[.@s]); 
+			break;
+			case 3: 
+				message strcharinfo(0),"Choose a type between 1 - "+.@auras_max[.@s]+".";
+				input .@current, 0, .@auras_max[.@s];
+			break;
+
+			case 4: 
+				set .@current, .@revert; set_aura_part(.@s, .@revert); 
+			break;
+
+			case 255:
+			mes .@name$;
+			mes "You click Cancel Button";
+			set_aura(.@aura1,.@aura2,.@aura3);
+			close;
+
+			case 5:
+				next;
+				mes .@name$;
+				mes "its look suit to you, do you want to proceed this Aura?";
+				switch(select("^FF0000Pay 100,000,000^000000:Maybe Later")){
+				case 1:
+					if ( Zeny < 100000000 ){
+					mes .@name$;
+					mes "lack of zeny";
+					}
+					close2;
+					Zeny = Zeny - 100000000;
+					end;
+				case 2:
+					mes .@name$;
+					mes "Alright.. Become Gorgeous not cheap";
+					set_aura(.@aura1,.@aura2,.@aura3);
+					close;
+				}
+		}
+	}
+}

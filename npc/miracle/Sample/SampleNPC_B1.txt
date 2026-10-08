@@ -1,0 +1,320 @@
+// Shop NPCs -- supplying no argument displays entire menu.
+//	callfunc "samplenpcb1"{,<shop ID>{,<shop ID>{,...}}};
+//============================================================
+//prontera,149,170,5	script	Sample Items#B1	10231,{ callfunc "samplenpcb1";
+ra_in01,384,310,4	script	Sample Items#B1	10231,{ callfunc "samplenpcb1";
+
+OnInit:
+	waitingroom "Sample Items",0;
+	end; 
+}
+
+// Script Core
+//============================================================
+-	script	sample_npcb1	-1,{ 
+function Add; function Chk; function Slot;
+OnInit:
+	freeloop(1);
+
+// -----------------------------------------------------------
+//  Basic shop settings.
+// -----------------------------------------------------------
+
+	set .Announce,0;		// Announce quest completion? (1: yes / 0: no)
+	set .ShowSlot,1;		// Show item slots? (2: all equipment / 1: if slots > 0 / 0: never)
+	set .ShowID,0;  		// Show item IDs? (1: yes / 0: no)
+	set .ShowZeny,0;		// Show Zeny cost, if any? (1: yes / 0: no)
+	set .MaxStack,1;		// Max number of quest items purchased at one time.
+	.ignore_secure_npctimeout = 1;	// ignore SECURE_NPCTIMEOUT
+
+// -----------------------------------------------------------
+//  Points variable -- optional quest requirement.
+//	setarray .Points$[0],"<variable name>","<display name>";
+// -----------------------------------------------------------
+
+	setarray .Points$[0],"#HEADGEARPOINTS","Headgear Points";
+
+// -----------------------------------------------------------
+//  Shop IDs -- to add shops, copy dummy data at bottom of file.
+//	setarray .Shops$[1],"<Shop 1>","<Shop 2>"{,...};
+// -----------------------------------------------------------
+
+	setarray .Shops$[1],"~ Garment", "~ Armor Set V1", "~ Armor Set V2", "~ Brisingamen", "~ Headgear Set";
+
+// -----------------------------------------------------------
+//  Quest items -- do NOT use a reward item more than once!
+//	Add(<shop ID>,<reward ID>,<reward amount>,
+//	    <Zeny cost>,<point cost>,
+//	    <required item ID>,<required item amount>{,...});
+// -----------------------------------------------------------
+
+	Add(1,35000,1,1,10);
+	Add(1,35001,1,1,10);
+	Add(1,35002,1,1,10);
+	Add(1,35003,1,1,10);
+	Add(1,35004,1,1,10);
+	Add(1,35005,1,1,10);
+	Add(1,35006,1,1,10);
+	Add(1,35007,1,1,10);
+	Add(1,35008,1,1,10);
+	Add(1,35009,1,1,10);
+	Add(1,35010,1,1,10);
+	Add(1,35011,1,1,10);
+	Add(1,35012,1,1,10);
+	Add(1,35013,1,1,10);
+	Add(1,35014,1,1,10);
+	Add(1,35015,1,1,10);
+	Add(1,35016,1,1,10);
+	Add(1,35017,1,1,10);
+
+	Add(2,34104,1,1,10);
+	Add(2,34105,1,1,10);
+	Add(2,34106,1,1,10);
+	Add(2,34107,1,1,10);
+	Add(2,34108,1,1,10);
+	Add(2,34109,1,1,10);
+	Add(2,34110,1,1,10);
+	Add(2,34111,1,1,10);
+	Add(2,34112,1,1,10);
+	Add(2,34113,1,1,10);
+	Add(2,34114,1,1,10);
+	Add(2,34115,1,1,10);
+	Add(2,34116,1,1,10);
+	Add(2,34117,1,1,10);
+	Add(2,34118,1,1,10);
+	Add(2,34119,1,1,10);
+	Add(2,34120,1,1,10);
+	Add(2,34121,1,1,10);
+	Add(2,34122,1,1,10);
+	Add(2,34123,1,1,10);
+	Add(2,34124,1,1,10);
+	Add(2,34125,1,1,10);
+	Add(2,34126,1,1,10);
+	Add(2,34127,1,1,10);
+	Add(2,34128,1,1,10);
+	Add(2,34129,1,1,10);
+	Add(2,34130,1,1,10);
+	Add(2,34131,1,1,10);
+	Add(2,34132,1,1,10);
+	Add(2,34133,1,1,10);
+	Add(2,34134,1,1,10);
+	Add(2,34135,1,1,10);
+	Add(2,34136,1,1,10);
+	Add(2,34137,1,1,10);
+	Add(2,34138,1,1,10);
+	Add(2,34139,1,1,10);
+	Add(2,34140,1,1,10);
+	Add(2,34141,1,1,10);
+	Add(2,34142,1,1,10);
+	Add(2,34143,1,1,10);
+
+	Add(3,34144,1,1,10);
+	Add(3,34145,1,1,10);
+	Add(3,34146,1,1,10);
+	Add(3,34147,1,1,10);
+	Add(3,34148,1,1,10);
+	Add(3,34149,1,1,10);
+	Add(3,34150,1,1,10);
+	Add(3,34151,1,1,10);
+	Add(3,34152,1,1,10);
+	Add(3,34153,1,1,10);
+	Add(3,34154,1,1,10);
+	Add(3,34155,1,1,10);
+
+	Add(4,38151,1,1,10);
+	Add(4,38152,1,1,10);
+	Add(4,38153,1,1,10);
+	Add(4,38154,1,1,10);
+	Add(4,38155,1,1,10);
+	Add(4,38156,1,1,10);
+	Add(4,38157,1,1,10);
+
+	Add(5,38158,1,1,10);
+	Add(5,38159,1,1,10);
+	Add(5,38160,1,1,10);
+	Add(5,38161,1,1,10);
+	Add(5,38162,1,1,10);
+	Add(5,38163,1,1,10);
+	Add(5,38164,1,1,10);
+	Add(5,38165,1,1,10);
+	Add(5,38166,1,1,10);
+	Add(5,38167,1,1,10);
+	Add(5,38168,1,1,10);
+	Add(5,38169,1,1,10);
+	Add(5,38170,1,1,10);
+	Add(5,38171,1,1,10);
+	Add(5,38172,1,1,10);
+	Add(5,38173,1,1,10);
+	Add(5,38174,1,1,10);
+	Add(5,38175,1,1,10);
+	Add(5,38176,1,1,10);
+	Add(5,38177,1,1,10);
+	Add(5,38178,1,1,10);
+	Add(5,38179,1,1,10);
+	Add(5,38180,1,1,10);
+	Add(5,38181,1,1,10);
+	Add(5,38182,1,1,10);
+	Add(5,38183,1,1,10);
+	Add(5,38184,1,1,10);
+
+// -----------------------------------------------------------
+
+	freeloop(0);
+	set .menu$,"";
+	for(set .@i,1; .@i<=getarraysize(.Shops$); set .@i,.@i+1) {
+		set .menu$, .menu$+.Shops$[.@i]+":";
+		npcshopdelitem "samplenpcb1"+.@i,909;
+	}
+
+	end;
+
+OnMenu:
+	if (.ignore_secure_npctimeout)
+		ignoretimeout 1;
+		
+	set .@size, getarraysize(@i);
+	if (!.@size) set @shop_index, select(.menu$);
+	else if (.@size == 1) set @shop_index, @i[0];
+	else {
+		for(set .@j,0; .@j<.@size; set .@j,.@j+1)
+			set .@menu$, .@menu$+.Shops$[@i[.@j]]+":";
+		set @shop_index, @i[select(.@menu$)-1];
+	}
+	deletearray @i[0],getarraysize(@i);
+	if (.Shops$[@shop_index] == "") {
+		message strcharinfo(0),"An error has occurred.";
+		end;
+	}
+	dispbottom "Select one item at a time.";
+	callshop "samplenpcb1"+@shop_index,1;
+	npcshopattach "samplenpcb1"+@shop_index;
+	end;
+
+OnBuyItem:
+	if (.ignore_secure_npctimeout)
+		ignoretimeout 1;
+
+	// .@q[] : RewardID, BoughtAmt, RewardAmt, BaseAmt, ReqZeny, ReqPts, { ReqItem, ReqAmt, ... }
+	setarray .@q[0],@bought_nameid[0],((@bought_quantity[0] > .MaxStack)?.MaxStack:@bought_quantity[0]);
+	copyarray .@q[3],getd(".q_"+@shop_index+"_"+.@q[0]+"[0]"),getarraysize(getd(".q_"+@shop_index+"_"+.@q[0]));
+	set .@q[2],.@q[1]*.@q[3];
+	if (!.@q[2] || .@q[2] > 30000) {
+		message strcharinfo(0),"You can't purchase that many "+getitemname(.@q[0])+".";
+		end;
+	}
+	mes "[Quest Shop]";
+	mes "Reward: ^0055FF"+((.@q[2] > 1)?.@q[2]+"x ":"")+Slot(.@q[0])+"^000000";
+	mes "Requirements:";
+	disable_items;
+	//if (.@q[4]) mes " > "+Chk(Zeny,.@q[4]*.@q[1])+(.@q[4]*.@q[1])+" Zeny^000000";
+	if (.@q[4]) mes " > "+Chk(Zeny,.@q[4]*.@q[1])+F_InsertComma((.@q[4]*.@q[1]))+" Zeny^000000";	
+	if (.@q[5]) mes " > "+Chk(getd(.Points$[0]),.@q[5]*.@q[1])+(.@q[5]*.@q[1])+" "+.Points$[1]+" ("+getd(.Points$[0])+"/"+(.@q[5]*.@q[1])+")^000000";
+	if (.@q[6]) for(set .@i,6; .@i<getarraysize(.@q); set .@i,.@i+2)
+		mes " > "+Chk(countitem(.@q[.@i]),.@q[.@i+1]*.@q[1])+((.ShowID)?"{"+.@q[.@i]+"} ":"")+Slot(.@q[.@i])+" ("+countitem(.@q[.@i])+"/"+(.@q[.@i+1]*.@q[1])+")^000000";
+	next;
+	setarray @qe[1], getiteminfo(.@q[0],5), getiteminfo(.@q[0],11);
+	if (@qe[2] > 0 && ((@qe[1] & 1) || (@qe[1] & 256) || (@qe[1] & 512) || (@qe[1] & 1024) || (@qe[1] & 2048) || (@qe[1] & 4096) || (@qe[1] & 4) || (@qe[1] & 8192)))
+		set .@preview,1;
+	addtimer 1000, strnpcinfo(0)+"::OnEnd";
+	while(1) {
+		switch(select(" ~ Purchase ^0055FF"+getitemname(.@q[0])+"^000000:"+((.@preview && !@qe[7])?" ~ Preview...":"")+": ~ ^777777Cancel^000000")) {
+		case 1:
+			if (@qe[0]) { 
+				mes "[Quest Shop]";
+				mes "You're missing one or more quest requirements.";
+				close;
+			}
+			if (!checkweight(.@q[0],.@q[2])) {
+				mes "[Quest Shop]";
+				mes "^FF0000You need "+(((.@q[2]*getiteminfo(.@q[0],6))+Weight-MaxWeight)/10)+" additional weight capacity to complete this trade.^000000";
+				close;
+			}
+			if (.@q[4]) set Zeny, Zeny-(.@q[4]*.@q[1]);
+			if (.@q[5]) setd .Points$[0], getd(.Points$[0])-(.@q[5]*.@q[1]);
+			if (.@q[6]) for(set .@i,6; .@i<getarraysize(.@q); set .@i,.@i+2)
+				delitem .@q[.@i],.@q[.@i+1]*.@q[1];
+			getitem .@q[0],.@q[2];
+			if (.Announce) announce strcharinfo(0)+" has created "+((.@q[2] > 1)?.@q[2]+"x "+getitemname(.@q[0]):callfunc("F_InsertArticle",getitemname(.@q[0])))+"!",0;
+			specialeffect2 EF_FLOWERLEAF;
+			close;
+		case 2:
+			setarray @qe[3], getlook(LOOK_HEAD_BOTTOM), getlook(LOOK_HEAD_TOP), getlook(LOOK_HEAD_MID), getlook(LOOK_ROBE), 1;
+			if ((@qe[1] & 1) || (@qe[1] & 4096)) changelook LOOK_HEAD_BOTTOM, @qe[2];
+			else if ((@qe[1] & 256) || (@qe[1] & 1024)) changelook LOOK_HEAD_TOP, @qe[2];
+			else if ((@qe[1] & 512) || (@qe[1] & 2048)) changelook LOOK_HEAD_MID, @qe[2];
+			else if ((@qe[1] & 4) || (@qe[1] & 8192)) changelook LOOK_ROBE, @qe[2];
+			break;
+		case 3:
+			close;
+		}
+	}
+
+OnEnd:
+	if (.ignore_secure_npctimeout)
+		ignoretimeout 0;
+		
+	if (@qe[7]) {
+		changelook LOOK_HEAD_BOTTOM, @qe[3];
+		changelook LOOK_HEAD_TOP, @qe[4];
+		changelook LOOK_HEAD_MID, @qe[5];
+		changelook LOOK_ROBE, @qe[6];
+	}
+	deletearray @qe[0],8;
+	end;
+
+function Add {
+	if (getitemname(getarg(1)) == "null") {
+		debugmes "Quest reward #"+getarg(1)+" invalid (skipped).";
+		return;
+	}
+	setarray .@j[0],getarg(2),getarg(3),getarg(4);
+	for(set .@i,5; .@i<getargcount(); set .@i,.@i+2) {
+		if (getitemname(getarg(.@i)) == "null") {
+			debugmes "Quest requirement #"+getarg(.@i)+" invalid (skipped).";
+			return;
+		} else
+			setarray .@j[.@i-2],getarg(.@i),getarg(.@i+1);
+	}
+	copyarray getd(".q_"+getarg(0)+"_"+getarg(1)+"[0]"),.@j[0],getarraysize(.@j);
+	npcshopadditem "samplenpcb1"+getarg(0),getarg(1),((.ShowZeny)?getarg(3):0);
+	return;
+}
+
+function Chk {
+	if (getarg(0) < getarg(1)) {
+		set @qe[0],1;
+		return "^FF0000";
+	} else
+		return "^00FF00";
+}
+
+function Slot {
+	set .@s$,getitemname(getarg(0));
+	switch(.ShowSlot) {
+		case 1: if (!getitemslots(getarg(0))) return .@s$;
+		case 2: if (getiteminfo(getarg(0),2) == 4 || getiteminfo(getarg(0),2) == 5) return .@s$+" ["+getitemslots(getarg(0))+"]";
+		default: return .@s$;
+	}
+}
+}
+
+function	script	samplenpcb1	{
+	deletearray @i[0],getarraysize(@i);
+	for(set .@i,0; .@i<getargcount(); set .@i,.@i+1)
+		set @i[.@i],getarg(.@i);
+	doevent "sample_npcb1::OnMenu";
+	end;
+}
+
+
+// Dummy shop data -- copy as needed.
+//============================================================
+-	shop	samplenpcb11	-1,909:-1
+-	shop	samplenpcb12	-1,909:-1
+-	shop	samplenpcb13	-1,909:-1
+-	shop	samplenpcb14	-1,909:-1
+-	shop	samplenpcb15	-1,909:-1
+-	shop	samplenpcb16	-1,909:-1
+-	shop	samplenpcb17	-1,909:-1
+-	shop	samplenpcb18	-1,909:-1
+-	shop	samplenpcb19	-1,909:-1

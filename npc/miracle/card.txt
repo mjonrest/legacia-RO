@@ -1,0 +1,218 @@
+//============================================================
+// Card Recycler NPC
+// Shows all cards in inventory + allows choosing how many to recycle
+//============================================================
+moc_para01,29,35,6	script	Card Trader	900,{
+
+	// Load ban list once
+	if (!.init) {
+		setarray .banned_card_id,
+			4001,4002,4004,4006,4008,4009,4010,4011,
+			4016,4019,4022,4025,4033,4037,4038,
+			4545,4637,4659,4660,4663,4664,4665,
+			4666,4667,4668,4669,4670,4013,4035;
+		.init = 1;
+	}
+
+	mes "[Card Trader]";
+	mes "Welcome! What would you like to do?";
+	next;
+
+	.@main = select(
+		"Trade Single Card",
+		"Trade ALL Cards",
+		"View Banned Cards",
+		"Card Point Shop",
+		"Cancel"
+	);
+
+	//-------------------------------------------------------
+	// Trade ALL Cards
+	//-------------------------------------------------------
+	if (.@main == 2) {
+
+		getinventorylist;
+
+		.@total_cards = 0;
+
+		for (.@i = 0; .@i < @inventorylist_count; .@i++) {
+
+			// Only card type
+			if (getiteminfo(@inventorylist_id[.@i], ITEMINFO_TYPE) != IT_CARD)
+				continue;
+
+			// Skip banned cards
+			if (inarray(.banned_card_id, @inventorylist_id[.@i]) != -1)
+				continue;
+
+			.@total_cards += @inventorylist_amount[.@i];
+		}
+
+		if (.@total_cards <= 0) {
+			mes "[Card Trader]";
+			mes "You have no tradable cards.";
+			close;
+		}
+
+		mes "[Card Trader]";
+		mes "You are about to trade all tradable cards in your inventory.";
+		mes "";
+		mes "Total Cards: ^00AAFF" + .@total_cards + "^000000";
+		mes "Points Received: ^00AAFF" + .@total_cards + "^000000";
+		next;
+
+		if (select("Yes, Trade Everything:No") == 2)
+			close;
+
+		// Delete all tradable cards
+		for (.@i = 0; .@i < @inventorylist_count; .@i++) {
+
+			if (getiteminfo(@inventorylist_id[.@i], ITEMINFO_TYPE) != IT_CARD)
+				continue;
+
+			if (inarray(.banned_card_id, @inventorylist_id[.@i]) != -1)
+				continue;
+
+			delitem @inventorylist_id[.@i], @inventorylist_amount[.@i];
+		}
+
+		.@old = #card_point;
+		#card_point += .@total_cards;
+
+		mes "[Card Trader]";
+		mes "Successfully traded all cards.";
+		mes "";
+		mes "Cards Traded: ^00AAFF" + .@total_cards + "^000000";
+		mes "Points Gained: ^00AAFF" + .@total_cards + "^000000";
+		mes "Before: " + .@old;
+		mes "Now: ^00AAFF" + #card_point + "^000000";
+		close;
+	}
+
+	//-------------------------------------------------------
+	// VIEW BANNED CARDS
+	//-------------------------------------------------------
+	if (.@main == 3) {
+
+		mes "[Card Trader]";
+		mes "These cards ^FF0000cannot^000000 be traded:";
+		next;
+
+		for (.@i = 0; .@i < getarraysize(.banned_card_id); .@i++) {
+			mes "- ^777777" + getitemname(.banned_card_id[.@i]) + "^000000";
+		}
+
+		next;
+		mes "These cards are excluded for balance reasons.";
+		close;
+	}
+
+	//-------------------------------------------------------
+	// CARD POINT SHOP
+	//-------------------------------------------------------
+	if (.@main == 4) {
+		mes "[Card Trader]";
+		mes "Your Current Card Point: ^00AAFF" + #card_point + "^000000 pt(s).";
+		callshop "CardR",1;
+		end;
+	}
+
+	//-------------------------------------------------------
+	// CANCEL
+	//-------------------------------------------------------
+	if (.@main == 5)
+		close;
+
+	//-------------------------------------------------------
+	// Trade Single Card
+	//-------------------------------------------------------
+	mes "[Card Trader]";
+	mes "Scanning your inventory for tradable cards...";
+	next;
+
+	getinventorylist;
+
+	.@count = 0;
+	.@menu$ = "";
+
+	for (.@i = 0; .@i < @inventorylist_count; .@i++) {
+
+		// Only card type
+		if (getiteminfo(@inventorylist_id[.@i], ITEMINFO_TYPE) != IT_CARD)
+			continue;
+
+		// Skip banned cards
+		if (inarray(.banned_card_id, @inventorylist_id[.@i]) != -1)
+			continue;
+
+		.@card_id[.@count] = @inventorylist_id[.@i];
+		.@card_amt[.@count] = @inventorylist_amount[.@i];
+
+		.@menu$ += getitemname(@inventorylist_id[.@i]) + " [" + @inventorylist_amount[.@i] + "]:";
+
+		.@count++;
+	}
+
+	if (.@count == 0) {
+		mes "[Card Trader]";
+		mes "You have no tradable cards.";
+		close;
+	}
+
+	mes "[Card Trader]";
+	mes "Your current ^00AAFFCard Points^000000: " + #card_point;
+	next;
+
+	.@select = select(.@menu$) - 1;
+
+	.@choose_id = .@card_id[.@select];
+	.@choose_amt = .@card_amt[.@select];
+
+	// Safety
+	if (inarray(.banned_card_id, .@choose_id) != -1) {
+		mes "[Card Trader]";
+		mes "This card cannot be traded.";
+		close;
+	}
+
+	mes "[Card Trader]";
+	mes "Selected: ^00AAFF" + getitemname(.@choose_id) + "^000000";
+	mes "Quantity: " + .@choose_amt;
+	next;
+
+	.@option = select(
+		"Trade ALL (" + .@choose_amt + ")",
+		"Input Amount",
+		"Cancel"
+	);
+
+	if (.@option == 3)
+		close;
+
+	if (.@option == 1) {
+		.@Trade = .@choose_amt;
+	} else {
+		mes "[Card Trader]";
+		mes "Enter amount to trade:";
+		input .@Trade;
+
+		if (.@Trade < 1 || .@Trade > .@choose_amt) {
+			mes "Invalid amount.";
+			close;
+		}
+	}
+
+	delitem .@choose_id, .@Trade;
+
+	.@old = #card_point;
+	#card_point += .@Trade;
+
+	mes "[Card Trader]";
+	mes "Traded: ^00AAFF" + .@Trade + "^000000 card(s)";
+	mes "Gained: ^00AAFF" + .@Trade + "^000000 point(s)";
+	mes "Before: " + .@old;
+	mes "Now: ^00AAFF" + #card_point + "^000000";
+	close;
+}
+
+-	pointshop	CardR	-1,#card_point,616:10,12246:20,30018:15,30007:25,103657:25,101047:50,23436:50,12412:100,22829:500,23719:500,101074:500

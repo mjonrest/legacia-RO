@@ -1,0 +1,484 @@
+Header:
+  Type: BARTER_DB
+  Version: 2
+
+Body:
+- Name: faith_shop
+  Items:
+    - Index: 0
+      Item: Viva_Adul_Hat_WL1
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: Old_Magic_Stone_Hat
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 1
+      Item: Viva_Adul_Hat_WL2
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_WL
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 2
+      Item: Viva_Adul_Hat_SR1
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_SR
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 3
+      Item: Viva_Adul_Hat_SR2
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: Old_Blazing_Soul
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 4
+      Item: Viva_Adul_Hat_AB1
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_AB
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 5
+      Item: Viva_Adul_Hat_AB2
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: Old_Mitra
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 6
+      Item: Viva_Adul_Hat_SC1
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_SC
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 7
+      Item: Viva_Adul_Hat_SC2
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: Old_Shadow_Handicraft
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 8
+      Item: Viva_Adul_Hat_RA1
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: Old_Camo_RabbitHood
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 9
+      Item: Viva_Adul_Hat_RA2
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_RA
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 10
+      Item: Viva_Adul_Hat_LG1
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_LG
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 11
+      Item: Viva_Adul_Hat_LG2
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: Old_Protect_Of_Crown
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 12
+      Item: Viva_Adul_Hat_GC1
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: Old_Circlet_Of_Bone
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 13
+      Item: Viva_Adul_Hat_GC2
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_GC
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 14
+      Item: Viva_Adul_Hat_SO1
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: Old_Wind_Whisper
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 15
+      Item: Viva_Adul_Hat_SO2
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_SO
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 16
+      Item: Viva_Adul_Hat_RK1
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_RK
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 17
+      Item: Viva_Adul_Hat_RK2
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: Old_Rune_Circlet
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 18
+      Item: Viva_Adul_Hat_WM1
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_WM
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 19
+      Item: Viva_Adul_Hat_WM2
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: Old_Minstrel_Song_Hat
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 20
+      Item: Viva_Adul_Hat_NC1
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: Old_Driver_Band_R
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 21
+      Item: Viva_Adul_Hat_NC2
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_NC
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 22
+      Item: Viva_Adul_Hat_GN1
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: Old_Midas_Whisper
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 23
+      Item: Viva_Adul_Hat_GN2
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_GN
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 24
+      Item: Viva_Adul_Hat_SP1
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_SP
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 25
+      Item: Viva_Adul_Hat_SP2
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_SP
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 26
+      Item: Viva_Adul_Hat_SJ1
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_SJ
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 27
+      Item: Viva_Adul_Hat_SJ2
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_SJ
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 28
+      Item: Viva_Adul_Hat_SU1
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_SU
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 29
+      Item: Viva_Adul_Hat_SU2
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_SU
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 30
+      Item: Viva_Adul_Hat_RL1
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_RL
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 31
+      Item: Viva_Adul_Hat_RL2
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_RL
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 32
+      Item: Viva_Adul_Hat_KO1
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_KG
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+    - Index: 33
+      Item: Viva_Adul_Hat_KO2
+      Refine: 0
+      RequiredItems:
+        - Index: 0
+          Item: S_Circlet_Of_Time_KG
+          Amount: 1
+          Refine: 14
+        - Index: 1
+          Item: C_Mithril_Coin
+          Amount: 10
+        - Index: 2
+          Item: MVP_Soul
+          Amount: 100
+

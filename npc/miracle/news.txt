@@ -1,0 +1,19 @@
+-	script	news_main	-1,{
+	OnInit:
+		// Random Message to be Announced
+		setarray .news_list$,	
+			"[System]: Dont forget to finish your @dailyquest",
+			"[System]: Level up your @wi and get stronger",
+			"[System]: Weekend double exp start from Friday to Sunday at 00:00",
+			"[System]: Don't forget to review us on Ratemyserver.net",
+			"[System]: Don't force yourself to donate. This game is free to Play.",
+			"[System]: You can get Random Option from every equipment drop by Monster",
+			"[System]: Costumes obtain from Gacha and Monster is not tradeable.";
+		.news_list_size = getarraysize(.news_list$);
+		initnpctimer;
+		
+	OnTimer600000: // 60000 announce every 60 seconds.
+		announce .news_list$[rand(.news_list_size)], bc_all;
+		initnpctimer;
+		end;
+}

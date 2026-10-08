@@ -1,0 +1,492 @@
+// File: EP18.1 Tomb of Confession.cpp
+// Description: English translation of the Tomb of Confession instance script for Ragnarok Online.
+
+//#include "Script_Utilities.hpp"
+
+//------------------------------ Tomb of Confession Manager
+dali02,78,116,4	script	Princess Tiara	640,{
+
+OnStart:
+	set .@party_id,getcharid(1);
+	set .@p_name$,getpartyname(.@party_id);
+
+	if (!.@party_id) {
+		mes "[Tomb of Confession Manager]";
+		mes "Where are your party members?";
+		close;
+	}
+	
+	.@md_name$ = "Tomb of Remorse";
+	
+	if (getcharid(0) == getpartyleader(.@party_id,2))
+		set @menu$, "Create "+.@md_name$+":Enter "+.@md_name$;
+	else
+		set @menu$, ":Enter "+.@md_name$;
+		
+	mes "[Tomb of Confession Manager]";
+	mes "What would you like to do?";
+	next;
+	.@i = select(@menu$)-1;
+	switch(.@i) {
+	case 0:
+		if(BaseLevel < 220) {
+			mes "[Repentant Princess Tiara]";
+			mes "It's dangerous inside..."; 
+			mes "Come back after reaching Lv.220..."; 
+			close;
+		}
+		
+		if (instance_create(.@md_name$) < 0) {
+			mes "[Repentant Princess Tiara]";
+			mes "Party Name: "+.@p_name$;
+			mes "Party Leader: "+strcharinfo(0);
+			mes "^0000ff"+.@md_name$+" ^000000- Creation failed!";
+			close;
+		}
+
+		mapannounce strnpcinfo(4),"Party "+getpartyname(.@party_id)+" is preparing to challenge the 【"+.@md_name$+"】 instance!",bc_map,"0x33ea91";	
+		mes "[Repentant Princess Tiara]";
+		mes ""+.@md_name$+" has been created~";
+		mes "Please select ^0066CCEnter "+.@md_name$+"^000000.";
+		
+		.@iid = instance_id(IM_PARTY);
+		set getinstancevar('party_id, .@iid), getcharid(1);
+		// Record entry time
+		set Instance_Annal,gettimetick(2);
+		close;
+	case 1:
+		if(BaseLevel < 220) {
+			mes "[Repentant Princess Tiara]";
+			mes "It's dangerous inside..."; 
+			mes "Come back after reaching Lv.220..."; 
+			close;
+		}
+		if (getinstancevar('Win,instance_id(IM_PARTY))) {
+			mes "The instance has already started. You cannot enter again.";
+			close;
+		}
+		switch(checkquest(16464,PLAYTIME)){
+			case 0:
+			case 1:
+				mes "you are on cooldown fella";
+				end;
+		}
+		switch(instance_enter(.@md_name$)) {
+		case IE_OTHER:
+			mes "Unknown error.";
+			close;
+		case IE_NOINSTANCE:
+			mes .@md_name$+" instance does not exist.";
+			mes "The leader has not created the Memory Maze.";
+			close;
+		case IE_NOMEMBER:
+			mes "Only party members who applied for the "+.@md_name$+" instance can enter.";
+			close;
+		case IE_OK:
+			setquest 16464;
+			// Instance Quests
+			if(checkquest(16465,HUNTING)<0){setquest 16465;}
+			if(checkquest(16467,HUNTING)<0){setquest 16467;}
+			if(checkquest(16469,HUNTING)<0){setquest 16469;}
+			if(checkquest(16471,HUNTING)<0){setquest 16471;}
+
+			if(checkquest(16465,HUNTING)<0){ if(checkquest(16466,PLAYTIME)==2){ erasequest 16466; setquest 16465;} }
+			if(checkquest(16467,HUNTING)<0){ if(checkquest(16468,PLAYTIME)==2){ erasequest 16468; setquest 16467;} }
+			if(checkquest(16469,HUNTING)<0){ if(checkquest(16470,PLAYTIME)==2){ erasequest 16470; setquest 16469;} }
+			if(checkquest(16471,HUNTING)<0){ if(checkquest(16472,PLAYTIME)==2){ erasequest 16472; setquest 16471;} }
+			end;
+		}
+	}
+	close;
+	
+OnInit:
+	waitingroom "Tomb of Confession",0;
+	end;
+}
+
+
+//------------------------------ Tomb of Confession Event
+1@spa2,0,0,0	script	Tomb of Confession Event1	-1,{
+
+OnInstanceInit:
+	// Create instance map
+	'map_name$[0] = instance_mapname("1@spa2");
+	// Disable certain NPCs and warp portals
+	disablenpc instance_npcname("Repentant Marquis#spa201");
+	disablenpc instance_npcname("Princess Tiara#spa201");
+	disablenpc instance_npcname("Sakurai#spa201");
+	disablenpc instance_npcname("Sakurai#spa202");
+	disablenpc instance_npcname("Sakurai#spa203");
+	disablenpc instance_npcname("Himmelz#spa201");
+	disablenpc instance_npcname("Warp Portal#spa201");
+	disablenpc instance_npcname("Warp Portal#spa202");
+	disablenpc instance_npcname("Warp Portal#spa203");
+	disablenpc instance_npcname("Warp Portal#spa204");
+	// Spawn monsters
+	areamonster 'map_name$[0],49,245,55,238,"--ja--",20899,1,instance_npcname("Tomb of Confession Event1")+"::OnCcdd2";
+	areamonster 'map_name$[0],48,253,55,213,"--ja--",20900,12;
+	// Instance flags
+	set 'CD_spa2_,0;
+	set 'CD_spa2_2,0;
+	set 'CD_spa2_Mob,0;
+	set 'CD_spa2_quest01,0;
+	set 'CD_spa2_quest02,0;
+	end;
+
+	OnCcdd2:
+	enablenpc instance_npcname("Warp Portal#spa201");
+	instance_announce 0, "Repentant Marquis: The grudge of this floor has been released. A warp portal to the next area has appeared in the north!",bc_map,"0x00ff99";
+	set 'CD_spa2_Mob,30;
+	areamonster 'map_name$[0],202,238,232,215,"--ja--",20897,3,instance_npcname("Tomb of Confession Event1")+"::OnCcdd3";
+	areamonster 'map_name$[0],202,238,232,215,"--ja--",20898,3,instance_npcname("Tomb of Confession Event1")+"::OnCcdd3";
+	sleep 6000;
+	areamonster 'map_name$[0],202,238,232,215,"--ja--",20896,4,instance_npcname("Tomb of Confession Event1")+"::OnCcdd3";
+	instance_announce 0, "Repentant Marquis: These are the souls of those who died by the cursed sword and cannot rest in peace.",bc_map,"0x00ff99";
+	sleep 6000;
+	areamonster 'map_name$[0],202,238,232,215,"--ja--",20897,4,instance_npcname("Tomb of Confession Event1")+"::OnCcdd3";
+	sleep 6000;
+	areamonster 'map_name$[0],202,238,232,215,"--ja--",20897,4,instance_npcname("Tomb of Confession Event1")+"::OnCcdd3";
+	sleep 6000;
+	areamonster 'map_name$[0],202,238,232,215,"--ja--",20898,4,instance_npcname("Tomb of Confession Event1")+"::OnCcdd3";
+	instance_announce 0, "Repentant Marquis: I hope you can help them find peace.",bc_map,"0x00ff99";
+	sleep 6000;
+	areamonster 'map_name$[0],202,238,232,215,"--ja--",20896,4,instance_npcname("Tomb of Confession Event1")+"::OnCcdd3";
+	sleep 6000;
+	areamonster 'map_name$[0],202,238,232,215,"--ja--",20898,4,instance_npcname("Tomb of Confession Event1")+"::OnCcdd3";
+	end;
+
+	OnCcdd3:
+	set 'CD_spa2_Mob,'CD_spa2_Mob-1;
+
+	if ('CD_spa2_Mob>0) end;
+	areamonster 'map_name$[0],202,238,232,215,"--ja--",20893,1,instance_npcname("Tomb of Confession Event1")+"::OnCcdd4";
+	instance_announce 0, "Repentant Marquis: Poor Princess Tiara... Please release her from her suffering!!",bc_map,"0xFFFF00";
+	sleep 2000;
+	instance_announce 0, "Repentant Marquis: Note: To complete the 'Tears of Sorrow' quest, party members must be nearby when defeating Tiara.",bc_map,"0x00ff99";
+	end;
+
+	OnCcdd4:
+	enablenpc instance_npcname("Sakurai#spa202");
+	end;
+
+	OnCcdd5:
+	set 'CD_spa2_Mob,'CD_spa2_Mob-1;
+	if ('CD_spa2_Mob>0) end;
+	enablenpc instance_npcname("Warp Portal#spa203");
+	enablenpc instance_npcname("Sakurai#spa203");
+	instance_announce 0, "Repentant Marquis: The grudge of this floor has been released. A warp portal to the next area has appeared in the center!",bc_map,"0xFFFF00";
+	end;
+
+	OnEnd01:
+	'win = 1;
+	// Announce completion time
+	set Instance_Miao,gettimetick(2)-Instance_Annal;
+	announce "【Tomb of Confession】: Party ["+strcharinfo(1)+"] led by 『"+getpartyleader(getcharid(1),0)+"』 has successfully completed the challenge!",bc_map,"0x00ff99";
+	enablenpc instance_npcname("Repentant Marquis#spa201");
+	enablenpc instance_npcname("Warp Portal#spa204");
+	instance_announce 0, "Repentant Marquis: Thank you for your help. Come report to me for your completed quests!",bc_map,"0x00ff99";
+	sleep 1000;
+	instance_announce 0, "Repentant Marquis: After claiming your rewards, you can leave through the northern warp portal...",bc_map,"0x00ff99";
+	end;
+}
+
+
+//------------------------------ Quests
+1@spa2,74,211,4	script	Memory Fragment#spa201	723,{
+	npctalk "A memory fragment of Sakurai and Princess Tiara's happy times in the palace!";
+	set 'CD_spa2_quest01, 'CD_spa2_quest01+1;
+	dispbottom "Memory Fragment obtained. Current Memory Fragments: "+'CD_spa2_quest01+""; 
+	specialeffect 16;
+	disablenpc instance_npcname("Memory Fragment#spa201");
+	end;
+}
+
+1@spa2,83,255,4	script	Memory Fragment#spa202	723,{
+	npctalk "A memory fragment of a neighboring prince proposing to Princess Tiara!";
+	set 'CD_spa2_quest01, 'CD_spa2_quest01+1;
+	dispbottom "Memory Fragment obtained. Current Memory Fragments: "+'CD_spa2_quest01+""; 
+	specialeffect 16;
+	disablenpc instance_npcname("Memory Fragment#spa202");
+	end;
+}
+
+1@spa2,28,226,4	script	Memory Fragment#spa203	723,{
+	set 'CD_spa2_quest02,1;
+	enablenpc instance_npcname("Princess Tiara#spa201");
+	enablenpc instance_npcname("Sakurai#spa201");
+	donpcevent instance_npcname("Sakurai#spa201")+"::OnCcdd1";
+	specialeffect 16;
+	disablenpc instance_npcname("Memory Fragment#spa203");
+	dispbottom "Shattered Past quest completed!!"; 
+	end;
+}
+
+1@spa2,25,222,8	script	Sakurai#spa201	686,{end;
+
+OnCcdd1:
+	sleep 1000;
+	npctalk "Sakurai: Princess, you always play the same song!";
+	sleep 1000;
+	donpcevent instance_npcname("Princess Tiara#spa201")+"::OnTalk1";
+	sleep 1000;
+	npctalk "Sakurai: Because I'm always by your side.";
+	sleep 1000;
+	donpcevent instance_npcname("Princess Tiara#spa201")+"::OnTalk2";
+	sleep 1000;
+	npctalk "Sakurai: Hmm... I heard from the captain of the guard...";
+	sleep 1000;
+	donpcevent instance_npcname("Princess Tiara#spa201")+"::OnTalk3";
+	sleep 1000;
+	npctalk "Sakurai: Princess... I believe he will treat you well and give you happiness...";
+	sleep 1000;
+	donpcevent instance_npcname("Princess Tiara#spa201")+"::OnTalk4";
+	sleep 1000;
+	npctalk "Sakurai: I know... But I'm just a lowly guard... I can't give you a wealthy and stable life.";
+	sleep 1000;
+	donpcevent instance_npcname("Princess Tiara#spa201")+"::OnTalk5";
+	disablenpc instance_npcname("Princess Tiara#spa201");
+	disablenpc instance_npcname("Sakurai#spa201");
+	end;
+}
+
+
+1@spa2,215,245,4	script	Memory Fragment#spa204	723,{
+	npctalk "[Memory Fragment]: A memory fragment of Sakurai's despair after Princess Tiara became the neighboring kingdom's queen.";
+	set 'CD_spa2_quest01, 'CD_spa2_quest01+1;
+	dispbottom "Memory Fragment obtained. Current Memory Fragments: "+'CD_spa2_quest01+""; 
+	specialeffect 16;
+	disablenpc instance_npcname("Memory Fragment#spa204");
+	end;
+}
+
+1@spa2,230,252,4	script	Memory Fragment#spa205	723,{
+	npctalk "[Memory Fragment]: A memory fragment of Sakurai escaping from prison.";
+	set 'CD_spa2_quest01, 'CD_spa2_quest01+1;
+	dispbottom "Memory Fragment obtained. Current Memory Fragments: "+'CD_spa2_quest01+""; 
+	specialeffect 16;
+	disablenpc instance_npcname("Memory Fragment#spa205");
+	end;
+}
+
+1@spa2,201,254,4	script	Memory Fragment#spa206	723,{
+	npctalk "[Memory Fragment]: A memory fragment of Sakurai being framed and imprisoned.";
+	set 'CD_spa2_quest01, 'CD_spa2_quest01+1;
+	dispbottom "Memory Fragment obtained. Current Memory Fragments: "+'CD_spa2_quest01+""; 
+	specialeffect 16;
+	disablenpc instance_npcname("Memory Fragment#spa206");
+	end;
+}
+
+
+1@spa2,28,224,4	script	Princess Tiara#spa201	640,{end;
+
+OnTalk1:
+	npctalk "Princess Tiara: I didn't know you were always listening.";
+	end;
+OnTalk2:
+	npctalk "Sakurai, did you know? My father is marrying me off to the neighboring prince...";
+	end;
+OnTalk3:
+	npctalk "Then... don't you have any thoughts about this?";
+	end;
+OnTalk4:
+	npctalk "What are you saying!? Don't you know how I feel about you?";
+	end;
+OnTalk5:
+	npctalk "I don't care about those things... Let's go, take me away..";
+	npctalk "To a faraway place, where no one knows us.";
+	npctalk "As long as there's happiness there for us...";
+	npctalk "Sakurai, you can take me there, right...?";
+	end;
+}
+
+
+1@spa2,218,237,4	script	Sakurai#spa202	685,{
+	if (getpartyleader(getcharid(1),2)!=getcharid(0)) end;
+	if ('CD_spa2_1==1) {end;}
+	set 'CD_spa2_1,1;
+	npctalk "Tanoth: Sakurai, you're back again?";
+	sleep 1000;
+	npctalk "Sakurai: I just want to go where I want to go. Don't stop me!";
+	sleep 1000;
+	npctalk "Tanoth: Who was it that said they would cast away the fragility of humanity?";
+	sleep 1000;
+	npctalk "Tanoth: Even if you do this, the result will still be the same, won't it?";
+	sleep 1000;
+	npctalk "Sakurai: Shut up! Stop talking!";
+	sleep 1000;
+	npctalk "Tanoth: The only way to win is for us to work together.";
+	sleep 1000;
+	npctalk "Tanoth: Before offering your blood, your soul is mine!";
+	sleep 1000;
+	npctalk "Tanoth: We don't have time to waste here anymore.";
+	sleep 1000;
+	npctalk "Tanoth: There aren't as many people in the castle as before. I wonder if we can still gather enough blood...";
+	sleep 1000;
+	npctalk "Tanoth: Blood! I crave more!!!!";
+	sleep 1000;
+	specialeffect 16;
+	disablenpc instance_npcname("Sakurai#spa202");
+	enablenpc instance_npcname("Himmelz#spa201");
+	sleep 1000;
+	donpcevent instance_npcname("Himmelz#spa201")+"::OnTalk1";
+	sleep 1000;
+	donpcevent instance_npcname("Himmelz#spa201")+"::OnTalk2";
+	sleep 1000;
+	donpcevent instance_npcname("Himmelz#spa201")+"::OnTalk3";
+	sleep 1000;
+	disablenpc instance_npcname("Himmelz#spa201");
+	enablenpc instance_npcname("Warp Portal#spa202");
+	instance_announce 0, "Repentant Marquis: A warp portal to the next area has appeared in the upper left!",bc_map,"0xFFFF00";
+
+	set 'CD_spa2_Mob,30;
+	areamonster 'map_name$[0],51,33,64,19,"--ja--",20895,3,instance_npcname("Tomb of Confession Event1")+"::OnCcdd5";
+	areamonster 'map_name$[0],51,33,64,19,"--ja--",20896,2,instance_npcname("Tomb of Confession Event1")+"::OnCcdd5";
+	sleep 6000;
+	areamonster 'map_name$[0],26,33,39,18,"--ja--",20896,3,instance_npcname("Tomb of Confession Event1")+"::OnCcdd5";
+	areamonster 'map_name$[0],26,33,39,18,"--ja--",20895,2,instance_npcname("Tomb of Confession Event1")+"::OnCcdd5";
+	areamonster 'map_name$[0],26,33,39,18,"--ja--",20897,2,instance_npcname("Tomb of Confession Event1")+"::OnCcdd5";
+	sleep 6000;
+	areamonster 'map_name$[0],76,33,88,19,"--ja--",20897,3,instance_npcname("Tomb of Confession Event1")+"::OnCcdd5";
+	areamonster 'map_name$[0],76,33,88,19,"--ja--",20896,3,instance_npcname("Tomb of Confession Event1")+"::OnCcdd5";
+	areamonster 'map_name$[0],76,33,88,19,"--ja--",20895,2,instance_npcname("Tomb of Confession Event1")+"::OnCcdd5";
+	sleep 6000;
+	areamonster 'map_name$[0],50,79,65,72,"--ja--",20897,2,instance_npcname("Tomb of Confession Event1")+"::OnCcdd5";
+	areamonster 'map_name$[0],50,79,65,72,"--ja--",20894,2,instance_npcname("Tomb of Confession Event1")+"::OnCcdd5";
+	sleep 6000;
+	areamonster 'map_name$[0],26,61,39,46,"--ja--",20897,3,instance_npcname("Tomb of Confession Event1")+"::OnCcdd5";
+	areamonster 'map_name$[0],76,61,89,47,"--ja--",20894,3,instance_npcname("Tomb of Confession Event1")+"::OnCcdd5";
+	instance_announce 0, "Repentant Marquis: There are too many lingering spirits in this castle...",bc_map,"0x00ff99";
+	end;
+}
+
+
+1@spa2,221,234,4	script	Himmelz#spa201	4_F_HIMEL2,{end;
+
+OnTalk1:
+	specialeffect 16;
+	npctalk "Himmelz: Hmm~ Following a contractor is quite amusing, isn't it?";
+	end;
+OnTalk2:
+	npctalk "Himmelz: Hehehe, can you feel the aura of death and corpses throughout the palace?";
+	end;
+OnTalk3:
+	npctalk "Himmelz: Actually, this isn't nearly enough....";
+	end;
+}
+
+
+1@spa2,211,67,4	script	Sakurai#spa203	685,{
+	if (getpartyleader(getcharid(1),2)!=getcharid(0)) end;
+	if ('CD_spa2_2==1) {end;}
+	set 'CD_spa2_2,1;
+
+	npctalk "Tanoth: Why are you still here!";
+	sleep 1000;
+	npctalk "Dark Swordsman Sakurai: I just want to see the princess and find out what happened here.";
+	sleep 1000;
+	npctalk "Tanoth: Oh... that princess from back then... This place has indeed changed a lot.";
+	sleep 1000;
+	npctalk "Tanoth: But before that... you must offer your blood first!";
+	sleep 1000;
+	npctalk "Dark Swordsman Sakurai: (I must find the princess quickly.)";
+	sleep 1000;
+	npctalk "Tanoth: No more nonsense, I want your cursed sword!";
+	sleep 200;
+	specialeffect 16;
+	disablenpc instance_npcname("Sakurai#spa203");
+	areamonster 'map_name$[0],211,67,211,67,"--ja--",20892,1,instance_npcname("Tomb of Confession Event1")+"::OnEnd01";
+	end;
+}
+
+
+//------------------------------ Warp Information
+1@spa2,51,259,0	warp	Warp Portal#spa201	1,1,1@spa2,215,200
+1@spa2,210,254,0	warp	Warp Portal#spa202	2,2,1@spa2,57,20
+1@spa2,57,41,0	warp	Warp Portal#spa203	2,2,1@spa2,211,60
+
+1@spa2,211,87,0	script	Warp Portal#spa204	45,2,2,{
+	end;
+OnTouch:
+	set .@ipoint,rand(20,40);
+	callfunc("F_EarnInstancePoints",.@ipoint);
+	warp "prontera",155,181;
+	end;
+}
+
+//------------------------------ Reward Collection
+1@spa2,211,81,4	script	Repentant Marquis#spa201	110,{
+	mes "[Repentant Marquis]";
+	mes "Which quests have you completed?";
+	next;
+	switch (select("Severing Fate:Tears of Sorrow:Shattered Memories:Shattered Past:Cancel")) {
+	case 1:
+		mes "[Repentant Marquis]";
+		mes "Mission to kill 10 Sakray";
+		if(checkquest(16465,HUNTING)==2 ) { 
+			dispbottom "Severing Fate quest completed. Here are your rewards!!"; 
+			getitem 1000367,10;	// Gem of Regret x10
+			erasequest 16465;	// Delete quest
+			setquest 16466;	// Start cooldown quest
+		}
+		close;
+
+	case 2:
+		mes "[Repentant Marquis]";
+		mes "Mission to kill 8 Tiara";
+		if(checkquest(16467,HUNTING)==2 ) { 
+			dispbottom "Tears of Sorrow quest completed. Here are your rewards!!"; 
+			getitem 1000367,8;	// Gem of Regret x8
+			erasequest 16467;	// Delete quest
+			setquest 16468;	// Start cooldown quest
+		}
+		close;
+
+	case 3:
+		mes "[Repentant Marquis]";
+		mes "Mission to Collect Memories.";
+		.@quest01 = checkquest(16470,PLAYTIME);
+		if(.@quest01 == 2) erasequest 16470;
+		if(.@quest01 == 0 || .@quest01 == 1){
+			mes "This quest is still on cooldown. Please return after the cooldown ends.";
+			close; 
+		}
+		if('CD_spa2_quest01==5) {
+			dispbottom "Shattered Memories quest completed. Here are your rewards!!"; 
+			getitem 1000367,1;	// Gem of Regret x1
+			erasequest 16469;	// Delete quest
+			setquest 16470;	// Start cooldown quest
+		}
+		close;
+
+	case 4:
+		mes "[Repentant Marquis]";
+		mes "Mission to Collect Fragments of the Past.";
+		.@quest02 = checkquest(16472,PLAYTIME);
+		if(.@quest02 == 2) erasequest 16472;
+		if(.@quest02 == 0 || .@quest02 == 1){
+			mes "This quest is still on cooldown. Please return after the cooldown ends.";
+			close; 
+		}
+		if('CD_spa2_quest02==1) {
+			dispbottom "Shattered Past quest completed. Here are your rewards!!"; 
+			getitem 1000367,1;	// Gem of Regret x1
+			erasequest 16471;	// Delete quest
+			setquest 16472;	// Start cooldown quest
+		}
+		close;
+
+	case 5:
+		close;
+	}
+}
+
+
+//------------------------------ Map Flags
+1@spa2	mapflag	partylock
+1@spa2	mapflag	noteleport
+1@spa2	mapflag	nosave	SavePoint
+1@spa2	mapflag	nomemo
+1@spa2	mapflag	nobranch
+1@spa2	mapflag	noicewall
+1@spa2	mapflag	restricted	6

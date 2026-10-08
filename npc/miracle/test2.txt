@@ -1,0 +1,122 @@
+rachel,150,150,5	script	test	100,{
+//	item_reform("Bar_D_A_Seal");
+//	add_reputation_points(REPU_BIO_DEPTH1,1500);
+//	dispbottom "add rep";
+/**
+	switch(select("Reduce HP:Reduce Def:Reduce Flee:Sc End")){
+	case 1:
+		sc_start SC_MYSTERIOUS_POWDER,-1,-50;
+		end;
+	case 2:
+		sc_start SC_INCDEFRATE,3600000,-100,10000;
+		end;
+	case 3:
+		sc_start SC_INCFLEERATE,3600000,-100,10000;
+		end;
+	case 4:
+		sc_end SC_MYSTERIOUS_POWDER;
+		sc_end SC_INCDEFRATE;
+		sc_end SC_INCFLEERATE;
+		end;
+	}
+**/
+//	add_reputation_points( 9, 1000 );
+//	dispbottom "rep : "+get_reputation_points(9);
+	callshop "abyss_depth_material";
+	end;
+}
+
+//============================================================
+// World Boss Test NPC
+// Location : Rachel 129,53
+// GM Level : 99
+//============================================================
+
+rachel,129,53,4	script	WB Test NPC	4_F_KAFRA1,{
+
+	.@map$ = strcharinfo(3);
+	.@x = 134;
+	.@y = 53;
+
+	if (getgmlevel() < 99) {
+		mes "GM only.";
+		close;
+	}
+
+	switch(select(
+		"Spawn Boss",
+		"Spawn Boss + Relieve",
+		"Check Boss HP",
+		"Remove Relieve Buff",
+		"Kill Boss",
+		"Exit"
+	)) {
+
+	case 1:
+		monster .@map$, .@x, .@y,
+			"[TEST] World Boss",
+			$wb_boss_mob,
+			1;
+
+		$world_boss_gid = $@mobid[0];
+		setunitdata $world_boss_gid, UMOB_DAMAGETAKEN, 100;
+
+		mes "Boss spawned.";
+		close;
+
+	case 2:
+		monster .@map$, .@x, .@y,
+			"[TEST] World Boss",
+			$wb_boss_mob,
+			1;
+
+		$world_boss_gid = $@mobid[0];
+
+		setunitdata $world_boss_gid, UMOB_DAMAGETAKEN, 100;
+		unitskilluseid $world_boss_gid, 771, 10;
+		mes "Boss spawned with SC_RELIEVE_ON.";
+		close;
+
+	case 3:
+
+		if (!$world_boss_gid || !unitexists($world_boss_gid)) {
+			mes "No active boss.";
+			close;
+		}
+
+		getunitdata($world_boss_gid,.@mob);
+
+		mes "[Boss Info]";
+		mes "GID : " + $world_boss_gid;
+		mes "HP : " + .@mob[UMOB_HP];
+		mes "Max HP : " + .@mob[UMOB_MAXHP];
+		close;
+
+	case 4:
+
+		if (!$world_boss_gid || !unitexists($world_boss_gid)) {
+			mes "No active boss.";
+			close;
+		}
+
+		sc_end SC_RELIEVE_ON,$world_boss_gid;
+
+		mes "SC_RELIEVE_ON removed.";
+		close;
+
+	case 5:
+
+		if ($world_boss_gid && unitexists($world_boss_gid))
+			unitkill $world_boss_gid;
+
+		$world_boss_gid = 0;
+
+		mes "Boss killed and mapflag removed.";
+		close;
+
+	default:
+		close;
+	}
+}
+
+//rachel	mapflag	skill_damage	all,BL_PC,0,0,-50

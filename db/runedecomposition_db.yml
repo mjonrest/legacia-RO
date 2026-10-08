@@ -1,0 +1,18 @@
+# This file is a part of Shakto.
+#   Copyright(C) 2023 Shakto Script
+#   https://ronovelty.com/
+#
+###########################################################################
+# Rune Decomposition Database
+###########################################################################
+# - Id                         Client side LUB index. (itemDecomType_tbl in itemDecom.lub)
+#   Materials:                 Rune provided when an item is decomposed
+#     - Material               Name of the item
+#       Amountmin              Min amount provided
+#       Amountmax              Max amount provided
+#       Chance                 Chance of having the item
+###########################################################################
+
+Header:
+  Type: RUNE_DECOMPO_DB
+  Version: 1

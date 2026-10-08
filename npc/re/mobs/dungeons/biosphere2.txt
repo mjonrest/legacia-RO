@@ -1,0 +1,27 @@
+bl_soul	monster	--ja--	21936,40	//  
+bl_soul	monster	--ja--	21937,40	//  
+bl_soul	monster	--ja--	21938,30	//  
+bl_soul	monster	--ja--	21939,35	//  
+bl_soul	monster	--ja--	21940,30	//  
+bl_soul	monster	--ja--	21941,15	//  
+bl_soul	monster	--ja--	21942,35	//  
+bl_soul	boss_monster	--ja--	21943,1,21600000,600000,0	//  
+
+
+bl_venom	monster	--ja--	21928,40	//  
+bl_venom	monster	--ja--	21929,40	//  
+bl_venom	monster	--ja--	21930,30	//  
+bl_venom	monster	--ja--	21931,35	//  
+bl_venom	monster	--ja--	21932,30	//  
+bl_venom	monster	--ja--	21933,15	//  
+bl_venom	monster	--ja--	21934,35	//  
+bl_venom	boss_monster	--ja--	21935,1,21600000,600000,0	//  
+
+bl_temple	monster	--ja--	21920,40	//  
+bl_temple	monster	--ja--	21921,40	//  
+bl_temple	monster	--ja--	21922,30	//  
+bl_temple	monster	--ja--	21923,35	//  
+bl_temple	monster	--ja--	21924,30	//  
+bl_temple	monster	--ja--	21925,15	//  
+bl_temple	monster	--ja--	21926,35	//  
+bl_temple	boss_monster	--ja--	21927,1,21600000,600000,0	//  

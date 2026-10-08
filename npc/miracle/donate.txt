@@ -1,0 +1,23 @@
+//=========================================================
+// @donate Command NPC
+//=========================================================
+
+-	script	DonateCommand	-1,{
+
+OnInit:
+	bindatcmd "donate", strnpcinfo(3)+"::OnDonate";
+	end;
+
+OnDonate:
+	mes "Donate Shop ----";
+	switch(select("PoD Shop:Cash Shop")){
+	case 1:
+	callshop "Donate1",1;
+	end;
+	case 2:
+	callshop "Donate_Cash",1;
+	end;
+	}
+}
+
+-	pointshop	Donate_Cash	-1,#CASHPOINTS,30018:4,30007:10

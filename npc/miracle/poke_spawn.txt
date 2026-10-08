@@ -1,0 +1,269 @@
+-	script	pokesummon	-1,{
+OnInit:
+	setarray .@poke_list[0],31444,31447,31450,31457,31460,31464,31467,31847,31470,31472,31473,31476,31479,31481,31485,31489,31492,31495,31499,31502,31504,
+				31505,31506,31955,31508,31517,31520,31523,31532,31535,31536,31539,31542,31545,31548,31551,31557,31564,31568,31572,
+				31576,31578,31581,31586,31589,31592,31597,31599,31601,31605,31608,31611,31614,31617,31620,31623,31626,31628,31632,31636,31654,
+				31657,31660,31663,31666,31669,31673,31676,31679,31682,31684,31697,31700,31702,31705,31708,31710,31728,31731,31734,31737,31739,
+				31742,31745,31748,31751,31753,31755,31758,31761,31764,31766,31768,31769,31771,31773,31776,31794,31797,31800,31803,31806,31809,
+				31813,31816,31819,31822,31824,31826,31830,31831,31834,31849,31852,31855,31858,31862,31864,31866,31868,31871,31873,31875,31876,
+				31877,31878,31879,31881,31901,31903,31904,31907,31910,31913,31915,31918,31920,31922,31925,31928,31931,31934,31936,31939,31942,
+				31944,31946,31949,31953,31998;
+	setarray .@maps$[0],"ama_fild01","ayo_fild01","cmd_fild01","cmd_fild02","cmd_fild03","cmd_fild04","cmd_fild05",
+				"cmd_fild06","cmd_fild07","cmd_fild08","cmd_fild09","ein_fild01","ein_fild02","ein_fild03",
+				"ein_fild04","ein_fild05","ein_fild06","ein_fild07","ein_fild08","ein_fild09","ein_fild10",
+				"gef_fild00","gef_fild01","gef_fild03","gef_fild04","gef_fild05","gef_fild06","gef_fild07",
+				"gef_fild08","gef_fild09","gef_fild10","gef_fild11","hu_fild01","hu_fild02","hu_fild03",
+				"hu_fild04","hu_fild05","hu_fild06","hu_fild07","yuno_fild01","yuno_fild02","yuno_fild03",
+				"yuno_fild04","yuno_fild05","yuno_fild06","yuno_fild07","yuno_fild08","yuno_fild09","yuno_fild10",
+				"yuno_fild11","yuno_fild12","lhz_fild01","lhz_fild02","lhz_fild03","lou_fild01","xmas_fild01",
+				"mjolnir_01","mjolnir_02","mjolnir_03","mjolnir_04","mjolnir_05","mjolnir_06","mjolnir_07",
+				"mjolnir_08","mjolnir_09","mjolnir_10","mjolnir_11","mjolnir_12","nif_fild01","pay_fild01",
+				"pay_fild02","pay_fild03","pay_fild04","pay_fild05","pay_fild06","pay_fild07","pay_fild08",
+				"pay_fild09","pay_fild10","prt_fild00","prt_fild01","prt_fild02","prt_fild03","prt_fild04",
+				"prt_fild05","prt_fild06","prt_fild07","prt_fild08","prt_fild09","prt_fild10","prt_fild11",
+				"ra_fild01","ra_fild05","ra_fild06","ra_fild07","ra_fild08","ra_fild09","ra_fild10","ra_fild11",
+				"ra_fild12","ra_fild13","moc_fild01","moc_fild02","moc_fild03","moc_fild07","moc_fild11",	
+				"moc_fild12","moc_fild13","moc_fild16","moc_fild18","um_fild01","ve_fild03","ve_fild04",
+				"ve_fild05","ve_fild07";
+	query_sql( "select Poke_Name, Spawn_Map from pokemon where Poke_ID > 0"+ .@idp, .@idn$, .@idm$ );
+	killmonster .@idm$,"pokecatch::Onpokecatch";
+	query_sql("DELETE FROM `pokemon`");
+	set .@RandPoke,getarraysize(.@poke_list);
+	set .@RandMap,getarraysize(.@maps$);
+	set .@rand_p,.@poke_list[rand(.@RandPoke)];
+	set .@rand_m$,.@maps$[rand(.@RandMap)];
+	monster .@rand_m$,0,0,"--ja--",.@rand_p,1,"pokecatch::Onpokecatch";
+	query_sql("INSERT INTO `pokemon`(`Poke_ID`, `Poke_Name`, `Spawn_Map`) VALUES (" + .@rand_p + ", '" + escape_sql(strmobinfo(1, .@rand_p)) + "', '" + escape_sql(.@rand_m$) + "')");
+	announce "[Pokemon]: "+strmobinfo(1,.@rand_p)+" just spawn at "+.@rand_m$,0;
+	end;
+}
+-	script	pokecatch	-1,{
+Onpokecatch:
+	set .@pokeball,30431;
+	set .@greatball,30432;
+	set .@ultraball,30433;
+	set .@masterball,30434;
+	set .@evostone,30429;
+	set .@attempt,1;
+	set .@fail,1;
+	setarray .@poke_list[0],31444,31447,31450,31457,31460,31464,31467,31847,31470,31472,31473,31476,31479,31481,31485,31489,31492,31495,31499,31502,31504,
+				31505,31506,31955,31508,31517,31520,31523,31532,31535,31536,31539,31542,31545,31548,31551,31557,31564,31568,31572,
+				31576,31578,31581,31586,31589,31592,31597,31599,31601,31605,31608,31611,31614,31617,31620,31623,31626,31628,31632,31636,31654,
+				31657,31660,31663,31666,31669,31673,31676,31679,31682,31684,31697,31700,31702,31705,31708,31710,31728,31731,31734,31737,31739,
+				31742,31745,31748,31751,31753,31755,31758,31761,31764,31766,31768,31769,31771,31773,31776,31794,31797,31800,31803,31806,31809,
+				31813,31816,31819,31822,31824,31826,31830,31831,31834,31849,31852,31855,31858,31862,31864,31866,31868,31871,31873,31875,31876,
+				31877,31878,31879,31881,31901,31903,31904,31907,31910,31913,31915,31918,31920,31922,31925,31928,31931,31934,31936,31939,31942,
+				31944,31946,31949,31953,31998;
+	setarray .@poke_item[0],30445,30448,30451,30458,30461,30465,30468,30848,30471,30473,30474,30477,30480,30482,30486,30490,30493,30496,30500,30503,30505,
+				30506,30507,30956,30509,30518,30521,30524,30533,30536,30537,30540,30543,30546,30549,30552,30558,30565,30569,30573,
+				30577,30579,30582,30587,30590,30593,30598,30600,30602,30606,30609,30612,30615,30618,30621,30624,30627,30629,30633,30637,30655,
+				30658,30661,30664,30667,30670,30674,30677,30680,30683,30685,30698,30701,30703,30706,30709,30711,30729,30732,30735,30738,30740,
+				30743,30746,30749,30752,30754,30756,30759,30762,30765,30767,30769,30770,30772,30774,30777,30795,30798,30801,30804,30807,30810,
+				30814,30817,30820,30823,30825,30827,30831,30832,30835,30850,30853,30856,30859,30863,30865,30867,30869,30872,30874,30876,30877,
+				30878,30879,30880,30882,30902,30904,30905,30908,30911,30914,30916,30919,30921,30923,30926,30929,30932,30935,30937,30940,30943,
+				30945,30947,30950,30954,30999;
+	setarray .@skills[0],30435,30436,30437,30438,30439;
+	setarray .@ivs[0],30440,30441,30442,30443,30444;
+	set .@randskills,getarraysize(.@skills);
+	set .@randivs,getarraysize(.@ivs);
+	set .@rand_skills,.@skills[rand(.@randskills)];
+	set .@rand_ivs,.@ivs[rand(.@randivs)];
+
+		donpcevent strnpcinfo(0)+"::OnDead";
+		for ( .@c = 0; .@c < getarraysize(.@poke_list); .@c++) {
+		if ( killedrid == .@poke_list[.@c] ){
+	//	message strcharinfo(0),"You kill "+.@poke_list[.@c];
+		query_sql("DELETE FROM `pokemon` WHERE `Poke_ID` = '" +.@poke_list[.@c]+ "' AND `Spawn_Map` = '" +strcharinfo(3)+ "' ");
+		mes "[Catching Pokemon]";
+		mes "You are catching : "+strmobinfo(1,.@poke_list[.@c]);
+		next;
+		while (1) {
+		set .@loop,1;
+		switch(select("Poke Ball:Great Ball:Ultra Ball:Master Ball")){
+		case 1:
+		if ( countitem(.@pokeball)){
+		mes "[Catching Pokemon]";
+		mes "Catching rate: ^FF00002,5%^000000";
+		mes "Catch Attempt : "+.@attempt+" times";
+		mes "Increase catching chance by : "+callfunc("DivToDecimal",.@fail,100)+"%";
+		next;
+		if (rand(1,10000) <= (250 + .@fail)){
+		set .@attempt,.@attempt+1;
+		delitem .@pokeball,1;
+		specialeffect2 EF_TEMP_OK;
+		if ( rand(1,10000) < 1000){	// rolling chance to earn enchanted pokeball
+		getitem2 .@poke_item[.@c],1,1,0,0,0,0,.@rand_skills,.@rand_ivs;
+		} else {
+		getitem2 .@poke_item[.@c],1,1,0,0,0,0,0,0;
+		}
+		if ( rand(1,10000) < 1000) getitem .@evostone,1;	// 10% chance to get evo stone
+		message strcharinfo(0),"You catch "+strmobinfo(1,.@poke_list[.@c])+" with "+.@attempt+" attempts.";
+		announce strcharinfo(0)+ " just catch a "+strmobinfo(1,.@poke_list[.@c]),0,0xFF3399;
+		donpcevent strnpcinfo(0)+"::OnDead";
+		close;
+		}
+		set .@attempt,.@attempt+1;
+		set .@fail,.@fail+10;
+		delitem .@pokeball,1;
+		set .@loop,0;
+		break;
+		}
+		mes "[Catching Pokemon]";
+		mes "You dont have Pokeball left, choose other ball";
+		next;
+		set .@loop,0;
+		break;
+		case 2:
+		if ( countitem(.@greatball)){
+		mes "[Catching Pokemon]";
+		mes "Catching rate: ^FF00005%^000000";
+		mes "Catch Attempt : "+.@attempt+" times";
+		mes "Increase catching chance by : "+callfunc("DivToDecimal",.@fail,100)+"%";
+		next;
+		if (rand(1,10000) <= (500 + .@fail)){
+		set .@attempt,.@attempt+1;
+		delitem .@greatball,1;
+		specialeffect2 EF_TEMP_OK;
+		if ( rand(1,10000) < 1000){	// rolling chance to earn enchanted pokeball
+		getitem2 .@poke_item[.@c],1,1,0,0,0,0,.@rand_skills,.@rand_ivs;
+		}
+		getitem2 .@poke_item[.@c],1,1,0,0,0,0,0,0;
+		if ( rand(1,10000) < 1000) getitem .@evostone,1;	// 10% chance to get evo stone
+		message strcharinfo(0),"You catch "+strmobinfo(1,.@poke_list[.@c])+" with "+.@attempt+" attempts.";
+		announce strcharinfo(0)+ " just catch a "+strmobinfo(1,.@poke_list[.@c]),0,0xFF3399;
+		donpcevent strnpcinfo(0)+"::OnDead";
+		close;
+		}
+		set .@attempt,.@attempt+1;
+		set .@fail,.@fail+10;
+		delitem .@greatball,1;
+		set .@loop,0;
+		break;
+		}
+		mes "[Catching Pokemon]";
+		mes "You dont have Greatball left, choose other ball";
+		next;
+		set .@loop,0;
+		break;
+		case 3:
+		if ( countitem(.@ultraball)){
+		mes "[Catching Pokemon]";
+		mes "Catching rate: ^FF000010%^000000";
+		mes "Catch Attempt : "+.@attempt+" times";
+		mes "Increase catching chance by : "+callfunc("DivToDecimal",.@fail,100)+"%";
+		next;
+		if (rand(1,10000) <= (1000 + .@fail)){
+		set .@attempt,.@attempt+1;
+		delitem .@ultraball,1;
+		specialeffect2 EF_TEMP_OK;
+		if ( rand(1,10000) < 1000){	// rolling chance to earn enchanted pokeball
+		getitem2 .@poke_item[.@c],1,1,0,0,0,0,.@rand_skills,.@rand_ivs;
+		}
+		getitem2 .@poke_item[.@c],1,1,0,0,0,0,0,0;
+		if ( rand(1,10000) < 1000) getitem .@evostone,1;	// 10% chance to get evo stone
+		message strcharinfo(0),"You catch "+strmobinfo(1,.@poke_list[.@c])+" with "+.@attempt+" attempts.";
+		announce strcharinfo(0)+ " just catch a "+strmobinfo(1,.@poke_list[.@c]),0,0xFF3399;
+		donpcevent strnpcinfo(0)+"::OnDead";
+		close;
+		}
+		set .@attempt,.@attempt+1;
+		set .@fail,.@fail+10;
+		delitem .@ultraball,1;
+		set .@loop,0;
+		break;
+		}
+		mes "[Catching Pokemon]";
+		mes "You dont have Ultraball left, choose other ball";
+		next;
+		set .@loop,0;
+		break;
+		case 4:
+		if ( countitem(.@masterball)){
+		mes "[Catching Pokemon]";
+		mes "Catching rate: ^FF0000100%^000000";
+		next;
+		delitem .@masterball,1;
+		specialeffect2 EF_TEMP_OK;
+		if ( rand(1,10000) < 1000){	// rolling chance to earn enchanted pokeball
+		getitem2 .@poke_item[.@c],1,1,0,0,0,0,.@rand_skills,.@rand_ivs;
+		}
+		getitem2 .@poke_item[.@c],1,1,0,0,0,0,0,0;
+		if ( rand(1,10000) < 1000) getitem .@evostone,1;	// 10% chance to get evo stone
+		message strcharinfo(0),"You catch "+strmobinfo(1,.@poke_list[.@c])+" with "+.@attempt+" attempts.";
+		announce strcharinfo(0)+ " just catch a "+strmobinfo(1,.@poke_list[.@c]),0,0xFF3399;
+		donpcevent strnpcinfo(0)+"::OnDead";
+		close;
+		}
+		mes "[Catching Pokemon]";
+		mes "You dont have Master ball left, choose other ball";
+		next;
+		set .@loop,0;
+		break;
+		}
+	}
+	}
+	}
+	end;
+
+OnDead:
+		// Sleep random time between 60 ~ 80 minutes
+		.@wait = rand(10,30); // ms
+		sleep .@wait * 60 *1000;
+	//	sleep 30000;
+
+		// Resume loop by triggering itself
+		donpcevent "pokesummon::OnInit";
+		end;
+}
+
+function	script	DivToDecimal	{
+	.@x = getarg(0);
+	.@y = getarg(1);
+	
+	.@precision = 2; // The amount of digits to keep after the dot
+	.@mod = pow(10, .@precision);
+	.@left = .@x / .@y;
+	.@right = (.@x * .@mod / .@y) % .@mod;
+	.@result$ = "" + .@left;
+	
+	if (!.@right)
+		return .@result$;
+	
+	// Removes trailing zeroes, for example:
+	// With .@zeroes set to 0, 5 / 2 will output 2.5
+	// With .@zeroes set to 1, 5 / 2 will output 2.50
+	.@zeroes = 0;
+	
+	for (.@i = 0; .@i < .@precision; .@i++) {
+		.@digit = .@right % 10;
+		.@right = .@right / 10;
+		
+		if (!.@zeroes) {
+			if (.@digit == 0)
+				continue;
+			
+			.@output$ = insertchar(.@output$, .@digit + "", 0);
+			.@zeroes = 1;
+		}
+		else {
+			.@output$ = insertchar(.@output$, .@digit + "", 0);
+		}
+	}
+	
+	return .@result$ + "." + .@output$;
+}
+
+/**
+
+CREATE TABLE `pokemon` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `Poke_ID` INT UNSIGNED NOT NULL,          -- monster ID
+  `Poke_Name` VARCHAR(100) NOT NULL,        -- monster name (from strmobinfo)
+  `Spawn_Map` VARCHAR(50) NOT NULL,         -- map where it spawned
+  `spawned_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `poke_idx` (`Poke_ID`),
+  KEY `map_idx` (`Spawn_Map`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+**/

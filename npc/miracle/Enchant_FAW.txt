@@ -1,0 +1,197 @@
+prontera,140,125,3	script	Fallen Luhir	403,{
+disable_items;
+set .@name$,"^0000FF[Dark Luhir]^000000";
+mes .@name$;
+mes "I can enchant "+getitemname( .faw_itemid );
+mes " ";
+mes "Enchant Cost : "+callfunc ("F_InsertComma",.enchant_Zeny)+" Zeny.";
+next;
+if( getequipid( EQI_GARMENT ) == .faw_itemid ){
+
+	.@refine = getequiprefinerycnt( EQI_GARMENT );
+	for( .@i = 0; .@i < 4; .@i++ )
+		.@card[.@i] = getequipcardid( EQI_GARMENT,.@i );
+		
+	switch( select( "Enchant Item","Show Possible Enchants","Reset Enchant" ) ){
+		case 1:
+			if ( Zeny < .enchant_Zeny ){
+			mes .@name$;
+			mes "Not Enough Zeny";
+			mes "You need ^FF0000"+callfunc ("F_InsertComma",.enchant_Zeny)+"^000000 Zeny.";
+			close;
+			}
+			mes .@name$;
+			mes "Pick a slot to enchant.";
+			mes "You may enchant more slot when you have higher refine.";
+			mes "Enchant Cost : "+callfunc ("F_InsertComma",.enchant_Zeny)+" Silvervine Fruit.";
+			mes "^777777( min. refine = 6 or 7 or 9 )^000000";
+			.@slot = select(
+				( .@card[1] || .@refine < 6 )?"":"Enchant Slot 1",
+				( .@card[2] || .@refine < 7 )?"":"Enchant Slot 2",
+				( .@card[3] || .@refine < 9 )?"":"Enchant Slot 3",
+				"Cancel"
+			);
+			if( .@slot < 4 ){
+				next;
+				mes .@name$;
+				mes "Pick Enchant Type";
+				.@type = select( .enchant_type_menu$ ) - 1;
+				.@size = .enchant_list_size[.@type];
+				if( .@size ){
+					copyarray .@enchant_list[0],getd( ".enchant_list_"+( .@type+1 )+"[0]" ),.@size;
+					if( .@refine >= 9 ){
+						.@enchant_list[.@size] = .special_enchant[.@type];
+						.@size++;
+					}
+					if( rand( 100 ) < .success_rate ){
+						setd( ".@card["+.@slot+"]" ),.@enchant_list[ rand( .@size ) ];
+						Zeny = Zeny - .enchant_Zeny;
+					//	delitem 6417,.enchant_Zeny;
+						delequip EQI_GARMENT;
+						mes "...";
+						mes "Done, success to enchant the item.";
+						getitem2 .faw_itemid,1,1,.@refine,0,.@card[0],.@card[1],.@card[2],.@card[3];
+						equip .faw_itemid;
+					}else{
+					//	delitem 6417,.enchant_Zeny;
+						Zeny = Zeny - .enchant_Zeny;
+						mes "...";
+						mes "Too bad, failed to enchant the item.";
+					}
+				}
+			}
+			break;
+		case 2: 
+		next; 
+		mes .@name$; mes "Select an enchant category."; 
+		.@type = select(.enchant_type_menu$) - 1; 
+		next; 
+		mes .@name$; 
+		mes "^00AA00"+.enchant_type$[.@type]+" Enchants^000000"; 
+		mes " "; 
+		//================================================== 
+		// NORMAL ENCHANTS 
+		//================================================== 
+		.@size = .enchant_list_size[.@type]; 
+		if( .@size ){ 
+		mes "^777777Possible Enchants:^000000"; 
+		for( .@i = 0; .@i < .@size; .@i++ ){ 
+		.@item_id = getd( ".enchant_list_"+(.@type+1)+"["+.@i+"]" ); 
+		mes "• "+getitemname(.@item_id); 
+		} 
+		} 
+		//================================================== 
+		// SPECIAL ENCHANT 
+		//================================================== 
+		mes " "; 
+		if( .@refine >= 9 ){ 
+		mes "^FF8800Special Enchant (Refine 9+):^000000"; 
+		mes "• "+getitemname(.special_enchant[.@type]); 
+		}else{ 
+		mes "^777777Special Enchant:^000000"; 
+		mes "^777777Requires Refine 9 or higher.^000000"; 
+		mes "^777777• "+getitemname(.special_enchant[.@type])+"^000000"; 
+		} 
+		next; 
+		mes .@name$; 
+		mes "This category can randomly give"; 
+		mes "one of the enchants shown above."; 
+		mes " "; 
+		mes "Success Rate : ^00AA00"+.success_rate+"%^000000"; 
+		mes " "; 
+		mes "Refine 9 or higher unlocks"; 
+		mes "the special enchant."; 
+		close;
+		case 3:
+			mes .@name$;
+			mes "You need "+callfunc ("F_InsertComma",.enchant_reset_Zeny)+" Zeny.";
+			if( Zeny >= .enchant_reset_Zeny ){
+				next;
+				if( select( "Confirm to reset all enchant ??","Cancel" ) == 1 ){
+					if( !.@card[1] && !.@card[2] && !.@card[3] ){
+						mes .@name$;
+						mes "Your item didnt have any enchanted item.";
+					}else{
+						mes .@name$;
+					//	delitem 6417,.enchant_reset_Zeny;
+						Zeny -= .enchant_reset_Zeny;
+						delequip EQI_GARMENT;
+						getitem2 .faw_itemid,1,1,.@refine,0,.@card[0],0,0,0;
+						equip .faw_itemid;
+						mes "Done removed all enchanted item.";
+					}
+				}
+			}
+		default: break;
+	}
+	
+}else{
+	mes .@name$;
+	mes "Make sure you equiped with "+mesitemlink( .faw_itemid );
+}
+close;
+
+
+OnInit:
+// FAW item id
+.faw_itemid = 2589;
+
+// enchant success rate
+.success_rate = 30;
+
+// enchant cost
+.enchant_Zeny = 1000000;
+//.enchant_Zeny = 2;
+
+
+// enchant reset cost
+.enchant_reset_Zeny = 2000000;
+//.enchant_reset_Zeny = 20;
+
+// enchant type category
+setarray .enchant_type$,"Fighting","Magic","Archer","Critical","MaxHP","MaxSP","ASPD","STR","AGI","DEX","VIT","INT","LUK";
+
+// enchant list ( Fighting Spirit )
+setarray .enchant_list_1,4820,4821,4822,4823,4824;
+// enchant list ( Magic )
+setarray .enchant_list_2,4826,4827,4828,4829,4830;
+// enchant list ( Archer )
+setarray .enchant_list_3,4836,4837,4838,4839,4840;
+// enchant list ( Critical )
+setarray .enchant_list_4,4863,4864,4865;
+// enchant list ( Max HP )
+setarray .enchant_list_5,4861,4862,4867,4868;
+// enchant list ( Max SP )
+setarray .enchant_list_6,4870,4871;
+// enchant list ( ASPD )
+setarray .enchant_list_7,4807,4842;
+// enchant list ( STR )
+setarray .enchant_list_8,4702,4703,4704,4705,4706,4707,4708,4709;
+// enchant list ( AGI )
+setarray .enchant_list_9,4732,4733,4734,4735,4736,4737,4738,4739;
+// enchant list ( DEX )
+setarray .enchant_list_10,4722,4723,4724,4725,4726,4727,4728,4729;
+// enchant list ( VIT )
+setarray .enchant_list_11,4742,4743,4744,4745,4746,4747,4748,4749;
+// enchant list ( INT )
+setarray .enchant_list_12,4712,4713,4714,4715,4716,4717,4718,4719;
+// enchant list ( LUK )
+setarray .enchant_list_13,4752,4753,4754,4755,4756,4757,4758,4759;
+
+// extra 1 special enchant for 3rd slot if refine above 9 ( follow by category sequences )
+setarray .special_enchant,4825,4831,4841,4866,4900,4801,4807,4853,4854,4857,4855,4856,4858;
+
+
+.enchant_type_size = getarraysize( .enchant_type$ );
+for( .@i = 0; .@i < .enchant_type_size; .@i++ ){
+	.enchant_list_size[.@i] = getarraysize( getd( ".enchant_list_"+( .@i+1 ) ) );
+	if( !.enchant_list_size[.@i] ){
+		.enchant_type$[.@i] = "";
+	}
+	else{
+		.enchant_type_menu$ = .enchant_type_menu$ + .enchant_type$[.@i];
+	}
+	.enchant_type_menu$ = .enchant_type_menu$ + ":";
+}
+end;
+}

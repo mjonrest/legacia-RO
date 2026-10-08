@@ -1,0 +1,1349 @@
+//===== rAthena script ===========================================|
+//= Garden of Time - Hall of Life                                =|
+//===== By: ======================================================|
+//= crazyarashi                                                  =|
+//===== Current Version: =========================================|
+//= 1.0 Initial Version                                          =|
+//================================================================|
+
+-	script	hol_rewards	-1,{
+	end;
+	
+OnHour04:
+	if ( gettime(DT_DAYOFWEEK) == MONDAY ) {
+	OnReset:
+		$last_hol_reset = gettimetick(2);
+		deletearray $hol_aid;
+	}
+end;
+
+OnInit:
+	if ( (gettimetick(2) - $last_hol_reset) >= 604800 )
+		//Force reset if the server was offline on monday 4 am or initial load
+		donpcevent strnpcinfo(0) + "::OnReset";
+end;
+}
+
+function	script	hol_reward	{
+	.@level = getarg(0);
+	if ( .@level < 1 ) {
+		errormes "hol_rewards : Something went wrong.";
+		end;
+	}
+	switch ( checkquest(12612, PLAYTIME) ) {
+		case -1:
+			break;
+		case 0:
+		case 1:
+			mes "You already received your rewards for defeating the highest level prisoner you have fought, you are free to enter the prison at will but won't be given additional rewards.";
+			close;
+		case 2:
+			erasequest 12612;
+			break;
+	}
+	if ( inarray($hol_aid, getcharid(3)) != -1 ) {
+		mes "You already received your rewards for defeating the highest level prisoner you have fought, you are free to enter the prison at will but won't be given additional rewards.";
+		close;
+	}
+	switch (.@level ) {
+		case 1:
+			setarray .@rewards$, "Circul_Of_Life";
+			setarray .@amount, 15;
+			break;
+		case 2:
+			setarray .@rewards$, "Circul_Of_Life", "Fruit_Of_Birth", "Fruit_Of_Extinction";
+			setarray .@amount, 23, 8, 8;
+			break;
+		case 3:
+			setarray .@rewards$, "Circul_Of_Life", "Fruit_Of_Birth", "Fruit_Of_Extinction";
+			setarray .@amount, 32, 15, 15;
+			break;
+		case 4:
+			setarray .@rewards$, "Circul_Of_Life", "Fruit_Of_Birth", "Fruit_Of_Extinction";
+			setarray .@amount, 41, 20, 20;
+			break;
+		case 5:
+			setarray .@rewards$, "Circul_Of_Life", "Fruit_Of_Birth", "Fruit_Of_Extinction";
+			setarray .@amount, 52, 25, 25;
+			break;
+		case 6:
+			setarray .@rewards$, "Circul_Of_Life", "Fruit_Of_Birth", "Fruit_Of_Extinction", "Truth_Of_Life";
+			setarray .@amount, 58, 27, 27, 5;
+			break;
+		case 7:
+			setarray .@rewards$, "Circul_Of_Life", "Fruit_Of_Birth", "Fruit_Of_Extinction", "Truth_Of_Life";
+			setarray .@amount, 61, 30, 30, 12;
+			break;
+		case 8:
+			setarray .@rewards$, "Circul_Of_Life", "Fruit_Of_Birth", "Fruit_Of_Extinction", "Truth_Of_Life", "Light_Of_Life";
+			setarray .@amount, 68, 34, 34, 20, 5;
+			break;
+		case 9:
+			setarray .@rewards$, "Circul_Of_Life", "Fruit_Of_Birth", "Fruit_Of_Extinction", "Truth_Of_Life", "Light_Of_Life", "Genesis_Of_Life", "R_Outside_Rune";
+			setarray .@amount, 78, 38, 38, 22, 6, 1, 3;
+			break;
+		case 10:
+			setarray .@rewards$, "Circul_Of_Life", "Fruit_Of_Birth", "Fruit_Of_Extinction", "Truth_Of_Life", "Light_Of_Life", "Genesis_Of_Life", "R_Outside_Rune";
+			setarray .@amount, 87, 43, 43, 24, 8, 3, 5;
+			break;
+		case 11:
+			setarray .@rewards$, "Circul_Of_Life", "Fruit_Of_Birth", "Fruit_Of_Extinction", "Truth_Of_Life", "Light_Of_Life", "Genesis_Of_Life", "R_Outside_Rune";
+			setarray .@amount, 98, 48, 48, 26, 9, 5, 6;
+			break;
+		case 12:
+			setarray .@rewards$, "Circul_Of_Life", "Fruit_Of_Birth", "Fruit_Of_Extinction", "Truth_Of_Life", "Light_Of_Life", "Genesis_Of_Life", "R_Outside_Rune";
+			setarray .@amount, 111, 54, 54, 29, 10, 7, 9;
+			break;
+		case 13:
+			setarray .@rewards$, "Circul_Of_Life", "Fruit_Of_Birth", "Fruit_Of_Extinction", "Truth_Of_Life", "Light_Of_Life", "Genesis_Of_Life", "R_Outside_Rune";
+			setarray .@amount, 125, 60, 60, 32, 11, 8, 10;
+			break;
+		//TODO add case 14~20, I only have data up to level 13
+	}
+	setquest 12612;
+	array_push($hol_aid, getcharid(3));
+	for ( .@i = 0; .@i < getarraysize(.@rewards$); ++.@i ) {
+		getitem .@rewards$[.@i], .@amount[.@i];
+		mes mesitemlink(.@rewards$[.@i], true) + " - " + .@amount[.@i];
+	}
+	mes "==============================";
+	mes "Every unauthorized items posessed by the Dimensional Prisoner has been confiscated and will act as a reward for dealing with the Dimensional Prisoner with a level " + .@level + " barrier released.";
+	close;
+}
+
+1@ba_go,1,1,0	script	hol_control	-1,{
+	end;
+	
+OnInstanceInit:
+	set_instance_var("map$", instance_mapname("1@ba_go"));
+	set_instance_var("control", 0);
+	set_instance_var("event", 0);
+	set_instance_var("gid", 0);
+	set_instance_var("level", 0);
+	set_instance_var("sanc_check", 0);
+	set_instance_var("net", 0);
+	set_instance_var("disabled", 0);
+end;
+
+OnEvent:
+	.@event = inc_instance_var("event");
+	switch ( .@event ) {
+		case 1:
+			inc_instance_var("control");
+			//Party count check
+			.@party_id = getcharid(1);
+			getpartymember .@party_id,0;
+			getpartymember .@party_id,1;
+			getpartymember .@party_id,2;
+			set_instance_var("party_id",.@party_id);
+			.@count = $@partymembercount;
+			if(.@count > 0){
+				.@map$ = get_instance_var("map$");
+				for ( .@i = 0; .@i < $@partymembercount; .@i++ ){
+					if(!isloggedin($@partymemberaid[.@i],$@partymembercid[.@i])) continue;
+					if(strcharinfo(3,$@partymembercid[.@i]) != .@map$) continue;
+					.@cid[.@x] = $@partymembercid[.@i];
+					.@aid[.@x] = $@partymemberaid[.@i];
+					.@name$[.@x] = $@partymembername$[.@i];
+					.@x++;
+				}
+			}
+			set_instance_var("count",.@x);
+			for ( .@i = 0; .@i < .@x; .@i++ ) {
+				set_instance_var("cid_" + .@i,.@cid[.@i]);
+				set_instance_var("aid_" + .@i,.@aid[.@i]);
+				set_instance_var("name_" + .@i + "$",.@name$[.@i]);
+			}
+			npctalk "You have been deceived. I don't know what she told you outside of this prison, but I am not a fake.", instance_npcname("#inter_con");
+			sleep 5000;
+			npctalk "But it seems you won't stop at that. I do not wish to harm you, but I have no choice. I won't be able to control my power.", instance_npcname("#inter_con");
+			sleep 5000;
+			instance_enable("#inter_con", false);
+			//The actual name of rigel doesn't fit the max chars for names
+			//monster get_instance_var("map$"), 54, 55, "Dimensional Criminal Rigel", 22175, 1, instance_npcname(strnpcinfo(0)) + "::OnFirstPhaseKill";
+			monster get_instance_var("map$"), 54, 55, "Criminal Rigel", 22175, 1, instance_npcname(strnpcinfo(0)) + "::OnEvent";
+			set_instance_var("gid", $@mobid[0]);
+			instance_event(strnpcinfo(0), "OnSetDifficulty", false);
+			initnpctimer instance_npcname("hol_count_check");
+			initnpctimer instance_npcname("hol_season_skills");
+			initnpctimer instance_npcname("hol_heal");
+			initnpctimer instance_npcname("hol_portals");
+			initnpctimer instance_npcname("hol_dead_check");
+			initnpctimer instance_npcname("hol_boss_clear");
+			initnpctimer instance_npcname("hol_boss_seed");
+	//		initnpctimer instance_npcname("hol_leave_tracker");  // <--- ADD THIS LINE
+			unittalk get_instance_var("gid"), "Energy of Life, flow in this place...";
+			break;
+		case 2:
+			inc_instance_var("phase");
+			set_instance_var("disabled", false);
+			stopnpctimer instance_npcname("hol_count_check");
+			stopnpctimer instance_npcname("hol_dead_check");
+			stopnpctimer instance_npcname("hol_season_skills");
+			stopnpctimer instance_npcname("hol_heal");
+			stopnpctimer instance_npcname("hol_portals");
+			stopnpctimer instance_npcname("hol_net");
+			stopnpctimer instance_npcname("hol_dimension");
+			stopnpctimer instance_npcname("hol_dimension_skills");
+			stopnpctimer instance_npcname("hol_boss_clear");
+			stopnpctimer instance_npcname("hol_boss_seed");
+			killmonster get_instance_var("map$"), instance_npcname("hol_net") + "::OnSkillDead";
+			instance_warpall get_instance_var("map$"),54,49,instance_id(),IWA_NOTDEAD;
+			instance_enable("#inter_con", true);
+			sleep 2000;
+			npctalk "You won't be able to kill the Constellation of Life by just doing this.", instance_npcname("#inter_con");
+			sleep 5000;
+			npctalk "You are dying for the sake of a half-real. Someday you will come to understand the true meaning of my words.", instance_npcname("#inter_con");
+			sleep 5000;
+			instance_enable("#inter_con", false);
+			monster get_instance_var("map$"), 54, 55, "Criminal Rigel", 22174, 1, instance_npcname(strnpcinfo(0)) + "::OnEvent";
+			set_instance_var("gid", $@mobid[0]);
+			instance_event(strnpcinfo(0), "OnSetDifficulty", false);
+			initnpctimer instance_npcname("hol_count_check");
+			initnpctimer instance_npcname("hol_dead_check");
+			initnpctimer instance_npcname("hol_season_skills");
+			initnpctimer instance_npcname("hol_heal");
+			initnpctimer instance_npcname("hol_sanctuary");
+			initnpctimer instance_npcname("hol_boss_clear");
+			initnpctimer instance_npcname("hol_boss_seed");
+			instance_event("hol_net", "OnSummon", false);
+			break;
+		case 3:
+			instance_enable("#inter_con", false);
+			killmonster get_instance_var("map$"), instance_npcname("hol_net") + "::OnSkillDead";
+			stopnpctimer instance_npcname("hol_count_check");
+			stopnpctimer instance_npcname("hol_dead_check");
+			stopnpctimer instance_npcname("hol_season_skills");
+			stopnpctimer instance_npcname("hol_heal");
+			stopnpctimer instance_npcname("hol_sanctuary");
+			stopnpctimer instance_npcname("hol_boss_clear");
+			stopnpctimer instance_npcname("hol_boss_seed");
+			set_instance_var("cleared", true);
+			instance_enable("#hol_reward_npc", true);
+			break;
+	}
+end;
+
+OnSetDifficulty:
+	.@level = get_instance_var("level");
+	if ( .@level <= 5 ) {
+		.@sl = 2;
+		.@heal = 4;
+		.@g = 2;
+		.@sanc = 15;
+		.@bomb = 2;
+	}
+	else if ( .@level < 10 ) {
+		.@heal = 5;
+		.@sl = 3;
+		.@g = 3;
+		.@sanc = 15;
+		.@bomb = 3;
+	}
+	else if ( .@level < 15 ) {
+		.@heal = 5;
+		.@sl = 4;
+		.@g = 4;
+		.@sanc = 10;
+		.@bomb = 5;
+	}
+	else if ( .@level < 18 ) {
+		.@heal = 7;
+		.@sl = 5;
+		.@g = 5;
+		.@sanc = 10;
+		.@bomb = 6;
+	}
+	else {
+		.@heal = 10;
+		.@sl = 5;
+		.@g = 6;
+		.@sanc = 7;
+		.@bomb = 7;
+	}
+	.@gid = get_instance_var("gid");
+	set_instance_var("heal", .@heal);
+	set_instance_var("trap_sl", .@sl);
+	set_instance_var("sanc", .@sanc);
+	set_instance_var("bomb", .@bomb);
+	if ( !unitexists(.@gid) ) end;
+	unitskilluseid .@gid, "NPC_RELIEVE_ON", .@g;
+	getunitdata .@gid, .@data;
+	if ( !get_instance_var("phase") )
+		.@base_hp = 450000000 + (50000000 * .@level);
+	else
+		.@base_hp = 100000000 + (50000000 * .@level);
+	set_instance_var("base_hp", .@base_hp);
+	setunitdata .@gid, UMOB_MAXHP, .@base_hp;
+	setunitdata .@gid, UMOB_HP, .@base_hp;
+	setunitdata .@gid, UMOB_RES, .@data[UMOB_RES] + (200 * .@level);
+	setunitdata .@gid, UMOB_MRES, .@data[UMOB_MRES] + (200 * .@level);
+	setunitdata .@gid, UMOB_STR, .@data[UMOB_STR] + (10 * .@level);
+	setunitdata .@gid, UMOB_AGI, .@data[UMOB_AGI] + (10 * .@level);
+	setunitdata .@gid, UMOB_VIT, .@data[UMOB_VIT] + (10 * .@level);
+	setunitdata .@gid, UMOB_INT, .@data[UMOB_INT] + (20 * .@level);
+	setunitdata .@gid, UMOB_DEX, .@data[UMOB_DEX] + (20 * .@level);
+	setunitdata .@gid, UMOB_LUK, .@data[UMOB_LUK] + (20 * .@level);
+	.@atk_min = min(.@data[UMOB_ATKMIN] + (3000 * .@level), 65000);
+	.@atk_max = min(.@data[UMOB_ATKMAX] + (3000 * .@level), 65000);
+	.@matk_min = min(.@data[UMOB_MATKMIN] + (3000 * .@level), 65000);
+	.@matk_max = min(.@data[UMOB_MATKMAX] + (3000 * .@level), 65000);
+	setunitdata .@gid, UMOB_ATKMIN, .@atk_min;
+	setunitdata .@gid, UMOB_ATKMAX, .@atk_max;
+	setunitdata .@gid, UMOB_MATKMIN, .@matk_min;
+	setunitdata .@gid, UMOB_MATKMAX, .@matk_max;
+	set_instance_var("a_min", .@atk_min);
+	set_instance_var("a_max", .@atk_max);
+	set_instance_var("m_min", .@matk_min);
+	set_instance_var("m_max", .@matk_max);
+//	unitskilluseid .@gid, 771, 10;	// NPC_RELIEVE_ON
+end;
+
+OnTouchTrap:
+	.@gid = get_instance_var("gid");
+	if ( !unitexists(.@gid) ) end;
+	unittalk .@gid, "Your mistake is only making me stronger.";
+	getunitdata .@gid, .@data;
+	.@bonus = 3000 + (200 * .@level);
+	//Cap to 65k to avoid being broken
+	.@HEAL = .@data[UMOB_HP] + ((10 * get_instance_var("base_hp")) / 100);
+	setunitdata .@gid, UMOB_HP, min( .@HEAL, get_instance_var("base_hp") );
+	setunitdata .@gid, UMOB_ATKMIN, min(.@data[UMOB_ATKMIN] + .@bonus, 65000);
+	setunitdata .@gid, UMOB_ATKMAX, min(.@data[UMOB_ATKMAX] + .@bonus, 65000);
+	setunitdata .@gid, UMOB_MATKMIN, min(.@data[UMOB_MATKMIN] + .@bonus, 65000);
+	setunitdata .@gid, UMOB_MATKMAX, min(.@data[UMOB_MATKMAX] + .@bonus, 65000);
+end;
+}
+
+1@ba_go,54,55,4	script	#inter_con	MD_PRI_RIGEL,1,1,{
+	if ( !is_party_leader() ) {
+		end;
+	}
+	if ( !get_instance_var("control") ) {
+		inc_instance_var("control");
+		mes "The dimensional criminal before you looks identical to Rigel, the Constellation of Life. Bring the Constellation Blessing closer and Resonate it to the sealing barrier.";
+		next;
+	} 
+	if ( get_instance_var("control") == 1 ) {
+		if ( getequipid(EQI_HEAD_LOW) != 420231 ) {
+			mes "^ff0000You cannot interact with it without equipping the Constellation Blessing.^000000";
+			close;
+		}
+		.@id = getequipcardid(EQI_HEAD_LOW, 3);
+		.@level = .@id - 312452;
+		.@menu$ = "Cancel:";
+		for ( .@i = 1; .@i <= .@level; ++.@i )
+			.@menu$ += "Release Level " + .@i + " Barrier" + ":";
+		.@s = select(.@menu$) - 1;
+		if ( !.@s )
+			end;
+		set_instance_var("level", .@s);
+		instance_event("hol_control", "OnEvent", true);
+	}
+	end;
+}
+
+
+1@ba_go,1,1,0	script	hol_boss_clear	-1,{
+OnTimer6000:
+	stopnpctimer;
+	.@gid = get_instance_var("gid");
+	if ( !unitexists(.@gid) || get_instance_var("disabled") ) end;
+	unitskilluseid .@gid, "NPC_RESET_EFST", 1, .@gid;
+	initnpctimer;
+end;
+}
+
+1@ba_go,1,1,0	script	hol_boss_seed	-1,{
+OnTimer5000:
+	stopnpctimer;
+	.@gid = get_instance_var("gid");
+	if ( !unitexists(.@gid) || get_instance_var("disabled") ) end;
+	getunitdata .@gid, .@data;
+	.@x = .@data[UMOB_X];
+	.@y = .@data[UMOB_Y];
+	.@size = getareaunits(BL_PC, get_instance_var("map$"), .@x - 10, .@y - 10, .@x + 10, .@y + 10, .@pc$);
+	if ( .@size ) {
+		.@bomb = get_instance_var("bomb");
+		for ( .@i = 0; .@i < rand( (.@bomb - 1), .@bomb ); ++.@i ) {
+			if ( !unitexists(.@gid) || get_instance_var("disabled") ) end;
+			if ( .@size == 1 )
+				.@target$ = .@pc$[0];
+			else
+				.@target$ = .@pc$[rand(.@size)];
+			getmapxy(.@m$, .@tx, .@ty, BL_PC, .@target$);
+			if ( .@m$ != get_instance_var("map$") ) continue;
+			unitskillusepos .@gid, "NPC_SEEDTRAP", 4, .@tx, .@ty;
+			sleep 100;
+		}
+	}
+	initnpctimer;
+end;
+}
+
+1@ba_go,1,1,0	script	hol_heal	-1,{
+OnTimer5000:
+	stopnpctimer;
+	function boss_exist;
+	boss_exist();
+	.@gid = get_instance_var("gid");
+	getunitdata .@gid, .@data;
+	.@HEAL = .@data[UMOB_HP] + ((get_instance_var("heal") * get_instance_var("base_hp")) / 100);
+	boss_exist();
+	setunitdata .@gid, UMOB_HP, min( .@HEAL, get_instance_var("base_hp") );
+	boss_exist();
+	initnpctimer;
+end;
+
+function	boss_exist	{
+	if ( !unitexists( get_instance_var("gid") ) )
+		end;
+	return;
+}
+
+}
+
+1@ba_go,1,1,0	script	hol_season_skills	-1,{
+OnTimer1000:
+	stopnpctimer;
+	function stop_check;
+	stop_check();
+	instance_event(strnpcinfo(0), "OnSkill", false);
+end;
+
+OnSkill:
+	function stop_check;
+	stop_check();
+	.@gid = get_instance_var("gid");
+	.@map$ = get_instance_var("map$");
+	deletearray 'barrier;
+	// The area is completely random no specific pattern
+	switch ( rand(1,2) ) {
+		case 1:
+			.@c = 30;
+			for ( .@i = 0; .@i < .@c; ++.@i ) {
+				stop_check();
+				areamonster .@map$, 35, 30, 73, 68, "", 22184, 1, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+				'barrier[.@i] = $@mobid[0];
+				setunitdata $@mobid[0], UMOB_DMGIMMUNE, true;
+			}
+			break;
+		case 2:
+			if ( rand(1,2) == 1 )
+				setarray .@y, 46, 51, 56, 61, 66;
+			else
+				setarray .@y, 32, 37, 42, 47, 52;
+			.@c = 40;
+			for ( .@x = .@i = 0; .@i < 8; ++.@i ) {
+				stop_check();
+				monster .@map$, 37 + (.@i * 5), .@y[0], "", 22184, 1, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+				'barrier[.@x] = $@mobid[0]; .@x++;
+				setunitdata $@mobid[0], UMOB_DMGIMMUNE, true;
+				monster .@map$, 37 + (.@i * 5), .@y[1], "", 22184, 1, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+				'barrier[.@x] = $@mobid[0]; .@x++;
+				setunitdata $@mobid[0], UMOB_DMGIMMUNE, true;
+				monster .@map$, 37 + (.@i * 5), .@y[2], "", 22184, 1, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+				'barrier[.@x] = $@mobid[0]; .@x++;
+				setunitdata $@mobid[0], UMOB_DMGIMMUNE, true;
+				monster .@map$, 37 + (.@i * 5), .@y[3], "", 22184, 1, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+				'barrier[.@x] = $@mobid[0]; .@x++;
+				setunitdata $@mobid[0], UMOB_DMGIMMUNE, true;
+				monster .@map$, 37 + (.@i * 5), .@y[4], "", 22184, 1, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+				'barrier[.@x] = $@mobid[0]; .@x++;
+				setunitdata $@mobid[0], UMOB_DMGIMMUNE, true;
+			}
+			break;
+	}
+	sleep 3000;
+	stop_check();
+	for ( .@i = 0; .@i < .@c; ++.@i ) {
+		if ( !unitexists('barrier[.@i]) ) continue;
+		specialeffect2 EF_BOTTOM_BASILICA, AREA, 'barrier[.@i];
+	}
+	sleep 1000;
+	stop_check();
+	for ( .@i = 0; .@i < .@c; ++.@i ) {
+		if ( !unitexists('barrier[.@i]) ) continue;
+		unitskilluseid 'barrier[.@i], "NPC_INVISIBLE", 1, $@mobid[0], -10000;
+		unitskilluseid 'barrier[.@i], "NPC_TARGET_MARKER", 2, 'barrier[.@i], -10000, false, false, true;
+		setunitdata 'barrier[.@i], UMOB_CLASS, 2337;
+	}
+	killmonster .@map$, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+	.@sl = get_instance_var("trap_sl");
+	setarray .@block, 47, 40, 47, 58, 66, 40, 66, 58;
+	switch( rand(1,3) ) {
+		case 1:
+			.@skill$ = "NPC_AIMED_SHOWER";
+			sleep 5000;
+			break;
+		case 2:
+			.@skill$ = "NPC_BLAZING_ERUPTION";
+			sleep 5000;
+			break;
+		case 3:
+			sleep 2000;
+			stop_check();
+			for ( .@i = 0; .@i < 8; .@i += 2 ) {
+				stop_check();
+				monster .@map$, .@block[.@i], .@block[.@i+1], "", 2337, 1, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+				setunitdata $@mobid[0], UMOB_DMGIMMUNE, true;
+				setunitdata $@mobid[0], UMOB_STR, 200 + ( get_instance_var("level") * 10 );
+				setunitdata $@mobid[0], UMOB_DEX, 250 + ( get_instance_var("level") * 20 );
+				setunitdata $@mobid[0], UMOB_INT, 200 + ( get_instance_var("level") * 10 );
+				setunitdata $@mobid[0], UMOB_ATKMIN, 5000 + ( get_instance_var("level") * 1000 );
+				setunitdata $@mobid[0], UMOB_ATKMAX, 10000 + ( get_instance_var("level") * 1000 );
+				unitskilluseid $@mobid[0], "NPC_INVISIBLE", 1, $@mobid[0], -10000;
+				unitskilluseid $@mobid[0], "NPC_BLOCK_SEAL", .@sl, $@mobid[0], -10000, false, false, true;
+			}
+			killmonster .@map$, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+			.@skill$ = "NPC_BLOCK_EXPLOSION";
+			sleep 3000;
+			break;	
+	}
+	for ( .@i = 0; .@i < 8; .@i += 2 ) {
+		stop_check();
+		monster .@map$, .@block[.@i], .@block[.@i+1], "", 22184, 1, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+		setunitdata $@mobid[0], UMOB_DMGIMMUNE, true;
+		unitskilluseid $@mobid[0], "NPC_INVISIBLE", 1, $@mobid[0], -10000;
+		unitskilluseid $@mobid[0], .@skill$, .@sl, $@mobid[0], -10000, false, false, true;
+	}
+	killmonster .@map$, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+	initnpctimer;
+end;
+
+function	stop_check	{
+	.@gid = get_instance_var("gid");
+	if ( !unitexists(.@gid) ) {
+		killmonster get_instance_var("map$"), instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+		end;
+	}
+	return true;
+}
+
+OnSkillDead:
+end;
+}
+
+1@ba_go,1,1,0	script	hol_count_check	-1,{
+OnTimer1000:
+	stopnpctimer;
+	.@count = get_instance_var("count");
+	.@map$ = get_instance_var("map$");
+	.@gid = get_instance_var("gid");
+	if ( getmapunits(BL_PC,.@map$) == .@count )
+		initnpctimer;
+	else {
+		while( getmapunits(BL_PC,.@map$) != .@count ) {
+			if(unitexists(.@gid))
+				setunitdata .@gid,UMOB_DMGIMMUNE,true;
+			else
+				break;
+			sleep 100;
+		}
+		if( unitexists(get_instance_var("gid")) )
+			setunitdata .@gid,UMOB_DMGIMMUNE,false;
+		initnpctimer;
+	}
+end;
+}
+
+1@ba_go,1,1,0	script	hol_dead_check	-1,{
+OnTimer1000:
+	stopnpctimer;
+	.@count = get_instance_var("count");
+	.@map$ = get_instance_var("map$");
+	.@gid = get_instance_var("gid");
+	if ( !unitexists(.@gid) ) end;
+	for(.@i = 0; .@i < .@count; .@i++){
+		if ( attachrid(get_instance_var("aid_" + .@i)) ) {
+			if ( Hp < 1 ) {
+				while( Hp < 1 ) {
+					if( !unitexists(.@gid) ) end;
+					setunitdata .@gid,UMOB_DMGIMMUNE,true;
+					instance_announce instance_id(),"A death has occured from the Constellation's attack. Until the dead is revived, an infinite amount of power is granted to the Dimensional Criminal.", BC_MAP, 0xCCFF00;
+					sleep2 2000;
+				}
+				setunitdata .@gid,UMOB_DMGIMMUNE,false;
+			}
+			detachrid;
+		}
+	}
+	initnpctimer;
+end;
+}
+
+1@ba_go,1,1,0	script	hol_portals	-1,{
+OnTimer10000:
+	if ( !unitexists(get_instance_var("gid")) )
+		end;
+	for ( .@i = 1; .@i <= 4; ++.@i ) {
+		instance_enable("#hol_trap_" + .@i, true);
+		instance_event("#hol_trap_" + .@i, "OnWalk", false);
+		setunitdata getnpcid(0,instance_npcname("#hol_trap_" + .@i)), UNPC_LEVEL, 0;
+	}
+end;
+
+OnTimer18000:
+	if ( !unitexists(get_instance_var("gid")) )
+		end;
+	for ( .@i = 5; .@i <= 8; ++.@i ) {
+		instance_enable("#hol_trap_" + .@i, true);
+		instance_event("#hol_trap_" + .@i, "OnWalk", false);
+		setunitdata getnpcid(0,instance_npcname("#hol_trap_" + .@i)), UNPC_LEVEL, 0;
+	}
+end;
+
+OnTimer26000:
+	if ( !unitexists(get_instance_var("gid")) )
+		end;
+	for ( .@i = 9; .@i <= 12; ++.@i ) {
+		instance_enable("#hol_trap_" + .@i, true);
+		instance_event("#hol_trap_" + .@i, "OnWalk", false);
+		setunitdata getnpcid(0,instance_npcname("#hol_trap_" + .@i)), UNPC_LEVEL, 0;
+	}
+	instance_event("hol_dimension", "OnOpen", false);
+	if ( !get_instance_var("net") ) {
+		inc_instance_var("net");
+		instance_event("hol_net", "OnSummon", false);
+	}
+end;
+
+OnTimer34000:
+	if ( !unitexists(get_instance_var("gid")) )
+		end;
+	for ( .@i = 13; .@i <= 16; ++.@i ) {
+		instance_enable("#hol_trap_" + .@i, true);
+		instance_event("#hol_trap_" + .@i, "OnWalk", false);
+		setunitdata getnpcid(0,instance_npcname("#hol_trap_" + .@i)), UNPC_LEVEL, 0;
+	}
+end;
+
+OnTimer42000:
+	if ( !unitexists(get_instance_var("gid")) )
+		end;
+	for ( .@i = 17; .@i <= 20; ++.@i ) {
+		instance_enable("#hol_trap_" + .@i, true);
+		instance_event("#hol_trap_" + .@i, "OnWalk", false);
+		setunitdata getnpcid(0,instance_npcname("#hol_trap_" + .@i)), UNPC_LEVEL, 0;
+	}
+end;
+
+
+OnTimer50000:
+	if ( !unitexists(get_instance_var("gid")) )
+		end;
+	for ( .@i = 21; .@i <= 24; ++.@i ) {
+		instance_enable("#hol_trap_" + .@i, true);
+		instance_event("#hol_trap_" + .@i, "OnWalk", false);
+		setunitdata getnpcid(0,instance_npcname("#hol_trap_" + .@i)), UNPC_LEVEL, 0;
+	}
+end;
+
+OnTimer58000:
+	stopnpctimer;
+	if ( !unitexists(get_instance_var("gid")) )
+		end;
+	for ( .@i = 25; .@i <= 26; ++.@i ) {
+		instance_enable("#hol_trap_" + .@i, true);
+		instance_event("#hol_trap_" + .@i, "OnWalk", false);
+		setunitdata getnpcid(0,instance_npcname("#hol_trap_" + .@i)), UNPC_LEVEL, 0;
+	}
+end;
+}
+
+1@ba_go,1,1,0	script	hol_dimension	-1,{
+OnOpen:
+	//Sanity stop check
+	stopnpctimer;
+	if ( !unitexists(get_instance_var("gid")) ) end;
+	instance_announce instance_id(), "A dimensional portal to an alternate Hall of Life has opened.", BC_BLUE;
+	set_instance_var("dimension", true);
+	instance_enable("#hol_trap_0", true);
+	instance_enable("#bs_summon", true);
+	instance_hide("#bs_summon", true);
+	instance_event(strnpcinfo(0), "OnSummonIllusion", false);
+	initnpctimer instance_npcname("hol_dimension_skills");
+	initnpctimer;
+end;
+
+OnTimer5000:
+	stopnpctimer;
+	function boss_exist;
+	boss_exist();
+	.@size = getareaunits(BL_PC, get_instance_var("map$"), 333, 30, 371, 68, .@pc$);
+	if ( get_instance_var("dimension") == false && .@size == 0 ) {
+		end;
+	}
+	.@gid = get_instance_var("gid");
+	getunitdata .@gid, .@data;
+	.@HEAL = .@data[UMOB_HP] + (((3 + ( 3 * .@size )) * get_instance_var("base_hp")) / 100);
+	boss_exist();
+	setunitdata .@gid, UMOB_HP, min( .@HEAL, get_instance_var("base_hp") );
+	boss_exist();
+	initnpctimer;
+end;
+
+function	boss_exist	{
+	if ( !unitexists( get_instance_var("gid") ) )
+		end;
+	return;
+}
+
+OnSummonIllusion:
+	.@map$ = get_instance_var("map$");
+	.@additional = 2 * (get_instance_var("level")/3);
+	setarray .@xy, 333, 68, 371, 68, 371, 30, 333, 30;
+	for ( .@i = 0; .@i < 8; .@i += 2 ) {
+		monster .@map$, .@xy[.@i], .@xy[.@i+1], "Rigel's Illusion", 22176, 1, instance_npcname(strnpcinfo(0)) + "::OnIllusionDead";
+		hateffect HAT_EF_WHITEBODY, true, $@mobid[0];
+	}
+	for ( .@i = 0; .@i < .@additional; ++.@i ) {
+		areamonster .@map$,333, 30, 371, 68, "Rigel's Illusion", 22176, 1, instance_npcname(strnpcinfo(0)) + "::OnIllusionDead";
+		hateffect HAT_EF_WHITEBODY, true, $@mobid[0];
+	}
+end;
+
+OnIllusionDead:
+	if ( mobcount(get_instance_var("map$"), instance_npcname(strnpcinfo(0)) + "::OnIllusionDead") )
+		end;
+	instance_announce instance_id(), "The Dimensional Criminal Rigel's power is reduced for a short time as a result of the attacked in the other dimension.", BC_MAP, 0xCCFF00;
+	stopnpctimer instance_npcname("hol_portals");
+	for ( .@i = 0; .@i <= 26; ++.@i )
+		instance_enable("#hol_trap_" + .@i, false);
+	set_instance_var("dimension", false);
+	instance_hide("#bs_summon", false);
+	stopnpctimer instance_npcname("hol_heal");
+	stopnpctimer instance_npcname("hol_dimension_skills");
+	stopnpctimer instance_npcname("hol_boss_clear");
+	stopnpctimer instance_npcname("hol_boss_seed");
+	set_instance_var("disabled", true);
+	.@gid = get_instance_var("gid");
+	if ( !unitexists(.@gid) ) end;
+	setunitdata .@gid, UMOB_ATKMIN, get_instance_var("a_min");
+	setunitdata .@gid, UMOB_ATKMAX, get_instance_var("a_max");
+	setunitdata .@gid, UMOB_MATKMIN, get_instance_var("m_min");
+	setunitdata .@gid, UMOB_MATKMAX, get_instance_var("m_max");
+	setunitdata .@gid, UMOB_DAMAGETAKEN, 4100 - ( 200 * get_instance_var("level") );
+	unitskilluseid .@gid, "NPC_GROGGY_ON", 10;
+	initnpctimer instance_npcname("hol_portals");
+	sleep 10000;
+	if ( !unitexists(.@gid) ) end;
+	set_instance_var("disabled", false);
+	setunitdata .@gid, UMOB_DAMAGETAKEN, 100;
+	instance_enable("#bs_summon", false);
+	//TODO START SEED
+	initnpctimer instance_npcname("hol_boss_seed");
+	initnpctimer instance_npcname("hol_boss_clear");
+	initnpctimer instance_npcname("hol_heal");
+end;
+}
+
+1@ba_go,1,1,0	script	hol_dimension_skills	-1,{
+OnTimer1000:
+	stopnpctimer;
+	function stop_check;
+	.@gid = get_instance_var("gid");
+	.@map$ = get_instance_var("map$");
+	specialeffect EF_FREEZING, AREA, instance_npcname("#bs_summon");
+	switch( rand(1,4) ) {
+		case 1:
+			.@center_x = 363;
+			.@center_y = 42;
+			break;
+		case 2:
+			.@center_x = 345;
+			.@center_y = 42;
+			break;
+		case 3:
+			.@center_x = 345;
+			.@center_y = 56;
+			break;
+		case 4:
+			.@center_x = 359;
+			.@center_y = 56;
+			break;	
+	}
+	for (.@dx = -10; .@dx <= 10; .@dx += 5) {
+		for (.@dy = -10; .@dy <= 10; .@dy += 5) {
+			stop_check();
+			monster .@map$, .@center_x + .@dx, .@center_y + .@dy, "", 22184, 1, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+			setunitdata $@mobid[0], UMOB_DMGIMMUNE, true;
+			if (.@dx == 0 && .@dy == 0) {
+				.@center_gid = $@mobid[0];
+				setunitdata .@center_gid, UMOB_INT, 200 + ( get_instance_var("level") * 5 );
+			}
+		}
+	}
+	sleep 2000;
+	stop_check();
+	if ( unitexists(.@center_gid) )
+		unitskilluseid .@center_gid, "NPC_INVISIBLE", 1, .@center_gid, -10000;
+	if ( rand(1,2) == 1 ) {
+		if ( unitexists(.@center_gid) )
+			unitskilluseid .@center_gid, "NPC_FROST_FIELD", 5, .@center_gid, -10000;
+	}
+	else {
+		if ( unitexists(.@center_gid) )
+			unitskilluseid .@center_gid, "NPC_LIGHTNING_JUDGEMENT", 2, .@center_gid, -10000;
+	}
+	killmonster get_instance_var("map$"), instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+	initnpctimer;
+end;
+
+function	stop_check	{
+	.@gid = get_instance_var("gid");
+	if ( !unitexists(.@gid) || get_instance_var("disabled") ) {
+		killmonster get_instance_var("map$"), instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+		end;
+	}
+	return true;
+}
+
+OnSkillDead:
+end;
+}
+
+1@ba_go,1,1,0	script	hol_net	-1,{
+OnSummon:
+	.@map$ = get_instance_var("map$");
+	.@gid = get_instance_var("gid");
+	setarray .@block, 63, 40, 63, 58, 45, 40, 45, 58;
+	killmonster .@map$, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+	deletearray 'net;
+	for ( .@x = .@i = 0; .@i < 8; .@i += 2 ) {
+		if ( !unitexists(.@gid) ) {
+			killmonster get_instance_var("map$"), instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+			end;
+		}
+		monster .@map$, .@block[.@i], .@block[.@i+1], "", 20582, 1, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+		'net[.@x] = $@mobid[0];
+		.@x++;
+		setunitdata $@mobid[0], UMOB_MAXHP, 15000000;
+		setunitdata $@mobid[0], UMOB_HP, 15000000;
+		setunitdata $@mobid[0], UMOB_DEX, 200;
+		setunitdata $@mobid[0], UMOB_STR, 150;
+		setunitdata $@mobid[0], UMOB_INT, 150;
+		setunitdata $@mobid[0], UMOB_AMOTION, 10;
+		setunitdata $@mobid[0], UMOB_ADELAY, 350;
+		setunitdata $@mobid[0], UMOB_ATKRANGE, 8;
+		setunitdata $@mobid[0], UMOB_DAMAGETAKEN, 100;
+		setunitdata $@mobid[0], UMOB_MODE, ( MD_CANATTACK | MD_AGGRESSIVE | MD_STATUSIMMUNE | MD_KNOCKBACKIMMUNE );
+	}
+	initnpctimer;
+end;
+
+OnTimer10000:
+	stopnpctimer;
+	.@gid = get_instance_var("gid");
+	for ( .@i = 0; .@i < 4; ++.@i ) {
+		if ( !unitexists(.@gid) ) {
+			killmonster get_instance_var("map$"), instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+			end;
+		}
+		if ( unitexists('net[.@i]) ) {
+			unitskilluseid 'net[.@i], "NPC_WIDELEASH", 3, 'net[.@i];
+		}
+	}
+	instance_event(strnpcinfo(0), "OnSummon", false);
+end;
+
+OnSkillDead:
+end;
+}
+
+1@ba_go,1,1,0	script	hol_sanctuary	-1,{
+OnTimer3000:
+	stopnpctimer;
+	instance_event(strnpcinfo(0), "OnSanctuary", false);
+end;
+
+OnSanctuary:
+	function stop_check;
+	stop_check();
+	.@gid = get_instance_var("gid");
+	.@map$ = get_instance_var("map$");
+	getunitdata .@gid, .@data;
+	.@center_x = .@data[UMOB_X];
+	.@center_y = .@data[UMOB_Y];
+	set_instance_var("sanc_x", .@center_x);
+	set_instance_var("sanc_y", .@center_y);
+	for (.@dx = -6; .@dx <= 6; .@dx += 2) {
+		for (.@dy = -6; .@dy <= 6; .@dy += 2) {
+			stop_check();
+			monster .@map$, .@center_x + .@dx, .@center_y + .@dy, "", 20562, 1, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+			setunitdata $@mobid[0], UMOB_DMGIMMUNE, true;
+		}
+	}
+	if ( !get_instance_var("sanc_check") ) {
+		inc_instance_var("sanc_check");
+		initnpctimer instance_npcname("hol_sanctuary_check");
+	}
+	sleep (get_instance_var("sanc") * 1000) - 3000;
+	killmonster .@map$, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+	stop_check();
+	initnpctimer;
+end;
+
+function	stop_check	{
+	.@gid = get_instance_var("gid");
+	if ( !unitexists(.@gid) ) {
+		killmonster get_instance_var("map$"), instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+		end;
+	}
+	return true;
+}
+
+OnSkillDead:
+end;
+}
+
+1@ba_go,1,1,0	script	hol_sanctuary_check	-1,{
+OnTimer500:
+	stopnpctimer;
+	.@gid = get_instance_var("gid");
+	if ( !unitexists(.@gid) ) {
+		killmonster get_instance_var("map$"), instance_npcname("hol_sanctuary") + "::OnSkillDead";
+		end;
+	}
+	.@center_x = get_instance_var("sanc_x"); 
+	.@center_y = get_instance_var("sanc_y");
+	getunitdata .@gid, .@data;
+	.@x = .@data[UMOB_X];
+	.@y = .@data[UMOB_Y];
+	while ( .@x >= .@center_x - 6 && .@x <= .@center_x + 6 && .@y >= .@center_y - 6 && .@y <= .@center_y + 6 ) {
+		sleep 10;
+		if ( !unitexists(.@gid) ) {
+			killmonster get_instance_var("map$"), instance_npcname("hol_sanctuary") + "::OnSkillDead";
+			end;
+		}
+		setunitdata .@gid, UMOB_DMGIMMUNE, true;
+		.@center_x = get_instance_var("sanc_x"); 
+		.@center_y = get_instance_var("sanc_y");
+		getunitdata .@gid, .@data;
+		.@x = .@data[UMOB_X];
+		.@y = .@data[UMOB_Y];
+		if ( .@x >= .@center_x - 6 && .@x <= .@center_x + 6 && .@y >= .@center_y - 6 && .@y <= .@center_y + 6 )
+			continue;
+		else {
+			setunitdata .@gid, UMOB_DMGIMMUNE, false;
+			break;
+		}
+	}
+	initnpctimer;
+end;
+}
+
+// traps
+1@ba_go,54,31,5	script(DISABLED)	#hol_trap_1	20TH_GATE_PURPLE_S,1,1,{
+	end;
+	
+OnTouch:
+	.@id = atoi( replacestr(strnpcinfo(2), "hol_trap_", "") );
+	if ( .@id <= 4 ) {
+		.@d = (MaxHp / 5) * get_instance_var("level");
+		specialeffect2 EF_CLAYMORE;
+		specialeffect2 EF_ACIDDEMON;
+		pushpc rand(1,7), rand(2);
+		if ( .@d > Hp )
+			unitkill getcharid(3);
+		else
+			Hp -= .@d;
+		end;
+	}
+	specialeffect2 EF_SUI_EXPLOSION;
+	specialeffect2 EF_ACIDDEMON;
+	pushpc rand(1,7), rand(2);
+	instance_event("hol_control", "OnTouchTrap", false);
+end;
+
+OnWalk:
+	.@id = atoi( replacestr(strnpcinfo(2), "hol_trap_", "") );
+	if ( .@id <= 4 )
+		npcspeed rand(80, 100);
+	else
+		npcspeed rand(130 + ((.@id - 5) * 20), 150 + ((.@id - 5) * 20));
+	.@npc = getnpcid(0,instance_npcname(strnpcinfo(0)));
+	getunitdata .@npc, .@data;
+	switch ( .@id ) {
+		case 1:
+		case 6:
+		case 9:
+		case 14:
+		case 17:
+		case 22:
+			.@x = .@data[UNPC_X];
+			.@type = .@data[UNPC_LEVEL];
+			if ( .@x < 73 && .@x != 35 && !.@type ) {
+				.@v = 1;
+			}
+			else if ( .@x == 73 ) {
+				setunitdata .@npc, UNPC_LEVEL, 1;
+				.@v = -1;
+			}
+			else if ( .@x > 35 && .@x != 73 && .@type ) {
+				.@v = -1;
+			}
+			else if ( .@x == 35 ) {
+				setunitdata .@npc, UNPC_LEVEL, 0;
+				.@v = 1;
+			}
+			unitwalk .@npc, .@data[UNPC_X] + .@v, .@data[UNPC_Y], instance_npcname(strnpcinfo(0)) + "::OnWalk";
+			break;
+		case 2:
+		case 5:
+		case 10:
+		case 13:
+		case 18:
+		case 21:
+		case 25:
+			.@x = .@data[UNPC_X];
+			.@type = .@data[UNPC_LEVEL];
+			if ( .@x > 35 && .@x != 73 && !.@type ) {
+				.@v = -1;
+			}
+			else if ( .@x == 35 ) {
+				setunitdata .@npc, UNPC_LEVEL, 1;
+				.@v = 1;
+			}
+			else if ( .@x < 73 && .@x != 35 && .@type ) {
+				.@v = 1;
+			}
+			else if ( .@x == 73 ) {
+				setunitdata .@npc, UNPC_LEVEL, 0;
+				.@v = -1;
+			}
+			unitwalk .@npc, .@data[UNPC_X] + .@v, .@data[UNPC_Y], instance_npcname(strnpcinfo(0)) + "::OnWalk";
+			break;
+		case 3:
+		case 8:
+		case 11:
+		case 16:
+		case 19:
+		case 24:
+		case 26:
+			.@y = .@data[UNPC_Y];
+			.@type = .@data[UNPC_LEVEL];
+			if ( .@y < 68 && .@y != 30 && !.@type ) {
+				.@v = 1;
+			}
+			else if ( .@y == 68 ) {
+				setunitdata .@npc, UNPC_LEVEL, 1;
+				.@v = -1;
+			}
+			else if ( .@y > 30 && .@y != 68 && .@type ) {
+				.@v = -1;
+			}
+			else if ( .@y == 30 ) {
+				setunitdata .@npc, UNPC_LEVEL, 0;
+				.@v = 1;
+			}
+			unitwalk .@npc, .@data[UNPC_X], .@data[UNPC_Y] + .@v, instance_npcname(strnpcinfo(0)) + "::OnWalk";
+			break;
+		case 4:
+		case 7:
+		case 12:
+		case 15:
+		case 20:
+		case 23:
+			.@y = .@data[UNPC_Y];
+			.@type = .@data[UNPC_LEVEL];
+			if ( .@y > 30 && .@y != 68 && !.@type ) {
+				.@v = -1;
+			}
+			else if ( .@y == 30 ) {
+				setunitdata .@npc, UNPC_LEVEL, 1;
+				.@v = 1;
+			}
+			else if ( .@y < 68 && .@y != 30 && .@type ) {
+				.@v = 1;
+			}
+			else if ( .@y == 68 ) {
+				setunitdata .@npc, UNPC_LEVEL, 0;
+				.@v = -1;
+			}
+			unitwalk .@npc, .@data[UNPC_X], .@data[UNPC_Y] + .@v, instance_npcname(strnpcinfo(0)) + "::OnWalk";
+			break;
+	}
+end;
+}
+
+1@ba_go,54,67,5	duplicate(#hol_trap_1)	#hol_trap_2	20TH_GATE_PURPLE_S,1,1
+1@ba_go,36,49,5	duplicate(#hol_trap_1)	#hol_trap_3	20TH_GATE_PURPLE_S,1,1
+1@ba_go,72,41,5	duplicate(#hol_trap_1)	#hol_trap_4	20TH_GATE_PURPLE_S,1,1
+1@ba_go,54,34,5	duplicate(#hol_trap_1)	#hol_trap_5	20TH_GATE_GREEN_S,1,1
+1@ba_go,54,64,5	duplicate(#hol_trap_1)	#hol_trap_6	20TH_GATE_GREEN_S,1,1
+1@ba_go,39,49,5	duplicate(#hol_trap_1)	#hol_trap_7	20TH_GATE_GREEN_S,1,1
+1@ba_go,69,49,5	duplicate(#hol_trap_1)	#hol_trap_8	20TH_GATE_GREEN_S,1,1
+1@ba_go,54,37,5	duplicate(#hol_trap_1)	#hol_trap_9	20TH_GATE_GREEN_S,1,1
+1@ba_go,54,61,5	duplicate(#hol_trap_1)	#hol_trap_10	20TH_GATE_GREEN_S,1,1
+1@ba_go,42,49,5	duplicate(#hol_trap_1)	#hol_trap_11	20TH_GATE_GREEN_S,1,1
+1@ba_go,66,49,5	duplicate(#hol_trap_1)	#hol_trap_12	20TH_GATE_GREEN_S,1,1
+1@ba_go,54,40,5	duplicate(#hol_trap_1)	#hol_trap_13	20TH_GATE_GREEN_S,1,1
+1@ba_go,54,58,5	duplicate(#hol_trap_1)	#hol_trap_14	20TH_GATE_GREEN_S,1,1
+1@ba_go,45,49,5	duplicate(#hol_trap_1)	#hol_trap_15	20TH_GATE_GREEN_S,1,1
+1@ba_go,63,49,5	duplicate(#hol_trap_1)	#hol_trap_16	20TH_GATE_GREEN_S,1,1
+1@ba_go,54,43,5	duplicate(#hol_trap_1)	#hol_trap_17	20TH_GATE_GREEN_S,1,1
+1@ba_go,54,55,5	duplicate(#hol_trap_1)	#hol_trap_18	20TH_GATE_GREEN_S,1,1
+1@ba_go,48,49,5	duplicate(#hol_trap_1)	#hol_trap_19	20TH_GATE_GREEN_S,1,1
+1@ba_go,60,49,5	duplicate(#hol_trap_1)	#hol_trap_20	20TH_GATE_GREEN_S,1,1
+1@ba_go,54,46,5	duplicate(#hol_trap_1)	#hol_trap_21	20TH_GATE_GREEN_S,1,1
+1@ba_go,54,52,5	duplicate(#hol_trap_1)	#hol_trap_22	20TH_GATE_GREEN_S,1,1
+1@ba_go,51,49,5	duplicate(#hol_trap_1)	#hol_trap_23	20TH_GATE_GREEN_S,1,1
+1@ba_go,57,49,5	duplicate(#hol_trap_1)	#hol_trap_24	20TH_GATE_GREEN_S,1,1
+1@ba_go,54,49,5	duplicate(#hol_trap_1)	#hol_trap_25	20TH_GATE_GREEN_S,1,1
+1@ba_go,54,49,5	duplicate(#hol_trap_1)	#hol_trap_26	20TH_GATE_GREEN_S,1,1
+
+1@ba_go,54,68,5	script(DISABLED)	#hol_trap_0	GATE_SKYBLUE,3,3,{
+	end;
+	
+OnTouch:
+	if ( !get_instance_var("dimension") )
+		end;
+	warp get_instance_var("map$"), 352, 48;
+end;
+}
+
+1@ba_go,352,50,5	script(DISABLED)	#bs_summon	GATE_SKYBLUE,2,2,{
+	end;
+	
+OnTouch:
+	if ( get_instance_var("dimension") )
+		end;
+	warp get_instance_var("map$"), 54, 49;
+end;
+}
+
+1@ba_go,54,55,4	script(DISABLED)	#hol_reward_npc	PORTAL,1,1,{
+	if ( !get_instance_var("cleared") ) end;
+	if ( getequipid(EQI_HEAD_LOW) != 420231 ) {
+		mes "^ff0000You cannot interact with it without equipping the Constellation Blessing.^000000";
+		close;
+	}
+
+	.@aid = getcharid(3);
+	.@equip_id = 420231;
+	.@card_id = getequipcardid(EQI_HEAD_LOW, 3);
+	.@current_level = .@card_id - 312452;
+	.@cleared_level = get_instance_var("level"); // The level just beaten
+
+	// --- Check if weekly reward already claimed ---
+	.@weekly_claimed = ( checkquest(12612, PLAYTIME) != -1 || inarray($hol_aid, .@aid) != -1 );
+
+	// --- Check if this instance was handled (increased OR claimed) ---
+	.@handled = get_instance_var("reward_handled_" + .@aid);
+
+	// --- CASE 1: Already handled this instance (increased level) ---
+	if ( .@handled && !.@weekly_claimed ) {
+		// They increased their level but did NOT claim the weekly reward yet
+		mes "You have already increased your challenge level for this clear.";
+		mes "You may leave the instance safely, or claim your reward (which will lock your level for the week).";
+		next;
+		.@menu$ = "Return to Garden.:Stay a bit longer.:Claim Reward.";
+		.@sel = select(.@menu$);
+		if ( .@sel == 1 ) {
+			warp "t_garden", 166, 222;
+			close;
+		} else if ( .@sel == 2 ) {
+			close;
+		} else { // Claim Reward
+			mes "You already chose to ^ff0000increase^000000 your level for this clear.";
+			mes "You cannot claim rewards for this clear because you already used the clear to increase.";
+			mes "If you want rewards, you must clear the instance again at your new level.";
+			next;
+			if ( select("Return to Garden.", "Stay.") == 1 )
+				warp "t_garden", 166, 222;
+			close;
+		}
+	}
+
+	// --- CASE 2: Weekly reward already claimed (locked) ---
+	if ( .@weekly_claimed ) {
+		mes "You have already received your rewards for this week.";
+		mes "^ff0000Your challenge level is now locked and cannot be changed until next Friday.^000000";
+		next;
+		if ( select("Return to Garden.", "Stay.") == 1 )
+			warp "t_garden", 166, 222;
+		close;
+	}
+
+	// --- CASE 3: Claimed reward in this instance (handled via claim) ---
+	if ( .@handled && .@weekly_claimed ) {
+		mes "You have already claimed your weekly reward for this clear.";
+		mes "You may leave the instance safely.";
+		next;
+		if ( select("Return to Garden.", "Stay a bit longer.") == 1 )
+			warp "t_garden", 166, 222;
+		close;
+	}
+
+	// --- CASE 4: NOT handled yet, weekly reward NOT claimed ---
+	mes "- ^ff0000Cleared Barrier Level " + .@cleared_level + "^000000 -";
+	mes "You have dealt with the Dimensional Prisoner.";
+	mes "You may now choose to increase your challenge level or claim your weekly rewards.";
+	mes "^0000cdNote: Claiming your reward will lock your level for the rest of the week.^000000";
+	next;
+
+	// Build menu
+	.@can_inc = 0;
+	if ( .@cleared_level > .@current_level ) {
+		.@can_inc = 1;
+		.@new_level = .@cleared_level;
+	} else if ( .@cleared_level == .@current_level && .@current_level < 20 ) {
+		.@can_inc = 1;
+		.@new_level = .@current_level + 1;
+	}
+
+	.@menu$ = "";
+	if ( .@can_inc ) .@menu$ += "Increase challenge level to " + .@new_level + ".";
+	.@menu$ += ":Receive rewards for level " + .@cleared_level + ".";
+	.@menu$ += ":I'll think about it.";
+
+	.@sel = select(.@menu$) - 1;
+
+	if ( .@sel == 0 ) { // --- INCREASE LEVEL ---
+		if ( !.@can_inc ) {
+			mes "You cannot increase your level at this time.";
+			close;
+		}
+		disable_items;
+		if ( getequipid(EQI_HEAD_LOW) != .@equip_id ) {
+			mes "^ff0000You cannot interact without equipping the Constellation Blessing.^000000";
+			close;
+		}
+		if ( isbegin_quest(12617) == 0 ) {
+			mes "You can only increase your challenge level once per clear.";
+			next;
+			if ( select("Return to Garden.", "Stay a bit longer.") == 1 )
+				warp "t_garden", 166, 222;
+			close;
+		}
+
+		// Mark as handled BEFORE any changes
+		set_instance_var("reward_handled_" + .@aid, true);
+
+		erasequest 12617;
+		delequip EQI_HEAD_LOW;
+		getitem2 .@equip_id, 1, 1, 0, 0, 0, 0, 0, (312452 + .@new_level);
+		equip .@equip_id;
+
+		mes "Your challenge level has been increased to ^ff0000" + .@new_level + "^000000.";
+		mes "You may now leave the instance safely.";
+		next;
+		if ( select("Return to Garden.", "Stay a bit longer.") == 1 )
+			warp "t_garden", 166, 222;
+		close;
+	}
+	else if ( .@sel == 1 ) { // --- CLAIM REWARDS ---
+		mes "You are about to claim the rewards for level ^ff0000" + .@cleared_level + "^000000.";
+		mes "This will lock your challenge level until next Friday's reset.";
+		mes "Are you sure you want to claim now?";
+		next;
+		if ( select("Yes, claim rewards.", "No, go back.") == 2 ) {
+			mes "Return to the main menu by talking to me again.";
+			close;
+		}
+
+		hol_reward(.@cleared_level);
+		setquest 12612;
+		array_push($hol_aid, .@aid);
+		set_instance_var("reward_handled_" + .@aid, true);
+
+		mes "Rewards claimed. Your challenge level is now locked until next Friday.";
+		next;
+		if ( select("Return to Garden.", "Stay a bit longer.") == 1 )
+			warp "t_garden", 166, 222;
+		close;
+	}
+	else { // --- THINK ABOUT IT ---
+		mes "If you leave the instance without increasing your level or claiming your reward, your level will decrease by 1.";
+		next;
+		mes "You can talk to me again if you change your mind.";
+		close;
+	}
+}
+
+/**
+1@ba_go,1,1,0	script	hol_leave_tracker	-1,{
+OnInstanceInit:
+	initnpctimer;
+	end;
+
+OnTimer2000:
+	stopnpctimer;
+	.@map$ = get_instance_var("map$");
+	.@cleared = get_instance_var("cleared");
+	.@count = get_instance_var("count");
+	for ( .@i = 0; .@i < .@count; .@i++ ) {
+		.@aid = get_instance_var("aid_" + .@i);
+		.@handled = get_instance_var("reward_handled_" + .@aid);
+		if ( .@handled ) continue;
+		if ( isloggedin(.@aid) ) {
+			attachrid(.@aid);
+			.@claimed = ( checkquest(12612, PLAYTIME) != -1 );
+			detachrid;
+		} else {
+			.@claimed = ( inarray($hol_aid, .@aid) != -1 );
+		}
+		if ( .@claimed ) continue;
+		.@is_on_map = 0;
+		if ( isloggedin(.@aid) ) {
+			attachrid(.@aid);
+			if ( strcharinfo(3) == .@map$ ) .@is_on_map = 1;
+			detachrid;
+		}
+		if ( .@cleared && .@is_on_map == 0 ) {
+			attachrid(.@aid);
+			.@equip_id = 420231;
+			if ( getequipid(EQI_HEAD_LOW) == .@equip_id ) {
+				.@card_id = getequipcardid(EQI_HEAD_LOW, 3);
+				.@current_level = .@card_id - 312452;
+				if ( .@current_level > 1 ) {
+					.@new_level = .@current_level - 1;
+					delequip EQI_HEAD_LOW;
+					getitem2 .@equip_id, 1, 1, 0, 0, 0, 0, 0, (312452 + .@new_level);
+					equip .@equip_id;
+					message strcharinfo(0), "You left the Hall of Life without claiming or raising your level. Your level decreased to " + .@new_level + ".";
+				}
+			}
+			detachrid;
+			set_instance_var("reward_handled_" + .@aid, 1);
+		}
+	}
+	initnpctimer;
+	end;
+
+OnInstanceDestroy:
+	.@cleared = get_instance_var("cleared");
+	if ( .@cleared ) end;
+	.@count = get_instance_var("count");
+	for ( .@i = 0; .@i < .@count; .@i++ ) {
+		.@aid = get_instance_var("aid_" + .@i);
+		.@handled = get_instance_var("reward_handled_" + .@aid);
+		if ( .@handled ) continue;
+		if ( isloggedin(.@aid) ) {
+			attachrid(.@aid);
+			.@claimed = ( checkquest(12612, PLAYTIME) != -1 );
+			detachrid;
+		} else {
+			.@claimed = ( inarray($hol_aid, .@aid) != -1 );
+		}
+		if ( .@claimed ) continue;
+		attachrid(.@aid);
+		.@equip_id = 420231;
+		if ( getequipid(EQI_HEAD_LOW) == .@equip_id ) {
+			.@card_id = getequipcardid(EQI_HEAD_LOW, 3);
+			.@current_level = .@card_id - 312452;
+			if ( .@current_level > 1 ) {
+				.@new_level = .@current_level - 1;
+				delequip EQI_HEAD_LOW;
+				getitem2 .@equip_id, 1, 1, 0, 0, 0, 0, 0, (312452 + .@new_level);
+				equip .@equip_id;
+				message strcharinfo(0), "You failed to defeat the boss in time. Your level decreased to " + .@new_level + ".";
+			}
+		}
+		detachrid;
+		set_instance_var("reward_handled_" + .@aid, 1);
+	}
+	end;
+}
+**/

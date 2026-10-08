@@ -1,0 +1,18 @@
+moc_para01,12,29,5	script	Faith Helm Merchant	575,{
+disable_items;
+	set .@name$,"[Faith Helm Merchant]";
+	mes .@name$;
+	mes "What can i help you?";
+	next;
+	switch(select(">> Purchase Faith Helm:>> Enchant Helm")){
+	case 1:
+		callshop "faith_shop",1;
+		end;
+	case 2:
+		item_enchant(25);
+		end;
+	}
+OnInit:
+setunittitle( getnpcid(0), "<Headgear Quest>" );
+end;
+}

@@ -1,0 +1,11 @@
+
+//==================================================
+// clock_01 - Clock Tower Unknown Basement
+//==================================================
+clock_01	monster	Extra Joker	20175,75
+clock_01	monster	Erzsebet	20176,130
+clock_01	monster	Jennifer	20177,95
+clock_01	monster	General Orc	20178,115
+clock_01	monster	Sieglouse	20179,100
+// unknown respawn timer
+clock_01	boss_monster	Goblin King	20118,1,7200000,600000,1

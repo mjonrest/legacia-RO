@@ -1,0 +1,7 @@
+grademk,22,184,3	script	Memory Enchanter	950,{
+			mes "[Memory Enchanter]";
+			mes "Bring your "+itemlink(490614)+".";
+			close2;
+			item_enchant(200);
+			end;
+}

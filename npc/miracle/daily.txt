@@ -1,0 +1,471 @@
+prontera,154,198,6	script	Daily Quest Manager	4_F_KAFRA1,{
+
+	mes "[Daily Quest Manager]";
+
+	// ===============================
+	// GM RESET MENU (GM 99 ONLY)
+	// ===============================
+	if (getgmlevel() >= 99) {
+		switch(select("Continue","^FF0000[GM] Reset My Daily Quest^000000")) {
+			case 2:
+				callsub S_GM_ResetDaily;
+				close;
+		}
+	}
+
+	.@today$ = gettimestr("%Y-%m-%d",21);
+
+	// ===============================
+	// DAILY RESET CHECK
+	// ===============================
+	if (#dailyquest_date$ != .@today$) {
+
+		#dailyquest_date$ = .@today$;
+
+		#dailyquest_step = 0;
+		#dailyquest_donecount = 0;
+
+		deletearray #dailyquest_type[0], 5;
+		deletearray #dailyquest_id[0], 5;
+		deletearray #dailyquest_need[0], 5;
+		deletearray #dailyquest_progress[0], 5;
+		deletearray #dailyquest_done[0], 5;
+		deletearray #dailyquest_diff[0], 5;
+
+		callsub S_GenerateNextQuest;
+	}
+
+	// ===============================
+	// ALL QUEST COMPLETED
+	// ===============================
+	if (#dailyquest_donecount >= .QuestCount) {
+		mes "^00AA00You have completed all daily quests today!^000000";
+		close;
+	}
+
+	.@i = #dailyquest_step;
+
+	mes "Daily Quest "+(.@i+1)+" of "+.QuestCount;
+	mes "Difficulty: "+.DiffName$[#dailyquest_diff[.@i]];
+
+	// ===============================
+	// QUEST DETAIL
+	// ===============================
+	if (#dailyquest_type[.@i] == 0) {
+		mes "- Kill "+#dailyquest_need[.@i]+" "+getmonsterinfo(#dailyquest_id[.@i],MOB_NAME)+" (ID: "+#dailyquest_id[.@i]+")";	}
+	else if (#dailyquest_type[.@i] == 1) {
+		mes "- Collect "+#dailyquest_need[.@i]+" "+getitemname(#dailyquest_id[.@i]);
+	}
+	else {
+		mes "- Complete ANY instance "+#dailyquest_need[.@i]+" time(s)";
+	}
+
+	// ===============================
+	// PROGRESS DISPLAY
+	// ===============================
+	if (#dailyquest_type[.@i] == 1) {
+		mes "Progress: "+countitem(#dailyquest_id[.@i])+" / "+#dailyquest_need[.@i];
+	} else {
+		mes "Progress: "+#dailyquest_progress[.@i]+" / "+#dailyquest_need[.@i];
+	}
+
+	next;
+
+	// ==========================================
+	// PLAYER MENU (NOW IN CORRECT POSITION)
+	// ==========================================
+	.@menu = select("Submit Quest:Info");
+
+	switch(.@menu) {
+
+		case 1: // SUBMIT CONFIRM
+			next;
+			mes "[Daily Quest Manager]";
+			mes "Are you sure you want to submit this quest?";
+			if (select("Yes, submit it:No, go back") == 2)
+				close;
+			break;
+		case 2: // INFO
+			callsub S_ShowInfo;
+			close;
+	}
+
+	// =====================================================
+	// AUTO CHECK COLLECTING QUEST WHEN TALK TO NPC
+	// =====================================================
+	if (#dailyquest_type[.@i] == 1) {
+
+		if (countitem(#dailyquest_id[.@i]) >= #dailyquest_need[.@i]) {
+
+			delitem #dailyquest_id[.@i], #dailyquest_need[.@i];
+			#dailyquest_progress[.@i] = #dailyquest_need[.@i];
+			mes "=============";
+			mes "Items received successfully!";
+			mes "You have completed the collection objective.";
+			next;
+		}
+	}
+
+	// =====================================================
+	// CLAIM CHECK
+	// =====================================================
+	if (#dailyquest_progress[.@i] < #dailyquest_need[.@i]) {
+		mes "=============";
+		mes "You haven't completed this quest yet.";
+		close;
+	}
+
+	// ===============================
+	// CLAIM REWARD
+	// ===============================
+	callsub S_ClaimReward;
+	close;
+
+OnNPCKillEvent:
+for (.@i = 0; .@i < 5; .@i++) {
+	if (#dailyquest_type[.@i] == 0 && #dailyquest_id[.@i] == killedrid) {
+		if (#dailyquest_progress[.@i] < #dailyquest_need[.@i]) {
+			#dailyquest_progress[.@i]++;
+
+			showscript "[Daily Quest] " 
+				+ getmonsterinfo(#dailyquest_id[.@i],MOB_NAME)
+				+ " : "
+				+ #dailyquest_progress[.@i]
+				+ "/"
+				+ #dailyquest_need[.@i],getcharid(3),SELF;
+		}
+	}
+}
+end;
+// ==========================================
+// INIT
+// ==========================================
+OnInit:
+
+	// number of daily quests
+	.QuestCount = 5;
+
+	// how many instance runs required
+	.InstanceDailyNeed = 5;
+
+	// ===============================
+	// DIFFICULTY INDEX TABLE
+	// ===============================
+	setarray .DiffName$[0], "Easy", "Medium", "Hard";
+
+	// hunting kills needed
+	setarray .HuntNeed[0], 500, 750, 1000;
+
+	// collecting amount needed
+	setarray .CollectNeed[0], 300, 10, 2;
+
+	// ===============================
+	// MONSTER LIST
+	// ===============================
+	setarray .HuntMob[0],
+		1040, // Golem
+		1051, // Thief Bug
+		1063, // Lunatic
+		1148, // Medusa
+		1193, // Alarm
+		1195, // Rideword
+		1278, // Stalactic Golem
+		1314, // Permeter
+		1365, // Apocalypse
+		1390, // Violy
+		1400, // Karakasa
+		1409, // Rice Cake Boy
+		1412, // Evil Cloud Hermit
+		1613, // Metaling
+		1622, // Teddy Bear
+		1676, // Venatu
+		1698, // DeathWord
+		1699, // Ancient Mimic
+		1769, // Agav
+		1770, // Echio
+		1771, // Vanberk
+		1584, // Tamruan
+		1401, // Shinobi
+		1139, // Mantis
+		1099, // Argiope
+		1772; // Isilla
+
+	// ===============================
+	// ITEM LIST
+	// ===============================
+	setarray .CollectItem_Easy[0],909,1055,1039,1041,7225,7106,1021,7265,923,947,6032,6321,6323,6023,7070,7009,7032,1013,936,1096,946,943;
+	setarray .CollectItem_Medium[0],7291,7289,7294,7290,7296,7293,7292,7297,7295;
+	setarray .CollectItem_Hard[0],
+		7566, // Will of Red Darkness
+		7024, // Bloody Edge
+		7113, // Broken Pharaoh Emblem
+		750, // Baphomet Doll
+		25508, // Orc Warlord Token
+		968, // Heroic Emblem
+		658, // Union of Tribe
+		7109, // Shining Spear Blade 
+		7169, // Ba Gua
+		7211, // Fragment of Rossata Stone
+		7300, // Gemstone
+		7451, // Red Fire Scale
+		7562, // Ice Scale
+		7754, // Broken Crown
+		6091, // Darkred Scale Piece
+		6326, // Queen Wing Piece
+		7008; // Stiff Horn 
+
+	// ===============================
+	// REWARD POOL
+	// ===============================
+	setarray .RewardItem[0],
+		30014,30018,30017,1000874,101047,101048,100709,616,30007,30039,30036;
+
+	setarray .RewardMin[0],
+		1,100,50,10,1,1,1,50,25,1,3;
+
+	setarray .RewardMax[0],
+		3,500,200,50,5,5,10,100,35,2,6;
+
+	setarray .Ordinal$[0],
+	"1st","2nd","3rd","4th","Last";
+
+	end;
+
+// ==========================================
+// INFO MENU
+// ==========================================
+S_ShowInfo:
+
+	mes "[Daily Quest Info]";
+	mes "You can complete ^00AA00"+.QuestCount+"^000000 daily quests per day.";
+	mes "Quests are generated one by one after completion.";
+	next;
+
+	mes "Quest Types:";
+	mes "- Hunting (Kill monsters)";
+	mes "- Collecting (Submit items)";
+	mes "- Instance (Complete any instance)";
+	next;
+
+	mes "Difficulty Tiers:";
+	for (.@i = 0; .@i < getarraysize(.DiffName$); .@i++) {
+		mes "- "+.DiffName$[.@i]
+			+" : Kill "+.HuntNeed[.@i]
+			+" / Collect "+.CollectNeed[.@i]
+			+" / Instance "+.InstanceDailyNeed;
+	}
+	next;
+
+	// =============================
+	// SHOW POSSIBLE REWARD LIST
+	// =============================
+	mes "Possible Rewards:";
+	for (.@i = 0; .@i < getarraysize(.RewardItem); .@i++) {
+
+		.@name$ = getitemname(.RewardItem[.@i]);
+		.@min = .RewardMin[.@i];
+		.@max = .RewardMax[.@i];
+
+		if (.@min == .@max) {
+			mes "- "+.@name$+" x"+.@min;
+		} else {
+			mes "- "+.@name$+" x"+.@min+" ~ "+.@max;
+		}
+	}
+	next;
+
+	mes "Rewards are random items with random amount.";
+	mes "Each quest gives a reward.";
+
+	return;
+// ==========================================
+// GENERATE NEXT QUEST
+// ==========================================
+S_GenerateNextQuest:
+
+	if (#dailyquest_donecount >= .QuestCount)
+		return;
+
+	.@i = #dailyquest_step;
+
+	#dailyquest_done[.@i] = 0;
+	#dailyquest_progress[.@i] = 0;
+
+	.@type = rand(0,2);
+	#dailyquest_type[.@i] = .@type;
+
+	.@diff = rand(0, getarraysize(.HuntNeed)-1);
+	#dailyquest_diff[.@i] = .@diff;
+
+	// Hunting
+	if (.@type == 0) {
+		.@idx = rand(getarraysize(.HuntMob)-1);
+		#dailyquest_id[.@i] = .HuntMob[.@idx];
+		#dailyquest_need[.@i] = .HuntNeed[.@diff];
+	}
+
+	// Collecting
+	else if (.@type == 1) {
+
+	if (.@diff == 0) {
+		.@idx = rand(getarraysize(.CollectItem_Easy)-1);
+		#dailyquest_id[.@i] = .CollectItem_Easy[.@idx];
+	}
+	else if (.@diff == 1) {
+		.@idx = rand(getarraysize(.CollectItem_Medium)-1);
+		#dailyquest_id[.@i] = .CollectItem_Medium[.@idx];
+	}
+	else {
+		.@idx = rand(getarraysize(.CollectItem_Hard)-1);
+		#dailyquest_id[.@i] = .CollectItem_Hard[.@idx];
+	}
+
+	#dailyquest_need[.@i] = .CollectNeed[.@diff];
+	}
+	
+	// Instance
+	else {
+		#dailyquest_id[.@i] = 0;
+		#dailyquest_need[.@i] = .InstanceDailyNeed;
+	}
+
+	return;
+
+
+// ==========================================
+// CLAIM REWARD AND MOVE NEXT
+// ==========================================
+S_ClaimReward:
+
+	.@i = #dailyquest_step;
+
+	if (#dailyquest_progress[.@i] < #dailyquest_need[.@i])
+		return;
+
+	.@r = rand(getarraysize(.RewardItem)-1);
+	.@amount = rand(.RewardMin[.@r], .RewardMax[.@r]);
+
+	getitembound .RewardItem[.@r], .@amount,Bound_Account;
+
+	// log to SQL
+	callfunc "F_LogDailyQuestReward",
+	.@i,                       // quest step index
+	.RewardItem[.@r],          // item id
+	.@amount,                  // amount
+	#dailyquest_type[.@i],     // quest type
+	#dailyquest_diff[.@i],     // difficulty
+	#dailyquest_id[.@i];       // target mob/item
+
+	mes "[Daily Quest Manager]";
+	mes "You received "+getitemname(.RewardItem[.@r])+" x"+.@amount;
+
+	#dailyquest_done[.@i] = 1;
+	#dailyquest_donecount++;
+
+	#dailyquest_step++;
+
+	// ==========================================
+	// ANNOUNCEMENT PER QUEST COMPLETION
+	// ==========================================
+	.@gender$ = (Sex == 1) ? "his" : "her";
+	.@order$ = .Ordinal$[#dailyquest_donecount - 1];
+
+	announce "[Daily Quest]: "+strcharinfo(0) + " just completed " + .@gender$ + " " + .@order$ + " Daily Quest!", bc_all;
+
+	if (#dailyquest_donecount < .QuestCount) {
+		callsub S_GenerateNextQuest;
+		mes "New daily quest has been assigned!";
+	}
+	else {
+		mes "^00AA00All daily quests completed!^000000";
+	}
+
+	return;
+
+// ==========================================
+// GM MANUAL RESET (SELF)
+// ==========================================
+S_GM_ResetDaily:
+
+	.@today$ = gettimestr("%Y-%m-%d",21);
+
+	#dailyquest_date$ = .@today$;
+
+	// reset progression
+	#dailyquest_step = 0;
+	#dailyquest_donecount = 0;
+
+	// wipe all quest data arrays
+	deletearray #dailyquest_type[0], 5;
+	deletearray #dailyquest_id[0], 5;
+	deletearray #dailyquest_need[0], 5;
+	deletearray #dailyquest_progress[0], 5;
+	deletearray #dailyquest_done[0], 5;
+	deletearray #dailyquest_diff[0], 5;
+
+	// generate first quest of the day
+	callsub S_GenerateNextQuest;
+
+	mes "[Daily Quest Manager]";
+	mes "^FF0000[GM]^000000 Your daily quest has been reset.";
+	return;
+}
+
+function	script	F_LogDailyQuestReward	{
+	.@acc = getcharid(3);
+	.@cid = getcharid(0);
+	.@name$ = strcharinfo(0);
+
+	.@step = getarg(0);
+	.@item = getarg(1);
+	.@amount = getarg(2);
+	.@type = getarg(3);
+	.@diff = getarg(4);
+	.@target = getarg(5);
+
+	query_sql(
+		"INSERT INTO `dailyquest_reward_log` " +
+		"(account_id, char_id, char_name, quest_step, reward_item, reward_amount, quest_type, quest_diff, quest_target) VALUES ("+
+		.@acc +","+ .@cid +",'"+ escape_sql(.@name$) +"',"+
+		.@step +","+ .@item +","+ .@amount +","+ .@type +","+ .@diff +","+ .@target +")"
+	);
+
+	return;
+}
+
+/**
+
+CREATE TABLE `dailyquest_reward_log` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `account_id` INT UNSIGNED NOT NULL,
+  `char_id` INT UNSIGNED NOT NULL,
+  `char_name` VARCHAR(30) NOT NULL,
+  `quest_step` TINYINT UNSIGNED NOT NULL,
+  `reward_item` INT UNSIGNED NOT NULL,
+  `reward_amount` INT UNSIGNED NOT NULL,
+  `quest_type` TINYINT UNSIGNED NOT NULL,
+  `quest_diff` TINYINT UNSIGNED NOT NULL,
+  `quest_target` INT UNSIGNED NOT NULL,
+  `log_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE dailyquest_registration (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    account_id INT NOT NULL,
+    char_id INT NOT NULL,
+
+    unique_id VARCHAR(100) NOT NULL,
+    ip_address VARCHAR(45) NOT NULL,
+
+    quest_date DATE NOT NULL,
+
+    register_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    INDEX(quest_date),
+    INDEX(ip_address),
+    INDEX(unique_id)
+);
+
+**/

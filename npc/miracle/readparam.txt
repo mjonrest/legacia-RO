@@ -1,0 +1,330 @@
+-	script	statsview	-1,{
+
+OnInit:
+	bindatcmd "statsview", strnpcinfo(3)+"::OnAtcommand";
+	end;
+
+OnAtcommand:
+	.@output = 0;
+
+	dispbottom "-----------------------------------------";
+	dispbottom "     Active Character Bonuses";
+	dispbottom "-----------------------------------------";
+
+	// --------------------------------------------------------
+	// 1. HP / SP %
+	// --------------------------------------------------------
+	.@val = readparam(bMaxHPrate) - 100;
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "Max HP : " + .@val + "%";
+	}
+
+	.@val = readparam(bHPrecovRate) - 100;
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "HP Regen : " + .@val + "%";
+	}
+
+	.@val = readparam(bMaxSPrate) - 100;
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "Max SP : " + .@val + "%";
+	}
+
+	.@val = readparam(bSPrecovRate) - 100;
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "SP Regen : " + .@val + "%";
+	}
+
+
+	// --------------------------------------------------------
+	// 2. Attack / Magic % Bonuses
+	// --------------------------------------------------------
+	.@val = readparam(bBaseAtk);
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "Base ATK : " + .@val + ".";
+	}
+
+	 .@val = readparam(bAtk);
+	 if (.@val > 0) {
+	 	.@output++;
+	 	dispbottom "ATK1 : " + .@val + ".";
+	 }
+
+	// .@val = readparam(bAtk2);
+	// if (.@val > 0) {
+	// 	.@output++;
+	// 	dispbottom "ATK2 : " + .@val + ".";
+	// }
+
+	//.@val = readparam(bAtkRate);
+	//if (.@val > 0) {
+	//	.@output++;
+	//	dispbottom "ATK(%) : " + .@val + "%";
+	//}
+
+	// .@val = readparam(bWeaponAtkRate);
+	// if (.@val > 0) {
+	// 	.@output++;
+	// 	dispbottom "Weapon ATK : " + .@val + "%";
+	// }
+
+	.@val = readparam(bMatk);
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "MATK(primary) : " + .@val + ".";
+	}
+
+	.@val = readparam(bMatk2);
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "MATK(secondary) : " + .@val + ".";
+	}
+
+	.@val = readparam(bMatkRate)-100;
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "MATK(%) : " + .@val + "%";
+	}
+
+	// .@val = readparam(bWeaponMatkRate);
+	// if (.@val > 0) {
+	// 	.@output++;
+	// 	dispbottom "Weapon MATK : " + .@val + "%";
+	// }
+
+	.@val = readparam(bShortAtkRate);
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "Short Range : " + .@val + "%";
+	}
+
+	.@val = readparam(bLongAtkRate);
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "Long Range : " + .@val + "%";
+	}
+
+	.@val = readparam(bCritAtkRate);
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "Critical Dmg: " + .@val + "%";
+	}
+
+	//.@val = readparam(bNonCritAtkRate);
+	//if (.@val > 0) {
+	//	.@output++;
+	//	dispbottom "Non-Crit Dmg: " + .@val + "%";
+	//}
+
+	// --------------------------------------------------------
+	// 3. Defense & Damage Reduction
+	// --------------------------------------------------------
+	.@val = readparam(bDefRate)-100;
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "DEF : " + .@val + "%";
+	}
+
+	.@val = readparam(bMdefRate)-100;
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "MDEF : " + .@val + "%";
+	}
+
+	.@val = readparam(bDef2Rate) - 100;
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "VIT DEF : " + .@val + "%";
+	}
+
+	.@val = readparam(bMdef2Rate) - 100;
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "INT MDEF : " + .@val + "%";
+	}
+
+	.@val = readparam(bNearAtkDef);
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "Melee Resist: " + .@val + "%";
+	}
+
+	.@val = readparam(bLongAtkDef);
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "Ranged Resist: " + .@val + "%";
+	}
+
+	.@val = readparam(bMagicAtkDef);
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "Magic Resist: " + .@val + "%";
+	}
+
+	.@val = readparam(bMiscAtkDef);
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "Misc Resist : " + .@val + "%";
+	}
+
+	.@val = readparam(bNoWeaponDamage);
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "Phys Dmg Def: " + .@val + "%";
+	}
+
+	.@val = readparam(bNoMagicDamage);
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "Magic Dmg Def: " + .@val + "%";
+	}
+
+	.@val = readparam(bNoMiscDamage);
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "Misc Dmg Def: " + .@val + "%";
+	}
+
+	.@val = readparam(bCritDefRate);
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "Crit Dmg Def: " + .@val + "%";
+	}
+
+	.@val = readparam(bCriticalDef);
+	if (.@val > 0) {
+		.@output++;
+		dispbottom "Crit Resist : " + .@val + "%";
+	}
+
+	// --------------------------------------------------------
+	// 4. Cast Time / Delay / SP Cost (Reductions)
+	// beneficial when value is NEGATIVE
+	// --------------------------------------------------------
+	.@val = readparam(bVariableCastrate)-100;
+	if (.@val != 0) {
+		.@output++;
+		dispbottom "Variable Cast: " + (.@val) + "%";
+	}
+
+	.@val = readparam(bFixedCastrate);
+	if (.@val != 0) {
+		.@output++;
+		dispbottom "Fixed Cast : " + (.@val) + "%";
+	}
+
+	.@val = readparam(bDelayrate);
+	if (.@val != 0) {
+		.@output++;
+		dispbottom "Skill Delay : " + (-.@val) + "%";
+	}
+
+	.@val = readparam(bUseSPrate)-100;
+	if (.@val != 0) {
+		.@output++;
+		dispbottom "SP Cost : " + (.@val) + "%";
+	}
+
+	// --------------------------------------------------------
+	// 5. Cast Time (milliseconds)
+	// --------------------------------------------------------
+	.@val = readparam(bVariableCast);
+	if (.@val != 0) {
+		.@output++;
+		dispbottom "Var Cast (ms): " + (.@val) + " ms";
+	}
+
+	.@val = readparam(bFixedCast);
+	if (.@val != 0) {
+		.@output++;
+		dispbottom "Fix Cast (ms): " + (.@val) + " ms";
+	}
+
+	// --------------------------------------------------------
+	// 6. Healing Bonuses
+	// --------------------------------------------------------
+	.@val = readparam(bHealPower);
+	if (.@val != 0) {
+		.@output++;
+		dispbottom "Heal Power : " + .@val + "%";
+	}
+
+	.@val = readparam(bHealPower2);
+	if (.@val != 0) {
+		.@output++;
+		dispbottom "Heal Received: " + .@val + "%";
+	}
+
+	.@val = readparam(bAddItemHealRate);
+	if (.@val != 0) {
+		.@output++;
+		dispbottom "Item HP Heal : " + .@val + "%";
+	}
+
+	.@val = readparam(bAddItemSPHealRate);
+	if (.@val != 0) {
+		.@output++;
+		dispbottom "Item SP Heal : " + .@val + "%";
+	}
+
+	// --------------------------------------------------------
+	// 7. Other Combat / Movement Bonuses
+	// --------------------------------------------------------
+	.@val = readparam(bHitRate)-100;
+	if (.@val != 0) {
+		.@output++;
+		dispbottom "Hit : " + .@val + "%";
+	}
+
+	.@val = readparam(bCriticalRate)-100;
+	if (.@val != 0) {
+		.@output++;
+		dispbottom "Critical : " + .@val + "%";
+	}
+
+	.@val = readparam(bFleeRate)-100;
+	if (.@val != 0) {
+		.@output++;
+		dispbottom "Flee : " + .@val + "%";
+	}
+
+	.@val = readparam(bFlee2Rate) - 100;
+	if (.@val != 0) {
+		.@output++;
+		dispbottom "Perfect Dodge: " + .@val + "%";
+	}
+
+	.@val = readparam(bPerfectHitAddRate);
+	if (.@val != 0) {
+		.@output++;
+		dispbottom "Perfect Hit : " + .@val + "%";
+	}
+
+	.@val = readparam(bSpeedAddRate);
+	if (.@val != 0) {
+		.@output++;
+		dispbottom "Move Speed : " + .@val + "%";
+	}
+
+	.@val = readparam(bAspdRate);
+	.@aspd_rate = (1000 - .@val) / 10;
+	if (.@aspd_rate != 0) {
+		.@output++;
+		dispbottom "Aspd Rate : " + .@aspd_rate + "%";
+	}
+
+	// --------------------------------------------------------
+	// 8. No bonuses? show message
+	// --------------------------------------------------------
+	if (!.@output)
+		dispbottom " No active bonuses found.";
+
+	dispbottom "-----------------------------------------";
+
+	atcommand "@resist";
+	end;
+}

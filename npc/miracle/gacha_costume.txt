@@ -1,0 +1,438 @@
+//===== rAthena Script =======================================
+//= saders Hourly Rewards
+//===== By: ==================================================
+//= Sader1992
+//https://rathena.org/board/profile/30766-sader1992/
+//===== Current Version: =====================================
+//= 1.2
+//===== Compatible With: ===================================== 
+//= rAthena Project
+//https://rathena.org/board/files/file/3647-saders-hourly-rewards/
+//https://github.com/sader1992/sader_scripts
+//===== Description: =========================================
+//==== all the configuration are in the last
+//==== support gepard / ip / or without them
+//==== if you use ip/gepard sql will be used for that
+//==== can add minimem level to get the rewards
+//==== can change the time
+//==== can ban the vending from the rewards (it will reset after relogin)
+//==== can add rewards else then variable
+//==== there is a shop npc for the variable
+//==== you can make it only for vip
+//==== can ban idle players for X time from the Hourly Rewards
+//==== player can ban his char from getting the reward by @HourlyBan (it will reset after relogin)
+//============================================================
+//==== please send me a message if you find error
+//==== if you like my work maybe consider support me at paypal
+//==== sader1992@gmail.com
+//============================================================
+//==== 1.1 FIX Critical issue with gepard/ip and compatibility with my other scripts
+//==== 1.2 FIX GrPard Variable
+//============================================================
+-	script	sader_Hourly_Rewards	-1,{
+
+OnHourlyRewards:
+		if(#Hourly_Ban){
+			if (#HourlyNotification) dispbottom "[Activity Rewards]: You have banned this character from the Activity Rewards. Relogin to change that.", 0x00FF00;
+			addtimer .s_time, strnpcinfo(3)+"::OnHourlyRewards";
+			end;
+		}
+		if(.s_idle){
+			if(checkidle() > .s_idle_time){
+				if (#HourlyNotification) dispbottom "[Activity Rewards]: No Activity Rewards for idle players!", 0x00FF00;
+				addtimer .s_time, strnpcinfo(3)+"::OnHourlyRewards";
+				end;
+			}
+			// Get current position
+			getmapxy(.@map$, .@x, .@y, 1);
+		
+			// Check if position hasn't changed
+			if (.@x == #HourlyLastX && .@y == #HourlyLastY && .@map$ == #HourlyLastMap$) {
+				if (#HourlyNotification) dispbottom "[Activity Rewards]: No Activity Rewards for staying in the same spot!", 0x00FF00;
+				addtimer .s_time, strnpcinfo(3) + "::OnHourlyRewards";
+				end;
+			}
+		}
+
+		if(.s_vip){
+			if(!vip_status(VIP_STATUS_ACTIVE)){
+				if (#HourlyNotification) dispbottom "[Activity Rewards]: Activity Rewards are only for VIP players!", 0x00FF00;
+				addtimer .s_time, strnpcinfo(3)+"::OnHourlyRewards";
+				end;
+			}
+		}
+		if(BaseLevel < .s_hourly_level){
+			if (#HourlyNotification) dispbottom "[Activity Rewards]: You need to be at least level "+.s_hourly_level+" to receive Activity Rewards!", 0x00FF00;
+			addtimer .s_time, strnpcinfo(3)+"::OnHourlyRewards";
+			end;
+		}
+		if(.s_vinding){
+			if(checkvending() & .s_vinding){
+				if (#HourlyNotification) dispbottom "[Activity Rewards]: No Activity Rewards for vendors. Relogin to change that.", 0x00FF00;
+				if(.s_GePard_ip){
+					query_logsql("delete from `sader_variables_log` where `variable` = '#Hourly_Rewads_Check' AND `account_id`= '"+getcharid(3)+"'");
+				}
+				#Hourly_Rewads_Check = 0;
+				#Hourly_Ban = 1;
+				addtimer .s_time, strnpcinfo(3)+"::OnHourlyRewards";
+				end;
+			}
+		}
+		#Hourly_Rewads_Check += 1;
+		if(.s_GePard_ip == 1){
+			query_sql("SELECT `last_unique_id` FROM `login` WHERE `account_id` = '"+getcharid(3)+"'", .@s_last_unique_id$);
+			query_logsql("SELECT value FROM `sader_variables_log` WHERE unique_id = '"+.@s_last_unique_id$+"' AND `variable` = '#Hourly_Rewads_Check'", .@s_GePard);
+			if(.@s_GePard >= #Hourly_Rewads_Check){
+				if (#HourlyNotification) dispbottom "[Activity Rewards]: You already received the Activity Rewards from this PC.", 0x00FF00;
+				#Hourly_Rewads_Check -= 1;
+				addtimer .s_time, strnpcinfo(3)+"::OnHourlyRewards";
+				end;
+			}
+			if(.@s_GePard == 0){
+				query_logsql("INSERT INTO `sader_variables_log` (`unique_id`,`ip`,`variable`,`index`,`value`, `account_id`, `char_id`, `char_name`) VALUES ('"+.@s_last_unique_id$+"', '"+getcharip()+"', '#Hourly_Rewads_Check', '0', '"+#Hourly_Rewads_Check+"', '"+getcharid(3)+"', '"+getcharid(0)+"', '"+strcharinfo(0)+"')");
+			}
+			query_logsql("Update `sader_variables_log` SET `value` = '"+#Hourly_Rewads_Check+"' WHERE `unique_id`= '"+.@s_last_unique_id$+"' AND `variable` = '#Hourly_Rewads_Check'");
+		}else if(.s_GePard_ip == 2){
+			query_logsql("SELECT value FROM `sader_variables_log` WHERE ip = '"+getcharip()+"' AND `variable` = '#Hourly_Rewads_Check'", .@s_ip);
+			if(.@s_ip >= #Hourly_Rewads_Check){
+				if (#HourlyNotification) dispbottom "[Activity Rewards]: You already received the Hourly Rewards from this IP.", 0x00FF00;
+				#Hourly_Rewads_Check -= 1;
+				addtimer .s_time, strnpcinfo(3)+"::OnHourlyRewards";
+				end;
+			}
+			if(.@s_ip == 0){
+				query_logsql("INSERT INTO `sader_variables_log` (`unique_id`,`ip`,`variable`,`index`,`value`, `account_id`, `char_id`, `char_name`) VALUES ('"+.@s_last_unique_id$+"', '"+getcharip()+"', '#Hourly_Rewads_Check', '0', '"+#Hourly_Rewads_Check+"', '"+getcharid(3)+"', '"+getcharid(0)+"', '"+strcharinfo(0)+"')");
+			}
+			query_logsql("Update `sader_variables_log` SET `value` = '"+#Hourly_Rewads_Check+"' WHERE `ip`= '"+getcharip()+"' AND `variable` = '#Hourly_Rewads_Check'");
+		}
+		if (#HourlyNotification) dispbottom "[Activity Rewards]: +1 point gained.", 0x00FF00;
+		callsub Hourly_Rewads;
+		addtimer .s_time, strnpcinfo(3)+"::OnHourlyRewards";
+end;
+
+OnHourlyBan:
+	if(!#Hourly_Ban){
+		if (#HourlyNotification) dispbottom "[Activity Rewards]: You have banned this character from the Activity Rewards. Relogin to change that.", 0x00FF00;
+		if(.s_GePard_ip){
+			query_logsql("delete from `sader_variables_log` where `variable` = '#Hourly_Rewads_Check' AND `account_id`= '"+getcharid(3)+"'");
+		}
+		#Hourly_Rewads_Check = 0;
+		#Hourly_Ban = 1;
+		addtimer .s_time, strnpcinfo(3)+"::OnHourlyRewards";
+	}
+end;
+
+OnUnHourlyBan:
+	#Hourly_Ban = 0;
+end;
+
+OnPCLogoutEvent:
+	if(.s_GePard_ip){
+		query_logsql("delete from `sader_variables_log` where `variable` = '#Hourly_Rewads_Check' AND `account_id`= '"+getcharid(3)+"'");
+	}
+	if(#Hourly_Ban == 1){
+		#Hourly_Ban = 0;
+	}
+	#Hourly_Rewads_Check = 0;
+end;
+
+OnPCLoginEvent:
+	// Initialize notification toggle (default ON)
+	if (#HourlyNotificationFlag == 0) {
+		#HourlyNotification = 1;
+		#HourlyNotificationFlag = 1;
+	}
+	addtimer .s_time, strnpcinfo(3)+"::OnHourlyRewards";
+end;
+
+OnInit:
+	.s_idle = 1; //	ban hourly rewards from idle players ? 0 no / 1 yes {if player didn't move for x time he wont get hourly reward}  , DEFAULT = 0
+	.s_idle_time = 60; //	this the time for idle in secend  , DEFAULT = 1800 (30 min)
+	.s_vip = 0; //	1 = only for VIP / 0 = for everyone  , DEFAULT = 0
+	.s_time = 60000; //	1000 = 1 secend | 60000 = 1 min | 3600000 = 1 houre  , DEFAULT = 3600000 (1 hr)
+	.s_hourly_level = 0; //	Minimam level to get the Houerly rewards / 0 = no minimem level  , DEFAULT 0
+	.s_GePard_ip = 1; //	0 = no Gepard / 1 = Gepard / 2 = IP  , DEFAULT 0
+	.s_vinding = 7; //	DEFAULT 7 / 0 = will give the reward even if vending / 1 = no normal vending / 2 = no @autotrade / 4 = no buyingstore | Example: if you want to ban normal vend and buying store you add the numbers 1+4=5
+	query_logsql("CREATE TABLE IF NOT EXISTS `sader_variables_log` (`unique_id` INT( 11 ) UNSIGNED NOT NULL DEFAULT  '0',`ip` VARCHAR(100) NOT NULL,`variable` VARCHAR(32) NOT NULL, `index` INT NOT NULL, `value` INT NOT NULL,`account_id` INT NOT NULL,`char_id` INT NOT NULL,`char_name` VARCHAR(30) NOT NULL) ENGINE=MyISAM");
+	bindatcmd("UnHourlyBan", strnpcinfo(3)+"::OnUnHourlyBan", 99, 99);
+	bindatcmd("HourlyBan", strnpcinfo(3)+"::OnHourlyBan", 0, 99);
+	bindatcmd("activity", strnpcinfo(3)+"::OnHourlyToggle");
+end;
+
+OnHourlyToggle:
+	// Toggle notification setting for the calling player
+	#HourlyNotification = (#HourlyNotification == 1) ? 0 : 1;
+	dispbottom "[Activity Rewards]: Hourly reward notifications are now " + ((#HourlyNotification == 1) ? "ON" : "OFF") + ".", 0x00FF00;
+	end;
+
+Hourly_Rewads:
+	//put the Hourly Rewards here
+	#HourlyRewards += 1;
+	if (#HourlyNotification) dispbottom "[Activity Rewards]: Current Point : "+#HourlyRewards+" pts.", 0x00FF00;
+	// Save current position for next check
+	getmapxy(.@map$, .@x, .@y, 1);
+	#HourlyLastX = .@x;
+	#HourlyLastY = .@y;
+	#HourlyLastMap$ = .@map$;
+	//getitem 905,1; //	if you want to add items as reward you can add them here like that
+	//getexp 10000,5000; //	if you wanna add exp as reward add them here like that
+	//if(#Hourly_Rewads_Check == 5){getitem 905,1;} //	like this you can add reward for Xhr and this reward will be given for that X in this example 5 mean that the player did pass 5hr
+	//if(#Hourly_Rewads_Check >= 5){getitem 905,1;} //	like this you can add reward for Xhr and this reward will be given for that X in this example 5 mean that the player did pass 5hr or more
+return;
+}
+//prontera,151,171,5	pointshop	Hourly Rewards Shop	667,#HourlyRewards,901:1,902:10,903:15,904:1,905:200
+//<ITEM_ID>:<PRICE>,<ITEM_ID>:<PRICE>,<ITEM_ID>:<PRICE>,<ITEM_ID>:<PRICE>
+
+prontera,131,216,5	script	Gacha Machine	562,{
+
+	mes "[Gacha Machine]";
+	mes "Wanna try your luck?";
+	mes "Your Current Activity Points: " + #HourlyRewards + " pts.";
+
+	// Get today's date
+	.@today$ = gettimestr("%Y-%m-%d", 21);
+
+	// Check current play count
+	query_sql("SELECT play_count FROM gacha_daily WHERE account_id = "+getcharid(3)+" AND play_date = '"+.@today$+"'", .@play_count);
+	if (!.@play_count) .@play_count = 0;
+
+	mes "Remaining plays today: " + (10 - .@play_count) + " / 10";
+	next;
+
+	if (.@play_count >= 10) {
+		mes "[Gacha Machine]";
+		mes "You've used all 10 plays for today. Come back tomorrow!";
+		close;
+	}
+
+	.@menu = select("Gacha Costume Headgear [10 pts]:Gacha Costume Garment [30 pts]");
+	if (.@menu == 1) {
+		if (#HourlyRewards < 10) {
+			mes "[Gacha Machine]";
+			mes "You need at least 10 Activity Points!";
+			close;
+		}
+		#HourlyRewards -= 10;
+		callfunc("Claw_Machine_Gacha");
+	} else if (.@menu == 2) {
+		if (#HourlyRewards < 30) {
+			mes "[Gacha Machine]";
+			mes "You need at least 30 Activity Points!";
+			close;
+		}
+		#HourlyRewards -= 30;
+		callfunc("Garment_Gacha");
+	}
+
+	// Update or insert play count
+	if (.@play_count) {
+		query_sql("UPDATE gacha_daily SET play_count = play_count + 1 WHERE account_id = "+getcharid(3)+" AND play_date = '"+.@today$+"'");
+	} else {
+		query_sql("INSERT INTO gacha_daily (account_id, play_date, play_count) VALUES ("+getcharid(3)+", '"+.@today$+"', 1)");
+	}
+	
+	close;
+}
+
+function	script	Claw_Machine_Gacha	{
+	// Headgear arrays
+	setarray .@top[0], 5915,5980,15881,15882,15889,18921,19290,19292,19464,19466,19472,19501,19506,19508,19515,19517,19521,19522,19524,19526,19527,19529,19532,19535,19536,19543,19545,19547,19557,19558,19559,19560,19561,19565,19575,19576,19581,19582,19585,19588,19589,19595,19596,19597,19616,19619,19620,19629,19630,19649,19654,19655,19656,19663,19664,19728,19729,19739,19745,19750,19784,19876,19883,19884,19893,19894,19895,19903,19985,20014,20079,20081,20083,20177,20179,20198,20200,20218,20227,20242,20268,20283,20329,20331,20371,20384,20409,20410,20413,20414,20449,20451,20496,20508,31046,31095,31097,31098,31099,31100,31138,31145,31151,31165,31170,31174,31180,31191,31192,31194,31201,31290,31291,31312,31314,31321,31397,31419,31509;
+	
+	setarray .@mid[0], 20144,19289,19504,19509,19510,19511,19512,19542,19550,19551,19583,19609,19621,19624,19722,19735,19742,19755,19765,19769,19776,19781,19826,20039,20077,20108,20115,20116,20123,20124,20125,20131,20311,20321,20325,20406,20459,20486,20488,20493,31120,31122,31235,31308,31380,31416,31472,31483,31550,31699,410029,410054,410062,31265,31266,31267,31268,31269,31270,31271,31272;
+	
+	setarray .@low[0], 5977,19528,19541,19552,19553,19566,19584,19605,19606,19634,19783,19785,19902,19947,19992,20015,20022,20054,20091,20169,20201,20202,20223,20239,20259,20279,20305,20326,20328,20342,20364,20365,20366,20367,20368,20369,20370,20429,20440,20441,20462,20798,31055,31071,31072,31073,31074,31075,31076,31077,31078,31079,31080,31081,31082,31083,31084,31085,31086,31087,31093,31121,31152,31164,31181,31189,31251,31300,31315,31438,31453,31566,31671,31729,31735,31852;
+	
+	mes "[Gacha Machine]";
+	mes "Spinning...";
+	progressbar "ffffff", 3;
+	
+	.@rand = rand(100);
+	
+	if (.@rand < 10) {
+		// 10% chance to win
+		.@type = rand(3); // 0 = top, 1 = mid, 2 = low
+		if (.@type == 0) {
+			.@item = .@top[rand(getarraysize(.@top))];
+			mes "You got a ^0000FFTop^000000 headgear!";
+			announce "[Gacha Machine] " + strcharinfo(0) + " won a Top Costume: [" + getitemname(.@item) + "]!", bc_all;
+		} else if (.@type == 1) {
+			.@item = .@mid[rand(getarraysize(.@mid))];
+			mes "You got a ^00AA00Mid^000000 headgear!";
+			announce "[Gacha Machine] " + strcharinfo(0) + " won a Mid Costume: [" + getitemname(.@item) + "]!", bc_all;
+		} else {
+			.@item = .@low[rand(getarraysize(.@low))];
+			mes "You got a ^AA0000Lower^000000 headgear!";
+			announce "[Gacha Machine] " + strcharinfo(0) + " won a Lower Costume: [" + getitemname(.@item) + "]!", bc_all;
+		}
+		specialeffect2 EF_GANBANTEIN;
+		specialeffect2 EF_MAGNUS;
+		getitembound .@item,1,Bound_Account;
+	} else {
+		specialeffect2 EF_SUI_EXPLOSION;
+		mes "You got nothing. Better luck next time!";
+	}
+	
+	return;
+}
+
+function	script	Garment_Gacha	{
+	setarray .@garments[0],
+		20727, // Brilliant Golden Wings
+		20765, // Costume Archangel Wing
+		20526, // Costume Brilliant Blue Angel Wings
+		20525, // Costume Crimson Wings
+		20764, // Costume Fallen Angel Wing
+		20746, // Costume Rudra Wings
+		20511, // Blue Wings of Fairy
+		20541, // Costume Angel's Ribboned Wings
+		20607, // Costume Baldr Wing
+		20577, // Costume Balloon Wing
+		20504, // Costume Cupid's Pink Wings
+		20528, // Costume Golden Butterfly Wings
+		20762, // Costume Great Devil Wings
+		20737, // Costume Kirin Wing
+		20502, // Costume Little Devil Wings
+		31737, // Costume Lucifer's Wings
+		20533, // Costume Pink Butterfly Wing
+		20578, // Costume Raguel's Wings
+		20579, // Costume Raphael's Wings
+		20510, // Costume Sword Wing
+		20530, // Costume Wings of Gabriel
+		20516, // Costume Wings of Michael
+		20509, // Costume Wings of Uriel
+		20602, // Costume: Ace of Angel Wing (Sweet)
+		20593; // Costume: Ice Wings
+
+	mes "[Gacha Machine]";
+	mes "Spinning for Costume Garment...";
+	progressbar "FFAA00", 3;
+
+	.@rand = rand(100);
+
+	if (.@rand < 5) {
+		.@item = .@garments[rand(getarraysize(.@garments))];
+		mes "You got a ^8800FFCostume Garment^000000!";
+		announce "[Gacha Machine] " + strcharinfo(0) + " won a Costume Garment: [" + getitemname(.@item) + "]!", bc_all;
+		specialeffect2 EF_ANGEL2;
+		getitembound .@item,1,Bound_Account;
+	} else {
+		specialeffect2 EF_SUI_EXPLOSION;
+		mes "You got nothing. Better luck next time!";
+	}
+	return;
+}
+/**
+CREATE TABLE IF NOT EXISTS `gacha_daily` (
+  `account_id` INT NOT NULL,
+  `play_date` DATE NOT NULL,
+  `play_count` INT DEFAULT 0,
+  PRIMARY KEY (`account_id`, `play_date`)
+);
+
+prontera,130,220,5	script	Gacha Machine	562,{
+	mes "[Gacha Machine]";
+	mes "Wanna try your luck?";
+	mes "Your Current Gameplay point : "+#HourlyRewards+" pts.";
+	mes "Your Cash Point : "+#CASHPOINTS+" pts.";
+	next;
+	switch(select("Point Gacha (" + #claw_machine_count + " / 10):Cash Points Gacha:Leave")) {
+		case 1:
+			if (#claw_machine_play >= gettime(3)) {
+				if (#claw_machine_count >= 10) {
+					mes "[Gacha Machine]";
+					mes "You've used all 10 plays for today. Come back tomorrow!";
+					close;
+				}
+			} else {
+				#claw_machine_play = gettime(3);
+				#claw_machine_count = 0;
+			}
+
+			if (#HourlyRewards < 10) {
+				mes "[Gacha Machine]";
+				mes "You need at least 10 Gameplay points!";
+				close;
+			}
+
+			#HourlyRewards -= 10;
+			#claw_machine_count += 1;
+			callfunc("Claw_Machine_Gacha", 0);
+			close;
+
+		case 2:
+			if (#CASHPOINTS < 1000) {
+				mes "[Gacha Machine]";
+				mes "You need at least 1,000 Cash Points!";
+				close;
+			}
+
+			#CASHPOINTS -= 1000;
+			callfunc("Claw_Machine_Gacha", 1);
+			close;
+
+		case 3:
+			mes "[Gacha Machine]";
+			mes "Goodbye!";
+			close;
+	}
+}
+
+// Gacha Function
+function	script	Claw_Machine_Gacha	{
+	.@mode = getarg(0); // 0 = Hourly, 1 = Cash
+
+	// Item arrays
+	setarray .@normal[0], 5915,5980,15881,15882,15889,18921,19290,19292,19464,19466,19472,19501,19506,19508,19515,19517,19521,19522,19524,19526,19527,19529,19532,19535,19536,19543,19545,19547,19557,19558,19559,19560,19561,19565,19575,19576,19581,19582,19585,19588,19589,19595,19596,19597,19616,19619,19620,19629,19630,19649,19654,19655,19656,19663,19664,19728,19729,19739,19745,19750,19784,19876,19883,19884,19893,19894,19895,19903,19985,20014,20079,20081,20083,20177,20179,20198,20200,20218,20227,20242,20268,20283,20329,20331,20371,20384,20409,20410,20413,20414,20449,20451,20496,20508,31046,31095,31097,31098,31099,31100,31138,31145,31151,31165,31170,31174,31180,31191,31192,31194,31201,31290,31291,31312,31314,31321,31397,31419,31509;
+	setarray .@cool[0], 5909,15842,15843,15858,18740,18741,19546,19549,19667,19721,19723,19807,19934,19836,19841,19935,20011,20036,20062,20099,20113,20130,20135,20155,20219,20243,20247,20248,20249,20250,20302,20316,20317,20374,20380,20386,20401,20450,20463,20464,20467,20472,20489,20499,31028,31039,31040,31062,31123,31125,31149,31160,31166,31176,31179,31252,31329,31368,31369,31370,31373,31388,31396,31405,31406,31407,31440,31494,31495,31530,31564,31565,31589,31598,31607,31672,31680,31681,31707,31708,31709,31721,31849,31850,31908,31978,31979,400214,400310,400311,20393;
+
+	mes "[Gacha Machine]";
+	mes "Spinning...";
+	progressbar "ffffff", 3; // 3-second animation
+
+	.@rand = rand(100);
+
+	if (.@mode == 0) {
+		// Hourly: 1% cool, 10% normal
+		if (.@rand < 1) {
+			.@item = .@cool[rand(getarraysize(.@cool))];
+			getitem(.@item, 1);
+			specialeffect2 EF_GANBANTEIN;
+			specialeffect2 EF_MAGNUS;
+			mes "You got a ^FF0000COOL^000000 headgear!";
+			announce "[Gacha Machine] "+strcharinfo(0)+" got a COOL headgear: ["+getitemname(.@item)+"]!", bc_all | bc_blue;
+		} else if (.@rand < 11) {
+			.@item = .@normal[rand(getarraysize(.@normal))];
+			getitem(.@item, 1);
+			specialeffect2 EF_GANBANTEIN;
+			specialeffect2 EF_MAGNUS;
+			mes "You got a headgear!";
+			announce "[Gacha Machine] "+strcharinfo(0)+" won: ["+getitemname(.@item)+"]!", bc_all;
+		} else {
+			specialeffect2 EF_SUI_EXPLOSION;
+			mes "You got nothing. Better luck next time!";
+		}
+	} else {
+		// Cash: 10% cool, 30% normal
+		if (.@rand < 10) {
+			.@item = .@cool[rand(getarraysize(.@cool))];
+			getitem(.@item, 1);
+			specialeffect2 EF_GANBANTEIN;
+			specialeffect2 EF_MAGNUS;
+			mes "You got a ^FF0000COOL^000000 headgear!";
+			announce "[Gacha Machine] "+strcharinfo(0)+" got a COOL headgear: ["+getitemname(.@item)+"]!", bc_all | bc_blue;
+		} else if (.@rand < 40) {
+			.@item = .@normal[rand(getarraysize(.@normal))];
+			getitem(.@item, 1);
+			specialeffect2 EF_GANBANTEIN;
+			specialeffect2 EF_MAGNUS;
+			mes "You got a headgear!";
+			announce "[Gacha Machine] "+strcharinfo(0)+" won: ["+getitemname(.@item)+"]!", bc_all;
+		} else {
+			specialeffect2 EF_SUI_EXPLOSION;
+			#CASHPOINTS += 100;
+			mes "You got nothing. Here's 100 Cash Points back.";
+		}
+	}
+	return;
+}
+**/

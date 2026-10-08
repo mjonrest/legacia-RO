@@ -1,0 +1,589 @@
+// NPC: HUGINN2001
+// Location: /navi glast_01 141/291
+glast_01,141,291,3	script	HUGINN2001	564,{
+	function Show_Temporal_Circlets;
+
+	mes "[HUGINN2001]";
+	mes "I offer various trades involving Sealed Temporal Circlets and Temporal Spells.";
+	next;
+	switch(select("Trade Circlet Headgear (x5):Convert to Temporal Spell (x1):Get Mutated White Knight Card (x50):Get Mutated Khalitzburg Card (x70):Get Mutated White Knight Egg (x100):Exit")) {
+		case 1:
+			if (countitem(25864) < 5) {
+				mes "You need 5 Sealed Temporal Circlets.";
+				close;
+			}
+			mes "Choose your Temporal Circlet:";
+			next;
+			Show_Temporal_Circlets();
+			close;
+// Inside Huginn2001 case 2:
+case 2:
+	if (countitem(25864) < 1) {
+		mes "You need 1 Sealed Temporal Circlet.";
+		close;
+	}
+	delitem 25864,1;
+
+	// Determine number of conversions
+	.@roll = rand(10000); // 0-9999
+	if (.@roll < 6110)
+		.@count = 1;
+	else if (.@roll < 9840)
+		.@count = 2;
+	else if (.@roll < 9990)
+		.@count = 3;
+	else
+		.@count = 4;
+
+	mes "Conversion count: " + .@count;
+	mes "Rolling for rewards...";
+	sleep2 500;
+
+	for (.@i = 0; .@i < .@count; .@i++) {
+		.@r = rand(100000); // 0–99999
+		if (.@r < 78930) {
+			getitem 25867,4; // Temporal Fragment x4
+			mes "You received 4 Temporal Fragments.";
+		} else if (.@r < 90210) {
+			getitem 25867,8;
+			mes "You received 8 Temporal Fragments.";
+		} else if (.@r < 91650) {
+			getitem 25867,12;
+			mes "You received 12 Temporal Fragments.";
+		} else if (.@r < 92060) {
+			getitem 25867,16;
+			mes "You received 16 Temporal Fragments.";
+		} else if (.@r < 97970) {
+			getitem 25865,1; // Temporal Gemstone x1
+			mes "You received 1 Temporal Gemstone.";
+		} else if (.@r < 99320) {
+			getitem 25865,2;
+			mes "You received 2 Temporal Gemstones.";
+		} else if (.@r < 99660) {
+			getitem 25865,3;
+			mes "You received 3 Temporal Gemstones.";
+		} else if (.@r < 99730) {
+			getitem 25865,4;
+			mes "You received 4 Temporal Gemstones.";
+		} else if (.@r < 99800) {
+			getitem 25866,1; // Temporal Spell x1
+			mes "You received 1 Temporal Spell.";
+		} else if (.@r < 99870) {
+			getitem 25866,2;
+			mes "You received 2 Temporal Spells.";
+		} else if (.@r < 99940) {
+			getitem 25866,3;
+			mes "You received 3 Temporal Spells.";
+		} else {
+			getitem 25866,4;
+			mes "You received 4 Temporal Spells.";
+		}
+		sleep2 300;
+	}
+	close;
+		case 3:
+			if (countitem(25866) < 50) {
+				mes "You need 50 Temporal Spells.";
+				close;
+			}
+			delitem 25866,50;
+			getitem 27384,1; // Mutated White Knight Card
+			mes "You received a Mutated White Knight Card.";
+			close;
+		case 4:
+			if (countitem(25866) < 70) {
+				mes "You need 70 Temporal Spells.";
+				close;
+			}
+			delitem 25866,70;
+			getitem 27385,1; // Mutated Khalitzburg Card
+			mes "You received a Mutated Khalitzburg Card.";
+			close;
+		case 5:
+			if (countitem(25866) < 100) {
+				mes "You need 100 Temporal Spells.";
+				close;
+			}
+			delitem 25866,100;
+			getitem 9133,1; // Mutated White Knight Egg
+			mes "You received a Mutated White Knight Egg.";
+			close;
+		default:
+			mes "Goodbye.";
+			close;
+	}
+
+	function Show_Temporal_Circlets {
+		setarray .@circlets[0],19474,19475,19476,19477,19478,19479,19480,19481,19482,19483,
+			19484,19485,19486,19487,19488,19489,19490,19491,19492;
+		for (.@i = 0; .@i < getarraysize(.@circlets); .@i++)
+			.@menu$ += getitemname(.@circlets[.@i]) + ":";
+		.@sel = select(.@menu$) - 1;
+		delitem 25864,5;
+		getitem .@circlets[.@sel],1;
+		mes "You received " + getitemname(.@circlets[.@sel]) + ".";
+		return;
+	}
+}
+
+// NPC: MUNINN2003
+// Location: /navi glast_01 139/291
+glast_01,138,291,3	script	MUNINN2003	562,{
+	function Show_Weapons;
+
+	mes "[MUNINN2003]";
+	mes "Looking for Royal or Guardian weapons?";
+	next;
+	switch(select("Random Weapon (2 Gemstone + 20 Fragment):Select Weapon (10 Spell):Exit")) {
+		case 1:
+			if (countitem(25865) < 2 || countitem(25867) < 20) {
+				mes "You need 2 Temporal Gemstones and 20 Temporal Fragments.";
+				close;
+			}
+			setarray .@weapons[0],21055,32027,32353,1336,28141,28774,28775,28046,28776,
+				26165,2060,18191,26166,28636,32111,26216,32401,32402,32403,18198,
+				1870,32304,13347,26172;
+			.@rand = .@weapons[rand(getarraysize(.@weapons))];
+			delitem 25865,2;
+			delitem 25867,20;
+			getitem .@rand,1;
+			mes "You received " + getitemname(.@rand) + ".";
+			close;
+		case 2:
+			if (countitem(25866) < 10) {
+				mes "You need 10 Temporal Spells.";
+				close;
+			}
+			mes "Select your weapon:";
+			next;
+			Show_Weapons();
+			close;
+		default:
+			mes "Come back if you change your mind.";
+			close;
+	}
+
+	function Show_Weapons {
+		setarray .@weapons[0],21055,32027,32353,1336,28141,28774,28775,28046,28776,
+			26165,2060,18191,26166,28636,32111,26216,32401,32402,32403,18198,
+			1870,32304,13347,26172;
+		for (.@i = 0; .@i < getarraysize(.@weapons); .@i++)
+			.@menu$ += getitemname(.@weapons[.@i]) + ":";
+		.@sel = select(.@menu$) - 1;
+		delitem 25866,10;
+		getitem .@weapons[.@sel],1;
+		mes "You received " + getitemname(.@weapons[.@sel]) + ".";
+		return;
+	}
+}
+
+// NPC: OSC0005 - Temporal Circlet Enchantment
+// Location: /navi glast_01 137/291
+glast_01,135,291,3	script	OSC0005	563,{
+
+    .@event_on = 0; // Set to 1 if OGH:CM event is active (halves cost)
+
+    .@frag = 10;
+    .@frag2 = 20;
+    .@gem = 2;
+    .@spell = 2;
+
+    if (.@event_on) {
+        .@frag /= 2;
+        .@frag2 /= 2;
+        .@gem /= 2;
+        .@spell /= 2;
+    }
+	.@ref = getequiprefinerycnt(EQI_HEAD_TOP);
+        .@c0 = getequipcardid(EQI_HEAD_TOP, 0);
+        .@c1 = getequipcardid(EQI_HEAD_TOP, 1);
+        .@c2 = getequipcardid(EQI_HEAD_TOP, 2);
+        .@c3 = getequipcardid(EQI_HEAD_TOP, 3);
+	disable_items;
+    // Define Temporal Circlet item IDs
+    setarray .@circlets[0],19474,19475,19476,19477,19478,19479,19480,19481,19482,19483,
+        19484,19485,19486,19487,19488,19489,19490,19491,19492;
+
+    set .@circlet_size,getarraysize(.@circlets);
+    // Check if the player is wearing a Temporal Circlet
+    for ( .@i = 0; .@i < .@circlet_size; .@i++)
+    if ( isequipped(.@circlets[.@i])){
+
+    mes "[OSC0005]";
+    mes "I can enchant your "+getequipname(EQI_HEAD_TOP)+".";
+    next;
+    switch(select("First Enchant ("+.@frag+" Fragments):Second Enchant [Normal] ("+.@frag2+" Fragments):Second Enchant [Special] ("+.@gem+" Gemstones):Third Enchant ("+.@spell+" Spells):Level Up Special Enchant:Reset Enchants:Exit")) {
+        case 1:
+	    if ( .@c1 ){
+    		mes "[OSC0005]";
+		mes "Slot 2 already been enchant,";
+		mes "you need to reset it or continue enchant next slot";
+		close;
+		}
+            if (countitem(25867) < .@frag) {
+    		mes "[OSC0005]";
+                mes "You need "+.@frag+" Temporal Fragments.";
+                close;
+            }
+            delitem 25867, .@frag;
+            callfunc("F_TempEnchantRoll", 1,1);
+            close;
+        case 2:
+	    if ( !.@c1 ){
+    		mes "[OSC0005]";
+		mes "Please do 1st Enchantment first before continue next slot";
+		close;
+		}
+	    if ( .@c2 ){
+    		mes "[OSC0005]";
+		mes "Slot 3 already been enchant,";
+		mes "you need to reset it or continue enchant next slot";
+		close;
+		}
+            if (countitem(25867) < .@frag2) {
+    		mes "[OSC0005]";
+                mes "You need "+.@frag2+" Temporal Fragments.";
+                close;
+            }
+            delitem 25867, .@frag2;
+            callfunc("F_TempEnchantRoll", 2,2);
+            close;
+        case 3:
+	    if ( !.@c1 ){
+    		mes "[OSC0005]";
+		mes "Please do 1st Enchantment first before continue next slot";
+		close;
+		}
+	    if ( .@c2 ){
+    		mes "[OSC0005]";
+		mes "Slot 3 already been enchant,";
+		mes "you need to reset it or continue enchant next slot";
+		close;
+		}
+            if (countitem(25865) < .@gem) {
+    		mes "[OSC0005]";
+                mes "You need "+.@gem+" Temporal Gemstones.";
+                close;
+            }
+            delitem 25865, .@gem;
+            callfunc("F_TempEnchantRoll", 3,2);
+            close;
+        case 4:
+	    if ( !.@c2 ){
+    		mes "[OSC0005]";
+		mes "Please do 1st and 2nd Enchantment first before continue next slot";
+		close;
+		}
+	    if ( .@c3 ){
+    		mes "[OSC0005]";
+		mes "Slot 4 already been enchant,";
+		mes "you need to reset it.";
+		close;
+		}
+            if (countitem(25866) < .@spell) {
+    		mes "[OSC0005]";
+                mes "You need "+.@spell+" Temporal Spells.";
+                close;
+            }
+            delitem 25866, .@spell;
+            callfunc("F_TempEnchantRoll", 4,3);
+            close;
+        case 5:
+            callfunc("F_TempEnchantUpgrade");
+            close;
+        case 6:
+            callfunc("F_ResetEnchant");
+            close;
+        default:
+            mes "Take your time.";
+            close;
+    }
+	}
+        mes "[OSC0005]";
+        mes "You must wear a Temporal Circlet to use my services.";
+        close;
+
+}
+
+// Function to check if the player has enough items
+function	script	checkItem	{
+    .@item_id = getarg(0);
+    .@amount = getarg(1);
+    if (countitem(.@item_id) < .@amount) {
+        mes "You need " + .@amount + " of item ID " + .@item_id + ".";
+        return 0;
+    }
+    return 1;
+}
+
+// Function to reset enchantments
+function	script	F_ResetEnchant	{
+    switch(select("500,000 Zeny (70% success):10 Cash Points (100%):Cancel")) {
+        case 1:
+            if (Zeny < 500000) {
+                mes "Not enough Zeny.";
+                close;
+            }
+            Zeny -= 500000;
+            if (rand(100) < 70) {
+                callfunc "resetHeadgear";
+            } else {
+                mes "Reset failed. Item destroyed.";
+                delequip EQI_HEAD_TOP;
+            }
+            close;
+        case 2:
+            if (#CASHPOINTS < 10) {
+                mes "You need 10 Cash Points.";
+                close;
+            }
+            #CASHPOINTS -= 10;
+            callfunc "resetHeadgear";
+            close;
+        default: close;
+    }
+}
+
+// Helper function to reset headgear
+function	script	resetHeadgear	{
+    .@eid = getequipid(EQI_HEAD_TOP);
+    if (.@eid) {
+	.@ref = getequiprefinerycnt(EQI_HEAD_TOP);
+        .@c0 = getequipcardid(EQI_HEAD_TOP, 0);
+        .@c1 = getequipcardid(EQI_HEAD_TOP, 1);
+        .@c2 = getequipcardid(EQI_HEAD_TOP, 2);
+        .@c3 = getequipcardid(EQI_HEAD_TOP, 3);
+
+        if (.@c0 || .@c1 || .@c2 || .@c3) {
+            mes "Enchant reset successful.";
+            delequip EQI_HEAD_TOP;
+    //      delitem2 .@eid, 1, 1, 0, 0, .@c0, .@c1, .@c2, .@c3; // Remove enchanted item
+            getitem2 .@eid, 1, 1, .@ref, 0, 0, 0, 0, 0; // Give clean version
+        } else {
+            mes "This headgear has no enchantments to reset.";
+        }
+    } else {
+        mes "You must equip the Temporal Circlet to reset its enchantments.";
+    }
+    return;
+}
+
+function	script	F_TempEnchantRoll	{
+    .@eid = getequipid(EQI_HEAD_TOP);
+    .@stage = getarg(0); // 1 = first, 2 = second-normal, 3 = second-special, 4 = third
+    .@slot = getarg(1);
+    .@opt = 0;
+
+    if (getequipid(EQI_HEAD_TOP) == 0) {
+        mes "You must wear your Temporal Circlet.";
+        end;
+    }
+
+    .@r = rand(100000);
+
+    switch (.@stage) {
+        case 1: // First Enchant – Base Stats (high %)
+            if (.@r < 13000) .@opt = 4710; // INT+1
+            else if (.@r < 20000) .@opt = 4711;
+            else if (.@r < 24000) .@opt = 4712;
+            else if (.@r < 25000) .@opt = 4713;
+            else if (.@r < 38000) .@opt = 4700; // STR+1
+            else if (.@r < 45000) .@opt = 4701;
+            else if (.@r < 49000) .@opt = 4702;
+            else if (.@r < 50000) .@opt = 4703;
+            else if (.@r < 63000) .@opt = 4740; // VIT+1
+            else if (.@r < 70000) .@opt = 4741;
+            else if (.@r < 74000) .@opt = 4742;
+            else if (.@r < 75000) .@opt = 4743;
+            else if (.@r < 88000) .@opt = 4750; // LUK+1
+            else if (.@r < 95000) .@opt = 4751;
+            else if (.@r < 99000) .@opt = 4752;
+            else .@opt = 4753;
+            break;
+
+        case 2: // Second Enchant (Normal)
+            if (.@r < 11010) .@opt = 4710; // INT+1
+            else if (.@r < 17898) .@opt = 4711;
+            else if (.@r < 21783) .@opt = 4712;
+            else if (.@r < 22893) .@opt = 4713;
+            else if (.@r < 33894) .@opt = 4700; // STR+1
+            else if (.@r < 40782) .@opt = 4701;
+            else if (.@r < 44667) .@opt = 4702;
+            else if (.@r < 45777) .@opt = 4703;
+            else if (.@r < 56778) .@opt = 4740; // VIT+1
+            else if (.@r < 63666) .@opt = 4741;
+            else if (.@r < 67551) .@opt = 4742;
+            else if (.@r < 68661) .@opt = 4743;
+            else if (.@r < 79662) .@opt = 4750; // LUK+1
+            else if (.@r < 86550) .@opt = 4751;
+            else if (.@r < 90435) .@opt = 4752;
+            else .@opt = 4753;
+            break;
+
+        case 3: // Second Enchant (Special - Temporal Jewels)
+            if (.@r < 8850) .@opt = 29672; // STR Lv1
+            else if (.@r < 13720) .@opt = 29673; // STR Lv2
+            else if (.@r < 16670) .@opt = 29674;
+            else if (.@r < 25520) .@opt = 29675; // AGI Lv1
+            else if (.@r < 30490) .@opt = 29676;
+            else if (.@r < 33440) .@opt = 29677;
+            else if (.@r < 42290) .@opt = 29678; // VIT Lv1
+            else if (.@r < 47260) .@opt = 29679;
+            else if (.@r < 50210) .@opt = 29680;
+            else if (.@r < 59060) .@opt = 29681; // INT Lv1
+            else if (.@r < 64030) .@opt = 29682;
+            else if (.@r < 66980) .@opt = 29683;
+            else if (.@r < 75830) .@opt = 29684; // DEX Lv1
+            else if (.@r < 80800) .@opt = 29685;
+            else if (.@r < 83750) .@opt = 29686;
+            else if (.@r < 92600) .@opt = 29687; // LUK Lv1
+            else if (.@r < 97570) .@opt = 29688;
+            else .@opt = 29689;
+            break;
+
+        case 4: // Third Enchant (Slot 2) - Full List
+            .@r = rand(100000);
+
+            if (.@r < 2060) .@opt = 4818; // Sharp 1
+            else if (.@r < 3090) .@opt = 4817; // Sharp 2
+            else if (.@r < 3610) .@opt = 4816; // Sharp 3
+            else if (.@r < 3870) .@opt = 4843; // Sharp 4
+
+            else if (.@r < 5930) .@opt = 4832; // Expert Archer 1
+            else if (.@r < 6960) .@opt = 4833;
+            else if (.@r < 7480) .@opt = 4834;
+            else if (.@r < 7740) .@opt = 4835;
+
+            else if (.@r < 9800) .@opt = 4869; // ASPD 1
+            else if (.@r < 10830) .@opt = 4872;
+            else if (.@r < 11350) .@opt = 4873;
+            else if (.@r < 11610) .@opt = 4881;
+
+            else if (.@r < 13670) .@opt = 4815; // Spell 1
+            else if (.@r < 14600) .@opt = 4814;
+            else if (.@r < 15120) .@opt = 4813;
+            else if (.@r < 15380) .@opt = 4812;
+
+            else if (.@r < 27750) .@opt = 29706; // Unyielding
+            else if (.@r < 40120) .@opt = 29061; // Mettle
+            else if (.@r < 52490) .@opt = 29111; // Affection
+            else if (.@r < 64860) .@opt = 29101; // Adamantine
+            else if (.@r < 77230) .@opt = 29091; // Master Archer
+            else if (.@r < 89600) .@opt = 29071; // Magic Essence
+            else .@opt = 29081; // Acute (remaining 12.37%)
+            break;
+
+    }
+	.@ref = getequiprefinerycnt(EQI_HEAD_TOP);
+        .@c0 = getequipcardid(EQI_HEAD_TOP, 0);
+        .@c1 = getequipcardid(EQI_HEAD_TOP, 1);
+        .@c2 = getequipcardid(EQI_HEAD_TOP, 2);
+        .@c3 = getequipcardid(EQI_HEAD_TOP, 3);
+
+    // Determine which slot to update
+//    .@slot = (4 - .@stage); // Head slot: 1st = 4, 2nd = 3, 3rd = 2
+
+    // Update the appropriate slot
+    if (.@slot == 3) .@c3 = .@opt;
+    else if (.@slot == 2) .@c2 = .@opt;
+    else if (.@slot == 1) .@c1 = .@opt;
+
+    delequip EQI_HEAD_TOP;
+    getitem2 .@eid, 1, 1, .@ref, 0, .@c0, .@c1, .@c2, .@c3;
+    equip .@eid;
+
+    mes "You received enchant: " + getitemname(.@opt);
+    return;
+}
+
+function	script	F_TempEnchantUpgrade	{
+
+	setarray .uny[1],29706,29707,29708,29709,29710,29711,29712,29713,29714,29715;
+	setarray .met[1],29061,29062,29063,29064,29065,29066,29067,29068,29069,29070;
+	setarray .mag[1],29071,29072,29073,29074,29075,29076,29077,29078,29079,29080;
+	setarray .acu[1],29081,29082,29083,29084,29085,29086,29087,29088,29089,29090;
+	setarray .mar[1],29091,29092,29093,29094,29095,29096,29097,29098,29099,29100;
+	setarray .ada[1],29101,29102,29103,29104,29105,29106,29107,29108,29109,29110;
+	setarray .aff[1],29111,29112,29113,29114,29115,29116,29117,29118,29119,29120;
+
+	setarray .cost[1],4,6,8,10,12,16,20,28,40;
+
+	// Validate equipment
+	.@eid = getequipid(EQI_HEAD_TOP);
+	if (!.@eid) {
+		mes "Please wear your Temporal Circlet.";
+		end;
+	}
+	.@ref = getequiprefinerycnt(EQI_HEAD_TOP);
+	.@c0 = getequipcardid(EQI_HEAD_TOP, 0);
+	.@c1 = getequipcardid(EQI_HEAD_TOP, 1);
+	.@c2 = getequipcardid(EQI_HEAD_TOP, 2);
+	.@c3 = getequipcardid(EQI_HEAD_TOP, 3); // special enchant slot
+
+	if (!.@c3) {
+		mes "No enchant in the 3rd slot (card slot 4).";
+		end;
+	}
+
+	.@cur_lv = 0;
+	.@type$ = "";
+
+	for (.@i = 1; .@i <= 10; .@i++) {
+		if (.uny[.@i] == .@c3) { .@cur_lv = .@i; .@type$ = "uny"; break; }
+		if (.met[.@i] == .@c3) { .@cur_lv = .@i; .@type$ = "met"; break; }
+		if (.mag[.@i] == .@c3) { .@cur_lv = .@i; .@type$ = "mag"; break; }
+		if (.acu[.@i] == .@c3) { .@cur_lv = .@i; .@type$ = "acu"; break; }
+		if (.mar[.@i] == .@c3) { .@cur_lv = .@i; .@type$ = "mar"; break; }
+		if (.ada[.@i] == .@c3) { .@cur_lv = .@i; .@type$ = "ada"; break; }
+		if (.aff[.@i] == .@c3) { .@cur_lv = .@i; .@type$ = "aff"; break; }
+	}
+
+	if (.@cur_lv == 0 || .@cur_lv >= 10) {
+		mes "This enchant cannot be leveled further.";
+		end;
+	}
+
+	.@next_lv = .@cur_lv + 1;
+	.@need = .cost[.@cur_lv];
+
+	if (countitem(25866) < .@need) {
+		mes "You need " + .@need + " Temporal Spells.";
+		end;
+	}
+
+	mes "Enchant: " + getitemname(.@c3) + " Lv" + .@cur_lv;
+	mes "Leveling to Lv" + .@next_lv + " requires " + .@need + " Temporal Spells.";
+	next;
+	if (select("Proceed:Cancel") == 2) close;
+
+	delitem 25866, .@need;
+
+	if (rand(100) < 60) {
+		specialeffect EF_REFINEOK;
+		mes "Success! Enchant upgraded to Lv" + .@next_lv;
+		if (.@type$ == "uny") .@new = .uny[.@next_lv];
+		else if (.@type$ == "met") .@new = .met[.@next_lv];
+		else if (.@type$ == "mag") .@new = .mag[.@next_lv];
+		else if (.@type$ == "acu") .@new = .acu[.@next_lv];
+		else if (.@type$ == "mar") .@new = .mar[.@next_lv];
+		else if (.@type$ == "ada") .@new = .ada[.@next_lv];
+		else if (.@type$ == "aff") .@new = .aff[.@next_lv];
+	} else {
+		if (.@cur_lv > 1) {
+			.@new = getd("." + .@type$ + "[" + (.@cur_lv - 1) + "]");
+			mes "Upgrade failed. Enchant downgraded to Lv" + (.@cur_lv - 1);
+			specialeffect EF_REFINEFAIL;
+		} else {
+			.@new = .@c3;
+			mes "Upgrade failed. Enchant remained at Lv1.";
+			specialeffect EF_REFINEFAIL;
+		}
+	}
+
+	// Replace the gear with updated slot 4 only
+	delitem2 .@eid, 1, 1, .@ref, 0, .@c0, .@c1, .@c2, .@c3; // remove old
+	getitem2 .@eid, 1, 1, .@ref, 0, .@c0, .@c1, .@c2, .@new; // give updated
+	equip .@eid;
+
+	return;
+}

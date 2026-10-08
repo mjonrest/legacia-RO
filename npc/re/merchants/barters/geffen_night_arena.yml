@@ -1,0 +1,338 @@
+Header:
+  Type: BARTER_DB
+  Version: 2
+
+Body:
+  - Name: GeffenNightArena_SHOP_01
+    Items:
+      - Index: 0
+        Item: Anti_Magic_Suit
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Coin
+            Amount: 30
+      - Index: 1
+        Item: Geffen_Mage_Robe
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Coin
+            Amount: 30
+      - Index: 2
+        Item: Anti_Magic_Manteau
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Coin
+            Amount: 30
+      - Index: 3
+        Item: Geffen_Magic_Muffler
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Coin
+            Amount: 30
+      - Index: 4
+        Item: Magic_Reflector
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Coin
+            Amount: 45
+      - Index: 5
+        Item: Encyclopedia_Revision
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Coin
+            Amount: 45
+      - Index: 6
+        Item: Body_Power_Up_Ring
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Coin
+            Amount: 60
+      - Index: 7
+        Item: Ring_Of_Spell_Explosion
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Coin
+            Amount: 60
+      - Index: 8
+        Item: Geffen_Magic_Scroll2
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Coin
+            Amount: 5
+      - Index: 9
+        Item: Geffen_Magic_Scroll
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Coin
+            Amount: 5
+  - Name: GeffenNightArena_SHOP_02
+    Items:
+      - Index: 0
+        Item: MD_Geffen_Suits
+        RequiredItems:
+          - Index: 0
+            Item: Anti_Magic_Suit
+            Amount: 1
+          - Index: 1
+            Item: MD_Geffen_Coin
+            Amount: 30
+      - Index: 1
+        Item: MD_Geffen_Robe
+        RequiredItems:
+          - Index: 0
+            Item: Geffen_Mage_Robe
+            Amount: 1
+          - Index: 1
+            Item: MD_Geffen_Coin
+            Amount: 30
+      - Index: 2
+        Item: MD_Geffen_Hood
+        RequiredItems:
+          - Index: 0
+            Item: Anti_Magic_Manteau
+            Amount: 1
+          - Index: 1
+            Item: MD_Geffen_Coin
+            Amount: 30
+      - Index: 3
+        Item: MD_Geffen_Hood2
+        RequiredItems:
+          - Index: 0
+            Item: Anti_Magic_Manteau
+            Amount: 1
+          - Index: 1
+            Item: MD_Geffen_Coin
+            Amount: 30
+      - Index: 4
+        Item: MD_Geffen_Hood3
+        RequiredItems:
+          - Index: 0
+            Item: Geffen_Magic_Muffler
+            Amount: 1
+          - Index: 1
+            Item: MD_Geffen_Coin
+            Amount: 30
+      - Index: 5
+        Item: MD_Geffen_Hood4
+        RequiredItems:
+          - Index: 0
+            Item: Geffen_Magic_Muffler
+            Amount: 1
+          - Index: 1
+            Item: MD_Geffen_Coin
+            Amount: 30
+      - Index: 6
+        Item: MD_Geffen_Shield
+        RequiredItems:
+          - Index: 0
+            Item: Magic_Reflector
+            Amount: 1
+          - Index: 1
+            Item: MD_Geffen_Coin
+            Amount: 45
+      - Index: 7
+        Item: MD_Geffen_Shield2
+        RequiredItems:
+          - Index: 0
+            Item: Encyclopedia_Revision
+            Amount: 1
+          - Index: 1
+            Item: MD_Geffen_Coin
+            Amount: 45
+      - Index: 8
+        Item: MD_Geffen_Ring
+        RequiredItems:
+          - Index: 0
+            Item: Body_Power_Up_Ring
+            Amount: 1
+          - Index: 1
+            Item: MD_Geffen_Coin
+            Amount: 60
+      - Index: 9
+        Item: MD_Geffen_Ring2
+        RequiredItems:
+          - Index: 0
+            Item: Ring_Of_Spell_Explosion
+            Amount: 1
+          - Index: 1
+            Item: MD_Geffen_Coin
+            Amount: 60
+  - Name: GeffenNightArena_SHOP_03
+    Items:
+      - Index: 0
+        Item: MD_Geffen_Archi_Card
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Win
+            Amount: 10
+          - Index: 1
+            Item: Archi_Card
+            Amount: 7
+      - Index: 1
+        Item: MD_Geffen_Dio_Card
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Win
+            Amount: 10
+          - Index: 1
+            Item: Dio_Anemos_Card
+            Amount: 7
+      - Index: 2
+        Item: MD_Geffen_Thief_Card
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Win
+            Amount: 10
+          - Index: 1
+            Item: Geffen_Thief_Card
+            Amount: 7
+      - Index: 3
+        Item: MD_Geffen_Gang_Card
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Win
+            Amount: 10
+          - Index: 1
+            Item: Geffen_Gang_Card
+            Amount: 7
+      - Index: 4
+        Item: MD_Geffen_Thug_Card
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Win
+            Amount: 10
+          - Index: 1
+            Item: Geffen_Thug_Card
+            Amount: 7
+      - Index: 5
+        Item: MD_Geffen_Monk_Card
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Win
+            Amount: 10
+          - Index: 1
+            Item: Pa_Monk_Card
+            Amount: 7
+      - Index: 6
+        Item: MD_Geffen_Ordre_Card
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Win
+            Amount: 10
+          - Index: 1
+            Item: Ordre_Card
+            Amount: 7
+      - Index: 7
+        Item: MD_Geffen_Blut_Card
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Win
+            Amount: 10
+          - Index: 1
+            Item: Blut_Hase_Card
+            Amount: 7
+      - Index: 8
+        Item: MD_Geffen_Akuma_Card
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Win
+            Amount: 10
+          - Index: 1
+            Item: Kuro_Akuma_Card
+            Amount: 7
+      - Index: 9
+        Item: MD_Geffen_Hyper_Card
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Win
+            Amount: 10
+          - Index: 1
+            Item: Hyper_Death_Card
+            Amount: 7
+      - Index: 10
+        Item: MD_Geffen_Odorico_Card
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Win
+            Amount: 10
+          - Index: 1
+            Item: Odorico_Card
+            Amount: 7
+      - Index: 11
+        Item: MD_Geffen_Reche_Card
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Win
+            Amount: 10
+          - Index: 1
+            Item: Rechenier_Card
+            Amount: 7
+      - Index: 12
+        Item: MD_Geffen_Jew_Card
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Win
+            Amount: 10
+          - Index: 1
+            Item: Jew_Card
+            Amount: 7
+      - Index: 13
+        Item: MD_Geffen_Fei_Card
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Win
+            Amount: 10
+          - Index: 1
+            Item: Fei_Kanabian_Card
+            Amount: 7
+      - Index: 14
+        Item: MD_Geffen_Dy_Card
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Win
+            Amount: 10
+          - Index: 1
+            Item: Dy_Card
+            Amount: 7
+  - Name: GeffenNightArena_SHOP_04
+    Items:
+      - Index: 0
+        Item: MD_Geffen_Rarmor
+        Zeny: 150000
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Cert
+            Amount: 1
+          - Index: 1
+            Item: MD_Geffen_Coin
+            Amount: 15
+      - Index: 1
+        Item: MD_Geffen_Rhood
+        Zeny: 150000
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Cert
+            Amount: 1
+          - Index: 1
+            Item: MD_Geffen_Coin
+            Amount: 15
+      - Index: 2
+        Item: MD_Geffen_Racc
+        Zeny: 100000
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Cert
+            Amount: 1
+          - Index: 1
+            Item: MD_Geffen_Coin
+            Amount: 25
+      - Index: 3
+        Item: MD_Geffen_Rsheild
+        Zeny: 150000
+        RequiredItems:
+          - Index: 0
+            Item: MD_Geffen_Cert
+            Amount: 1
+          - Index: 1
+            Item: MD_Geffen_Coin
+            Amount: 15

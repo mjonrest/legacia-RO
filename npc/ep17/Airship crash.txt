@@ -1,0 +1,806 @@
+dali02,134,86,4	script	Rusbald#npc	964 ,{
+	callshop "Rusbald",1;
+	end;
+}
+
+dali02,137,86,4	script	Dr.Dulaisakstrom	617,{ 
+
+OnStart:  
+	if(checkquest(5909,PLAYTIME) == 2){
+		erasequest 5909;
+	}
+
+	set .@party_id,getcharid(1);  
+	set .@p_name$,getpartyname(.@party_id);  
+
+	if (!.@party_id) {  
+		mes "[Airship Crash Attendant]";  
+		mes "Where are your party members?";  
+		close;  
+	}  
+
+	.@md_name$ = "Airship Crash";  
+
+	if (getcharid(0) == getpartyleader(.@party_id,2))  
+		set @menu$, "Create "+.@md_name$+":Enter "+.@md_name$;  
+	else  
+		set @menu$, ":Enter "+.@md_name$;  
+
+	mes "[Airship Crash Attendant]"; 
+	mes "What would you like to do?";  
+
+	next;  
+	.@i = select(@menu$)-1;  
+	switch(.@i) {  
+	case 0:  
+		if(BaseLevel < 215) {  
+			mes "[Airship Crash Attendant]";  
+			mes "It's very dangerous inside...";  
+			mes "Come back after reaching Lv.215...";  
+			close;  
+		}  
+
+		if (instance_create(.@md_name$) < 0) {  
+			mes "[Airship Crash Attendant]";  
+			mes "Party name: "+.@p_name$;  
+			mes "Party leader: "+strcharinfo(0);  
+			mes "^0000ff"+.@md_name$+" ^000000- Creation failed!";  
+			close;  
+		}  
+
+		mapannounce strnpcinfo(4),"Party "+getpartyname(.@party_id)+" is preparing to challenge the 【"+.@md_name$+"】instance!",bc_map,"0x33ea91";  
+		mes "[Airship Crash Attendant]";  
+		mes ""+.@md_name$+" has been created~";  
+		mes "Please select ^0066CCEnter "+.@md_name$+"^000000.";  
+
+		.@iid = instance_id(IM_PARTY);  
+		set getinstancevar('party_id, .@iid), getcharid(1);  
+		// Record entry time  
+		set Instance_Annal,gettimetick(2);  
+		close;  
+	case 1:  
+		if(BaseLevel < 215) {  
+			mes "[Airship Crash Attendant]";  
+			mes "It's very dangerous inside...";  
+			mes "Come back after reaching Lv.215...";  
+			close;  
+		}  
+		if (getinstancevar('Win,instance_id(IM_PARTY))) {  
+			mes "The instance has already started. You cannot enter again.";  
+			close;  
+		}
+		switch(checkquest(5909,PLAYTIME)){
+			case 0:
+			case 1:
+				mes "you are on cooldown fella";
+				end;
+		}
+
+		switch(instance_enter(.@md_name$)) {  
+		case IE_OTHER:  
+			mes "Unknown error.";  
+			close;  
+		case IE_NOINSTANCE:  
+			mes .@md_name$+" instance does not exist.";  
+			mes "The leader has not applied for the Memory Maze.";  
+			close;  
+		case IE_NOMEMBER:  
+			mes "Only party members who applied for the "+.@md_name$+" instance can enter.";  
+			close;  
+		case IE_OK:  
+			setquest 5909;
+			end;  
+		}  
+	}  
+	close;  
+
+OnInit:  
+	waitingroom "Airship Crash",0;  
+	end;  
+}  
+
+//------------------------------ Airship Crash Event  
+1@mjo1,0,0,0	script	Airship Crash Event1	-1,{  
+
+OnInstanceInit:  
+	// Create instance maps  
+	'map_name$[0] = instance_mapname("1@mjo1");  
+	'map_name$[1] = instance_mapname("1@mjo2");  
+	// Disable NPCs  
+	disablenpc instance_npcname("Alice#mjo01");  
+	disablenpc instance_npcname("Roki#mjo01");  
+	disablenpc instance_npcname("Lydia#mjo02");  
+	disablenpc instance_npcname("Seth#mjo02");  
+	disablenpc instance_npcname("Alice#mjo02");  
+	disablenpc instance_npcname("Roki#mjo02");  
+	disablenpc instance_npcname("Lydia#mjo03");  
+	disablenpc instance_npcname("Seth#mjo03");  
+	disablenpc instance_npcname("Alice#mjo03");  
+	disablenpc instance_npcname("Roki#mjo03");  
+	// Instance tags  
+	set 'CD_mjo_01,0;  
+	set 'CD_mjo_02,0;  
+	set 'CD_mjo_03,0;  
+	set 'CD_mjo_04,0;  
+	set 'CD_mjo_Quest01,0;  
+	end;  
+
+	OnCcdd1:  
+	monster 'map_name$[1],0,0,"--ja--",20886,1,instance_npcname("Airship Crash Event1")+"::OnCcdd1";  
+	end;  
+
+	OnCcdd2:  
+	monster 'map_name$[1],0,0,"--ja--",20887,1,instance_npcname("Airship Crash Event1")+"::OnCcdd2";  
+	end;  
+
+	OnCcdd3:  
+	monster 'map_name$[1],0,0,"--ja--",20888,1,instance_npcname("Airship Crash Event1")+"::OnCcdd3";  
+	end;  
+
+	OnCcdd4:  
+	monster 'map_name$[1],0,0,"--ja--",20889,1,instance_npcname("Airship Crash Event1")+"::OnCcdd4";  
+	end;  
+
+	OnCcdd5:  
+	monster 'map_name$[1],0,0,"--ja--",20890,1,instance_npcname("Airship Crash Event1")+"::OnCcdd5";  
+	end;  
+
+	OnEnd01:  
+	'win = 1;  
+	// Announce exit time  
+	set Instance_Miao,gettimetick(2)-Instance_Annal;  
+	announce "【"+.@md_name$+"】: Party ["+strcharinfo(1)+"] successfully challenged the instance under the leadership of '"+getpartyleader(getcharid(1),0)+"'",bc_all,0xD7BA98;  
+	end;  
+}  
+
+//------------------------------ First Area Instance NPCs  
+1@mjo1,223,374,4	script	Explorer#mjo01	4_M_SAGE_C,{  
+
+	mes "[Explorer]";  
+	mes "Are you passengers from the crashed airship?";  
+	mes "Many people from the airship have scattered across this wilderness.";  
+	next;  
+	mes "[Explorer]";  
+	mes "I heard voices from below earlier. They might be your companions.";  
+	next;  
+	mes "[Explorer]";  
+	mes "I'm a member of an exploration team. We're investigating unknown creatures in the cave to the right.";  
+	mes "Feel free to explore if you're interested.";  
+	close2;  
+	end;  
+}  
+
+1@mjo1,71,344,6	script	Captain Pei Lu#mjo01	873,{
+	if(checkquest(5915,PLAYTIME) == 2){
+		erasequest 5915;
+	}
+
+
+	switch(checkquest(5915,PLAYTIME)){
+		case 0:
+		case 1:
+			mes "[Captain Pei Lu]";  
+			mes "Come back later!";  
+			close;  
+	}
+
+	if('CD_mjo_Quest01==6) {  
+		getitem 1000363,1;	// Ymir Fragment x1  
+		setquest 5915;  
+		mes "[Captain Pei Lu]";  
+		mes "Thank you for helping treat the injured. Here's something that dropped from the monsters earlier.";  
+		close;  
+	}  
+	mes "[Captain Pei Lu]";  
+	mes "There are injured people scattered everywhere...";  
+	close;  
+}  
+
+1@mjo1,233,293,6	script	Lydia#mjo01	4_F_LYDIA,{  
+
+	if (getpartyleader(getcharid(1),2)!=getcharid(0)) end;  
+	if ('CD_mjo_02>0) end;  
+	set 'CD_mjo_02,1;  
+
+	npctalk "Lydia: Alright!! Let's hurry up. The magical city of Geffen is almost within reach!!";  
+	sleep 1000;  
+	npctalk "Lydia: Just watch, Dad!! I'll definitely find the Capenia treasure hidden in Geffen!! And then...";  
+	sleep 1000;  
+	donpcevent instance_npcname("Seth#mjo01")+"::OnTalk1";  
+	sleep 1000;  
+	donpcevent instance_npcname("Seth#mjo01")+"::OnTalk2";  
+	sleep 1000;  
+	donpcevent instance_npcname("Seth#mjo01")+"::OnTalk3";  
+	sleep 1000;  
+	npctalk "Lydia: Seth!! What did you say? Don't you believe in the Aishu family's techniques!!";  
+	sleep 1000;  
+	npctalk "Lydia: The Aishu family carries on the tradition of treasure hunters, now in its 11th generation!!";  
+	sleep 1000;  
+	donpcevent instance_npcname("Seth#mjo01")+"::OnTalk4";  
+	sleep 1000;  
+	npctalk "Lydia: The third-generation ancestor discovered the treasure known as the Hell's Gate.";  
+	sleep 1000;  
+	npctalk "Lydia: The great-grandfather also found the famous treasure of the Nakoba Dynasty!!";  
+	sleep 1000;  
+	npctalk "Lydia: When it reached my dad's generation, he squandered all the family fortune due to gambling...";  
+	sleep 1000;  
+	donpcevent instance_npcname("Seth#mjo01")+"::OnTalk5";  
+	sleep 1000;  
+	donpcevent instance_npcname("Seth#mjo01")+"::OnTalk6";  
+	sleep 1000;  
+	donpcevent instance_npcname("Seth#mjo01")+"::OnTalk7";  
+	sleep 1000;  
+	npctalk "Lydia: Seth, don't you believe what my dad said? He spent his whole life searching for the Capenia treasure!! He never gave up until the end!!";  
+	sleep 1000;  
+	npctalk "Lydia: Besides, you're not an outsider. How could you say such things!";  
+	sleep 1000;  
+	npctalk "Lydia: Dad!! I'll definitely find the Capenia treasure!!";  
+	sleep 1000;  
+	npctalk "Lydia: And then... I'll sell it and surround myself with handsome men every day...";  
+	sleep 1000;  
+	npctalk "Lydia: Ah! No, I mean, I'll fulfill Dad's unfinished wish!!";  
+	sleep 1000;  
+	donpcevent instance_npcname("Seth#mjo01")+"::OnTalk8";  
+	sleep 1000;  
+	donpcevent instance_npcname("Seth#mjo01")+"::OnTalk9";  
+	sleep 1000;  
+	npctalk "Lydia: Great!! Let's set off immediately!!";  
+	sleep 1000;  
+	donpcevent instance_npcname("Seth#mjo01")+"::OnTalk10";  
+	sleep 1000;  
+	npctalk "Lydia: Seth, what's wrong? Hurry up!";  
+	sleep 1000;  
+	donpcevent instance_npcname("Seth#mjo01")+"::OnTalk11";  
+	sleep 1000;  
+	npctalk "Lydia: What's wrong? Can you really not walk anymore? Here, let me carry you.";  
+	sleep 500;  
+	instance_announce 0, "A loud explosion is heard from the forest!!",bc_map,"0xFFFF00";  
+	sleep 500;  
+	npctalk "Lydia: Ah! What's going on? Seth, are you okay?";  
+	sleep 1000;  
+	npctalk "Lydia: Ah! Is this a hand!?";  
+	sleep 1000;  
+	npctalk "Lydia: Never mind, let's pretend we didn't see anything.";  
+	sleep 1000;  
+	donpcevent instance_npcname("Seth#mjo01")+"::OnTalk12";  
+	sleep 1000;  
+	npctalk "Lydia: Fine, I'll take a look!! What is this?";  
+	sleep 1000;  
+	npctalk "Lydia: Rest in peace... Alice... Although we didn't spend much time together...";  
+	sleep 500;  
+	enablenpc instance_npcname("Alice#mjo01");  
+	donpcevent instance_npcname("Alice#mjo01")+"::OnTalk1";  
+	sleep 500;  
+	npctalk "Lydia: So you came back to life? Haha..";  
+	sleep 500;  
+	enablenpc instance_npcname("Roki#mjo01");  
+	donpcevent instance_npcname("Roki#mjo01")+"::OnTalk1";  
+	sleep 1000;  
+	npctalk "Lydia: Ah... Am I dreaming?";  
+	sleep 1000;  
+	npctalk "Lydia: Is this real? Ah... Such cool eyes, such strong arms!!";  
+	sleep 1000;  
+	npctalk "Lydia: My dream lover, it's him!!";  
+	sleep 1000;  
+	npctalk "Lydia: Oh, I'll be yours forever~~";  
+	sleep 500;  
+	specialeffect 16;  
+	donpcevent instance_npcname("Alice#mjo01")+"::OnTalk2";  
+	donpcevent instance_npcname("Roki#mjo01")+"::OnTalk2";  
+	donpcevent instance_npcname("Seth#mjo01")+"::OnTalk13";  
+	disablenpc instance_npcname("Lydia#mjo01");  
+	disablenpc instance_npcname("Seth#mjo01");  
+	disablenpc instance_npcname("Alice#mjo01");  
+	disablenpc instance_npcname("Roki#mjo01");  
+	enablenpc instance_npcname("Lydia#mjo02");  
+	enablenpc instance_npcname("Alice#mjo02");  
+	enablenpc instance_npcname("Roki#mjo02");  
+	enablenpc instance_npcname("Seth#mjo02");  
+	end;  
+}  
+
+1@mjo1,230,290,6	script	Seth#mjo01	4_CAT,{end;  
+
+OnTalk1:  
+	npctalk "Seth: Yeah, right";  
+	end;  
+OnTalk2:  
+	npctalk "Seth: I really wonder who invented such a ridiculous measurement method.";  
+	end;  
+OnTalk3:  
+	npctalk "Seth: Honestly, we don't even know where we are!";  
+	end;  
+
+OnTalk4:  
+	npctalk "Seth: So what?";  
+	end;  
+
+OnTalk5:  
+	npctalk "Seth: Yeah, anyway, it's amazing.";  
+	end;  
+OnTalk6:  
+	npctalk "Seth: But I'm too tired to walk. Go by yourself.";  
+	end;  
+OnTalk7:  
+	npctalk "Seth: I won't move another step...";  
+	end;  
+
+OnTalk8:  
+	npctalk "Seth: Do you think I don't know what you're thinking?";  
+	end;  
+OnTalk9:  
+	npctalk "Seth: Fine! I'll let you fool me one more time.";  
+	end;  
+
+OnTalk10:  
+	npctalk "Seth: !?";  
+	end;  
+
+OnTalk11:  
+	npctalk "Seth: Ahhh....";  
+	end;  
+
+OnTalk12:  
+	npctalk "Seth: Hey! Lydia! Shouldn't you check if the person can still be saved?";  
+	end;  
+
+OnTalk13:  
+	specialeffect 16;  
+	end;  
+}  
+
+1@mjo1,236,290,1	script	Alice#mjo01	4_F_IRIS,{end;  
+
+OnTalk1:  
+	specialeffect 16;  
+	npctalk "Alice: Lydia, stop!! How dare you bury a beautiful girl like me alive!";  
+	end;  
+
+OnTalk2:  
+	specialeffect 16;  
+	end;  
+}  
+
+1@mjo1,236,292,6	script	Roki#mjo01	4_M_ROKI2,{end;  
+
+OnTalk1:  
+	specialeffect 16;  
+	npctalk "Roki: Who are you?";  
+	end;  
+
+OnTalk2:  
+	specialeffect 16;  
+	end;  
+}  
+
+1@mjo1,96,200,6	script	Lydia#mjo02	4_F_LYDIA,{  
+
+	if (getpartyleader(getcharid(1),2)!=getcharid(0)) end;  
+	if ('CD_mjo_03>0) end;  
+	set 'CD_mjo_03,1;  
+
+	donpcevent instance_npcname("Alice#mjo02")+"::OnTalk1";  
+	sleep 1000;  
+	npctalk "Lydia: Right... Because there's a treacherous mountain range between Prontera and the Schwarzvald Republic...";  
+	sleep 1000;  
+	donpcevent instance_npcname("Seth#mjo02")+"::OnTalk1";  
+	sleep 1000;  
+	donpcevent instance_npcname("Alice#mjo02")+"::OnTalk2";  
+	sleep 1000;  
+	npctalk "Lydia: Exactly!! That's what I mean.";  
+	sleep 1000;  
+	donpcevent instance_npcname("Alice#mjo02")+"::OnTalk3";  
+	sleep 1000;  
+	npctalk "Lydia: Hey!! Are you coming or not!? If you don't hurry up, I won't wait for you!!";  
+	sleep 1000;  
+	donpcevent instance_npcname("Alice#mjo02")+"::OnTalk4";  
+	sleep 500;  
+	specialeffect 16;  
+	donpcevent instance_npcname("Alice#mjo02")+"::OnTalk5";  
+	donpcevent instance_npcname("Roki#mjo02")+"::OnTalk1";  
+	donpcevent instance_npcname("Seth#mjo02")+"::OnTalk2";  
+	disablenpc instance_npcname("Lydia#mjo02");  
+	disablenpc instance_npcname("Seth#mjo02");  
+	disablenpc instance_npcname("Alice#mjo02");  
+	disablenpc instance_npcname("Roki#mjo02");  
+	enablenpc instance_npcname("Lydia#mjo03");  
+	enablenpc instance_npcname("Alice#mjo03");  
+	enablenpc instance_npcname("Roki#mjo03");  
+	enablenpc instance_npcname("Seth#mjo03");  
+	end;  
+}  
+
+1@mjo1,94,200,6	script	Seth#mjo02	4_CAT,{end;  
+	mes "[Seth]";  
+	mes "....";  
+	close;  
+
+OnTalk1:  
+	npctalk "Seth: If we're walking, crossing the mountain range directly is impossible, so we have to go around.";  
+	end;  
+OnTalk2:  
+	specialeffect 16;  
+	end;  
+}  
+
+1@mjo1,101,198,4	script	Alice#mjo02	4_F_IRIS,{end;  
+
+OnTalk1:  
+	npctalk "Alice: To get to the Schwarzvald Republic from here, we have to pass through Geffen, right?";  
+	end;  
+
+OnTalk2:  
+	npctalk "Alice: So we need another way to get to Geffen?";  
+	end;  
+OnTalk3:  
+	npctalk "Alice: What about Charles and Paniel...";  
+	end;  
+OnTalk4:  
+	npctalk "Alice: You...";  
+	end;  
+
+OnTalk5:  
+	specialeffect 16;  
+	end;  
+}  
+
+1@mjo1,101,194,6	script	Roki#mjo02	4_M_ROKI2,{end;  
+
+OnTalk1:  
+	specialeffect 16;  
+	end;  
+}  
+
+1@mjo1,196,132,6	script	Lydia#mjo03	4_F_LYDIA,{  
+
+	if (getpartyleader(getcharid(1),2)!=getcharid(0)) end;  
+	if ('CD_mjo_04>0) end;  
+	set 'CD_mjo_04,1;  
+
+	donpcevent instance_npcname("Alice#mjo03")+"::OnTalk1";  
+	sleep 1000;  
+	npctalk "Lydia: Stop pretending! Weren't you just fine earlier!?";  
+	sleep 1000;  
+	donpcevent instance_npcname("Alice#mjo03")+"::OnTalk2";  
+	sleep 1000;  
+	npctalk "Lydia: You... What do you mean?";  
+	sleep 1000;  
+	donpcevent instance_npcname("Roki#mjo03")+"::OnTalk1";  
+	sleep 1000;  
+	donpcevent instance_npcname("Alice#mjo03")+"::OnTalk3";  
+	sleep 1000;  
+	npctalk "Lydia: Enough!! Fine, I'll carry you!!";  
+	sleep 1000;  
+	npctalk "Lydia: If a friend is injured and can't walk, of course I'll help!! Here!! I'll carry you!!";  
+	sleep 1000;  
+	donpcevent instance_npcname("Roki#mjo03")+"::OnTalk2";  
+	sleep 1000;  
+	npctalk "Lydia: It's okay... I'll carry you...";  
+	sleep 500;  
+	specialeffect 16;  
+	donpcevent instance_npcname("Alice#mjo03")+"::OnTalk4";  
+	donpcevent instance_npcname("Roki#mjo03")+"::OnTalk3";  
+	donpcevent instance_npcname("Seth#mjo03")+"::OnTalk1";  
+	disablenpc instance_npcname("Lydia#mjo03");  
+	disablenpc instance_npcname("Seth#mjo03");  
+	disablenpc instance_npcname("Alice#mjo03");  
+	disablenpc instance_npcname("Roki#mjo03");  
+	instance_announce 0, "Captain Pei Lu: Can anyone help treat the injured scattered around!?",bc_map,"0xFFFF00";  
+	end;  
+}  
+
+1@mjo1,194,131,6	script	Seth#mjo03	4_CAT,{end;  
+
+OnTalk1:  
+	specialeffect 16;  
+	end;  
+}  
+
+1@mjo1,197,133,4	script	Alice#mjo03	4_F_IRIS,{end;  
+
+OnTalk1:  
+	npctalk "Alice: I can't walk anymore... Suddenly feeling dizzy...";  
+	end;  
+OnTalk2:  
+	npctalk "Alice: Can you carry me?";  
+	end;  
+OnTalk3:  
+	npctalk "Alice: Well... Roki just hit me with a big rock...";  
+	end;  
+OnTalk4:  
+	specialeffect 16;  
+	end;  
+}  
+
+1@mjo1,201,131,4	script	Roki#mjo03	4_M_ROKI2,{end;  
+
+OnTalk1:  
+	npctalk "Roki: What's wrong? Are you feeling unwell?";  
+	end;  
+OnTalk2:  
+	npctalk "Roki: Are you sure? We might have to walk a long way.";  
+	end;  
+OnTalk3:  
+	specialeffect 16;  
+	end;  
+}  
+
+1@mjo1,0,0,4	script	Treat Injured::MJ_HEAL	4_ROPEPILE,{  
+
+	if('CD_mjo_04==0) end;  
+	message strcharinfo(0),"Treating the injured... Moving will cancel the action.";  
+	progressbar "0x000000",3;  
+	specialeffect 6;  
+	sleep 200;  
+	disablenpc instance_npcname(strnpcinfo(0));  
+	set 'CD_mjo_Quest01,'CD_mjo_Quest01+1;  
+	instance_announce 0, "Treated this injured person. Total treated: "+'CD_mjo_Quest01+" injured",bc_map,"0xFFFF00";  
+	if('CD_mjo_Quest01==6) {  
+		instance_announce 0, "Already treated "+'CD_mjo_Quest01+" injured. Return to Captain Pei Lu at the top-left corner to report.",bc_map,"0xFFFF00";  
+		end;  
+	}  
+	end;  
+}  
+
+1@mjo1,215,144,3	duplicate(MJ_HEAL)	Injured Traveler#mjo01	4_M_DIEMAN  
+1@mjo1,257,156,3	duplicate(MJ_HEAL)	Injured Traveler#mjo02	4_TOWER_06  
+1@mjo1,290,173,3	duplicate(MJ_HEAL)	Injured Traveler#mjo03	4_TOWER_08  
+1@mjo1,165,143,3	duplicate(MJ_HEAL)	Injured Traveler#mjo04	4_TOWER_11  
+1@mjo1,146,185,3	duplicate(MJ_HEAL)	Injured Traveler#mjo05	4_TOWER_13  
+1@mjo1,135,210,3	duplicate(MJ_HEAL)	Injured Traveler#mjo06	4_TOWER_01  
+1@mjo1,170,256,3	duplicate(MJ_HEAL)	Injured Traveler#mjo07	4_TOWER_03  
+1@mjo1,152,282,3	duplicate(MJ_HEAL)	Injured Traveler#mjo08	4_M_LYINGDOG  
+1@mjo1,248,258,3	duplicate(MJ_HEAL)	Injured Traveler#mjo09	4_M_DSTMANDEAD  
+1@mjo1,251,205,3	duplicate(MJ_HEAL)	Injured Traveler#mjo10	4_M_LIEMAN  
+
+//------------------------------ Second Area Instance NPCs  
+1@mjo2,363,364,4	script	Doctor#mjo01	4_M_DOCTOR,{  
+	if (getpartyleader(getcharid(1),2)!=getcharid(0)) end;  
+	if ('CD_mjo_01>0) end;  
+	mes "[Doctor]";  
+	mes "This cave has various unique creatures.";  
+	mes "We're here to collect data on these creatures.";  
+	next;  
+	mes "[Doctor]";  
+	mes "Would you like to join our exploration team and help us collect data on those creatures?";  
+	next;  
+	switch (select("Join the exploration team:Cancel")) {  
+
+	case 1:  
+		mes "[Doctor]";  
+		mes "Thank you for your help. Remember to sign the reward agreement with the researcher next to me to receive your reward.";  
+		close2;  
+		set 'CD_mjo_01,1;  
+		monster 'map_name$[0],0,0,"--ja--",20886,50,instance_npcname("Airship Crash Event1")+"::OnCcdd1";  
+		monster 'map_name$[1],0,0,"--ja--",20886,50,instance_npcname("Airship Crash Event1")+"::OnCcdd1";  
+		monster 'map_name$[1],0,0,"--ja--",20887,60,instance_npcname("Airship Crash Event1")+"::OnCcdd2";  
+		monster 'map_name$[1],0,0,"--ja--",20888,45,instance_npcname("Airship Crash Event1")+"::OnCcdd3";  
+		monster 'map_name$[1],0,0,"--ja--",20889,60,instance_npcname("Airship Crash Event1")+"::OnCcdd4";  
+		monster 'map_name$[1],0,0,"--ja--",20890,60,instance_npcname("Airship Crash Event1")+"::OnCcdd5";  
+		end;  
+
+	case 2:  
+		close;  
+	}  
+}  
+
+1@mjo2,356,367,6	script	Researcher#mjo01	4_LGTSCIENCE,{  
+
+	if(checkquest(5912,HUNTING)==2 ) {  
+		dispbottom "Capture 100 monsters mission completed. Here are your rewards!!";  
+		getitem 1000363,2;	// Ymir Fragments x2  
+		erasequest 5912;	// Delete mission  
+		if(quests_mjolv == 0) {  
+			set quests_mjolv,1;  
+		}  
+	}  
+	if(checkquest(5913,HUNTING)==2 ) {  
+		dispbottom "Capture 200 monsters mission completed. Here are your rewards!!";  
+		getitem 1000363,5;	// Ymir Fragments x5  
+		erasequest 5913;	// Delete mission  
+		if(quests_mjolv == 1) {  
+			set quests_mjolv,2;  
+		}  
+	}  
+	if(checkquest(5914,HUNTING)==2 ) {  
+		dispbottom "Capture 350 monsters mission completed. Here are your rewards!!";  
+		getitem 1000363,10;	// Ymir Fragments x10  
+		erasequest 5914;	// Delete mission  
+	}  
+
+	mes "[Researcher]";  
+	mes "Capture 100 monsters reward: <ITEM>Ymir Fragment<INFO>1000363</INFO></ITEM>x2";  
+	mes "Capture 200 monsters reward: <ITEM>Ymir Fragment<INFO>1000363</INFO></ITEM>x5";  
+	mes "Capture 350 monsters reward: <ITEM>Ymir Fragment<INFO>1000363</INFO></ITEM>x10";  
+	mes "How many monsters do you want to capture?";  
+	next;  
+	switch (select("Cancel","Capture 100 monsters",quests_mjolv>0?"Capture 200 monsters":"",quests_mjolv>1?"Capture 350 monsters":"")) {  
+
+	case 1:  
+		if(checkquest(5912)>0) {  
+			mes "[Researcher]";  
+			mes "You've already accepted a capture mission!";  
+			close;  
+		}  
+		if(checkquest(5913)>0) {  
+			mes "[Researcher]";  
+			mes "You've already accepted a capture mission!";  
+			close;  
+		}  
+		if(checkquest(5914)>0) {  
+			mes "[Researcher]";  
+			mes "You've already accepted a capture mission!";  
+			close;  
+		}  
+		setquest 5912;  
+		mes "[Researcher]";  
+		mes "Mission accepted.";  
+		close;  
+
+	case 2:  
+		if(checkquest(5912)>0) {  
+			mes "[Researcher]";  
+			mes "You've already accepted a capture mission!";  
+			close;  
+		}  
+		if(checkquest(5913)>0) {  
+			mes "[Researcher]";  
+			mes "You've already accepted a capture mission!";  
+			close;  
+		}  
+		if(checkquest(5914)>0) {  
+			mes "[Researcher]";  
+			mes "You've already accepted a capture mission!";  
+			close;  
+		}  
+		setquest 5913;  
+		mes "[Researcher]";  
+		mes "Mission accepted.";  
+		close;  
+
+	case 3:  
+		if(checkquest(5912)>0) {  
+			mes "[Researcher]";  
+			mes "You've already accepted a capture mission!";  
+			close;  
+		}  
+		if(checkquest(5913)>0) {  
+			mes "[Researcher]";  
+			mes "You've already accepted a capture mission!";  
+			close;  
+		}  
+		if(checkquest(5914)>0) {  
+			mes "[Researcher]";  
+			mes "You've already accepted a capture mission!";  
+			close;  
+		}  
+		setquest 5914;  
+		mes "[Researcher]";  
+		mes "Mission accepted.";  
+		close;  
+
+	case 4:  
+		close;  
+	}  
+}  
+
+1@mjo2,355,355,6	script	Student#mjo01	4_M_SAGE_C,{  
+
+	mes "[Researcher]";  
+	mes "I'm in charge of managing this rope.";  
+	mes "During your exploration in this cave, just pull the ropes located in various places, and I'll pull you back here!";  
+	next;  
+	switch (select("Show rope locations:Cancel")) {  
+
+	case 1:  
+		viewpoint 1,178,370,1,0xffff00;  
+		viewpoint 1,216,285,2,0xffff00;  
+		viewpoint 1,113,342,3,0xffff00;  
+		viewpoint 1,22,389,4,0xffff00;  
+		viewpoint 1,37,287,5,0xffff00;  
+		viewpoint 1,79,161,6,0xffff00;  
+		viewpoint 1,26,26,7,0xffff00;  
+		viewpoint 1,156,68,8,0xffff00;  
+		viewpoint 1,237,79,9,0xffff00;  
+		viewpoint 1,257,123,10,0xffff00;  
+		viewpoint 1,325,71,11,0xffff00;  
+		viewpoint 1,355,36,12,0xffff00;  
+		viewpoint 1,354,120,13,0xffff00;  
+		viewpoint 1,359,253,14,0xffff00;  
+		viewpoint 1,221,218,15,0xffff00;  
+		close;  
+
+	case 2:  
+		close;  
+	}  
+}  
+
+1@mjo2,358,354,4	script	Rope::MJ_ROPEPILE	4_ROPEPILE,{  
+
+	mes "[Researcher]";  
+	mes "Just pull the rope, and I'll pull you up!";  
+	next;  
+	switch (select("Return to camp:Return to unknown creature area:Cancel")) {  
+
+	case 1:  
+		warp 'map_name$[1],357,357;  
+		close;  
+
+	case 2:  
+		warp 'map_name$[1],203,327;  
+		close;  
+
+	case 3:  
+		close;  
+	}  
+}  
+
+1@mjo2,178,370,3	duplicate(MJ_ROPEPILE)	Rope#mjo01	4_ROPEPILE  
+1@mjo2,216,285,3	duplicate(MJ_ROPEPILE)	Rope#mjo02	4_ROPEPILE  
+1@mjo2,113,342,3	duplicate(MJ_ROPEPILE)	Rope#mjo03	4_ROPEPILE  
+1@mjo2,22,389,3	duplicate(MJ_ROPEPILE)	Rope#mjo04	4_ROPEPILE  
+1@mjo2,37,287,3	duplicate(MJ_ROPEPILE)	Rope#mjo05	4_ROPEPILE  
+1@mjo2,79,161,3	duplicate(MJ_ROPEPILE)	Rope#mjo06	4_ROPEPILE  
+1@mjo2,26,26,3	duplicate(MJ_ROPEPILE)	Rope#mjo07	4_ROPEPILE  
+1@mjo2,156,68,3	duplicate(MJ_ROPEPILE)	Rope#mjo08	4_ROPEPILE  
+1@mjo2,237,79,3	duplicate(MJ_ROPEPILE)	Rope#mjo09	4_ROPEPILE  
+1@mjo2,257,123,3	duplicate(MJ_ROPEPILE)	Rope#mjo10	4_ROPEPILE  
+1@mjo2,325,71,3	duplicate(MJ_ROPEPILE)	Rope#mjo11	4_ROPEPILE  
+1@mjo2,355,36,3	duplicate(MJ_ROPEPILE)	Rope#mjo12	4_ROPEPILE  
+1@mjo2,354,120,3	duplicate(MJ_ROPEPILE)	Rope#mjo13	4_ROPEPILE  
+1@mjo2,359,253,3	duplicate(MJ_ROPEPILE)	Rope#mjo14	4_ROPEPILE  
+1@mjo2,221,218,3	duplicate(MJ_ROPEPILE)	Rope#mjo15	4_ROPEPILE  
+
+1@mjo2,373,371,4	script	Mysterious Ghost#mjo01	4_SYS_MSG,{  
+
+	mes "[Mysterious Ghost]";  
+	mes "Just give me 55 Ymir Ore";  
+	mes "and I'll summon unknown creatures to the northern area.";  
+	next;  
+	switch (select("Cancel:Place Ymir Ore")) {  
+
+	case 1:  
+		close;  
+
+	case 2:  
+		if (countitem(1000364)<55) {  
+			mes "[Mysterious Ghost]";  
+			mes "You don't have enough Ymir Ore (55 required)!";  
+			close;  
+		}  
+		close2;  
+
+		delitem 1000364,55;  
+		instance_announce 0, "A strange roar is heard from the northern area. Go check it out quickly.",bc_map,"0xFFFF00";  
+		monster 'map_name$[1],197,354,"--ja--",20891,1,instance_npcname("Airship Crash Event1")+"::OnEnd01";  
+		end;  
+	}  
+}  
+
+//------------------------------ Warp Information  
+1@mjo1,219,382,0	script	Warp Gate#mjo01	45,2,2,{  
+	end;  
+OnTouch:    
+	warp $Instance_MA$,$Instance_MAP_X,$Instance_MAP_Y;  
+	end;  
+}  
+
+1@mjo1,274,252,0	warp	Warp Gate#mjo02	2,2,1@mjo2,360,368  
+1@mjo2,360,373,0	warp	Warp Gate#mjo03	2,2,1@mjo1,279,252  
+
+//------------------------------ Map Flags  
+1@mjo1	mapflag	partylock  
+1@mjo1	mapflag	noteleport  
+1@mjo1	mapflag	nosave	SavePoint  
+1@mjo1	mapflag	nomemo  
+1@mjo1	mapflag	nobranch  
+1@mjo1	mapflag	noicewall  
+1@mjo1	mapflag	restricted	6  
+
+1@mjo2	mapflag	partylock  
+1@mjo2	mapflag	noteleport  
+1@mjo2	mapflag	nosave	SavePoint  
+1@mjo2	mapflag	nomemo  
+1@mjo2	mapflag	nobranch  
+1@mjo2	mapflag	noicewall  
+1@mjo2	mapflag	restricted	6  

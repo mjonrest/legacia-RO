@@ -1,0 +1,437 @@
+/**
+CREATE TABLE `npc_point_exchange_log` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `account_id` INT,
+  `char_id` INT,
+  `char_name` VARCHAR(30),
+  `npc_name` VARCHAR(50),
+  `exchange_type` VARCHAR(30),   -- Mission / Instance / Event
+  `direction` VARCHAR(20),       -- ITEM_TO_POINT or POINT_TO_ITEM
+  `item_id` INT,
+  `item_name` VARCHAR(100),
+  `item_amount` INT,
+  `points_amount` INT,
+  `points_before` INT,
+  `points_after` INT,
+  `map` VARCHAR(30),
+  `time` DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+**/
+
+moc_para01,53,35,6	script	Coin Exchanger	10087,{
+disable_items;
+Main:
+// Anti spam (1 second cooldown)
+if (gettimetick(2) < #last_exchange_tick + 1) {
+    mes "[Point Exchanger]";
+    mes "Please wait a moment before exchanging again.";
+    close;
+}
+#last_exchange_tick = gettimetick(2);
+
+    mes "[Point Exchanger]";
+    mes "Choose point category.";
+    next;
+
+	.@type = select(
+	    "Mission Points",
+	    "Instance Points",
+	    "Event Points",
+	    "MVP Soul - Bound -> Normal",
+	    "Exit"
+	);
+    if (.@type == 4) {
+    goto ConvertBoundMvpSoul;
+	}
+
+	next;
+    .@mode = select(
+        "Item -> Point",
+        "Point -> Item",
+        "Back"
+    );
+    if (.@mode == 3) goto Main;
+
+    // ===============================
+    // SET DATA BY TYPE
+    // ===============================
+    deletearray .@item;
+    deletearray .@value;
+
+    if (.@type == 1) {
+        setarray .@item, 30002,30003,30004,30005,30006;
+        setarray .@value, 1,5,10,30,50;
+        .@ptype = 1;
+        .@pname$ = "Mission Points";
+    }
+    else if (.@type == 2) {
+        setarray .@item, 30018;
+        setarray .@value, 1;
+        .@ptype = 2;
+        .@pname$ = "Instance Points";
+    }
+    else if (.@type == 3) {
+        setarray .@item, 30017;
+        setarray .@value, 1;
+        .@ptype = 3;
+        .@pname$ = "Event Points";
+    }
+
+    // ===============================
+    // BUILD ITEM MENU
+    // ===============================
+    mes "[Point Exchanger]";
+    mes "Select item:";
+    next;
+    .@menu$ = "";
+
+    for (.@i = 0; .@i < getarraysize(.@item); .@i++)
+        .@menu$ += "[" + getitemname(.@item[.@i]) + "]:";
+
+    .@menu$ += "Back";
+
+    .@s = select(.@menu$);
+    if (.@s > getarraysize(.@item)) goto Main;
+
+    .@id  = .@item[.@s - 1];
+    .@val = .@value[.@s - 1];
+
+    // ===============================
+    // SHOW CURRENT STATUS
+    // ===============================
+    if (.@ptype == 1) .@cur_pt = #Mission_Points;
+    if (.@ptype == 2) .@cur_pt = #instance_points;
+    if (.@ptype == 3) .@cur_pt = #EVENTVARIABLE;
+
+// Prevent corrupted negative points
+if (.@cur_pt < 0) {
+    mes "[Point Exchanger]";
+    mes "Your point data is corrupted.";
+    mes "Please contact GM.";
+    close;
+}
+
+    .@cur_it = countitem(.@id);
+
+    mes "[Point Exchanger]";
+    mes "Current status:";
+    mes "Item: " + getitemname(.@id);
+    mes "You have: " + .@cur_it + " item(s)";
+    mes .@pname$ + ": " + .@cur_pt;
+    next;
+
+    // ===============================
+    // ITEM ? POINT
+    // ===============================
+    if (.@mode == 1) {
+        mes "How many items do you want to exchange?";
+        input .@amt;
+
+        if (.@amt <= 0 || .@amt > .@cur_it) {
+            mes "Invalid amount.";
+            next; goto Main;
+        }
+
+.@gain = .@amt * .@val;
+
+// Prevent integer overflow
+if (.@cur_pt + .@gain > 100000) {
+    mes "[Point Exchanger]";
+    mes "You have reached maximum point limit.";
+    close;
+}
+
+mes "You will exchange:";
+mes "- Items used: " + .@amt;
+mes "- Points gained: " + .@gain;
+next;
+
+// Re-check item count to prevent packet spam abuse
+if (countitem(.@id) < .@amt) {
+    mes "[Point Exchanger]";
+    mes "Exchange failed (item mismatch).";
+    close;
+}
+
+// store before
+.@before = .@cur_pt;
+
+delitem .@id, .@amt;
+
+        if (.@ptype == 1) #Mission_Points += .@gain;
+        if (.@ptype == 2) #instance_points += .@gain;
+        if (.@ptype == 3) #EVENTVARIABLE += .@gain;
+
+// store after
+.@after = .@before + .@gain;
+
+// Safety check (should never go negative, but just in case)
+if (.@after < 0) {
+    mes "[Point Exchanger]";
+    mes "Exchange aborted (point underflow).";
+    close;
+}
+
+
+ConvertBoundMvpSoul:
+
+	// ============================================
+	// MVP SOUL: BOUND -> NORMAL
+	// ============================================
+
+	mes "[MVP Soul Converter]";
+	mes "I can convert your ^FF0000Bound MVP Soul^000000";
+	mes "into a normal ^00FF00MVP Soul^000000.";
+	next;
+
+	// --------------------------------------------
+	// Find bound MVP Soul
+	// countbound(1) = bound items
+	// --------------------------------------------
+	.@bound_count = countbound(1);
+	.@bound_mvp = 0;
+
+	for (.@i = 0; .@i < .@bound_count; .@i++) {
+		if (@bound_items[.@i] == 30007) {
+			.@bound_mvp += @bound_amount[.@i];
+		}
+	}
+
+	if (.@bound_mvp <= 0) {
+		mes "[MVP Soul Converter]";
+		mes "You don't have any ^FF0000Bound MVP Souls^000000.";
+		close;
+	}
+
+	mes "[MVP Soul Converter]";
+	mes "You currently have:";
+	mes "^FF0000" + .@bound_mvp + " Bound MVP Soul(s)^000000";
+	mes "";
+	mes "How many do you want to convert?";
+	next;
+
+	input .@amt;
+
+	if (.@amt <= 0) {
+		mes "[MVP Soul Converter]";
+		mes "Invalid amount.";
+		close;
+	}
+
+	if (.@amt > .@bound_mvp) {
+		mes "[MVP Soul Converter]";
+		mes "You don't have enough Bound MVP Souls.";
+		mes "Available: " + .@bound_mvp;
+		close;
+	}
+
+	// --------------------------------------------
+	// Check weight for normal MVP Soul
+	// --------------------------------------------
+	if (checkweight(30007, .@amt) == 0) {
+		mes "[MVP Soul Converter]";
+		mes "You cannot carry that many MVP Souls.";
+		close;
+	}
+
+	mes "[MVP Soul Converter]";
+	mes "You will convert:";
+	mes "^FF0000" + .@amt + " Bound MVP Soul(s)^000000";
+	mes "to:";
+	mes "^00FF00" + .@amt + " Normal MVP Soul(s)^000000";
+	next;
+
+	// --------------------------------------------
+	// Re-check bound amount
+	// --------------------------------------------
+	.@bound_count = countbound(1);
+	.@bound_mvp = 0;
+
+	for (.@i = 0; .@i < .@bound_count; .@i++) {
+		if (@bound_items[.@i] == 30007) {
+			.@bound_mvp += @bound_amount[.@i];
+		}
+	}
+
+	if (.@amt > .@bound_mvp) {
+		mes "[MVP Soul Converter]";
+		mes "Exchange failed.";
+		mes "Your Bound MVP Soul amount has changed.";
+		close;
+	}
+
+	// --------------------------------------------
+	// Get complete inventory list
+	// --------------------------------------------
+	getinventorylist();
+
+	.@remaining = .@amt;
+
+	// --------------------------------------------
+	// Find ONLY bound MVP Soul
+	// --------------------------------------------
+	for (.@i = 0; .@i < @inventorylist_count; .@i++) {
+
+		if (.@remaining <= 0)
+			break;
+
+		// Must be MVP Soul
+		if (@inventorylist_id[.@i] != 30007)
+			continue;
+
+		// Must be bound
+		if (@inventorylist_bound[.@i] <= 0)
+			continue;
+
+		.@remove = @inventorylist_amount[.@i];
+
+		if (.@remove > .@remaining)
+			.@remove = .@remaining;
+
+		// ----------------------------------------
+		// Remove the BOUND item specifically
+		// ----------------------------------------
+		if (!delitemidx(@inventorylist_idx[.@i], .@remove)) {
+			mes "[MVP Soul Converter]";
+			mes "Failed to remove the Bound MVP Soul.";
+			close;
+		}
+
+		.@remaining -= .@remove;
+	}
+
+	// --------------------------------------------
+	// Safety check
+	// --------------------------------------------
+	if (.@remaining > 0) {
+		mes "[MVP Soul Converter]";
+		mes "Exchange failed.";
+		mes "Not enough Bound MVP Souls could be removed.";
+		close;
+	}
+
+	// --------------------------------------------
+	// Give NORMAL MVP Soul
+	// --------------------------------------------
+	getitem 30007, .@amt;
+
+	mes "[MVP Soul Converter]";
+	mes "^00FF00Conversion successful!^000000";
+	mes "";
+	mes "Bound MVP Soul used: " + .@amt;
+	mes "Normal MVP Soul received: " + .@amt;
+	close;
+
+// ============================
+// SQL LOG
+// ============================
+query_sql(
+	"INSERT INTO npc_point_exchange_log "
+	+ "(account_id,char_id,char_name,npc_name,exchange_type,direction,item_id,item_name,item_amount,points_amount,points_before,points_after,map) VALUES ("
+	+ getcharid(3) + ","
+	+ getcharid(0) + ","
+	+ "'" + escape_sql(strcharinfo(0)) + "',"
+	+ "'Coin Exchanger',"
+	+ "'" + escape_sql(.@pname$) + "',"
+	+ "'ITEM_TO_POINT',"
+	+ .@id + ","
+	+ "'" + escape_sql(getitemname(.@id)) + "',"
+	+ .@amt + ","
+	+ .@gain + ","
+	+ .@before + ","
+	+ .@after + ","
+	+ "'" + escape_sql(strcharinfo(3)) + "'"
+	+ ")"
+);
+
+        mes "[Result]";
+        mes "Items left: " + ( .@cur_it - .@amt );
+        mes .@pname$ + ": " + .@after;
+        next; goto Main;
+    }
+
+    // ===============================
+    // POINT ? ITEM
+    // ===============================
+    if (.@mode == 2) {
+        mes "How many items do you want?";
+        input .@amt;
+
+        if (.@amt <= 0) {
+            mes "Invalid amount.";
+            next; goto Main;
+        }
+
+        .@need = .@amt * .@val;
+
+        if (.@need > .@cur_pt) {
+            mes "You don't have enough points.";
+            next; goto Main;
+        }
+
+	// Check weight before giving item
+	if (checkweight(.@id, .@amt) == 0) {
+	mes "[Point Exchanger]";
+	mes "You cannot carry that many items.";
+	close;
+	}
+
+        mes "You will exchange:";
+        mes "- Points used: " + .@need;
+        mes "- Items gained: " + .@amt;
+        next;
+
+// store before
+.@before = .@cur_pt;
+
+// Extra safety re-check (anti race condition)
+if (.@need > .@cur_pt) {
+    mes "[Point Exchanger]";
+    mes "Exchange failed (point mismatch).";
+    close;
+}
+
+if (.@ptype == 1) #Mission_Points -= .@need;
+if (.@ptype == 2) #instance_points -= .@need;
+if (.@ptype == 3) #EVENTVARIABLE -= .@need;
+
+getitem .@id, .@amt;
+
+// store after
+.@after = .@before - .@need;
+
+// Safety check
+if (.@after < 0) {
+    mes "[Point Exchanger]";
+    mes "Exchange aborted (point underflow).";
+    close;
+}
+
+// ============================
+// SQL LOG
+// ============================
+query_sql(
+	"INSERT INTO npc_point_exchange_log "
+	+ "(account_id,char_id,char_name,npc_name,exchange_type,direction,item_id,item_name,item_amount,points_amount,points_before,points_after,map) VALUES ("
+	+ getcharid(3) + ","
+	+ getcharid(0) + ","
+	+ "'" + escape_sql(strcharinfo(0)) + "',"
+	+ "'Coin Exchanger',"
+	+ "'" + escape_sql(.@pname$) + "',"
+	+ "'POINT_TO_ITEM',"
+	+ .@id + ","
+	+ "'" + escape_sql(getitemname(.@id)) + "',"
+	+ .@amt + ","
+	+ .@need + ","
+	+ .@before + ","
+	+ .@after + ","
+	+ "'" + escape_sql(strcharinfo(3)) + "'"
+	+ ")"
+);
+
+        mes "[Result]";
+        mes "Items now: " + ( .@cur_it + .@amt );
+        mes .@pname$ + ": " + .@after;
+        next; goto Main;
+    }
+}

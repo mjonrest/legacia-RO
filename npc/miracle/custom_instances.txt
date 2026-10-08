@@ -1,0 +1,124 @@
+//===== rAthena Script =======================================
+//= Instance Point Reward System (Simplified)
+//= Daily limit: 650 points/account
+//= 10 points per instance per unique_id (Gepard UID)
+//= No need for instance name — universal claim
+//= Author: ChatGPT
+//============================================================
+
+/**
+DROP TABLE IF EXISTS `instance_point_tracker`;
+
+CREATE TABLE `instance_point_tracker` (
+  `account_id` INT NOT NULL,
+  `unique_id` VARCHAR(64) NOT NULL,
+  `instance_name` VARCHAR(64) NOT NULL, -- stores the instance_key like 'char_id:instance_id'
+  `date_claimed` DATE NOT NULL,
+  `points_total` INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (`unique_id`, `instance_name`, `date_claimed`)
+);
+**/
+
+//----------------------------------------
+// Function: Earn 10 points per instance
+//----------------------------------------
+function	script	F_EarnInstancePoints	{
+	.@points = getarg(0);
+	.@account_id = getcharid(3);
+	.@char_id = getcharid(0);
+	.@instance_key$ = instance_id(IM_PARTY);
+	.@today$ = gettimestr("%Y-%m-%d", 21);
+
+	// ==========================================
+	// NEW BONUS CHECK (Rental Item 30034)
+	// ==========================================
+	if (rentalcountitem(30034)) {
+		.@points += 50;
+		dispbottom "[Charm of Brightness] active bonus applied! (+50 points)",0xFFFF00;
+	}
+
+	query_sql("SELECT last_unique_id FROM login WHERE account_id = " + .@account_id, .@uid$);
+	if (.@uid$ == "") {
+		dispbottom "[Instance Reward] ("+.@instance_key$+") Cannot verify unique ID.";
+		return;
+	}
+
+	// Check if this unique_id already claimed for this instance_key today
+	query_sql("SELECT 1 FROM instance_point_tracker WHERE unique_id = '" + escape_sql(.@uid$) + "' AND instance_name = '" + escape_sql(.@instance_key$) + "' AND date_claimed = '" + .@today$ + "'", .@claimed);
+	if (.@claimed) {
+		dispbottom "[Instance Reward] ("+.@instance_key$+") This device already claimed for this instance today.";
+		return;
+	}
+
+// ======================================================
+// DAILY QUEST INSTANCE PROGRESS HOOK (ANY INSTANCE)
+// ======================================================
+for (.@i = 0; .@i < 5; .@i++) {
+
+	if (#dailyquest_type[.@i] == 2) {
+
+		if (#dailyquest_progress[.@i] < #dailyquest_need[.@i]) {
+
+			#dailyquest_progress[.@i]++;
+
+			dispbottom "[Daily Quest] Instance progress: "
+				+ #dailyquest_progress[.@i] + " / "
+				+ #dailyquest_need[.@i];
+
+			if (#dailyquest_progress[.@i] >= #dailyquest_need[.@i]) {
+				dispbottom "[Daily Quest] Instance objective completed!";
+			}
+		}
+	}
+}
+// ======================================================
+
+	query_sql("SELECT SUM(points_total) FROM instance_point_tracker WHERE account_id = " + .@account_id + " AND date_claimed = '" + .@today$ + "'", .@total);
+	if (.@total >= 1200) {
+	.@points = 0;
+	query_sql("INSERT INTO instance_point_tracker (account_id, unique_id, instance_name, date_claimed, points_total) VALUES (" + .@account_id + ", '" + escape_sql(.@uid$) + "', '" + escape_sql(.@instance_key$) + "', '" + .@today$ + "', " + .@points + ")");
+		dispbottom "[Instance Reward] ("+.@instance_key$+") Daily limit of 1200 points reached.";
+		return;
+	}
+
+	// Cap adjustment
+	if (.@total + .@points > 1200)
+		.@points = 1200 - .@total;
+
+	// Insert reward record
+	query_sql("INSERT INTO instance_point_tracker (account_id, unique_id, instance_name, date_claimed, points_total) VALUES (" + .@account_id + ", '" + escape_sql(.@uid$) + "', '" + escape_sql(.@instance_key$) + "', '" + .@today$ + "', " + .@points + ")");
+	.@total += .@points;
+	.@remain = 1200 - .@total;
+	#instance_points += .@points;
+	dispbottom "[Instance Reward] ("+.@instance_key$+") You earned " + .@points + " instance points (" + .@total + "/1200 today, " + .@remain + " remaining).";
+	dispbottom "Your current instance point : " + #instance_points + " pts.";
+
+	return;
+	}
+
+-	script	InstancePointReward	-1,{
+//----------------------------------------
+// Daily reset: cleanup old records
+//----------------------------------------
+OnClock0000:
+	query_sql("DELETE FROM `instance_point_tracker` WHERE `date_claimed` < CURDATE()");
+	end;
+
+//----------------------------------------
+// Optional @command: /instancepoints
+// Shows points earned today
+//----------------------------------------
+OnInit:
+	bindatcmd("instancepoints", strnpcinfo(3) + "::OnCheckPoints");
+	end;
+
+OnCheckPoints:
+	.@account_id = getcharid(3);
+	.@today$ = gettimestr("%Y-%m-%d", 21);
+	query_sql("SELECT SUM(points_total) FROM `instance_point_tracker` WHERE `account_id` = " + .@account_id + " AND `date_claimed` = '" + .@today$ + "'", .@sum);
+	mes "[Instance Points]";
+	mes "You've earned ^0055FF" + (.@sum ? .@sum : 0) + "^000000 / 1200 points today.";
+	mes "Current Instance Point : "+#instance_points+" pts.";
+	close;
+
+}

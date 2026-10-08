@@ -1,0 +1,167 @@
+-	script	Dummy Punching Bag	-1,{
+
+	OnInit:
+		// Start / spawn this punching bag
+		donpcevent strnpcinfo(3)+"::OnMyMobDead";
+		end;
+
+
+OnMyMobDead:
+
+	//========================================================
+	// Get the position of this invisible NPC
+	//========================================================
+
+	getunitdata(getnpcid(0),.@d);
+
+
+	//========================================================
+	// Spawn Monster 2411
+	//========================================================
+
+	monster strnpcinfo(4),
+		.@d[UNPC_X],
+		.@d[UNPC_Y],
+		"Punching Bag",
+		2411,
+		1,
+		strnpcinfo(0)+"::OnMyMobDead";
+
+
+	//========================================================
+	// Get duplicate ID
+	//========================================================
+
+	.@dupid = atoi(strnpcinfo(2));
+
+
+	//========================================================
+	// Store monster GID
+	//========================================================
+
+	.gid[.@dupid] = $@mobid[0];
+
+
+	//========================================================
+	// Get monster's default YML data
+	//========================================================
+
+	getunitdata(.gid[.@dupid],.@mobdata);
+
+
+	//========================================================
+	// Store maximum HP
+	//========================================================
+
+	.mhp[.@dupid] = .@mobdata[UMOB_MAXHP];
+
+
+	//========================================================
+	// Punching Bag mode
+	//
+	// MD_STATUS_IMMUNE
+	// MD_IGNORE_SPELL
+	//
+	// Prevent status effects such as:
+	// - EDP
+	// - Burning
+	// - % HP based effects
+	// from affecting the DPS calculation.
+	//========================================================
+
+	setunitdata .gid[.@dupid],
+		UMOB_MODE,
+		.@mobdata[UMOB_MODE] | 0x4000000 | 0x0200000;
+
+
+	//========================================================
+	// Make sure HP is full
+	//========================================================
+
+	setunitdata .gid[.@dupid],
+		UMOB_HP,
+		.mhp[.@dupid];
+
+
+	//========================================================
+	// Immediately use skill
+	//========================================================
+
+//	unitskilluseid .gid[.@dupid],771,10;
+
+
+	//========================================================
+	// Start DPS timer
+	//========================================================
+
+	initnpctimer;
+
+	end;
+
+
+OnTimer5000:
+
+	.@dupid = atoi(strnpcinfo(2));
+
+	if ( unitexists(.gid[.@dupid]) ) {
+
+		getunitdata(.gid[.@dupid],.@data);
+
+		.@diff = .mhp[.@dupid] - .@data[UMOB_HP];
+
+		if ( .@diff > 0 ) {
+
+			unittalk .gid[.@dupid],
+				"Punching Bag : I've taken "
+				+ F_InsertComma(.@diff)
+				+ " DPS in last 5 seconds.";
+
+			setunitdata .gid[.@dupid],
+				UMOB_HP,
+				.mhp[.@dupid];
+
+			specialeffect EF_HEAL;
+		}
+	}
+
+	initnpctimer;
+
+	end;
+
+
+	//========================================================
+	// Repeat every 5 seconds
+	//========================================================
+
+	initnpctimer;
+
+	end;
+}
+
+
+//============================================================
+// Invisible NPC duplicates
+//============================================================
+
+prontera,224,79,0	duplicate(Dummy Punching Bag)	Dummy Punching Bag#1	-1
+prontera,216,79,0	duplicate(Dummy Punching Bag)	Dummy Punching Bag#2	-1
+prontera,224,70,0	duplicate(Dummy Punching Bag)	Dummy Punching Bag#3	-1
+prontera,216,58,0	duplicate(Dummy Punching Bag)	Dummy Punching Bag#4	-1
+prontera,224,58,0	duplicate(Dummy Punching Bag)	Dummy Punching Bag#5	-1
+
+prontera	mapflag	skill_damage	all,BL_PC,0,0,-99
+
+//============================================================
+// Optional command
+//============================================================
+
+-	script	dummy_cmd	-1,{
+
+	OnInit:
+		bindatcmd "dummy",strnpcinfo(3) + "::OnAtcommand";
+		end;
+
+	OnAtcommand:
+		warp "prontera",220,70;
+		end;
+}

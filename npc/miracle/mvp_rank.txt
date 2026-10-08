@@ -1,0 +1,526 @@
+//===== rAthena Script =======================================
+//= MVP Rank + Monthly MVP Reward
+//===== Description: =========================================
+//= MVP ranking updates every 60 seconds.
+//= #1 MVP killer receives monthly rewards by mail.
+//= mvplog is NEVER deleted.
+//= Monthly ranking is calculated using a baseline.
+//============================================================
+//= REQUIRED:
+//= conf/log_athena.conf
+//= log_mvpdrop: yes
+//============================================================
+
+
+prontera,140,182,0	script	MvP Rank	1373,{
+
+	mes "[MvP Rank]";
+
+	//========================================================
+	// Get current monthly ranking
+	//========================================================
+
+	.@rows = query_logsql(
+		"SELECT `char_id`, `char_name`, `kills` "
+		+ "FROM `sader_MvP_log` "
+		+ "WHERE `kills` > 0 "
+		+ "ORDER BY `kills` DESC, `char_id` ASC",
+		.@char_id,
+		.@name$,
+		.@kills
+	);
+
+	if (.@rows <= 0) {
+		mes "There is no Rank yet.";
+		close;
+	}
+
+	//========================================================
+	// My Rank
+	//========================================================
+
+	mes "[My Kills]";
+
+	.@myRank = inarray(.@char_id, getcharid(0));
+
+	if (.@myRank >= 0) {
+
+		mes (.@myRank + 1)
+			+ " ^0024E8You^000000 have ^FF0000"
+			+ .@kills[.@myRank]
+			+ "^000000 MVP Kills.";
+
+	}
+	else {
+
+		mes "You have killed ^FF00000^000000 MvPs.";
+
+	}
+
+	//========================================================
+	// MVP Rank
+	//========================================================
+
+	mes "[MvP Rank]";
+
+	for (.@i = 0; .@i < .@rows; .@i++) {
+
+		mes (.@i + 1)
+			+ " ^0024E8"
+			+ .@name$[.@i]
+			+ "^000000 Have ^FF0000"
+			+ .@kills[.@i]
+			+ "^000000 MVP Kills.";
+
+	}
+
+	close;
+
+
+//============================================================
+// MANUAL UPDATE
+//============================================================
+
+OnUpdate:
+
+	callsub UpdateRank;
+
+	end;
+
+
+//============================================================
+// 60 SECOND TIMER
+//============================================================
+
+OnTimer60000:
+
+	//========================================================
+	// Monthly reward check
+	//
+	// Day 1
+	// Hour 00
+	// Minute 01
+	//
+	// Timer runs every 60 seconds.
+	//========================================================
+
+	if (gettime(5) == 1 && gettime(3) == 0 && gettime(2) == 1) {
+		donpcevent strnpcinfo(3) + "::OnMonthlyReward";
+	}
+
+	callsub UpdateRank;
+
+	initnpctimer;
+
+	end;
+
+
+//============================================================
+// UPDATE MONTHLY RANKING
+//============================================================
+
+UpdateRank:
+
+	freeloop(1);
+
+	//========================================================
+	// Get total MVP kills from mvplog.
+	//
+	// mvplog is in the LOG database.
+	//========================================================
+
+	.@rows = query_logsql(
+		"SELECT `kill_char_id`, COUNT(*) "
+		+ "FROM `mvplog` "
+		+ "WHERE `kill_char_id` > 0 "
+		+ "GROUP BY `kill_char_id`",
+		.@char_id,
+		.@total_kills
+	);
+
+	//========================================================
+	// Clear current ranking.
+	//========================================================
+
+	query_logsql(
+		"TRUNCATE TABLE `sader_MvP_log`"
+	);
+
+	//========================================================
+	// No MVP logs.
+	//========================================================
+
+	if (.@rows <= 0) {
+		freeloop(0);
+		return;
+	}
+
+	//========================================================
+	// Calculate monthly kills.
+	//
+	// Current total - beginning-of-month total
+	//========================================================
+
+	for (.@i = 0; .@i < .@rows; .@i++) {
+
+		.@cid = .@char_id[.@i];
+		.@current_kills = .@total_kills[.@i];
+
+		// Default baseline
+		.@baseline = 0;
+
+		//====================================================
+		// Find beginning-of-month baseline.
+		//====================================================
+
+		.@baseline_rows = query_logsql(
+			"SELECT `kills` "
+			+ "FROM `sader_MvP_monthly_baseline` "
+			+ "WHERE `char_id` = '" + .@cid + "' "
+			+ "LIMIT 1",
+			.@baseline_value
+		);
+
+		if (.@baseline_rows > 0)
+			.@baseline = .@baseline_value[0];
+
+		//====================================================
+		// Calculate this month's kills.
+		//====================================================
+
+		.@monthly_kills = .@current_kills - .@baseline;
+
+		if (.@monthly_kills <= 0)
+			continue;
+
+		//====================================================
+		// Get character name.
+		//
+		// char is in MAIN database.
+		//====================================================
+
+		.@name_rows = query_sql(
+			"SELECT `name` "
+			+ "FROM `char` "
+			+ "WHERE `char_id` = '" + .@cid + "' "
+			+ "LIMIT 1",
+			.@name$
+		);
+
+		if (.@name_rows <= 0)
+			continue;
+
+		//====================================================
+		// Insert monthly ranking.
+		//====================================================
+
+		query_logsql(
+			"INSERT INTO `sader_MvP_log` "
+			+ "(`char_id`, `char_name`, `kills`) "
+			+ "VALUES ('"
+			+ .@cid + "', '"
+			+ .@name$[0] + "', '"
+			+ .@monthly_kills + "')"
+		);
+	}
+
+	freeloop(0);
+
+	return;
+
+
+//============================================================
+// MONTHLY REWARD
+//============================================================
+
+OnMonthlyReward:
+
+	// Fixed: gettime(6) = year, gettime(5) = month. Example: 202610
+	.@period = (gettime(6) * 100) + gettime(5);
+
+	.@rows = query_logsql(
+		"SELECT `period` FROM `sader_MvP_reward_log` "
+		+ "WHERE `period` = '" + .@period + "' LIMIT 1",
+		.@reward_period
+	);
+
+	if (.@rows > 0) {
+		debugmes "[MvP Rank] Monthly reward already processed: " + .@period;
+		end;
+	}
+
+	callsub UpdateRank;
+
+	// Top 3
+	.@rows = query_logsql(
+		"SELECT `char_id`, `char_name`, `kills` "
+		+ "FROM `sader_MvP_log` "
+		+ "WHERE `kills` > 0 "
+		+ "ORDER BY `kills` DESC, `char_id` ASC "
+		+ "LIMIT 3",
+		.@winner_id,
+		.@winner_name$,
+		.@winner_kills
+	);
+
+	if (.@rows <= 0) {
+		debugmes "[MvP Rank] No MVP winner for period " + .@period;
+
+		query_logsql(
+			"INSERT INTO `sader_MvP_reward_log` "
+			+ "(`period`, `place`, `char_id`, `char_name`, `kills`) "
+			+ "VALUES ('" + .@period + "', 1, 0, '', 0)"
+		);
+		end;
+	}
+
+	// Send rewards to each winner (1 to 3)
+	for (.@i = 0; .@i < .@rows; .@i++) {
+		callsub L_SendReward,
+			.@period,
+			.@i + 1,
+			.@winner_id[.@i],
+			.@winner_name$[.@i],
+			.@winner_kills[.@i];
+	}
+
+	// New baseline
+	query_logsql("TRUNCATE TABLE `sader_MvP_monthly_baseline`");
+
+	.@brows = query_logsql(
+		"SELECT `kill_char_id`, COUNT(*) "
+		+ "FROM `mvplog` "
+		+ "WHERE `kill_char_id` > 0 "
+		+ "GROUP BY `kill_char_id`",
+		.@baseline_char_id,
+		.@baseline_kills
+	);
+
+	for (.@i = 0; .@i < .@brows; .@i++) {
+		query_logsql(
+			"INSERT INTO `sader_MvP_monthly_baseline` "
+			+ "(`char_id`, `kills`) "
+			+ "VALUES ('" + .@baseline_char_id[.@i] + "', '" + .@baseline_kills[.@i] + "')"
+		);
+	}
+
+	query_logsql("TRUNCATE TABLE `sader_MvP_log`");
+
+	// Announcement
+	announce "[MvP Rank] Monthly MVP Champions:", bc_all;
+	for (.@i = 0; .@i < .@rows; .@i++) {
+		announce "[MvP Rank] #" + (.@i + 1) + " " + .@winner_name$[.@i]
+			+ " - " + .@winner_kills[.@i] + " MVP Kills. Reward sent by mail.", bc_all;
+	}
+
+	end;
+
+
+//============================================================
+// SEND REWARD FOR ONE PLACE
+// args: period, place, char_id, name, kills
+//============================================================
+
+L_SendReward:
+
+	.@period = getarg(0);
+	.@place  = getarg(1);
+	.@cid    = getarg(2);
+	.@name$  = getarg(3);
+	.@kills  = getarg(4);
+
+	.@count = getd(".Count" + .@place);
+
+	if (.@count <= 0) {
+		debugmes "[MvP Rank] ERROR: No reward items configured for rank " + .@place;
+		return;
+	}
+	if (.@count > 5) {
+		debugmes "[MvP Rank] WARNING: Maximum 5 mail items allowed (rank " + .@place + ").";
+		.@count = 5;
+	}
+
+	copyarray .@src_item,   getd(".Item" + .@place + "[0]"), .@count;
+	copyarray .@src_amount, getd(".Amt"  + .@place + "[0]"), .@count;
+
+	for (.@j = 0; .@j < .@count; .@j++) {
+		.@mailitem[.@j]   = .@src_item[.@j];
+		.@mailamount[.@j] = .@src_amount[.@j];
+		.@mailrefine[.@j] = 0;
+		.@mailbound[.@j]  = 0;
+		.@mailcard0[.@j]  = 0;
+		.@mailcard1[.@j]  = 0;
+		.@mailcard2[.@j]  = 0;
+		.@mailcard3[.@j]  = 0;
+	}
+
+	.@sender$ = "MVP Ranking";
+	.@title$  = "Monthly MVP Rank #" + .@place;
+	.@body$   =
+		"Congratulations, " + .@name$ + "!\n\n"
+		+ "You placed #" + .@place + " in MVP Kills this month.\n"
+		+ "Total MVP Kills: " + .@kills + "\n\n"
+		+ "Your MVP reward is attached.";
+
+	mail .@cid,
+		.@sender$,
+		.@title$,
+		.@body$,
+		getd(".Zeny" + .@place),
+		.@mailitem,
+		.@mailamount,
+		.@mailrefine,
+		.@mailbound,
+		.@mailcard0,
+		.@mailcard1,
+		.@mailcard2,
+		.@mailcard3;
+
+	query_logsql(
+		"INSERT INTO `sader_MvP_reward_log` "
+		+ "(`period`, `place`, `char_id`, `char_name`, `kills`) "
+		+ "VALUES ('" + .@period + "', '" + .@place + "', '" + .@cid + "', '"
+		+ .@name$ + "', '" + .@kills + "')"
+	);
+
+	debugmes "[MvP Rank] Rank " + .@place + " reward sent to " + .@name$ + " (" + .@kills + " kills).";
+
+	return;
+
+
+//============================================================
+// INITIALIZATION
+//============================================================
+
+OnInit:
+
+	//========================================================
+	// MONTHLY REWARD CONFIGURATION
+	//
+	// Maximum 5 items.
+	//========================================================
+
+	// ---- Rank 1 ----
+	setarray .Item1[0],30007,14232,12103;
+	setarray .Amt1[0],100,5,3;
+	.Count1 = 3;
+	.Zeny1  = 15000000;
+
+	// ---- Rank 2 ----
+	setarray .Item2[0],30007,14232,12103;
+	setarray .Amt2[0],50,3,2;
+	.Count2 = 2;
+	.Zeny2  = 10000000;
+
+	// ---- Rank 3 ----
+	setarray .Item3[0],30007,14232,12103;
+	setarray .Amt3[0],30,2,1;
+	.Count3 = 1;
+	.Zeny3  = 5000000;
+
+	//========================================================
+	// Create monthly ranking table.
+	//========================================================
+
+	query_logsql(
+		"CREATE TABLE IF NOT EXISTS `sader_MvP_log` ("
+		+ "`char_id` INT NOT NULL,"
+		+ "`char_name` VARCHAR(30) NOT NULL,"
+		+ "`kills` INT NOT NULL,"
+		+ "PRIMARY KEY (`char_id`)"
+		+ ") ENGINE=MyISAM"
+	);
+
+
+	//========================================================
+	// Create monthly baseline table.
+	//========================================================
+
+	query_logsql(
+		"CREATE TABLE IF NOT EXISTS `sader_MvP_monthly_baseline` ("
+		+ "`char_id` INT NOT NULL,"
+		+ "`kills` INT NOT NULL,"
+		+ "PRIMARY KEY (`char_id`)"
+		+ ") ENGINE=MyISAM"
+	);
+
+
+	//========================================================
+	// Create monthly reward history.
+	//========================================================
+
+	query_logsql(
+		"CREATE TABLE IF NOT EXISTS `sader_MvP_reward_log` ("
+		+ "`period` INT NOT NULL,"
+		+ "`place` INT NOT NULL,"
+		+ "`char_id` INT NOT NULL,"
+		+ "`char_name` VARCHAR(30) NOT NULL,"
+		+ "`kills` INT NOT NULL,"
+		+ "PRIMARY KEY (`period`, `place`)"
+		+ ") ENGINE=MyISAM"
+	);
+
+	//========================================================
+	// Initialize baseline if table is empty.
+	//
+	// Existing mvplog kills are considered PREVIOUS kills,
+	// so they will not count toward the current month.
+	//========================================================
+
+	.@rows = query_logsql(
+		"SELECT COUNT(*) "
+		+ "FROM `sader_MvP_monthly_baseline`",
+		.@baseline_count
+	);
+
+	if (.@rows > 0 && .@baseline_count[0] == 0) {
+
+		.@rows = query_logsql(
+			"SELECT `kill_char_id`, COUNT(*) "
+			+ "FROM `mvplog` "
+			+ "WHERE `kill_char_id` > 0 "
+			+ "GROUP BY `kill_char_id`",
+			.@init_char_id,
+			.@init_kills
+		);
+
+		for (.@i = 0; .@i < .@rows; .@i++) {
+
+			query_logsql(
+				"INSERT INTO `sader_MvP_monthly_baseline` "
+				+ "(`char_id`, `kills`) "
+				+ "VALUES ('"
+				+ .@init_char_id[.@i]
+				+ "', '"
+				+ .@init_kills[.@i]
+				+ "')"
+			);
+		}
+
+		debugmes
+			"[MvP Rank] Monthly baseline initialized.";
+	}
+
+
+	//========================================================
+	// Start 60-second timer.
+	//========================================================
+
+	initnpctimer;
+
+	debugmes
+		"[MvP Rank] Started. Ranking updates every 60 seconds.";
+
+	end;
+}
+
+-	script	MVPKillAnnounce	-1,{
+
+	OnNPCKillEvent:
+		if (getmonsterinfo(killedrid, MOB_MVPEXP) > 0) {
+			announce "[MVP] " + strcharinfo(0) + " has defeated " +
+			         getmonsterinfo(killedrid, MOB_NAME) +
+			         " at " + strcharinfo(3) + "!", bc_all, 0xFF8000;
+		}
+		end;
+}

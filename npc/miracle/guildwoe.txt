@@ -1,0 +1,209 @@
+//Modified by - PandaLovesHamster
+//Custom Guild Limiter
+//Credits to the owners of the individual makers of the script, I just tied them all together to create this script
+
+prontera,124,170,5	script	Guild Limiter 	833,{
+
+// this part registers the guild
+	function sf {
+		function s;
+		.@a = getarg(2);
+		.@len = getarg(3);
+		return (
+			sprintf( getarg(0),
+				s(.@a, .@len, getarg(1)), s(.@a++, .@len, getarg(1)),
+				s(.@a++, .@len, getarg(1)), s(.@a++, .@len, getarg(1)),
+				s(.@a++, .@len, getarg(1)), s(.@a++, .@len, getarg(1)), 
+				s(.@a++, .@len, getarg(1)), s(.@a++, .@len, getarg(1)), 
+				s(.@a++, .@len, getarg(1)), s(.@a++, .@len, getarg(1))
+			)
+			+(( .@a+1 < .@len )?":Next":":")
+			+(( .@a-11 > 0 )?":Back":":")
+			+":Cancel"
+		);
+		function s {
+			if( getarg(0) >= getarg(1) ) return "";
+			else {
+				.@name$ = getguildname(getelementofarray(getarg(2),getarg(0)));
+				return .@name$=="null"?"":.@name$;
+			}
+		};
+	};
+	function nex { return((getarg(0)+10)<getarg(1)?getarg(0)+10:getarg(1)-(getarg(1)%10)); };
+	function bac { return((getarg(0)-10)>=0?getarg(0)-10:0); };
+
+	if(getgmlevel()>=80 ) {
+		mes .Npc_Name$;
+		mes "Hello Mr. GM what would you like to do?";
+		next;
+		switch( select("Add/Remove Guilds:Clear Guild Data:Player Menu:Cancel") ) {
+			case 1:
+				mes .Npc_Name$;
+				mes "Would you like to add or remove a guild?";
+				.@a_len = getarraysize($App_Guilds);
+				.@format$ = "%s:%s:%s:%s:%s:%s:%s:%s:%s:%s";
+				next;
+				if( select("Remove:Add") == 1 ) {
+					while( .@a != 9999 ) {
+						select( sf( .@format$, $App_Guilds, .@a, .@a_len ) );
+						switch( @menu ) {
+							case 11: .@a = nex( .@a, .@a_len ); break;
+							case 12: .@a = bac( .@a ); break;
+							case 13: end;
+							
+							default:
+								.@select = .@a+@menu-1;
+								mes .Npc_Name$;
+								mes "You've selected ^0000FF["+getguildname($App_Guilds[.@select])+"]^000000 guild. Would you like to remove them from the accepted guilds?";
+								next;
+								if( select("Yes:No") == 1 ) {
+									deletearray($App_Guilds[.@select],1);
+									mes .Npc_Name$;
+									mes "The guild has been removed!";
+								}
+								close;
+						}
+					}
+				} else {
+					mes .Npc_Name$;
+					mes "Please input guild name or masters name.";
+					next;
+					input(.@input$);
+					.@len = query_sql( "Select `guild_id` from `guild` where `name` like '%"+escape_sql(.@input$)+"%' or `master` like '%"+escape_sql(.@input$)+"%';",.@guild_id );
+					while( .@a != 9999 ) {
+						select( sf( .@format$, .@guild_id, .@a, .@len ) );
+						switch( @menu ) {
+							case 11: .@a = nex( .@a, .@len ); break;
+							case 12: .@a = bac( .@a ); break;
+							case 13: end;
+							
+							default:
+								.@select = .@a+@menu-1;
+								.@a_len = getarraysize($App_Guilds);
+								for(.@b=0;.@b<.@a_len;.@b++)
+									if( $App_Guilds[.@b]==.@guild_id[.@select] ) {
+										mes .Npc_Name$;
+										mes "You've selected ^0000FF["+getguildname(.@guild_id[.@select])+"]^000000 guild. I'm sorry but that guild has already been added to the accepted list.";
+										close;
+									}
+								mes .Npc_Name$;
+								mes "You've selected ^0000FF["+getguildname(.@guild_id[.@select])+"]^000000 guild. Would you like to add them to the accepted guilds?";
+								next;
+								if( select("Yes:No") == 1 ) {
+									.@a_len = getarraysize($App_Guilds);
+									if( .@a_len>=128 ) {
+										mes .Npc_Name$;
+										mes "I'm sorry but the accepted list is full please make some room and try again...";
+									} else {
+										mes .Npc_Name$;
+										mes "The guild was successfully added!";
+										$App_Guilds[.@a_len] = .@guild_id[.@select];
+									}
+								}
+								close;
+						}
+					}
+				}
+			case 2:
+				mes .Npc_Name$;
+				mes "Are you sure you want to clear the guild data?!";
+				next;
+				if( select("Yes!:No!")==1 ) {
+					mes .Npc_Name$;
+					mes "This is you last chance. Are you surely sure as sure can be?";
+					next;
+					if( select("Surly!:No, wait... Where am I?!!")==1 )
+						deletearray($App_Guilds);
+				}
+				if( @menu==1 ) {
+					mes .Npc_Name$;
+					mes "The deed is done...";
+				} else {
+					mes .Npc_Name$;
+					mes "Wow that was a close one... Have a nice day!";
+				}
+				close;
+				
+			case 3: break;
+			
+			case 4:
+				mes .Npc_Name$;
+				mes "Alright, have a nice day!";
+				close;
+		}
+	}
+
+	.@len = getarraysize($App_Guilds);
+	for( .@i=0; .@i <= .@len; .@i++ ) {
+		if( getcharid(2) == $App_Guilds[.@i] )
+			set .@Guild_Check, .@Guild_Check+1;
+	}
+
+	
+// This part ejects players when they are in the map 
+	OnPCLoadMapEvent:
+	if( getcharid(2) == $App_Guilds[.@i] ){
+	.count = 0;
+	.@origin = getcharid(3);
+	addrid 3, 0, getcharid(2);
+	if ( strcharinfo(3) == .checkmap$ )
+		.count++;
+	if ( !.@origin ) end;
+	if ( .count > 15 ) { // 15 means only 15 players per guild allowed in a map.
+		message strcharinfo(0), "Your guild members are over the limit";
+		sleep2 2000;
+		warp "SavePoint", 0,0;
+	}
+	}
+	end;
+OnInit:
+	setarray .@checkmap$, 	
+		"prtg_cas01","prtg_cas02","prtg_cas03","prtg_cas04","prtg_cas05",
+		"payg_cas01","payg_cas02","payg_cas03","payg_cas04","payg_cas05",
+		"gefg_cas01","gefg_cas02","gefg_cas03","gefg_cas04","gefg_cas05",
+		"aldeg_cas01","aldeg_cas02","aldeg_cas03","aldeg_cas04","aldeg_cas05",
+		"arug_cas01","arug_cas02","arug_cas03","arug_cas04","arug_cas05",
+		"schg_cas01","schg_cas02","schg_cas03","schg_cas04","schg_cas05";
+	//"arug_cas01", "arug_cas02", "arug_cas03", "arug_cas04", "arug_cas05", "schg_cas01", "schg_cas02", "schg_cas03", "schg_cas04", "schg_cas05";
+	.@len = getarraysize( .@checkmap$ );
+	for ( .@i = 0; .@i < .@size; .@i++ ) {
+		setmapflag .@checkmap$[.@i], mf_loadevent;
+		setd "."+ .@checkmap$[.@i], 1;
+	}
+	end;
+}
+
+-	script	kjdhfkjshf	-1,{
+OnPCLoadMapEvent:
+	if ( getmapflag( strcharinfo(3), mf_gvg_castle ) && ( agitcheck() || agitcheck2() )) {
+	.@len = getarraysize($App_Guilds);
+	for( .@i=0; .@i <= .@len; .@i++ ) {
+		if( getcharid(2) == $App_Guilds[.@i] )
+			set .@Guild_Check, .@Guild_Check+1;
+	}
+	if( .@Guild_Check < 1 ) {
+		dispbottom "Your guild has not yet been approved, please contact the GMs";
+		sleep2 3000;
+		warp "SavePoint",0,0;
+		end;
+	}
+	if( !getcharid(2) ) {
+		dispbottom "Sorry only members of a guild may enter a castle.";
+		sleep2 3000;
+		warp "SavePoint",0,0;
+		end;
+	}
+}
+	end;
+OnInit:
+	setarray .castles$[0],
+		"prtg_cas01","prtg_cas02","prtg_cas03","prtg_cas04","prtg_cas05",
+		"payg_cas01","payg_cas02","payg_cas03","payg_cas04","payg_cas05",
+		"gefg_cas01","gefg_cas02","gefg_cas03","gefg_cas04","gefg_cas05",
+		"aldeg_cas01","aldeg_cas02","aldeg_cas03","aldeg_cas04","aldeg_cas05",
+		"arug_cas01","arug_cas02","arug_cas03","arug_cas04","arug_cas05",
+		"schg_cas01","schg_cas02","schg_cas03","schg_cas04","schg_cas05";
+	for ( .@i = 0; .@i < 30; .@i++ )
+		setmapflag .castles$[.@i], mf_loadevent;
+	end;
+}

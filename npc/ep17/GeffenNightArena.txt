@@ -1,0 +1,997 @@
+//===== rAthena Script ======================================= 
+//= Geffen Night Arena
+//===== By: ================================================== 
+//= GM Ichigo
+//============================================================ 
+// https://hazyforest.com/instances:gna
+//============================================================ 
+// Level Required: 210
+// Party Count: 1+
+// Location: (dali02,79,60)
+// Cooldown: 3 Day
+// Rewards:
+// 1000316.png Geffen Arena Coin (1000316)
+// 1000317.png Geffen Arena Certificate (1000317)
+// 1000366.png Geffen Arena Championship (1000366)
+// map instance: 1@ge_sn
+//============================================================ 
+
+geffen_in,82,62,3	script	Greedy Looking Man#HRO_GNA	4_M_YURI,{
+	.@n$ = "[ Greedy Looking Man ]";
+	if(isbegin_quest(12510) >= 1) {
+		mes .@n$; 
+		mes "Do you and your party want to go directly to the portal?";
+			switch(select("No:Yes")){
+				case 1: close;
+				case 2: close2; warpparty "dali02",83,63,getcharid(1); end;
+			}
+		close;
+	}
+	if(BaseLevel < 210) {
+		mes .@n$; 
+		mes "You must be base level 210 to continue.";
+		close;
+	}
+	getpartymember(getcharid(1),0);
+	set .@GPPartySize,$@partymembercount;
+
+	if( !getcharid(1) || is_party_leader() == false || .@GPPartySize > 1) {
+		mes .@n$;
+		mes "This is a solo instance. Please form a solo party before continuing.";
+		close;
+	}
+
+	// 3 days Cooldown
+	switch( checkquest(12511,PLAYTIME) ) {
+		case -1: break;
+		case 0:
+		case 1:
+			mes .@n$;
+			mes "The time has not elapsed to participate again.";
+			mes "Come back later.";
+			close;
+		case 2: erasequest 12511; break;
+	}
+	.@party_id = getcharid(1);
+	.@p_name$ = getpartyname(.@party_id);
+	.@md_name$ = "Geffen Night Arena";
+
+		if (!.@party_id) {
+			mes .@n$;
+			mes "You need to be a party leader in order to continue.";
+			close;
+		}
+		
+	if (is_party_leader() == true){
+		mes .@n$; 
+		mes "We have discovered that an arena is being operated in an illegal manner beyond the dimensional rift.";
+		next;
+		mes .@n$; 
+		mes "I don't know how they roasted and boiled those who have already become a part of the past, but it is definitely quite fun.";
+		next;
+		mes .@n$; 
+		mes "Please use the dimensional device and participate in the Geffen Night Arena for me.";
+		next;
+		mes .@n$; 
+		mes "Will you go and tell me about it?";
+		next;
+		mes .@n$; 
+		mes "The portal is unstable so you have to go solo.";
+		mes "Are you ready to enter?";
+		next;
+			switch(select("No:Yes")){
+				case 1:
+					mes .@n$;
+					mes "Come back if you change your mind~!";
+					close;
+				case 2:
+					if (instance_create(.@md_name$) < 0) {
+						mes "Party Name: "+.@p_name$;
+						mes "Party Leader: "+strcharinfo(0);
+						mes "^0000ff"+.@md_name$+" ^000000- Reservation Failed!";
+						close;
+					}
+					mes .@n$; 
+					mes "The Dimensional Device has been activated.";
+					close2;
+					if (isbegin_quest(12510) < 1) setquest 12510;
+					end;
+				}
+		close;
+	} else {
+		mes .@n$;
+		mes "You need to be a party leader in order to continue.";
+		close;
+	}
+}
+
+dali02,79,60,3	script	Portal#HRO_GNA	PORTAL,{
+	if (isbegin_quest(12510) < 1) {
+		mes "To activate the portal, you must first talk to Greedy Looking Man.";
+		
+		mes "He waits for you in <NAVI>[Geffen]<INFO>geffen_in,82,62,0,101,0</INFO></NAVI>.";
+		dispbottom "You will find Greedy Looking Man at: geffen_in,82,62";
+		close;
+	}
+	.@md_name$ = "Geffen Night Arena";
+	switch( instance_enter(.@md_name$) ) {
+	case IE_OTHER:
+		mes "An unknown error occurred.";
+		close;
+	case IE_NOINSTANCE:
+		mes "Memorial Dungeon " + .@md_name$ + " doesn't exist.";
+		mes "Party leader hasn't created the Memorial Dungeon.";
+		close;
+	case IE_NOMEMBER:
+		mes "Only the party members may enter the Memorial Dungeon.";
+		close;
+	case IE_OK:
+		mapannounce strcharinfo(3), "Party member " + strcharinfo(0) + " of party's " + getpartyname( getcharid(1) ) + " enters " + .@md_name$ + "", bc_map,0xFF99;
+		if (isbegin_quest(12510) >= 1) erasequest 12510;
+		if (isbegin_quest(12511) > 0) erasequest 12511;
+		setquest 12511;
+		end;
+	}
+	end;
+}
+
+dali02,85,70,6	script	Reward Geffen Night Arena#HRO_GNA	2_VENDING_MACHINE1,{
+	mes "What shop do you want to visit?";
+	switch(select("Default Product List:Special Product List:Card Product List:Enchantment")) {
+		case 1:	close2; callshop "GeffenNightArena_SHOP_01",1; end;
+		case 2:	close2; callshop "GeffenNightArena_SHOP_02",1; end;
+		case 3:	close2; callshop "GeffenNightArena_SHOP_03",1; end;
+		case 4:	close2; callshop "GeffenNightArena_SHOP_04",1; end;
+	}
+	end;
+}
+
+1@ge_sn,111,62,3	script	Greedy Looking Man#HRO_GNA02	4_M_YURI,{
+	if (!is_party_leader()) end;
+	if('NpcTalk == 1) end;
+	'NpcTalk = 1;
+	if('EndTournament == 1) {
+		switch('round) {
+			case 0:
+			case 1: break;
+			case 2: getitem 1000316,2; break;
+			case 3: getitem 1000316,3; break;
+			case 4: getitem 1000316,4; break;
+			case 5: getitem 1000316,6; getitem 1000317,1; break;
+			case 6: getitem 1000316,9; getitem 1000317,1; break;
+			case 7: getitem 1000316,14; getitem 1000317,2; break;
+			case 8: getitem 1000316,22; getitem 1000317,2; getitem 1000366,1; break;
+			case 9: getitem 1000316,35; getitem 1000317,3; getitem 1000366,1; break;
+			case 10: getitem 1000316,56; getitem 1000317,4; getitem 1000366,2; break;
+			case 11: getitem 1000316,89; getitem 1000317,5; getitem 1000366,3; break;
+		}
+		'NpcTalk = 0;
+		set .@ipoint,rand(20,40);
+		callfunc("F_EarnInstancePoints",.@ipoint);
+		mapwarp strcharinfo(3),"dali02",83,63;
+		end;
+	}
+	npctalk strnpcinfo(1)+": Are you ready ...";
+	if('round == 1) {
+		sleep 5000;
+		instance_announce 0, "Geffen Night Arena is about to start.",bc_map,"0xFFCE00";
+		sleep 5000;
+		instance_announce 0, "You have one minute to complete each round.",bc_map,"0xFFCE00";
+	}
+	sleep 2500;
+	if('round < 10) {
+		switch(rand(1,15)) {
+			case 1: 'MobId = 20856; 'NpcName$ = instance_npcname("Midnight Archi#HRO_GNA"); break;
+			case 2: 'MobId = 20857; 'NpcName$ = instance_npcname("Midnight Dio Anemos#HRO_GNA"); break;
+			case 3: 'MobId = 20858; 'NpcName$ = instance_npcname("Midnight Geffen Thief#HRO_GNA"); break;
+			case 4: 'MobId = 20859; 'NpcName$ = instance_npcname("Midnight Geffen Thug#HRO_GNA"); break;
+			case 5: 'MobId = 20860; 'NpcName$ = instance_npcname("Midnight Geffen Gangster#HRO_GNA"); break;
+			case 6: 'MobId = 20861; 'NpcName$ = instance_npcname("Midnight Pa - Monk#HRO_GNA"); break;
+			case 7: 'MobId = 20862; 'NpcName$ = instance_npcname("Midnight Ordre#HRO_GNA"); break;
+			case 8: 'MobId = 20863; 'NpcName$ = instance_npcname("Midnight Blut Hase#HRO_GNA"); break;
+			case 9: 'MobId = 20864; 'NpcName$ = instance_npcname("Midnight Kuro Akuma#HRO_GNA"); break;
+			case 10: 'MobId = 20865; 'NpcName$ = instance_npcname("Midnight Ipodus#HRO_GNA"); break;
+			case 11: 'MobId = 20866; 'NpcName$ = instance_npcname("Midnight Rechenier#HRO_GNA"); break;
+			case 12: 'MobId = 20867; 'NpcName$ = instance_npcname("Midnight Odorico#HRO_GNA"); break;
+			case 13: 'MobId = 20868; 'NpcName$ = instance_npcname("Midnight Jew#HRO_GNA"); break;
+			case 14: 'MobId = 20869; 'NpcName$ = instance_npcname("Midnight D.Y.#HRO_GNA"); break;
+			case 15: 'MobId = 20870; 'NpcName$ = instance_npcname("Midnight Fei Kanabian#HRO_GNA"); break;
+			case 16: 'MobId = 20871; 'NpcName$ = instance_npcname("Midnight Alphonse#HRO_GNA"); break;
+		}
+	} else {
+		'MobId = 20872;
+		'NpcName$ = instance_npcname("Midnight Fenrir#HRO_GNA");
+	}
+	switch('round) {
+		case 1: 'boss_hp = getmonsterinfo('MobId,MOB_MAXHP) + 4800000; break;
+		case 2: 'boss_hp = getmonsterinfo('MobId,MOB_MAXHP) + 12400000; break;
+		case 3: 'boss_hp = getmonsterinfo('MobId,MOB_MAXHP) + 34700000; break;
+		case 4: 'boss_hp = getmonsterinfo('MobId,MOB_MAXHP) + 107600000; break;
+		case 5: 'boss_hp = getmonsterinfo('MobId,MOB_MAXHP) + 362400000; break;
+		case 6: 'boss_hp = getmonsterinfo('MobId,MOB_MAXHP) + 516300000; break;
+		case 7: 'boss_hp = getmonsterinfo('MobId,MOB_MAXHP) + 555900000; break;
+		case 8: 'boss_hp = getmonsterinfo('MobId,MOB_MAXHP) + 972300000; break;
+		case 9: 'boss_hp = getmonsterinfo('MobId,MOB_MAXHP) + 1337300000; break;
+		case 10: 'boss_hp = getmonsterinfo('MobId,MOB_MAXHP) + 1416300000; break;
+	}
+	instance_announce 0, "Round "+'round+" is about to begin!!",bc_map,"0xFFCE00";
+	sleep 2500;
+	disablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	'NpcTalk = 0;
+	initnpctimer 'NpcName$;
+	end;
+OnInstanceInit:
+	'instance_map$ = instance_mapname("1@ge_sn");
+	hideonnpc instance_npcname("Midnight Archi#HRO_GNA");
+	hideonnpc instance_npcname("Midnight Dio Anemos#HRO_GNA");
+	hideonnpc instance_npcname("Midnight Geffen Thief#HRO_GNA");
+	hideonnpc instance_npcname("Midnight Geffen Thug#HRO_GNA");
+	hideonnpc instance_npcname("Midnight Geffen Gangster#HRO_GNA");
+	hideonnpc instance_npcname("Midnight Pa - Monk#HRO_GNA");
+	hideonnpc instance_npcname("Midnight Ordre#HRO_GNA");
+	hideonnpc instance_npcname("Midnight Blut Hase#HRO_GNA");
+	hideonnpc instance_npcname("Midnight Kuro Akuma#HRO_GNA");
+	hideonnpc instance_npcname("Midnight Ipodus#HRO_GNA");
+	hideonnpc instance_npcname("Midnight Rechenier#HRO_GNA");
+	hideonnpc instance_npcname("Midnight Odorico#HRO_GNA");
+	hideonnpc instance_npcname("Midnight Jew#HRO_GNA");
+	hideonnpc instance_npcname("Midnight D.Y.#HRO_GNA");
+	hideonnpc instance_npcname("Midnight Fei Kanabian#HRO_GNA");
+	hideonnpc instance_npcname("Midnight Alphonse#HRO_GNA");
+	hideonnpc instance_npcname("Midnight Fenrir#HRO_GNA");
+	'round = 1;
+	'EndTournament = 0;
+	end;
+}
+
+//===================================
+// Midnight Archi
+//===================================
+1@ge_sn,130,49,3	script	Midnight Archi#HRO_GNA	20856,{
+	end;
+OnTimer1000:
+	hideoffnpc instance_npcname(strnpcinfo(0));
+	instance_announce 0, "The opponent will be "+getmonsterinfo('MobId,MOB_NAME)+".",bc_map,"0xFFCE00";
+	npcwalkto 112,48;
+	end;
+OnTimer5000:
+	instance_announce 0, "5 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer6000:
+	instance_announce 0, "4 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer7000:
+	instance_announce 0, "3 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer8000:
+	instance_announce 0, "2 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer9000:
+	instance_announce 0, "1 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer10000:
+	hideonnpc instance_npcname(strnpcinfo(0));
+	set .@label$, instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	monster 'instance_map$,112,48,"--ja--",'MobId,1,.@label$;
+	'boss_id = $@mobid[0];
+	setunitdata 'boss_id, UMOB_HP, 'boss_hp;
+	end;
+OnTimer70000:
+	stopnpctimer;
+	'EndTournament = 1;
+	instance_announce 0, "It has not been completed within the time limit.",bc_map,"0xFFCE00";
+	killmonster 'instance_map$,instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+OnMobDied:
+	stopnpctimer;
+	'round++;
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+}
+
+//===================================
+// Midnight Dio Anemos
+//===================================
+1@ge_sn,130,49,3	script	Midnight Dio Anemos#HRO_GNA	20857,{
+	end;
+OnTimer1000:
+	hideoffnpc instance_npcname(strnpcinfo(0));
+	instance_announce 0, "The opponent will be "+getmonsterinfo('MobId,MOB_NAME)+".",bc_map,"0xFFCE00";
+	npcwalkto 112,48;
+	end;
+OnTimer5000:
+	instance_announce 0, "5 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer6000:
+	instance_announce 0, "4 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer7000:
+	instance_announce 0, "3 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer8000:
+	instance_announce 0, "2 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer9000:
+	instance_announce 0, "1 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer10000:
+	hideonnpc instance_npcname(strnpcinfo(0));
+	set .@label$, instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	monster 'instance_map$,112,48,"--ja--",'MobId,1,.@label$;
+	end;
+OnTimer70000:
+	stopnpctimer;
+	'EndTournament = 1;
+	instance_announce 0, "It has not been completed within the time limit.",bc_map,"0xFFCE00";
+	killmonster 'instance_map$,instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+OnMobDied:
+	stopnpctimer;
+	'round++;
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+}
+
+//===================================
+// Midnight Geffen Thief
+//===================================
+1@ge_sn,130,49,3	script	Midnight Geffen Thief#HRO_GNA	20858,{
+	end;
+OnTimer1000:
+	hideoffnpc instance_npcname(strnpcinfo(0));
+	instance_announce 0, "The opponent will be "+getmonsterinfo('MobId,MOB_NAME)+".",bc_map,"0xFFCE00";
+	npcwalkto 112,48;
+	end;
+OnTimer5000:
+	instance_announce 0, "5 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer6000:
+	instance_announce 0, "4 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer7000:
+	instance_announce 0, "3 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer8000:
+	instance_announce 0, "2 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer9000:
+	instance_announce 0, "1 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer10000:
+	hideonnpc instance_npcname(strnpcinfo(0));
+	set .@label$, instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	monster 'instance_map$,112,48,"--ja--",'MobId,1,.@label$;
+	end;
+OnTimer70000:
+	stopnpctimer;
+	'EndTournament = 1;
+	instance_announce 0, "It has not been completed within the time limit.",bc_map,"0xFFCE00";
+	killmonster 'instance_map$,instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+OnMobDied:
+	stopnpctimer;
+	'round++;
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+}
+
+//===================================
+// Midnight Geffen Thug
+//===================================
+1@ge_sn,130,49,3	script	Midnight Geffen Thug#HRO_GNA	20859,{
+	end;
+OnTimer1000:
+	hideoffnpc instance_npcname(strnpcinfo(0));
+	instance_announce 0, "The opponent will be "+getmonsterinfo('MobId,MOB_NAME)+".",bc_map,"0xFFCE00";
+	npcwalkto 112,48;
+	end;
+OnTimer5000:
+	instance_announce 0, "5 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer6000:
+	instance_announce 0, "4 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer7000:
+	instance_announce 0, "3 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer8000:
+	instance_announce 0, "2 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer9000:
+	instance_announce 0, "1 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer10000:
+	hideonnpc instance_npcname(strnpcinfo(0));
+	set .@label$, instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	monster 'instance_map$,112,48,"--ja--",'MobId,1,.@label$;
+	end;
+OnTimer70000:
+	stopnpctimer;
+	'EndTournament = 1;
+	instance_announce 0, "It has not been completed within the time limit.",bc_map,"0xFFCE00";
+	killmonster 'instance_map$,instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+OnMobDied:
+	stopnpctimer;
+	'round++;
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+}
+
+//===================================
+// Midnight Geffen Gangster
+//===================================
+1@ge_sn,130,49,3	script	Midnight Geffen Gangster#HRO_GNA	20860,{
+	end;
+OnTimer1000:
+	hideoffnpc instance_npcname(strnpcinfo(0));
+	instance_announce 0, "The opponent will be "+getmonsterinfo('MobId,MOB_NAME)+".",bc_map,"0xFFCE00";
+	npcwalkto 112,48;
+	end;
+OnTimer5000:
+	instance_announce 0, "5 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer6000:
+	instance_announce 0, "4 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer7000:
+	instance_announce 0, "3 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer8000:
+	instance_announce 0, "2 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer9000:
+	instance_announce 0, "1 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer10000:
+	hideonnpc instance_npcname(strnpcinfo(0));
+	set .@label$, instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	monster 'instance_map$,112,48,"--ja--",'MobId,1,.@label$;
+	end;
+OnTimer70000:
+	stopnpctimer;
+	'EndTournament = 1;
+	instance_announce 0, "It has not been completed within the time limit.",bc_map,"0xFFCE00";
+	killmonster 'instance_map$,instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+OnMobDied:
+	stopnpctimer;
+	'round++;
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+}
+
+//===================================
+// Midnight Pa - Monk
+//===================================
+1@ge_sn,130,49,3	script	Midnight Pa - Monk#HRO_GNA	20861,{
+	end;
+OnTimer1000:
+	hideoffnpc instance_npcname(strnpcinfo(0));
+	instance_announce 0, "The opponent will be "+getmonsterinfo('MobId,MOB_NAME)+".",bc_map,"0xFFCE00";
+	npcwalkto 112,48;
+	end;
+OnTimer5000:
+	instance_announce 0, "5 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer6000:
+	instance_announce 0, "4 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer7000:
+	instance_announce 0, "3 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer8000:
+	instance_announce 0, "2 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer9000:
+	instance_announce 0, "1 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer10000:
+	hideonnpc instance_npcname(strnpcinfo(0));
+	set .@label$, instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	monster 'instance_map$,112,48,"--ja--",'MobId,1,.@label$;
+	end;
+OnTimer70000:
+	stopnpctimer;
+	'EndTournament = 1;
+	instance_announce 0, "It has not been completed within the time limit.",bc_map,"0xFFCE00";
+	killmonster 'instance_map$,instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+OnMobDied:
+	stopnpctimer;
+	'round++;
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+}
+
+//===================================
+// Midnight Ordre
+//===================================
+1@ge_sn,130,49,3	script	Midnight Ordre#HRO_GNA	20862,{
+	end;
+OnTimer1000:
+	hideoffnpc instance_npcname(strnpcinfo(0));
+	instance_announce 0, "The opponent will be "+getmonsterinfo('MobId,MOB_NAME)+".",bc_map,"0xFFCE00";
+	npcwalkto 112,48;
+	end;
+OnTimer5000:
+	instance_announce 0, "5 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer6000:
+	instance_announce 0, "4 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer7000:
+	instance_announce 0, "3 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer8000:
+	instance_announce 0, "2 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer9000:
+	instance_announce 0, "1 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer10000:
+	hideonnpc instance_npcname(strnpcinfo(0));
+	set .@label$, instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	monster 'instance_map$,112,48,"--ja--",'MobId,1,.@label$;
+	end;
+OnTimer70000:
+	stopnpctimer;
+	'EndTournament = 1;
+	instance_announce 0, "It has not been completed within the time limit.",bc_map,"0xFFCE00";
+	killmonster 'instance_map$,instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+OnMobDied:
+	stopnpctimer;
+	'round++;
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+}
+
+//===================================
+// Midnight Blut Hase
+//===================================
+1@ge_sn,130,49,3	script	Midnight Blut Hase#HRO_GNA	20863,{
+	end;
+OnTimer1000:
+	hideoffnpc instance_npcname(strnpcinfo(0));
+	instance_announce 0, "The opponent will be "+getmonsterinfo('MobId,MOB_NAME)+".",bc_map,"0xFFCE00";
+	npcwalkto 112,48;
+	end;
+OnTimer5000:
+	instance_announce 0, "5 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer6000:
+	instance_announce 0, "4 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer7000:
+	instance_announce 0, "3 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer8000:
+	instance_announce 0, "2 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer9000:
+	instance_announce 0, "1 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer10000:
+	hideonnpc instance_npcname(strnpcinfo(0));
+	set .@label$, instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	monster 'instance_map$,112,48,"--ja--",'MobId,1,.@label$;
+	end;
+OnTimer70000:
+	stopnpctimer;
+	'EndTournament = 1;
+	instance_announce 0, "It has not been completed within the time limit.",bc_map,"0xFFCE00";
+	killmonster 'instance_map$,instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+OnMobDied:
+	stopnpctimer;
+	'round++;
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+}
+
+//===================================
+// Midnight Kuro Akuma
+//===================================
+1@ge_sn,130,49,3	script	Midnight Kuro Akuma#HRO_GNA	20864,{
+	end;
+OnTimer1000:
+	hideoffnpc instance_npcname(strnpcinfo(0));
+	instance_announce 0, "The opponent will be "+getmonsterinfo('MobId,MOB_NAME)+".",bc_map,"0xFFCE00";
+	npcwalkto 112,48;
+	end;
+OnTimer5000:
+	instance_announce 0, "5 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer6000:
+	instance_announce 0, "4 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer7000:
+	instance_announce 0, "3 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer8000:
+	instance_announce 0, "2 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer9000:
+	instance_announce 0, "1 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer10000:
+	hideonnpc instance_npcname(strnpcinfo(0));
+	set .@label$, instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	monster 'instance_map$,112,48,"--ja--",'MobId,1,.@label$;
+	end;
+OnTimer70000:
+	stopnpctimer;
+	'EndTournament = 1;
+	instance_announce 0, "It has not been completed within the time limit.",bc_map,"0xFFCE00";
+	killmonster 'instance_map$,instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+OnMobDied:
+	stopnpctimer;
+	'round++;
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+}
+
+//===================================
+// Midnight Ipodus
+//===================================
+1@ge_sn,130,49,3	script	Midnight Ipodus#HRO_GNA	20865,{
+	end;
+OnTimer1000:
+	hideoffnpc instance_npcname(strnpcinfo(0));
+	instance_announce 0, "The opponent will be "+getmonsterinfo('MobId,MOB_NAME)+".",bc_map,"0xFFCE00";
+	npcwalkto 112,48;
+	end;
+OnTimer5000:
+	instance_announce 0, "5 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer6000:
+	instance_announce 0, "4 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer7000:
+	instance_announce 0, "3 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer8000:
+	instance_announce 0, "2 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer9000:
+	instance_announce 0, "1 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer10000:
+	hideonnpc instance_npcname(strnpcinfo(0));
+	set .@label$, instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	monster 'instance_map$,112,48,"--ja--",'MobId,1,.@label$;
+	end;
+OnTimer70000:
+	stopnpctimer;
+	'EndTournament = 1;
+	instance_announce 0, "It has not been completed within the time limit.",bc_map,"0xFFCE00";
+	killmonster 'instance_map$,instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+OnMobDied:
+	stopnpctimer;
+	'round++;
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+}
+
+//===================================
+// Midnight Rechenier
+//===================================
+1@ge_sn,130,49,3	script	Midnight Rechenier#HRO_GNA	20866,{
+	end;
+OnTimer1000:
+	hideoffnpc instance_npcname(strnpcinfo(0));
+	instance_announce 0, "The opponent will be "+getmonsterinfo('MobId,MOB_NAME)+".",bc_map,"0xFFCE00";
+	npcwalkto 112,48;
+	end;
+OnTimer5000:
+	instance_announce 0, "5 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer6000:
+	instance_announce 0, "4 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer7000:
+	instance_announce 0, "3 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer8000:
+	instance_announce 0, "2 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer9000:
+	instance_announce 0, "1 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer10000:
+	hideonnpc instance_npcname(strnpcinfo(0));
+	set .@label$, instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	monster 'instance_map$,112,48,"--ja--",'MobId,1,.@label$;
+	end;
+OnTimer70000:
+	stopnpctimer;
+	'EndTournament = 1;
+	instance_announce 0, "It has not been completed within the time limit.",bc_map,"0xFFCE00";
+	killmonster 'instance_map$,instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+OnMobDied:
+	stopnpctimer;
+	'round++;
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+}
+
+//===================================
+// Midnight Odorico
+//===================================
+1@ge_sn,130,49,3	script	Midnight Odorico#HRO_GNA	20867,{
+	end;
+OnTimer1000:
+	hideoffnpc instance_npcname(strnpcinfo(0));
+	instance_announce 0, "The opponent will be "+getmonsterinfo('MobId,MOB_NAME)+".",bc_map,"0xFFCE00";
+	npcwalkto 112,48;
+	end;
+OnTimer5000:
+	instance_announce 0, "5 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer6000:
+	instance_announce 0, "4 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer7000:
+	instance_announce 0, "3 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer8000:
+	instance_announce 0, "2 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer9000:
+	instance_announce 0, "1 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer10000:
+	hideonnpc instance_npcname(strnpcinfo(0));
+	set .@label$, instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	monster 'instance_map$,112,48,"--ja--",'MobId,1,.@label$;
+	end;
+OnTimer70000:
+	stopnpctimer;
+	'EndTournament = 1;
+	instance_announce 0, "It has not been completed within the time limit.",bc_map,"0xFFCE00";
+	killmonster 'instance_map$,instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+OnMobDied:
+	stopnpctimer;
+	'round++;
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+}
+
+//===================================
+// Midnight Jew
+//===================================
+1@ge_sn,130,49,3	script	Midnight Jew#HRO_GNA	20868,{
+	end;
+OnTimer1000:
+	hideoffnpc instance_npcname(strnpcinfo(0));
+	instance_announce 0, "The opponent will be "+getmonsterinfo('MobId,MOB_NAME)+".",bc_map,"0xFFCE00";
+	npcwalkto 112,48;
+	end;
+OnTimer5000:
+	instance_announce 0, "5 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer6000:
+	instance_announce 0, "4 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer7000:
+	instance_announce 0, "3 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer8000:
+	instance_announce 0, "2 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer9000:
+	instance_announce 0, "1 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer10000:
+	hideonnpc instance_npcname(strnpcinfo(0));
+	set .@label$, instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	monster 'instance_map$,112,48,"--ja--",'MobId,1,.@label$;
+	end;
+OnTimer70000:
+	stopnpctimer;
+	'EndTournament = 1;
+	instance_announce 0, "It has not been completed within the time limit.",bc_map,"0xFFCE00";
+	killmonster 'instance_map$,instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+OnMobDied:
+	stopnpctimer;
+	'round++;
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+}
+
+//===================================
+// Midnight D.Y.
+//===================================
+1@ge_sn,130,49,3	script	Midnight D.Y.#HRO_GNA	20869,{
+	end;
+OnTimer1000:
+	hideoffnpc instance_npcname(strnpcinfo(0));
+	instance_announce 0, "The opponent will be "+getmonsterinfo('MobId,MOB_NAME)+".",bc_map,"0xFFCE00";
+	npcwalkto 112,48;
+	end;
+OnTimer5000:
+	instance_announce 0, "5 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer6000:
+	instance_announce 0, "4 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer7000:
+	instance_announce 0, "3 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer8000:
+	instance_announce 0, "2 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer9000:
+	instance_announce 0, "1 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer10000:
+	hideonnpc instance_npcname(strnpcinfo(0));
+	set .@label$, instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	monster 'instance_map$,112,48,"--ja--",'MobId,1,.@label$;
+	end;
+OnTimer70000:
+	stopnpctimer;
+	'EndTournament = 1;
+	instance_announce 0, "It has not been completed within the time limit.",bc_map,"0xFFCE00";
+	killmonster 'instance_map$,instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+OnMobDied:
+	stopnpctimer;
+	'round++;
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+}
+
+//===================================
+// Midnight Fei Kanabian
+//===================================
+1@ge_sn,130,49,3	script	Midnight Fei Kanabian#HRO_GNA	20870,{
+	end;
+OnTimer1000:
+	hideoffnpc instance_npcname(strnpcinfo(0));
+	instance_announce 0, "The opponent will be "+getmonsterinfo('MobId,MOB_NAME)+".",bc_map,"0xFFCE00";
+	npcwalkto 112,48;
+	end;
+OnTimer5000:
+	instance_announce 0, "5 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer6000:
+	instance_announce 0, "4 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer7000:
+	instance_announce 0, "3 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer8000:
+	instance_announce 0, "2 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer9000:
+	instance_announce 0, "1 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer10000:
+	hideonnpc instance_npcname(strnpcinfo(0));
+	set .@label$, instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	monster 'instance_map$,112,48,"--ja--",'MobId,1,.@label$;
+	end;
+OnTimer70000:
+	stopnpctimer;
+	'EndTournament = 1;
+	instance_announce 0, "It has not been completed within the time limit.",bc_map,"0xFFCE00";
+	killmonster 'instance_map$,instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+OnMobDied:
+	stopnpctimer;
+	'round++;
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+}
+
+//===================================
+// Midnight Alphonse
+//===================================
+1@ge_sn,130,49,3	script	Midnight Alphonse#HRO_GNA	20871,{
+	end;
+OnTimer1000:
+	hideoffnpc instance_npcname(strnpcinfo(0));
+	instance_announce 0, "The opponent will be "+getmonsterinfo('MobId,MOB_NAME)+".",bc_map,"0xFFCE00";
+	npcwalkto 112,48;
+	end;
+OnTimer5000:
+	instance_announce 0, "5 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer6000:
+	instance_announce 0, "4 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer7000:
+	instance_announce 0, "3 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer8000:
+	instance_announce 0, "2 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer9000:
+	instance_announce 0, "1 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer10000:
+	hideonnpc instance_npcname(strnpcinfo(0));
+	set .@label$, instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	monster 'instance_map$,112,48,"--ja--",'MobId,1,.@label$;
+	end;
+OnTimer70000:
+	stopnpctimer;
+	'EndTournament = 1;
+	instance_announce 0, "It has not been completed within the time limit.",bc_map,"0xFFCE00";
+	killmonster 'instance_map$,instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+OnMobDied:
+	stopnpctimer;
+	'round++;
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+}
+
+//===================================
+// Midnight Fenrir
+//===================================
+1@ge_sn,130,49,3	script	Midnight Fenrir#HRO_GNA	20872,{
+	end;
+OnTimer1000:
+	hideoffnpc instance_npcname(strnpcinfo(0));
+	instance_announce 0, "The opponent will be "+getmonsterinfo('MobId,MOB_NAME)+".",bc_map,"0xFFCE00";
+	npcwalkto 112,48;
+	end;
+OnTimer5000:
+	instance_announce 0, "5 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer6000:
+	instance_announce 0, "4 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer7000:
+	instance_announce 0, "3 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer8000:
+	instance_announce 0, "2 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer9000:
+	instance_announce 0, "1 seconds to start.",bc_map,"0xFFCE00";
+	end;
+OnTimer10000:
+	hideonnpc instance_npcname(strnpcinfo(0));
+	set .@label$, instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	monster 'instance_map$,112,48,"--ja--",'MobId,1,.@label$;
+	end;
+OnTimer70000:
+	stopnpctimer;
+	'EndTournament = 1;
+	instance_announce 0, "It has not been completed within the time limit.",bc_map,"0xFFCE00";
+	killmonster 'instance_map$,instance_npcname(strnpcinfo(0))+"::OnMobDied";
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	end;
+OnMobDied:
+	stopnpctimer;
+	'EndTournament = 1;
+	'round++;
+	enablenpc(instance_npcname("Greedy Looking Man#HRO_GNA02"));
+	instance_announce 0, "You completed the tournament!!",bc_map,"0xFFCE00";
+	end;
+}

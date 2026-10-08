@@ -1,0 +1,218 @@
+prontera,154,198,5	script	PromoCode Master	791,{
+	function GetGepardUID;
+	mes "[Promo Code Manager]";
+
+	function	GetGepardUID	{
+		// Adjust if you use a different method to get gepard uid
+		return getvariableofnpc("$@gepard_uid", "PromoCode Master");
+	}
+
+	if (getgroupid() >= 99) {
+		mes "Select an option:";
+		next;
+		switch(select("Create Promo Code:Claim Promo Code:Review Promo Codes:Cancel")) {
+			case 1: goto CreatePromo;
+			case 2: goto ClaimPromo;
+			case 3: goto ReviewPromo;
+			default: close;
+		}
+	} else {
+		goto ClaimPromo;
+	}
+	end;
+
+// GM - CREATE PROMO CODE
+CreatePromo:
+	mes "[Create Promo Code]";
+	mes "Enter a new promo code (max 16 characters):";
+	input .@code$;
+	if (getstrlen(.@code$) > 16) {
+		mes "Too long.";
+		close;
+	}
+	set .@code$, strtolower(.@code$);
+
+	query_sql("SELECT 1 FROM promo_codes WHERE code = '"+escape_sql(.@code$)+"'", .@exists);
+	if (.@exists) {
+		mes "Code already exists.";
+		close;
+	}
+
+	mes "Expire in how many days?";
+	input .@days, 1, 30;
+	set .@expire_time, gettimetick(2) + (.@days * 86400);
+
+	mes "How many items (1~10)?";
+	input .@item_count, 1, 10;
+
+	for (.@i = 0; .@i < .@item_count; .@i++) {
+		mes "Item #" + (.@i+1) + " - Enter Item ID:";
+		input .@item_id[.@i];
+
+		// Show item name
+		.@item_name$ = getitemname(.@item_id[.@i]);
+		if (.@item_name$ == "null") {
+			mes "^FF0000Invalid Item ID.^000000 Please try again.";
+			.@i--; // redo this iteration
+			continue;
+		}
+		mes ">> ^0055FF" + .@item_name$ + "^000000";
+
+		mes "Enter amount:";
+		input .@amount[.@i], 1, 1000;
+		mes "Added: ^0055FF" + .@item_name$ + "^000000 x" + .@amount[.@i];
+		next;
+	}
+	query_sql("INSERT INTO promo_codes (code, created_by, expire_time) VALUES ('"+escape_sql(.@code$)+"', "+getcharid(3)+", "+.@expire_time+")");
+
+	for (.@i = 0; .@i < .@item_count; .@i++) {
+		query_sql("INSERT INTO promo_code_items (code, item_id, amount) VALUES ('"+escape_sql(.@code$)+"', "+.@item_id[.@i]+", "+.@amount[.@i]+")");
+	}
+	
+	mes "Promo code '" + .@code$ + "' created with " + .@item_count + " items.";
+	for (.@i = 0; .@i < .@item_count; .@i++) {
+	.@item_name$ = getitemname(.@item_id[.@i]);
+	mes "- ^0055FF" + .@item_name$ + "^000000 x" + .@amount[.@i];
+	}
+	close;
+
+// PLAYER - CLAIM CODE
+ClaimPromo:
+	mes "[Claim Promo Code]";
+	mes "Enter promo code:";
+	input .@code$;
+	set .@code$, strtolower(.@code$);
+
+	query_sql("SELECT expire_time FROM promo_codes WHERE code = '"+escape_sql(.@code$)+"'", .@expire_time);
+	if (.@expire_time == 0) {
+		mes "Invalid promo code.";
+		close;
+	}
+	if (gettimetick(2) > .@expire_time) {
+		mes "Code expired.";
+		close;
+	}
+
+	query_sql("SELECT last_unique_id FROM login WHERE account_id = '" + getcharid(3)+ "'", .@gepard_uid$);
+
+	query_sql("SELECT 1 FROM promo_code_claims WHERE code = '"+escape_sql(.@code$)+"' AND (account_id = "+getcharid(3)+" OR last_ip = '"+getcharip()+"' OR last_unique_id = '"+escape_sql(.@gepard_uid$)+"')", .@claimed);
+	if ( .@claimed) {
+		mes "You or your device has already claimed this promo.";
+		close;
+	}
+
+	// Show rewards
+	query_sql("SELECT item_id, amount FROM promo_code_items WHERE code = '"+escape_sql(.@code$)+"'", .@item_id, .@amount);
+
+	mes "Promo Code: ^0055FF" + .@code$ + "^000000";
+	mes "Expires in: " + callfunc("TimeRemaining", .@expire_time);
+	mes "Reward Items:";
+	for (.@i = 0; .@i < getarraysize(.@item_id); .@i++) {
+		mes "- " + getitemname(.@item_id[.@i]) + " x" + .@amount[.@i];
+	}
+	next;
+	mes "Claim these items?";
+	if (select("Yes:No") == 2) close;
+
+	for (.@i = 0; .@i < getarraysize(.@item_id); .@i++)
+		getitembound .@item_id[.@i], .@amount[.@i],Bound_Account;
+
+	query_sql("INSERT INTO promo_code_claims (code, account_id, claim_time, last_ip, last_unique_id) VALUES ('"+escape_sql(.@code$)+"', "+getcharid(3)+", NOW(), '"+getcharip()+"', '"+escape_sql(.@gepard_uid$)+"')");
+
+	mes "Successfully claimed!";
+	close;
+
+// GM - REVIEW PROMO CODES
+ReviewPromo:
+	mes "[Promo Code List]";
+	query_sql("SELECT code, created_by, expire_time FROM promo_codes ORDER BY expire_time DESC LIMIT 10", .@code$, .@creator_id, .@expire_time);
+	if (getarraysize(.@code$) == 0) {
+		mes "No promo codes found.";
+		close;
+	}
+
+	mes "Select a code to review:";
+	.@menu$ = "";
+	for (.@i = 0; .@i < getarraysize(.@code$); .@i++) {
+		.@menu$ = .@menu$ + .@code$[.@i] + ":";
+	}
+	.@sel = select(.@menu$) - 1;
+	.@selected_code$ = .@code$[.@sel];
+
+	query_sql("SELECT item_id, amount FROM promo_code_items WHERE code = '"+escape_sql(.@selected_code$)+"'", .@item_id, .@amount);
+	query_sql("SELECT COUNT(*) FROM promo_code_claims WHERE code = '"+escape_sql(.@selected_code$)+"'", .@claim_count);
+	mes "Promo Code: ^0055FF" + .@selected_code$ + "^000000";
+	mes "Created by account ID: " + .@creator_id[.@sel];
+	mes "Expires in: " + callfunc("TimeRemaining", .@expire_time[.@sel]);
+	mes "Claimed by: " + .@claim_count + " player(s)";
+	mes "Items:";
+	for (.@i = 0; .@i < getarraysize(.@item_id); .@i++) {
+		mes "- " + getitemname(.@item_id[.@i]) + " x" + .@amount[.@i];
+	}
+	next;
+	if (select("Back:Delete this Promo Code") == 2) {
+		mes "Are you sure you want to ^FF0000DELETE^000000 the promo code ^0055FF" + .@selected_code$ + "^000000?";
+		if (select("Yes, delete it:No, cancel") == 1) {
+			query_sql("DELETE FROM promo_code_claims WHERE code = '"+escape_sql(.@selected_code$)+"'");
+			query_sql("DELETE FROM promo_code_items WHERE code = '"+escape_sql(.@selected_code$)+"'");
+			query_sql("DELETE FROM promo_codes WHERE code = '"+escape_sql(.@selected_code$)+"'");
+			mes "Promo code ^0055FF" + .@selected_code$ + "^000000 deleted successfully.";
+		} else {
+			mes "Deletion cancelled.";
+		}
+	}
+	close;
+
+OnInit:
+waitingroom "Promotional Code",0;
+end;
+}
+
+// TIME FORMAT
+function	script	TimeRemaining	{
+	.@remain = getarg(0) - gettimetick(2);
+	if (.@remain < 0) return "Expired";
+	.@d = .@remain / 86400;
+	.@h = (.@remain % 86400) / 3600;
+	.@m = (.@remain % 3600) / 60;
+	return .@d+"d "+.@h+"h "+.@m+"m";
+}
+
+/**
+
+CREATE TABLE `promo_codes` (
+  `code` VARCHAR(32) NOT NULL,               -- unique code (lowercase)
+  `created_by` INT UNSIGNED NOT NULL,        -- GM account ID who created it
+  `expire_time` INT UNSIGNED NOT NULL,       -- Unix timestamp when it expires
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `promo_code_items` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `code` VARCHAR(32) NOT NULL,               -- FK to promo_codes.code
+  `item_id` INT UNSIGNED NOT NULL,
+  `amount` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `code_idx` (`code`),
+  CONSTRAINT `fk_promo_items_code`
+    FOREIGN KEY (`code`) REFERENCES `promo_codes` (`code`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `promo_code_claims` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `code` VARCHAR(32) NOT NULL,               -- FK to promo_codes.code
+  `account_id` INT UNSIGNED NOT NULL,
+  `claim_time` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `last_ip` VARCHAR(45) DEFAULT NULL,        -- last used IP
+  `last_unique_id` VARCHAR(64) DEFAULT NULL, -- gepard UID or similar
+  PRIMARY KEY (`id`),
+  KEY `code_idx` (`code`),
+  KEY `account_idx` (`account_id`),
+  CONSTRAINT `fk_promo_claims_code`
+    FOREIGN KEY (`code`) REFERENCES `promo_codes` (`code`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+**/

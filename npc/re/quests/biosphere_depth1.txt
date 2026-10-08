@@ -1,0 +1,1908 @@
+//===== rAthena Script =======================================
+//= Varmundt's Depth Biosphere 1st floor
+//===== Description: =========================================
+//= [Walkthrough Conversion]
+//= Quests npcs.
+//= Added extension of abyss depth from Atemo's PR
+//===== Changelog: ===========================================
+//= 1.0 First version. [Atemo]
+//= 1.1 Added Abyss Depth [crazyarashi]
+//============================================================
+
+// Quest starter and research material (random) exchange
+ba_in01,292,104,1	script	Depth Research Manager#b	4_EP17_MASTER_A,{
+	if (BaseLevel < 250) {
+		mes "[Depth Research Manager]";
+		mes "The depths of the artificial habitat Biosphere are home to very powerful monsters.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "For the safety of our guests, we are only asking guests who are adventurers with a certain level of skill to enter.";
+		next;
+		mes "[Instructions]";
+		mes "- Only guests level 250 or higher can consult. -";
+		close;
+	}
+	if (isbegin_quest(16734) == 0) {
+		mes "[Depth Research Manager]";
+		mes "Hello, guest? Today, I would like to introduce you to the newly revealed depths of Biosphere, the artificial habitat created by Varmundt.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "While focusing on managing existing artificial habitats, we discovered a single crack connecting seven biospheres.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "What was discovered inside the crack was a new area that even we who started managing the artificial habitat were unaware of.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "A long time not only were there various types of creatures that had become very powerful due to lack of management, but there was even dimensional distortion.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "Due to the dimensional distortion, movement effects such as teleportation do not occur within this space.";
+		mes "And as a result of experiments, it was confirmed that certain skill effects had no effect within this.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "It is a dangerous place, but we need the guests' help to prevent the proliferation or escape of more powerful monsters.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "As monsters become more powerful, more powerful essences and runes can be obtained, so I think this will be helpful to guests as well.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "Here, we will give you various requests, and if you complete them, you will be rewarded with Depth research materials.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "Bring me two " + mesitemlink(1001289) + ", and I'll randomly give you one ^0000CD research result^000000.";
+		mes "This will help our guests on their future adventures.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "Go and talk to " + F_mesnavi("Depth 1st Floor Research Manager", "ba_in01",286,104) + " for requests and to each sample research manager for compensation. ";
+		next;
+		mes "[Depth Research Manager]";
+		mes "For equipment, please contact " + F_mesnavi("Rune Energy Equipment Manager", "ba_in01",293,116) + ". If you would like to hear more about energy crystals, please contact " + F_mesnavi("Rune Energy Fusion Manager", "ba_in01",293,119) + ".";
+		setquest 16734;
+		completequest 16734;
+		close;
+	}
+	.@points = get_reputation_points(REPU_BIO_DEPTH1);
+	if (.@points >= 2000 && isbegin_quest(16778) == 0) {
+		mes "[Depth Research Manager]";
+		mes "Hello, You've been doing a lot of research into Depth Biosphere.";
+		mes "Since you are such an important guest, We have new information for you.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "While researching the Depth Biosphere, we discovered a mysterious warp that suddenly opened in the garden of Varmundt's mansion.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "When we investigated that place, we felt similar waves to the Depth Biosphere that we were researching.";
+		mes "We have decided that new research is needed, and would like to give you a new request.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "Would you please investigate the newly discovered mysterious warp?";
+		next;
+		if (select( "Accept the survey.", "Do not accept the survey." ) == 2) {
+			mes "[Depth Research Manager]";
+			mes "You may be in trouble now that you have been preparing for other research.";
+			mes "I would like to ask you to investigate next time you have a chance.";
+			close;
+		}
+		mes "[Depth Research Manager]";
+		mes "Thank you. I believe you will do a great job in this survey.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "The warp was found in the Chess Garden, a location we haven't told you about yet.";
+		mes "Let me show you the way to the Chess garden.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "You can get to the Chess Garden via the <NAVI>[Chessboard]<INFO>ba_maison,242,128,0,101,0</INFO></NAVI> placed near the Water Garden.";
+		mes "The person in charge of research requests at Chess Garden will give you detailed instructions. Please go there and listen to the explanation.";
+		setquest 16778;
+		close;
+	}
+	mes "[Depth Research Manager]";
+	mes "Hello, guest. Did you bring " + mesitemlink(1001289) + ", would you like me to pass on the results of your research?";
+	mes "Or would you like to hear an explanation of the Biosphere deep dungeons?";
+	next;
+	switch( select( "Acquire research results", "Depth dungeon guide", "Cancel" ) ) {
+	case 1:
+		mes "[Depth Research Manager]";
+		mes "Bring me two " + mesitemlink(1001289) + ", and I'll give you one of the research results.";
+		mes "Would you like to receive the research results?";
+		next;
+		if (select( "Receive.", "Do not receive." ) == 2) {
+			mes "[Depth Research Manager]";
+			mes "Okay. If you need anything, please come back anytime.";
+			close;
+		}
+		while( countitem(1001289) >= 2 ) {
+			.@r = rand(100);
+
+			if (.@r < 15) {	// Crystal
+				.@item_id = rand(1001298,1001305);
+
+				.@r = rand(100);
+				if (.@r < 33)
+					.@amount = 1;
+				else
+					.@amount = 2;
+			}
+			else if (.@r < 19) {	// Rune fragment
+				.@item_id = callfunc( "F_Rand", 1000636,1000637,1000638,1000639,1001177,1001179,1001181 );
+
+				.@r = rand(100);
+				if (.@r < 33)
+					.@amount = 5;
+				else
+					.@amount = 3;
+			}
+			else if (.@r < 24) {	// Rune (probably incomplete)
+				.@item_id = callfunc( "F_Rand", 1001178,1001180,1001182,1001312,1001313 );
+
+				.@r = rand(100);
+				if (.@r < 50)
+					.@amount = 1;
+				else
+					.@amount = 2;
+			}
+			else {	// Energy ~75%
+				.@item_id = rand(1001290,1001297);
+
+				.@r = rand(100);
+				if (.@r < 20)
+					.@amount = 3;
+				else if (.@r < 50)
+					.@amount = 5;
+				else
+					.@amount = 7;
+			}
+
+			if (checkweight(.@item_id,.@amount) == 0) {	// Custom
+				mes "[Depth Research Manager]";
+				mes "Your bag is full. Please pack your bag and come back!";
+				mes " ";
+				mes "- Please check the weight and quantity of items you are carrying and then speak to me again. -";
+				close;
+			}
+			delitem 1001289,2;	// Bar_D_Docu_1
+			getitem .@item_id, .@amount;
+			add_reputation_points( REPU_BIO_DEPTH1, 3 );
+
+			mes "[Depth Research Manager]";
+			mes "We have provided payment for the research results.";
+			mes "Would you like to give me 2 " + mesitemlink(1001289) + " and receive payment for the research results once more?";
+			next;
+			if (select( "Continue.", "Finish." ) == 2) {
+				mes "[Depth Research Manager]";
+				mes "We will end the payment of research results. Thank you for your continued support.";
+				mes "Have you confirmed the desired result?";
+				close;
+			}
+		}
+		mes "[Depth Research Manager]";
+		mes "To receive research results, you need 2 " + mesitemlink(1001289) + ".";
+		mes "Insufficient number of Depth 1st floor research materials.";
+		close;
+	case 2:
+		mes "[Depth Research Manager]";
+		mes "While focusing on managing existing artificial habitats, we discovered a single crack connecting 7 biospheres.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "What was discovered inside the crack was a new area that even we who started managing the artificial habitat were unaware of.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "Not only are various types of creatures that have become very powerful as they have not been managed for a long time, but there has also been a distortion of the dimensions.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "Due to the dimensional distortion, movement effects such as teleportation do not occur within this space.";
+		mes "And as a result of experiments, it was confirmed that certain skill effects had no effect within this.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "It is a dangerous place, but we need the guests' help to prevent the proliferation or escape of more powerful monsters.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "As monsters become more powerful, more powerful essences and runes can be obtained, so I think this will be helpful to guests as well.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "Here, we will give you various requests, and if you complete them, you will be rewarded with Depth research materials.";
+		next;
+		mes "[Depth Research Manager]";
+		mes "Bring me two " + mesitemlink(1001289) + ", and I'll randomly give you one ^0000CDresearch result^000000.";
+		mes "This will help our guests on their future adventures.";
+		close;
+	case 3:
+		mes "[Depth Research Manager]";
+		mes "If you need anything, please come back again.";
+		close;
+	}
+	end;
+
+OnInit:
+	setunittitle( getnpcid(0), "<Depth Biosphere>" );
+
+	questinfo( QTYPE_QUEST, QMARK_NONE, "BaseLevel >= 250 && isbegin_quest(16734) == 0" );
+	questinfo( QTYPE_QUEST, QMARK_NONE, "get_reputation_points(REPU_BIO_DEPTH1) >= 2000 && isbegin_quest(16778) == 0" );
+	end;
+}
+
+
+// NPCs warp to bl_depth1
+bl_ice,198,268,1	script	#ba_d1_ice	GATE_SKYBLUE,{
+	if (BaseLevel < 250) {
+		mes "[Instructions]";
+		mes "- This area is accessible to levels ^0000CD250 and above^000000. -";
+		close;
+	}
+	if (isbegin_quest(16734) == 0) {
+		opentips( 8366 );
+		end;
+	}
+	mes "Do you want to go to Depth Biosphere 1st floor?";
+	next;
+	if (select( "Move.", "Do not move." ) == 2)
+		end;
+	.@npc_name$ = strnpcinfo(0);
+
+	if (.@npc_name$ == "#ba_d1_ice")
+		warp "bl_depth1",283,180;
+	else if (.@npc_name$ == "#ba_d1_lava")
+		warp "bl_depth1",177,289;
+	else if (.@npc_name$ == "#ba_d1_death")
+		warp "bl_depth1",251,107;
+	else if (.@npc_name$ == "#ba_d1_grass")
+		warp "bl_depth1",251,251;
+	else if (.@npc_name$ == "#ba_d1_soul")
+		warp "bl_depth1",107,253;
+	else if (.@npc_name$ == "#ba_d1_temple")
+		warp "bl_depth1",108,109;
+	else if (.@npc_name$ == "#ba_d1_venom")
+		warp "bl_depth1",73,178;
+	end;
+}
+bl_lava,151,263,1	duplicate(#ba_d1_ice)	#ba_d1_lava	GATE_SKYBLUE
+bl_death,65,121,1	duplicate(#ba_d1_ice)	#ba_d1_death	GATE_SKYBLUE
+bl_grass,131,365,1	duplicate(#ba_d1_ice)	#ba_d1_grass	GATE_SKYBLUE
+bl_soul,300,292,1	duplicate(#ba_d1_ice)	#ba_d1_soul	GATE_SKYBLUE
+bl_temple,272,331,1	duplicate(#ba_d1_ice)	#ba_d1_temple	GATE_SKYBLUE
+bl_venom,182,250,1	duplicate(#ba_d1_ice)	#ba_d1_venom	GATE_SKYBLUE
+
+bl_depth1,179,179,3	script	#ba_d1_deep1	PORTAL,{
+	mes "Would you like to move outward from Depth Biosphere 1st floor?";
+	next;
+	if (select( "Move.", "Do not move." ) == 2)
+		end;
+	warp "ba_in01",296,104;
+	end;
+}
+
+
+function	script	F_Biodepth1	{
+	.@hunt_id[0] = getarg(2);
+	.@hunt_id[1] = .@hunt_id[0] + 2;
+
+	.@status_hunt[0] = checkquest(.@hunt_id[0],HUNTING);
+	.@status_hunt[1] = checkquest(.@hunt_id[1],HUNTING);
+
+	if (.@status_hunt[0] != 2 && .@status_hunt[1] != 2)
+		return;
+
+	.@type$ = getarg(0);
+	.@string$ = getarg(1);
+	.@time_id[0] = .@hunt_id[0] + 1;
+	.@time_id[1] = .@hunt_id[1] + 1;
+	.@item_id = getarg(3);
+	.@exp[0] = getarg(4);
+	.@exp[1] = getarg(6);
+	.@jexp[0] = getarg(5);
+	.@jexp[1] = getarg(7);
+
+	if (.@status_hunt[0] == 2 && .@status_hunt[1] == 2) {
+		if (countitem(.@item_id) < 15) {
+			mes "[" + .@type$ + " Sample Study Manager]";
+			mes "Not enough deep " + .@type$ + " samples.";
+			close;
+		}
+		if (countitem(.@item_id) < 35) {
+			mes "[" + .@type$ + " Sample Study Manager]";
+			mes "There are only enough " + .@type$ + " samples to complete the Study I.";
+			mes "Would you like me to complete this request?";
+			next;
+			if (select( "Complete.", "Not complete." ) == 2) {
+				mes "[" + .@type$ + " Sample Study Manager]";
+				mes "Would you like to complete all requests?";
+				close;
+			}
+			mes "[" + .@type$ + " Sample Study Manager]";
+			mes "Thank you for completing the request!";
+			mes "We will share our " + .@string$ + " research results with you!";
+			erasequest .@hunt_id[0];
+			setquest .@time_id[0];
+			delitem .@item_id,15;
+			getitem 1001289,1;	// Bar_D_Docu_1
+			for ( .@i = 0; .@i < 5; ++.@i )
+				getexp .@exp[0],.@jexp[0];
+			add_reputation_points( REPU_BIO_DEPTH1, 5 );
+			if (get_reputation_points( REPU_BIO_DEPTH1 ) >= 5000) {
+				// completequest 16771;	// (quest unused)
+				getitem 1001289,1;	// Bar_D_Docu_1
+			}
+			close;
+		}
+		mes "[" + .@type$ + " Sample Study Manager]";
+		mes "You have completed both " + .@type$ + " sample Study I and II requests!";
+		mes "We will share our " + .@string$ + " research results with you!";
+		erasequest .@hunt_id[0];
+		setquest .@time_id[0];
+		erasequest .@hunt_id[1];
+		setquest .@time_id[1];
+		delitem .@item_id,35;
+		getitem 1001289,1;	// Bar_D_Docu_1
+		getitem 1001289,1;
+		for ( .@i = 0; .@i < 5; ++.@i )
+			getexp .@exp[0],.@jexp[0];
+		for ( .@i = 0; .@i < 10; ++.@i )
+			getexp .@exp[1],.@jexp[1];
+		add_reputation_points( REPU_BIO_DEPTH1, 5 );
+		if (get_reputation_points( REPU_BIO_DEPTH1 ) >= 5000) {
+			// completequest 16771;	// (quest unused)
+			getitem 1001289,1;	// Bar_D_Docu_1
+		}
+		close;
+	}
+	if (.@status_hunt[0] == 2) {
+		if (countitem(.@item_id) < 15) {
+			mes "[" + .@type$ + " Sample Study Manager]";
+			mes "Not enough deep " + .@type$ + " samples.";
+			close;
+		}
+		mes "[" + .@type$ + " Sample Study Manager]";
+		mes "You have completed " + .@type$ + " sample Study I request!";
+		mes "We will share our " + .@string$ + " research results with you!";
+		erasequest .@hunt_id[0];
+		setquest .@time_id[0];
+		delitem .@item_id,15;
+		getitem 1001289,1;	// Bar_D_Docu_1
+		for ( .@i = 0; .@i < 5; ++.@i )
+			getexp .@exp[0],.@jexp[0];
+		add_reputation_points( REPU_BIO_DEPTH1, 5 );
+		if (get_reputation_points( REPU_BIO_DEPTH1 ) >= 5000) {
+			// completequest 16771;	// (quest unused)
+			getitem 1001289,1;	// Bar_D_Docu_1
+		}
+		close;
+	}
+	if (.@status_hunt[1] == 2) {
+		if (countitem(.@item_id) < 20) {
+			mes "[" + .@type$ + " Sample Study Manager]";
+			mes "Not enough deep " + .@type$ + " samples.";
+			close;
+		}
+		mes "[" + .@type$ + " Sample Study Manager]";
+		mes "You have completed " + .@type$ + " sample Study II request!";
+		mes "We will share our " + .@string$ + " research results with you!";
+		erasequest .@hunt_id[1];
+		setquest .@time_id[1];
+		delitem .@item_id,20;
+		getitem 1001289,1;	// Bar_D_Docu_1
+		// (no reputation and no extra item)
+		for ( .@i = 0; .@i < 10; ++.@i )
+			getexp .@exp[1],.@jexp[1];
+		close;
+	}
+	return;
+}
+
+// Reward NPCs - hunting quests x50 and hunting quests x80
+ba_in01,286,114,3	script	Fire Sample Research Manager#b	4_EP17_BASIC_B,{
+	if (checkweight(1001289,1) == 0) {
+		mes "[Fire Sample Research Manager]";
+		mes "Your bag is full. Please pack your bag and come back!";
+		mes " ";
+		mes "- Please check the weight and quantity of items you are carrying and then speak to me again. -";
+		close;
+	}
+	callfunc( "F_Biodepth1",
+		"Fire",		// Type
+		"Hot",		// String
+		16739,		// Quest ID research 1
+		1001330,	// Item ID required
+		166869952,	// Exp research 1
+		0,			// Unknown jexp
+		133495951,	// Exp research 2
+		0			// Unknown jexp
+	);
+
+	mes "[Fire Sample Research Manager]";
+	mes "I am collecting Fire specimen research results.";
+	mes "You need to hunt " + F_mesmoblink("BIO_LAVA_TOAD") + " and " + F_mesmoblink("BIO_FIRE_FRILLDORA") + ", and collect " + mesitemlink(1001330) + ".";
+	next;
+	mes "[Fire Sample Research Manager]";
+	mes "For specific requests, please consult " + F_mesnavi("Depth 1st Floor Research Manager", "ba_in01",286,104) + ".";
+	close;
+
+OnInit:
+	setunittitle( getnpcid(0), "<Depth Biosphere 1st Floor>" );
+
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16739,HUNTING) == 2 && countitem(1001330) >= 15" );
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16741,HUNTING) == 2 && countitem(1001330) >= 20" );
+	end;
+}
+
+ba_in01,286,116,3	script	Ice Sample Research Manager#b	4_EP17_BASIC_B,{
+	if (checkweight(1001289,1) == 0) {
+		mes "[Ice Specimen Research Manager]";
+		mes "Your bag is full. Please pack your bag and come back!";
+		mes " ";
+		mes "- Please check the weight and quantity of items you are carrying and then speak to me again. -";
+		close;
+	}
+	callfunc( "F_Biodepth1", "Ice", "Ice", 16743, 1001332, 163219552,0, 130575648,0 );
+
+	mes "[Ice Specimen Research Manager]";
+	mes "I am collecting Ice specimen research results.";
+	mes "You need to hunt " + F_mesmoblink("BIO_ANOLIAN") + " and " + F_mesmoblink("BIO_KAPHA") + ", and collect " + mesitemlink(1001332) + ".";
+	next;
+	mes "[Ice Specimen Research Manager]";
+	mes "For specific requests, please consult " + F_mesnavi("Depth 1st Floor Research Manager", "ba_in01",286,104) + ".";
+	close;
+
+OnInit:
+	setunittitle( getnpcid(0), "<Depth Biosphere 1st Floor>" );
+
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16743,HUNTING) == 2 && countitem(1001332) >= 15" );
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16745,HUNTING) == 2 && countitem(1001332) >= 20" );
+	end;
+}
+
+ba_in01,286,118,3	script	Earth Sample Research Manager#b	4_EP17_BASIC_B,{
+	if (checkweight(1001289,1) == 0) {
+		mes "[Earth Sample Study Manager]";
+		mes "Your bag is full. Please pack your bag and come back!";
+		mes " ";
+		mes "- Please check the weight and quantity of items you are carrying and then speak to me again. -";
+		close;
+	}
+	callfunc( "F_Biodepth1", "Earth", "Heavy", 16747, 1001331, 165947392,0, 132757920,0 );
+
+	mes "[Earth Sample Study Manager]";
+	mes "I am collecting Earth sample research results.";
+	mes "You need to hunt " + F_mesmoblink("BIO_STING") + " and " + F_mesmoblink("BIO_WOOD_GOBLIN") + ", and collect " + mesitemlink(1001331) + ".";
+	next;
+	mes "[Earth Sample Study Manager]";
+	mes "For specific requests, please consult " + F_mesnavi("Depth 1st Floor Research Manager", "ba_in01",286,104) + ".";
+	close;
+
+OnInit:
+	setunittitle( getnpcid(0), "<Depth Biosphere 1st Floor>" );
+
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16747,HUNTING) == 2 && countitem(1001331) >= 15" );
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16749,HUNTING) == 2 && countitem(1001331) >= 20" );
+	end;
+}
+
+ba_in01,286,120,3	script	Wind Sample Study Manager#b	4_EP17_BASIC_B,{
+	if (checkweight(1001289,1) == 0) {
+		mes "[Wind Sample Research Manager]";
+		mes "Your bag is full. Please pack your bag and come back!";
+		mes " ";
+		mes "- Please check the weight and quantity of items you are carrying and then speak to me again. -";
+		close;
+	}
+	callfunc( "F_Biodepth1", "Wind", "roaring", 16751, 1001333, 164311376,0, 131449104,0 );
+
+	mes "[Wind Sample Research Manager]";
+	mes "I am collecting Wind sampling results";
+	mes "You need to hunt " + F_mesmoblink("BIO_DRAGON_TAIL") + " and " + F_mesmoblink("BIO_LITTLE_FATUM") + ", and collect " + mesitemlink(1001333) + ".";
+	next;
+	mes "[Wind Sample Research Manager]";
+	mes "For specific requests, please consult " + F_mesnavi("Depth 1st Floor Research Manager", "ba_in01",286,104) + ".";
+	close;
+
+OnInit:
+	setunittitle( getnpcid(0), "<Depth Biosphere 1st Floor>" );
+
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16751,HUNTING) == 2 && countitem(1001333) >= 15" );
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16753,HUNTING) == 2 && countitem(1001333) >= 20" );
+	end;
+}
+
+ba_in01,283,120,3	script	Poison Specimen Research Manager#b	4_EP17_BASIC_B,{
+	if (checkweight(1001289,1) == 0) {
+		mes "[Poison Specimen Research Manager]";
+		mes "Your bag is full. Please pack your bag and come back!";
+		mes " ";
+		mes "- Please check the weight and quantity of items you are carrying and then speak to me again. -";
+		close;
+	}
+	callfunc( "F_Biodepth1", "Poison", "Poisonous", 16767, 1001337, 166994864,0, 133595888,0 );
+
+	mes "[Poison Specimen Research Manager]";
+	mes "I am collecting Poison specimen research results.";
+	mes "You need to hunt " + F_mesmoblink("BIO_PINGUICULA_D") + " and " + F_mesmoblink("BIO_POM_SPIDER") + ", and collect " + mesitemlink(1001337) + ".";
+	next;
+	mes "[Poison Specimen Research Manager]";
+	mes "For specific requests, please consult " + F_mesnavi("Depth 1st Floor Research Manager", "ba_in01",286,104) + ".";
+	close;
+
+OnInit:
+	setunittitle( getnpcid(0), "<Depth Biosphere 1st Floor>" );
+
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16767,HUNTING) == 2 && countitem(1001337) >= 15" );
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16769,HUNTING) == 2 && countitem(1001337) >= 20" );
+	end;
+}
+
+ba_in01,283,118,3	script	Soul Sample Research Manager#b	4_EP17_BASIC_B,{
+	if (checkweight(1001289,1) == 0) {
+		mes "[Soul Sample Research Manager]";
+		mes "Your bag is full. Please pack your bag and come back!";
+		mes " ";
+		mes "- Please check the weight and quantity of items you are carrying and then speak to me again. -";
+		close;
+	}
+	callfunc( "F_Biodepth1", "Soul", "secret", 16763, 1001334, 162833344,0, 130266672,0 );
+
+	mes "[Soul Sample Research Manager]";
+	mes "I am collecting Soul sample research results.";
+	mes "You need to hunt " + F_mesmoblink("BIO_EMPATHIZER") + " and " + F_mesmoblink("BIO_PRAY_GIVER") + ", and collect " + mesitemlink(1001334) + ".";
+	next;
+	mes "[Soul Sample Research Manager]";
+	mes "For specific requests, please consult " + F_mesnavi("Depth 1st Floor Research Manager", "ba_in01",286,104) + ".";
+	close;
+
+OnInit:
+	setunittitle( getnpcid(0), "<Depth Biosphere 1st Floor>" );
+
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16763,HUNTING) == 2 && countitem(1001334) >= 15" );
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16765,HUNTING) == 2 && countitem(1001334) >= 20" );
+	end;
+}
+
+ba_in01,283,116,3	script	Death Sample Research Manager#b	4_EP17_BASIC_B,{
+	if (checkweight(1001289,1) == 0) {
+		mes "[Death specimen research manager]";
+		mes "Your bag is full. Please pack your bag and come back!";
+		mes " ";
+		mes "- Please check the weight and quantity of items you are carrying and then speak to me again. -";
+		close;
+	}
+	callfunc("F_Biodepth1", "Death", "Dark", 16759, 1001336, 165735520,0, 132588416,0 );
+
+	mes "[Death specimen research manager]";
+	mes "I am collecting Death specimen research results.";
+	mes "You need to hunt " + F_mesmoblink("BIO_SKEL_ARCHER") + " and " + F_mesmoblink("BIO_SKEL_SOLDIER") + ", and collect " + mesitemlink(1001336) + ".";
+	next;
+	mes "[Death specimen research manager]";
+	mes "For specific requests, please consult " + F_mesnavi("Depth 1st Floor Research Manager", "ba_in01",286,104) + ".";
+	close;
+
+OnInit:
+	setunittitle( getnpcid(0), "<Depth Biosphere 1st Floor>" );
+
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16759,HUNTING) == 2 && countitem(1001336) >= 15" );
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16761,HUNTING) == 2 && countitem(1001336) >= 20" );
+	end;
+}
+
+ba_in01,283,114,3	script	Holy Specimen Research Manager#b	4_EP17_BASIC_B,{
+	if (checkweight(1001289,1) == 0) {
+		mes "[Holy Specimen Research Manager]";
+		mes "Your bag is full. Please pack your bag and come back!";
+		mes " ";
+		mes "- Please check the weight and quantity of items you are carrying and then speak to me again. -";
+		close;
+	}
+	callfunc( "F_Biodepth1", "Holy", "Holy", 16755, 1001335, 168293392,0, 134634704,0 );
+
+	mes "[Holy Specimen Research Manager]";
+	mes "I am collecting Holy specimen research results";
+	mes "You need to hunt " + F_mesmoblink("BIO_HOLY_FRUS") + " and " + F_mesmoblink("BIO_HOLY_SKOGUL") + ", and collect " + mesitemlink(1001335) + ".";
+	next;
+	mes "[Holy Specimen Research Manager]";
+	mes "For specific requests, please consult " + F_mesnavi("Depth 1st Floor Research Manager", "ba_in01",286,104) + ".";
+	close;
+
+OnInit:
+	setunittitle( getnpcid(0), "<Depth Biosphere 1st Floor>" );
+
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16755,HUNTING) == 2 && countitem(1001335) >= 15" );
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16757,HUNTING) == 2 && countitem(1001335) >= 20" );
+	end;
+}
+
+
+
+// NPC give Hunting quests
+ba_in01,286,104,1	script	Depth 1st Floor Research Manager#ba	4_EP17_BASIC_B,{
+	if (checkweight(1001289,12) == 0) {
+		mes "[Depth 1st Floor Research Manager]";
+		mes "I think your bag is full.";
+		mes "I would like you to pack your bags and come back.";
+		mes " ";
+		mes "- Please check the weight and quantity of items you are carrying and then speak to me again. -";
+		close;
+	}
+	if (BaseLevel < 250) {
+		mes "[Depth 1st Floor Research Manager]";
+		mes "The depths of the artificial habitat Biosphere are where very powerful monsters live.";
+		next;
+		mes "[Depth 1st Floor Research Manager]";
+		mes "For the safety of our guests, we are only asking guests who are adventurers with a certain level of skill to enter.";
+		next;
+		mes "[Instructions]";
+		mes "- Only guests level 250 or higher can consult. -";
+		close;
+	}
+	if (isbegin_quest(16734) == 0) {
+		mes "[Depth 1st Floor Research Manager]";
+		mes "Have you heard about Depth Biosphere?";
+		mes "Go to " + F_mesnavi("Depth Research Manager", "ba_in01",292,104) + " for guidance!";
+		next;
+		mes "[Depth 1st Floor Research Manager]";
+		mes "If you listen to the instructions first, I have a request for you, so please make sure to listen to the instructions and then come back to me~";
+		close;
+	}
+	mes "[Depth 1st Floor Research Manager]";
+	mes "A crack leading to the depths of the artificial habitat Biosphere has been discovered. I would like to give you a request to hunt a monster that can only be found in the depths. Can you accept it?";
+	next;
+	mes "[Depth 1st Floor Research Manager]";
+	mes "We need many, many specimens of various monsters!";
+	next;
+	.@points = get_reputation_points(REPU_BIO_DEPTH1);
+	if (.@points < 2000) {
+		.@menu$[0] = "^AAAAAAAccept all Sample Study II requests (lack of research)^000000";
+		.@menu$[1] = "^AAAAAAReceive individual Sample Study II request (lack of research)^000000";
+	}
+	else {
+		.@menu$[0] = "Receive all sample study II requests";
+		.@menu$[1] = "Receive Individual Sample Study II Request";
+	}
+
+	switch( select( "Depth 1st floor sample study", "Depth 1st floor sample study", "Receive all sample study I requests", "Receive individual sample study I requests", .@menu$[0], .@menu$[1], "Cancel" ) ) {
+	case 1:
+		switch( checkquest(16736,PLAYTIME) ) {
+		case -1:
+			break;
+		case 0:
+		case 1:
+			mes "[Depth 1st Floor Research Manager]";
+			mes "We are still conducting research using the samples you brought us today.";
+			mes "If you come back tomorrow, I'll give you another request.";
+			next;
+			mes "[Depth 1st Floor Research Manager]";
+			mes "We're glad you're interested in our work!";
+			mes "Customers are also partners, partners~";
+			close;
+		case 2:
+			erasequest 16736;
+			break;
+		}
+		switch( checkquest(16735,HUNTING) ) {
+		case -1:
+			mes "[Depth 1st Floor Research Manager]";
+			mes "I would like you to hunt monsters from the deep 1st floor of the Biosphere.";
+			mes "Hmm, I think about 300 would be enough. The type doesn't matter. I need a colorful sample study sample!";
+			next;
+			if (select( "Accept.", "Reject." ) == 2) {
+				mes "[Depth 1st Floor Research Manager]";
+				mes "Oh, are you busy now?";
+				mes "Will you come back later? We're partners, partners!";
+				close;
+			}
+			mes "[Depth 1st Floor Research Manager]";
+			mes "You can hunt 300 monsters of any kind from deep 1st floor of the Biosphere.";
+			mes "Then thank you~";
+			setquest 16735;
+			close;
+		case 0:
+		case 1:
+			mes "[Depth 1st Floor Research Manager]";
+			mes "Any monster that lives in the deep 1st floor of the Biosphere is fine. All you have to do is hunt 300!";
+			close;
+		case 2:
+			mes "[Depth 1st Floor Research Manager]";
+			mes "Have you hunted 300 monsters on the deep 1st floor of the Biosphere?";
+			mes "Wow! There are a lot of monster samples! Now I can do a lot of research~";
+			next;
+			mes "[Depth 1st Floor Research Manager]";
+			mes "We will share the research data with our guests for their hard work.";
+			mes "This is definitely helpful, right~?";
+			erasequest 16735;
+			setquest 16736;
+			getitem 1001289,3;	// Bar_D_Docu_1
+			for ( .@i = 0; .@i < 10; ++.@i )
+				getexp 248288528,0;	// Unknown jexp
+			add_reputation_points( REPU_BIO_DEPTH1, 30 );
+			// (no extra item when reputation is max)
+			close;
+		}
+		end;
+	case 2:
+		switch( checkquest(16738,PLAYTIME) ) {
+		case -1:
+			break;
+		case 0:
+		case 1:
+			mes "[Depth 1st Floor Research Manager]";
+			mes "We are still conducting research using the samples you provided.";
+			mes "If you take enough rest and come back, I will ask you again.";
+			next;
+			mes "[Depth 1st Floor Research Manager]";
+			mes "We're glad you're interested in our work!";
+			mes "Customers are also partners, partners~";
+			close;
+		case 2:
+			erasequest 16738;
+			break;
+		}
+		switch( checkquest(16737,HUNTING) ) {
+		case -1:
+			mes "[Depth 1st Floor Research Manager]";
+			mes "I would like you to bring me a monster from the deep 1st floor of the Biosphere.";
+			mes "About 2,000? Oh, don't be surprised! I'm not asking you to hunt them all today. You can take it easy for a week.";
+			next;
+			if (select( "Accept.", "Reject." ) == 2) {
+				mes "[Depth 1st Floor Research Manager]";
+				mes "Oh, are you busy now?";
+				mes "Will you come back later? We're partners, partners!";
+				close;
+			}
+			mes "[Depth 1st Floor Research Manager]";
+			mes "You can hunt 2000 monsters of any kind from deep 1st floor of the Biosphere.";
+			mes "Then thank you~";
+			setquest 16737;
+			close;
+		case 0:
+		case 1:
+			mes "[Depth 1st Floor Research Manager]";
+			mes "Any monster that lives in the deep 1st floor of the Biosphere is fine.";
+			mes "If you hunt 2000 of them, we can use them as research material!";
+			close;
+		case 2:
+			mes "[Depth 1st Floor Research Manager]";
+			mes "Have you hunted 2000 monsters on the deep 1st floor of the Biosphere?";
+			mes "Wow! There are so many monster specimens! Wow, now I can study them to my heart's content...";
+			next;
+			mes "[Depth 1st Floor Research Manager]";
+			mes "We will share the research data with our guests who have put in a lot of effort!";
+			mes "I said this would be helpful, right? I said it would be helpful~";
+			erasequest 16737;
+			setquest 16738;
+			getitem 1001289,12;	// Bar_D_Docu_1
+			for ( .@i = 0; .@i < 50; ++.@i )
+				getexp 331051392,0;	// Unknown jexp
+			add_reputation_points( REPU_BIO_DEPTH1, 80 );
+			// (no extra item when reputation is max)
+			close;
+		}
+		end;
+	case 3:
+		// Give all hunting quest (Research 1, Hunt x50)
+		callsub( S_allquest, 16739, "Research I" );
+	case 4:
+		// Give hunting quest one by one (Research 1, Hunt x50)
+		.@s = select( "Depth 1st floor Fire sample study I", "Depth 1st floor Ice sample study I", "Depth 1st floor Earth sample study I", "Depth 1st floor Wind sample study I", "Depth 1st floor Holy Sample Study I", "Depth 1st Floor Death Sample Study I", "Depth 1st Floor Soul Sample Study I", "Depth 1st Floor Poison Sample Study I", "Cancel" );
+		// callsub( S_Quest, <base quest Id>, <menu index>, <hunt amount> );
+		callsub( S_Quest, 16739, .@s, 50 );
+	case 5:
+		if (.@points < 2000) {
+			mes "[Depth 1st Floor Research Manager]";
+			mes "I think the results are still a bit insufficient to conduct sample study II.";
+			mes "It's a bit, very vicious, so why not build up your <b>research progress</b> by conducting Sample Study I more?";
+			next;
+			mes "[Instructions]";
+			mes "- Can only be performed by guests with Depth Biosphere 1st Floor research progress of 2000 points or more -";
+			close;
+		}
+		// Give all hunting quest (Research 2, Hunt x80)
+		callsub( S_allquest, 16741, "Research II" );
+	case 6:
+		if (.@points < 2000) {
+			mes "[Depth 1st Floor Research Manager]";
+			mes "I think the results are still a bit insufficient to conduct sample study II.";
+			mes "It's a bit, very vicious, so why not build up your <b>research progress</b> by conducting Sample Study I more?";
+			next;
+			mes "[Instructions]";
+			mes "- Can only be performed by guests with Depth Biosphere 1st Floor research progress of 2000 points or more -";
+			close;
+		}
+		// Give hunting quest one by one (Research 2, Hunt x80)
+		.@s = select( "Depth 1st floor Fire sample study II", "Depth 1st floor Ice sample study II", "Depth 1st floor Earth sample study II", "Depth 1st floor Wind sample study II", "Depth 1st floor Holy Sample Study II", "Depth 1st Floor Death Sample Study II", "Depth 1st Floor Soul Sample Study II", "Depth 1st Floor Poison Sample Study II", "Cancel" );
+		callsub( S_Quest, 16741, .@s, 80 );
+	case 7:
+		mes "[Depth 1st Floor Research Manager]";
+		mes "Oh, are you busy now?";
+		mes "We're partners, partners! I'll be waiting here!";
+		close;
+	}
+	end;
+
+S_allquest:
+	.@base_quest_id = getarg(0);
+	.@floor$ = getarg(1);
+
+	setarray .@name$[0],"Fire","Ice","Earth","Wind","Holy","Death","Soul","Poison";
+
+	for ( .@i = 0; .@i < 8; ++.@i ) {
+		.@hunt_quest_id = .@base_quest_id + (.@i * 4);
+		.@quest_time_id = .@hunt_quest_id + 1;
+
+		switch( checkquest(.@quest_time_id,PLAYTIME) ) {
+		case -1:
+			break;
+		case 0:
+		case 1:
+			mes "" + .@name$[.@i] + " Sample " + .@floor$ + " Cooldown ^FF0000Cannot be acquired^000000";
+			continue;
+		case 2:
+			erasequest .@quest_time_id;
+			break;
+		}
+		switch( checkquest(.@hunt_quest_id,HUNTING) ) {
+		case -1:
+			mes "" + .@name$[.@i] + " Sample " + .@floor$ + " ^0000CDRequest accepted^000000";
+			setquest .@hunt_quest_id;
+			break;
+		case 0:	// Quest in progress/completed
+		case 1:
+		case 2:
+			mes "" + .@name$[.@i] + " Sample " + .@floor$ + " In progress ^FF0000Cannot be acquired^000000";
+			break;
+		}
+	}
+	close;
+
+S_Quest:
+	.@s = getarg(1);
+
+	switch( .@s ) {
+	case 1:
+		.@type_name$ = "Fire";
+		.@x = 286;
+		.@y = 114;
+		setarray .@mob_name$[0], "BIO_LAVA_TOAD", "BIO_FIRE_FRILLDORA";
+		.@item_id = 1001330;
+		break;
+	case 2:
+		.@type_name$ = "Ice";
+		.@x = 286;
+		.@y = 116;
+		setarray .@mob_name$[0], "BIO_ANOLIAN", "BIO_KAPHA";
+		.@item_id = 1001332;
+		break;
+	case 3:
+		.@type_name$ = "Earth";
+		.@x = 286;
+		.@y = 118;
+		setarray .@mob_name$[0], "BIO_STING", "BIO_WOOD_GOBLIN";
+		.@item_id = 1001331;
+		break;
+	case 4:
+		.@type_name$ = "Wind";
+		.@x = 286;
+		.@y = 120;
+		setarray .@mob_name$[0], "BIO_DRAGON_TAIL", "BIO_LITTLE_FATUM";
+		.@item_id = 1001333;
+		break;
+	case 5:
+		.@type_name$ = "Holy";
+		.@x = 283;
+		.@y = 114;
+		setarray .@mob_name$[0], "BIO_HOLY_SKOGUL", "0000000000";
+		.@item_id = 1001335;
+		break;
+	case 6:
+		.@type_name$ = "Death";
+		.@x = 283;
+		.@y = 116;
+		setarray .@mob_name$[0], "BIO_SKEL_ARCHER", "BIO_SKEL_SOLDIER";
+		.@item_id = 1001336;
+		break;
+	case 7:
+		.@type_name$ = "Soul";
+		.@x = 283;
+		.@y = 118;
+		setarray .@mob_name$[0], "BIO_EMPATHIZER", "BIO_PRAY_GIVER";
+		.@item_id = 1001334;
+		break;
+	case 8:
+		.@type_name$ = "Poison";
+		.@x = 283;
+		.@y = 120;
+		setarray .@mob_name$[0], "BIO_PINGUICULA_D", "BIO_POM_SPIDER";
+		.@item_id = 1001337;
+		break;
+	case 9:
+		mes "[Depth 1st Floor Research Manager]";
+		mes "Oh, are you busy now?";
+		mes "Will you come back later? We're partners, partners!";
+		close;
+	}
+	.@hunt_quest_id = getarg(0) + ((.@s-1) * 4);
+	.@hunt_amount = getarg(2);
+	.@quest_time_id = .@hunt_quest_id + 1;
+
+	switch( checkquest(.@quest_time_id,PLAYTIME) ) {
+	case -1:
+		break;
+	case 0:
+	case 1:
+		mes "[Depth 1st Floor Research Manager]";
+		mes "We are still conducting research using the samples you brought us today.";
+		mes "If you come back tomorrow, I'll give you another request.";
+		close;
+	case 2:
+		erasequest .@quest_time_id;
+		break;
+	}
+	switch( checkquest(.@hunt_quest_id,HUNTING) ) {
+	case -1:
+		mes "[Depth 1st Floor Research Manager]";
+		mes "The monster samples required are " + F_mesmoblink(.@mob_name$[0]) + " and " + F_mesmoblink(.@mob_name$[1]) + ".";
+		mes "You can catch each " + .@hunt_amount + " one by one.";
+		if (.@hunt_amount == 50)
+			mes "Please bring 15 of the " + mesitemlink(.@item_id) + " that appear when you kill monsters.";
+		else
+			mes "Please bring 20 of the " + mesitemlink(.@item_id) + " that appear when you kill monsters.";
+		next;
+		if (select( "Accept.", "Reject." ) == 2) {
+			mes "[Depth 1st Floor Research Manager]";
+			mes "Are you busy now? Will you come back later?";
+			close;
+		}
+		mes "[Depth 1st Floor Research Manager]";
+		mes "Please report completion directly to the " + F_mesnavi(.@type_name$ + " Sample Study Manager", "ba_in01",.@x,.@y) + ", not to me.";
+		mes "Then please take care of me.";
+		setquest .@hunt_quest_id;
+		close;
+	case 0:	// Quest in progress/completed
+	case 1:
+	case 2:
+		mes "[Depth 1st Floor Research Manager]";
+		mes "Are you working on a sample study? Report completion directly to the " + F_mesnavi(.@type_name$ + " Sample Study Manager", "ba_in01",.@x,.@y) + ".";
+		close;
+	}
+	end;
+
+OnInit:
+	setunittitle( getnpcid(0), "<Depth Biosphere 1st Floor>" );
+
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16735,HUNTING) == 2" );	// (Hunt x300)
+	questinfo( QTYPE_QUEST2, QMARK_NONE, "checkquest(16737,HUNTING) == 2" );	// (Hunt x2000)
+
+	// Research 1, Hunt x50
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16734) == 2 && checkquest(16739,HUNTING) == -1 && (checkquest(16740,PLAYTIME) == -1 || checkquest(16740,PLAYTIME) == 2)" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16734) == 2 && checkquest(16743,HUNTING) == -1 && (checkquest(16744,PLAYTIME) == -1 || checkquest(16744,PLAYTIME) == 2)" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16734) == 2 && checkquest(16747,HUNTING) == -1 && (checkquest(16748,PLAYTIME) == -1 || checkquest(16748,PLAYTIME) == 2)" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16734) == 2 && checkquest(16751,HUNTING) == -1 && (checkquest(16752,PLAYTIME) == -1 || checkquest(16752,PLAYTIME) == 2)" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16734) == 2 && checkquest(16755,HUNTING) == -1 && (checkquest(16756,PLAYTIME) == -1 || checkquest(16756,PLAYTIME) == 2)" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16734) == 2 && checkquest(16759,HUNTING) == -1 && (checkquest(16760,PLAYTIME) == -1 || checkquest(16760,PLAYTIME) == 2)" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16734) == 2 && checkquest(16763,HUNTING) == -1 && (checkquest(16764,PLAYTIME) == -1 || checkquest(16764,PLAYTIME) == 2)" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16734) == 2 && checkquest(16767,HUNTING) == -1 && (checkquest(16768,PLAYTIME) == -1 || checkquest(16768,PLAYTIME) == 2)" );
+
+	//(no questinfo for Research 2 (Hunting -1, Playtime -1))
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "checkquest(16742,PLAYTIME) == 2" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "checkquest(16746,PLAYTIME) == 2" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "checkquest(16750,PLAYTIME) == 2" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "checkquest(16754,PLAYTIME) == 2" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "checkquest(16758,PLAYTIME) == 2" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "checkquest(16762,PLAYTIME) == 2" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "checkquest(16766,PLAYTIME) == 2" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "checkquest(16770,PLAYTIME) == 2" );
+	end;
+}
+
+ba_maison,242,128,3	script	#ba_d2_chessin	CLEAR_NPC,{
+	mes "There's a strange power coming from the chessboard on the pagoda.";
+	if ( isbegin_quest(16778) == 0 ) {
+		close;
+	} else if ( isbegin_quest(16778) == 1) {
+		completequest 16778;
+	}
+	mes "Do you want to move to the Chess Garden?";
+	next;
+	if ( select("Move to the Garden", "Cancel") == 1 )
+		warp "ba_chess", 16, 16;
+	end;
+	
+OnInit:
+	questinfo QTYPE_QUEST, QMARK_YELLOW, "isbegin_quest(16778) == 1";
+end;
+}
+
+ba_chess,13,16,4	script	Exit#ba_d2_chessout	1_SHADOW_RED,1,1,{
+OnTouch:
+	warp "ba_maison",242,122;
+end;
+}
+
+ba_chess,13,36,4	script	Abyss Depth Entrance#ba_d2	GATE_SKYBLUE,{
+	if ( isbegin_quest(16778) == 0 ) { //shouldn't happen
+		end; 
+	}
+	mes "Would you like to move to the Biosphere's Abyss Depth?";
+	next;
+	switch ( select("Go to 2 o'clock location", "Go to 4 o'clock location", "Go to 8 o'clock location", "Go to 10 o'clock location", "Don't enter") ) {
+		case 1: warp "bl_depth2", 194, 188; break;
+		case 2: warp "bl_depth2", 190, 64; break;
+		case 3: warp "bl_depth2", 57, 87; break;
+		case 4: warp "bl_depth2", 94, 202; break;
+		case 5: break;
+	}
+	end;
+}
+
+bl_depth2,141,137,4	script	Exit#ba_d2_out	GATE_SKYBLUE,2,2,{
+OnTouch:
+	warp "ba_chess",13,31;
+end;
+}
+
+ba_chess,25,13,3	script	Research Manager#ba_d2	4_EP17_BASIC_B,{
+	if ( isbegin_quest(16778) == 0 ) { //shouldn't happen
+		end; 
+	}
+	function quest_display;
+	function accept_quest;
+	function submit_quest;
+	mes "[Research Manager]";
+	mes "Hello Guest, would you like to accept a research commision?";
+	next;
+	.@q1$ = quest_display("Abyss Depth General Research", 16779, 16780);
+	switch ( select(.@q1$, "Accept all individual research commision", "Submit all research commision", "View individual research commision", "Cancel") ) {
+		case 1:
+			if ( isbegin_quest(16779) == 0 ) {
+				accept_quest("Abyss Depth General Research", 16779, 16780);
+				break;
+			}
+			mes "[Research Manager]";
+			submit_quest("Abyss Depth General Research", 16779, 16780, 20, 1001556, 1, 2633960500, 1839006400);
+			break;
+		case 2:
+			mes "[Research Manager]";
+			accept_quest("Abyss Depth Demihuman Research", 16781, 16782);
+			accept_quest("Abyss Depth Brute Research", 16783, 16784);
+			accept_quest("Abyss Depth Plant Research", 16785, 16786);
+			accept_quest("Abyss Depth Fish Research", 16787, 16788);
+			accept_quest("Abyss Depth Demon Research", 16789, 16790);
+			accept_quest("Abyss Depth Undead Research", 16791, 16792);
+			accept_quest("Abyss Depth Dragon Research", 16793, 16794);
+			accept_quest("Abyss Depth Angel Research", 16795, 16796);
+			accept_quest("Abyss Depth Formless Research", 16797, 16798);
+			accept_quest("Abyss Depth Insect Research", 16799, 16800);
+			break;
+		case 3:
+			mes "[Research Manager]";
+			submit_quest("Abyss Depth General Research", 16779, 16780, 20, 1001556, 1, 2633960500, 1839006400);
+			submit_quest("Abyss Depth Demihuman Research", 16781, 16782, 2, 1001554, 1, 165637750, 115384100);
+			submit_quest("Abyss Depth Brute Research", 16783, 16784, 2, 1001554, 1, 165022125, 114937900);
+			submit_quest("Abyss Depth Plant Research", 16785, 16786, 2, 1001554, 1, 162472475, 113162075);
+			submit_quest("Abyss Depth Fish Research", 16787, 16788, 2, 1001554, 1, 163740900, 114045525);
+			submit_quest("Abyss Depth Demon Research", 16789, 16790, 2, 1001554, 1, 164884725, 115131850);
+			submit_quest("Abyss Depth Undead Research", 16791, 16792, 2, 1001554, 1, 164138600, 114839800);
+			submit_quest("Abyss Depth Dragon Research", 16793, 16794, 2, 1001554, 1, 167263625, 116385525);
+			submit_quest("Abyss Depth Angel Research", 16795, 16796, 2, 1001554, 1, 166303350, 115830525);
+			submit_quest("Abyss Depth Formless Research", 16797, 16798, 2, 1001554, 1, 164381525, 114491725);
+			submit_quest("Abyss Depth Insect Research", 16799, 16800, 2, 1001554, 1, 162459675, 113153150);
+			break;
+		case 4:
+			mes "[Research Manager]";
+			mes "These are all the available research commision.";
+			next;
+			setarray .@quests$[0],
+				"Abyss Depth Demihuman Research", 16781, 16782, 2, 1001554, 1, 165637750, 115384100,
+				"Abyss Depth Brute Research", 16783, 16784, 2, 1001554, 1, 165022125, 114937900,
+				"Abyss Depth Plant Research", 16785, 16786, 2, 1001554, 1, 162472475, 113162075,
+				"Abyss Depth Fish Research", 16787, 16788, 2, 1001554, 1, 163740900, 114045525,
+				"Abyss Depth Demon Research", 16789, 16790, 2, 1001554, 1, 164884725, 115131850,
+				"Abyss Depth Undead Research", 16791, 16792, 2, 1001554, 1, 164138600, 114839800,
+				"Abyss Depth Dragon Research", 16793, 16794, 2, 1001554, 1, 167263625, 116385525,
+				"Abyss Depth Angel Research", 16795, 16796, 2, 1001554, 1, 166303350, 115830525,
+				"Abyss Depth Formless Research", 16797, 16798, 2, 1001554, 1, 164381525, 114491725,
+				"Abyss Depth Insect Research", 16799, 16800, 2, 1001554, 1, 162459675, 113153150;
+			for ( .@i = 0; .@i < getarraysize(.@quests$); .@i += 8 ) {
+				.@menu$[.@i/8] = quest_display( .@quests$[.@i], atoi(.@quests$[.@i + 1]), atoi(.@quests$[.@i + 2]) );
+			}
+			.@menu$[10] = "Cancel";
+			.@s = select( create_menu(.@menu$) ) - 1;
+			if ( .@s == 10 ) {
+				mes "[Research Manager]";
+				mes "Thank you for participating in the research, Guest.";
+				close;
+			}
+			.@s *= 8;
+			.@display$ = .@quests$[.@s];
+			.@qid = atoi(.@quests$[.@s + 1]);
+			.@cid = atoi(.@quests$[.@s + 2]);
+			switch( checkquest(.@cid, PLAYTIME) ) {
+				case -1:
+					break;
+				case 0:
+				case 1:
+					mes "The " + .@display$ + " commision is already ^0000CDcompleted^0000000.";
+					return;
+				case 2:
+					erasequest .@cid;
+					break;
+			}
+			switch ( checkquest(.@qid, HUNTING) ) {
+				case -1:
+					accept_quest(.@display$, .@qid, .@cid);
+					break;
+				case 0:
+				case 1:
+					submit_quest(.@display$, .@qid, .@cid, atoi(.@quests$[.@s + 3]), atoi(.@quests$[.@s + 4]), atoi(.@quests$[.@s + 5]), atoi(.@quests$[.@s + 6]), atoi(.@quests$[.@s + 7]));
+					break;
+				case 2:
+					submit_quest(.@display$, .@qid, .@cid, atoi(.@quests$[.@s + 3]), atoi(.@quests$[.@s + 4]), atoi(.@quests$[.@s + 5]), atoi(.@quests$[.@s + 6]), atoi(.@quests$[.@s + 7]));
+					break;
+			}
+	}
+	close;
+	
+OnInit:
+	setunittitle( getnpcid(0), "<Biosphere Abyss Depth>" );
+
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16779,HUNTING) == -1 && checkquest(16780,PLAYTIME) == -1" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16781,HUNTING) == -1 && checkquest(16782,PLAYTIME) == -1" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16783,HUNTING) == -1 && checkquest(16784,PLAYTIME) == -1" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16785,HUNTING) == -1 && checkquest(16786,PLAYTIME) == -1" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16787,HUNTING) == -1 && checkquest(16788,PLAYTIME) == -1" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16789,HUNTING) == -1 && checkquest(16790,PLAYTIME) == -1" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16791,HUNTING) == -1 && checkquest(16792,PLAYTIME) == -1" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16793,HUNTING) == -1 && checkquest(16794,PLAYTIME) == -1" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16795,HUNTING) == -1 && checkquest(16796,PLAYTIME) == -1" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16797,HUNTING) == -1 && checkquest(16798,PLAYTIME) == -1" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16799,HUNTING) == -1 && checkquest(16800,PLAYTIME) == -1" );
+	
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16779,HUNTING) == -1 && checkquest(16780,PLAYTIME) == 2" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16781,HUNTING) == -1 && checkquest(16782,PLAYTIME) == 2" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16783,HUNTING) == -1 && checkquest(16784,PLAYTIME) == 2" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16785,HUNTING) == -1 && checkquest(16786,PLAYTIME) == 2" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16787,HUNTING) == -1 && checkquest(16788,PLAYTIME) == 2" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16789,HUNTING) == -1 && checkquest(16790,PLAYTIME) == 2" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16791,HUNTING) == -1 && checkquest(16792,PLAYTIME) == 2" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16793,HUNTING) == -1 && checkquest(16794,PLAYTIME) == 2" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16795,HUNTING) == -1 && checkquest(16796,PLAYTIME) == 2" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16797,HUNTING) == -1 && checkquest(16798,PLAYTIME) == 2" );
+	questinfo( QTYPE_DAILYQUEST, QMARK_NONE, "isbegin_quest(16778) == 2 && checkquest(16799,HUNTING) == -1 && checkquest(16800,PLAYTIME) == 2" );
+	
+	questinfo( QTYPE_QUEST, QMARK_NONE, "checkquest(16779,HUNTING) == 2" );
+	questinfo( QTYPE_QUEST, QMARK_NONE, "checkquest(16781,HUNTING) == 2" );
+	questinfo( QTYPE_QUEST, QMARK_NONE, "checkquest(16783,HUNTING) == 2" );
+	questinfo( QTYPE_QUEST, QMARK_NONE, "checkquest(16785,HUNTING) == 2" );
+	questinfo( QTYPE_QUEST, QMARK_NONE, "checkquest(16787,HUNTING) == 2" );
+	questinfo( QTYPE_QUEST, QMARK_NONE, "checkquest(16789,HUNTING) == 2" );
+	questinfo( QTYPE_QUEST, QMARK_NONE, "checkquest(16791,HUNTING) == 2" );
+	questinfo( QTYPE_QUEST, QMARK_NONE, "checkquest(16793,HUNTING) == 2" );
+	questinfo( QTYPE_QUEST, QMARK_NONE, "checkquest(16795,HUNTING) == 2" );
+	questinfo( QTYPE_QUEST, QMARK_NONE, "checkquest(16797,HUNTING) == 2" );
+	questinfo( QTYPE_QUEST, QMARK_NONE, "checkquest(16799,HUNTING) == 2" );
+end;
+
+function	quest_display	{
+	.@display$ = getarg(0);
+	.@qid = getarg(1);
+	.@cid = getarg(2);
+	switch( checkquest(.@cid, PLAYTIME) ) {
+		case -1:
+			break;
+		case 0:
+		case 1:
+			return "^808080" + .@display$ + " (Cooldown)^000000";
+		case 2:
+			break;
+	}
+	switch( checkquest(.@qid, HUNTING) ) {
+		case -1:
+			return .@display$;
+		case 0:
+		case 1:
+			return "^808080" + .@display$ + " (Insufficient Sample)^000000";
+		case 2:
+			return "^0000CD" + .@display$ + " (Completed)^000000";
+	}
+}
+
+function	accept_quest	{
+	.@display$ = getarg(0);
+	.@qid = getarg(1);
+	.@cid = getarg(2);
+	switch( checkquest(.@cid, PLAYTIME) ) {
+		case -1:
+			break;
+		case 0:
+		case 1:
+			mes "The " + .@display$ + " commision is already ^0000CDcompleted^000000.";
+			return;
+		case 2:
+			erasequest .@cid;
+			break;
+	}
+	switch( checkquest(.@qid, HUNTING) ) {
+		case -1:
+			setquest .@qid;
+			mes "The " + .@display$ + " commision has been accepted.";
+			return;
+		case 0:
+		case 1:
+		case 2:
+			mes "The " + .@display$ + " commision has already been accepted.";
+			return;
+	}
+}
+
+function	submit_quest	{
+	.@display$ = getarg(0);
+	.@qid = getarg(1);
+	.@cid = getarg(2);
+	switch( checkquest(.@cid, PLAYTIME) ) {
+		case -1:
+			break;
+		case 0:
+		case 1:
+			mes "The " + .@display$ + " commision is already ^0000CDcompleted^000000.";
+			return;
+		case 2:
+			erasequest .@cid;
+			break;
+	}
+	switch( checkquest(.@qid, HUNTING) ) {
+		case -1:
+			setquest .@qid;
+			mes "The " + .@display$ + " commision hasn't been accepted.";
+			return;
+		case 0:
+		case 1:
+			mes "The " + .@display$ + " commision research material is ^FF0000incomplete^000000.";
+			return;
+			
+		case 2:
+			mes "The " + .@display$ + " commision has been ^0000CDsubmitted^000000.";
+			erasequest .@qid;
+			setquest .@cid;
+			add_reputation_points(9, getarg(3));
+			getitem getarg(4), getarg(5);
+			getexp getarg(6), getarg(7);
+			if ( .@qid == 16779 && isbegin_quest(16801) == 0 ) {
+				setquest 16801;
+				completequest 16801;
+			}
+			return;
+	}
+}
+
+}
+
+ba_chess,22,16,3	script	Specimen Refine Manager#ba_d2	4_EP17_BASIC_B,{
+	if ( isbegin_quest(16778) == 0 ) { //shouldn't happen
+		end; 
+	}
+	if ( isbegin_quest(16801) < 2 ) {
+		mes "[Specimen Refine Manager]";
+		mes "Hello, guest. I'm afraid that you haven't done enough research for me to refine any materials for you.";
+		mes "Please do more research and report your findings.";
+		close;
+	}
+	mes "[Specimen Refine Manager]";
+	mes "If you have any fragments or jewels, come to this Beta! This Beta here will assist you!";
+	mes "You heard it right, I will refine your fragment or jewels into runes!";
+	close2;
+	callshop "abyss_depth_material";
+	end;
+	
+OnInit:
+	setunittitle( getnpcid(0), "<Biosphere Abyss Depth>" );
+end;
+}
+
+ba_chess,25,19,3	script	Rune Crown Manager#ba_d2	4_EP17_BASIC_B,{
+	if ( isbegin_quest(16778) == 0 ) { //shouldn't happen
+		end; 
+	}
+	if ( get_reputation_points(9) < 500 ) {
+		mes "[Rune Crown Manager]";
+		mes "The guest have not done sufficient research on the abyss yet, please do more research so we can confidently craft equipments for you.";
+		next;
+		mes "[Instruction]";
+		mes "- Only guests with 500 or more abyss research progress can craft Rune Crowns. -";
+		close;
+	}
+	mes "[Rune Crown Manager]";
+	mes "Ehem, I can craft the Rune Crown for you.";
+	mes "Please specify the class that you want to create it for.";
+	next;
+	switch( select("Swordsman Class", "Merchant Class", "Thief Class", "Mage Class", "Acolyte Class", "Archer Class", "Expanded Classes", "Cancel") ) {
+		case 1: 
+			.@shop$ = "abyss_depth_swordsman";
+			mes "[Rune Crown Manager]";
+			mes "Here's the Rune Crowns that you can create for the Swordsman Class.";
+			mes "^i[400529] ^i[400530]";
+			break;
+		case 2: 
+			.@shop$ = "abyss_depth_merchant";
+			mes "[Rune Crown Manager]";
+			mes "Here's the Rune Crowns that you can create for the Merchant Class.";
+			mes "^i[400531] ^i[400532]";
+			break;
+		case 3: 
+			.@shop$ = "abyss_depth_thief";
+			mes "[Rune Crown Manager]";
+			mes "Here's the Rune Crowns that you can create for the Thief Class.";
+			mes "^i[400533] ^i[400534]";
+			break;
+		case 4:
+			.@shop$ = "abyss_depth_mage";
+			mes "[Rune Crown Manager]";
+			mes "Here's the Rune Crowns that you can create for the Mage Class.";
+			mes "^i[400535] ^i[400536]";
+			break;
+		case 5:
+			.@shop$ = "abyss_depth_acolyte";
+			mes "[Rune Crown Manager]";
+			mes "Here's the Rune Crowns that you can create for the Acolyte Class.";
+			mes "^i[400537] ^i[400538]";
+			break;
+		case 6:
+			.@shop$ = "abyss_depth_archer";
+			mes "[Rune Crown Manager]";
+			mes "Here's the Rune Crowns that you can create for the Archer Class.";
+			mes "^i[400539] ^i[400540]";
+			break;
+		case 7: 
+			.@shop$ = "abyss_depth_expanded";
+			mes "[Rune Crown Manager]";
+			mes "Here's the Rune Crowns that you can create for the Expanded Classes.";
+			mes "^i[400541] ^i[400542] ^i[400543] ^i[400544] ^i[400545] ^i[400546]";
+			break;
+		case 8:
+			mes "[Rune Crown Manager]";
+			mes "Don't you want a rune crown now?";
+			mes "Remember, your patronage are always welcome.";
+			mes "Please come back anytime.";
+			close;
+	}
+	callshop .@shop$;
+	end;
+	
+OnInit:
+	setunittitle( getnpcid(0), "<Biosphere Abyss Depth>" );
+end;
+}
+
+ba_chess,28,16,3	script	Enchant Manager#ba_d2	4_EP17_BASIC_B,{
+	if ( isbegin_quest(16778) == 0 ) { //shouldn't happen
+		end; 
+	}
+	if ( get_reputation_points(9) < 500 ) {
+		mes "[Enchant Manager]";
+		mes "The guest have not done sufficient research on the abyss yet, please do more research so we can confidently enchant your equipments.";
+		next;
+		mes "[Instruction]";
+		mes "- Only guests with 500 or more abyss research progress can enchant equipments. -";
+		close;
+	}
+	mes "[Enchant Manager]";
+	mes "Welcome, Guest. Are you perhaps looking to enchant your Rune Crown? Or maybe your Dimension Weapons?";
+	mes "Please feel free to take a look.";
+	next;
+	.@s = select( "Rune Crown Enchant", "Dimension Weapon Enchant", "Cancel");
+	switch( .@s ) {
+		case 1:
+			item_enchant(132);
+			end;
+		case 2:
+			item_enchant(133);
+			end;
+		case 3:
+			mes "[Enchant Manager]";
+			mes "This Beta will always be here, come back anytime.";
+			close;
+	}
+	
+	
+OnInit:
+	setunittitle( getnpcid(0), "<Biosphere Abyss Depth>" );
+end;
+}
+
+//============================================================
+// Dimension Crown Enchant Upgrade
+// Part 1 : Config + Helper Functions
+//============================================================
+
+//--------------------------------------------
+// Returns 1 if equipped headgear is Dimension Crown
+//--------------------------------------------
+function	script	F_IsDimensionCrown	{
+
+	.@id = getequipid(EQI_HEAD_TOP);
+
+	switch (.@id) {
+		case 400529:
+		case 400530:
+		case 400531:
+		case 400532:
+		case 400533:
+		case 400534:
+		case 400535:
+		case 400536:
+		case 400537:
+		case 400538:
+		case 400539:
+		case 400540:
+		case 400541:
+		case 400542:
+		case 400543:
+		case 400544:
+		case 400545:
+		case 400546:
+		case 400999:
+			return 1;
+	}
+
+	return 0;
+}
+
+//--------------------------------------------
+// Returns enchant family
+//--------------------------------------------
+function	script	F_GetEnchantFamily	{
+
+	.@card = getarg(0);
+
+	setarray .@BaseEnchant[0],
+		312719, // Mettle
+		312729, // Tenacity
+		312739, // Master Archer
+		312749, // Acute
+		312759, // Magic Essence
+		312769, // Spell Jewel
+		312779, // Adamantine
+		312789, // Affection
+		314249, // Fierce Attack
+		314259; // Great Craftsman
+
+	for (.@i = 0; .@i < getarraysize(.@BaseEnchant); .@i++) {
+
+		if (.@card >= .@BaseEnchant[.@i] &&
+			.@card <= .@BaseEnchant[.@i] + 9)
+			return .@i;
+	}
+
+	return -1;
+}
+
+//--------------------------------------------
+// Returns enchant level (1~10)
+//--------------------------------------------
+function	script	F_GetEnchantLevel	{
+
+	.@card = getarg(0);
+
+	setarray .@BaseEnchant[0],
+		312719,
+		312729,
+		312739,
+		312749,
+		312759,
+		312769,
+		312779,
+		312789,
+		314249,
+		314259;
+
+	for (.@i = 0; .@i < getarraysize(.@BaseEnchant); .@i++) {
+
+		if (.@card >= .@BaseEnchant[.@i] &&
+			.@card <= .@BaseEnchant[.@i] + 9)
+			return (.@card - .@BaseEnchant[.@i]) + 1;
+	}
+
+	return 0;
+}
+
+//--------------------------------------------
+// Returns base enchant ID
+//--------------------------------------------
+function	script	F_GetEnchantBase	{
+
+	switch(getarg(0)) {
+
+		case 0: return 312719; // Mettle
+		case 1: return 312729; // Tenacity
+		case 2: return 312739; // Master Archer
+		case 3: return 312749; // Acute
+		case 4: return 312759; // Magic Essence
+		case 5: return 312769; // Spell Jewel
+		case 6: return 312779; // Adamantine
+		case 7: return 312789; // Affection
+		case 8: return 314249; // Fierce Attack
+		case 9: return 314259; // Great Craftsman
+	}
+
+	return 0;
+}
+
+//--------------------------------------------
+// Returns enchant name
+//--------------------------------------------
+function	script	F_GetEnchantName	{
+
+	switch(getarg(0)) {
+
+		case 0: return "Mettle";
+		case 1: return "Tenacity";
+		case 2: return "Master Archer";
+		case 3: return "Acute";
+		case 4: return "Magic Essence";
+		case 5: return "Spell Jewel";
+		case 6: return "Adamantine";
+		case 7: return "Affection";
+		case 8: return "Fierce Attack";
+		case 9: return "Great Craftsman";
+	}
+
+	return "Unknown";
+}
+
+//============================================================
+// Save currently equipped Dimension Crown
+//============================================================
+function	script	F_SaveDimensionItem	{
+
+	//-----------------------------------------
+	// Must have Dimension Crown equipped
+	//-----------------------------------------
+	if (!callfunc("F_IsDimensionCrown"))
+		return 0;
+
+	//-----------------------------------------
+	// Basic Info
+	//-----------------------------------------
+	set @DC_ItemID, getequipid(EQI_HEAD_TOP);
+	set @DC_Refine, getequiprefinerycnt(EQI_HEAD_TOP);
+	set @DC_Grade, getenchantgrade(EQI_HEAD_TOP);
+
+	//-----------------------------------------
+	// Cards
+	//-----------------------------------------
+	@DC_Card0 = getequipcardid(EQI_HEAD_TOP,0);
+	@DC_Card1 = getequipcardid(EQI_HEAD_TOP,1);
+	@DC_Card2 = getequipcardid(EQI_HEAD_TOP,2);
+	@DC_Card3 = getequipcardid(EQI_HEAD_TOP,3);
+
+	//-----------------------------------------
+	// Detect enchant
+	//-----------------------------------------
+	@DC_Family = callfunc("F_GetEnchantFamily", @DC_Card1);
+
+	if (@DC_Family < 0)
+		return -1;
+
+	@DC_Level = callfunc("F_GetEnchantLevel", @DC_Card1);
+
+	//-----------------------------------------
+	// Random Options
+	//-----------------------------------------
+	deletearray @DC_OptID[0], getarraysize(@DC_OptID);
+	deletearray @DC_OptValue[0], getarraysize(@DC_OptValue);
+	deletearray @DC_OptParam[0], getarraysize(@DC_OptParam);
+
+	for (.@i = 0; .@i < MAX_ITEM_RDM_OPT; .@i++) {
+
+		@DC_OptID[.@i] =
+			getequiprandomoption(EQI_HEAD_TOP,.@i,ROA_ID);
+
+		@DC_OptValue[.@i] =
+			getequiprandomoption(EQI_HEAD_TOP,.@i,ROA_VALUE);
+
+		@DC_OptParam[.@i] =
+			getequiprandomoption(EQI_HEAD_TOP,.@i,ROA_PARAM);
+	}
+
+	return 1;
+}
+
+//============================================================
+// Recreate Dimension Crown
+// getarg(0) = New Slot 2 Enchant ID
+//============================================================
+function	script	F_ReturnDimensionItem	{
+
+	.@NewEnchant = getarg(0);
+
+	if (.@NewEnchant <= 0)
+		return 0;
+
+	//----------------------------------------------------------
+	// Unequip first
+	//----------------------------------------------------------
+	if (isequipped(@DC_ItemID))
+		unequip EQI_HEAD_TOP;
+
+	//----------------------------------------------------------
+	// Delete original equipment
+	//----------------------------------------------------------
+	delitem2
+		@DC_ItemID,
+		1,
+		1,
+		@DC_Refine,
+		0,
+		@DC_Card0,
+		@DC_Card1,
+		@DC_Card2,
+		@DC_Card3;
+
+	//----------------------------------------------------------
+	// Recreate equipment
+	//----------------------------------------------------------
+	getitem4
+		@DC_ItemID,
+		1,
+		1,
+		@DC_Refine,
+		0,
+		@DC_Card0,
+		.@NewEnchant,
+		@DC_Card2,
+		@DC_Card3,
+		@DC_Grade,
+		@DC_OptID,
+		@DC_OptValue,
+		@DC_OptParam;
+	equip @DC_ItemID;
+	return 1;
+}
+
+//============================================================
+// Perfect Upgrade
+//============================================================
+function	script	F_PerfectUpgrade	{
+
+	//----------------------------------------------------------
+	// Save equipped item
+	//----------------------------------------------------------
+	.@ret = callfunc("F_SaveDimensionItem");
+
+	if (.@ret == 0) {
+		mes "Please equip a Dimension Crown.";
+		return;
+	}
+
+	if (.@ret == -1) {
+		mes "No supported Slot 2 enchant found.";
+		return;
+	}
+
+	//----------------------------------------------------------
+	// Perfect only works Lv1~4
+	//----------------------------------------------------------
+	if (@DC_Level >= 5) {
+		mes "Perfect Upgrade is only available up to Lv5.";
+		return;
+	}
+
+	//----------------------------------------------------------
+	// Rune Cost
+	//----------------------------------------------------------
+	setarray .@RuneCost,
+
+		175,
+		225,
+		275,
+		325;
+
+	.@cost = .@RuneCost[@DC_Level-1];
+
+	//----------------------------------------------------------
+	// Material Check
+	//----------------------------------------------------------
+	if (countitem(1001556) < .@cost) {
+
+		mes "You need "+.@cost+" Time Dimension Magic Rune.";
+		return;
+	}
+
+	//----------------------------------------------------------
+	// Confirmation
+	//----------------------------------------------------------
+	mes "[Perfect Upgrade]";
+	mes "";
+
+	mes "Enchant : "+callfunc("F_GetEnchantName",@DC_Family);
+
+	mes "Current Level : "+@DC_Level;
+
+	mes "";
+
+	mes "Rune Cost : "+.@cost;
+
+	mes "";
+
+	mes "Success Rate : 100%";
+
+	next;
+
+	if (select("Upgrade:Cancel")==2)
+		return;
+
+	delitem 1001556,.@cost;
+
+	//----------------------------------------------------------
+	// New Enchant
+	//----------------------------------------------------------
+	.@base = callfunc("F_GetEnchantBase",@DC_Family);
+
+	.@newEnchant = .@base + @DC_Level;
+
+	//----------------------------------------------------------
+	// Return Item
+	//----------------------------------------------------------
+	callfunc("F_ReturnDimensionItem",.@newEnchant);
+
+	specialeffect EF_REFINEOK;
+
+	mes "";
+
+	mes "Upgrade Success!";
+
+	mes "";
+
+	mes callfunc("F_GetEnchantName",@DC_Family)
+		+" Lv"+(@DC_Level)
+		+" ? Lv"+(@DC_Level+1);
+
+	return;
+}
+
+//============================================================
+// Random Upgrade
+//============================================================
+function	script	F_RandomUpgrade	{
+
+	//----------------------------------------------------------
+	// Save Item
+	//----------------------------------------------------------
+	.@ret = callfunc("F_SaveDimensionItem");
+
+	if (.@ret == 0) {
+		mes "Please equip a Dimension Crown.";
+		return;
+	}
+
+	if (.@ret == -1) {
+		mes "No supported Slot 2 enchant found.";
+		return;
+	}
+
+	//----------------------------------------------------------
+	// Already Max
+	//----------------------------------------------------------
+	if (@DC_Level >= 10) {
+
+		mes "This enchant is already at the maximum level.";
+		return;
+	}
+
+	//----------------------------------------------------------
+	// Success Rate
+	//----------------------------------------------------------
+	setarray .@Chance,
+		80,
+		65,
+		50,
+		35,
+		25,
+		20,
+		10,
+		7,
+		5;
+
+	//----------------------------------------------------------
+	// Rune Cost
+	//----------------------------------------------------------
+	setarray .@Rune,
+		5,
+		10,
+		20,
+		35,
+		55,
+		80,
+		110,
+		145,
+		185;
+
+	.@chance = .@Chance[@DC_Level-1];
+	.@cost   = .@Rune[@DC_Level-1];
+
+	//----------------------------------------------------------
+	// Material Check
+	//----------------------------------------------------------
+	if (countitem(1001556) < .@cost) {
+
+		mes "You need "+.@cost+" Time Dimension Magic Rune.";
+		return;
+	}
+
+	mes "[Random Upgrade]";
+	mes "";
+	mes "Enchant : "+callfunc("F_GetEnchantName",@DC_Family);
+	mes "Current Level : "+@DC_Level;
+	mes "";
+	mes "Success Rate : "+.@chance+"%";
+	mes "Rune Cost : "+.@cost;
+	next;
+
+	if (select("Upgrade:Cancel")==2)
+		return;
+
+	delitem 1001556,.@cost;
+
+	//----------------------------------------------------------
+	// Roll
+	//----------------------------------------------------------
+	.@roll = rand(100);
+
+	.@base = callfunc("F_GetEnchantBase",@DC_Family);
+
+	//----------------------------------------------------------
+	// SUCCESS
+	//----------------------------------------------------------
+	if (.@roll < .@chance) {
+
+		.@newEnchant = .@base + @DC_Level;
+
+		callfunc("F_ReturnDimensionItem",.@newEnchant);
+
+		specialeffect EF_REFINEOK;
+
+		mes "";
+		mes "^00AA00Upgrade Success!^000000";
+		mes "";
+		mes callfunc("F_GetEnchantName",@DC_Family)
+			+" Lv"+@DC_Level
+			+" -> Lv"+(@DC_Level+1);
+
+		return;
+	}
+
+	//----------------------------------------------------------
+	// FAILURE
+	//----------------------------------------------------------
+	if (@DC_Level == 1) {
+
+		.@newEnchant = .@base;
+
+	} else {
+
+		.@newEnchant = .@base + (@DC_Level-2);
+
+	}
+
+	callfunc("F_ReturnDimensionItem",.@newEnchant);
+
+	specialeffect EF_REFINEFAIL;
+
+	mes "";
+
+	mes "^FF0000Upgrade Failed!^000000";
+
+	if (@DC_Level > 1)
+		mes "Enchant downgraded to Lv"+(@DC_Level-1);
+	else
+		mes "Enchant remains at Lv1.";
+
+	return;
+}
+
+
+bl_depth2,0,0	monster	Abyss Duneyrr	22252,30,5000
+bl_depth2,0,0	monster	Abyss Naga	22253,30,5000
+bl_depth2,0,0	monster	Abyss Ancient Tree	22254,30,5000
+bl_depth2,0,0	monster	Abyss Dollocaris	22255,30,5000
+bl_depth2,0,0	monster	Abyss Ice Gargoyle	22256,30,5000
+bl_depth2,0,0	monster	Abyss Flame Ghost	22257,30,5000
+bl_depth2,0,0	monster	Abyss Acidus	22258,30,5000
+bl_depth2,0,0	monster	Abyss Abyss Incarnation	22259,30,5000
+bl_depth2,0,0	monster	Abyss Salamander	22260,30,5000
+bl_depth2,0,0	monster	Abyss Moskillo	22261,30,5000
+
+bl_depth2	mapflag	noteleport

@@ -1,0 +1,44 @@
+// Author: Lupus
+// Edited: _Okuz_
+-	script	Weekend Floating Exp	-1,{
+
+
+OnInit:
+	// To force the event to run even if you have to shutdown your server for some reason...
+	if (gettime(DT_DAYOFWEEK) != FRIDAY && gettime(DT_DAYOFWEEK) != SATURDAY && gettime(DT_DAYOFWEEK) != SUNDAY) end;
+//	if (gettime(DT_DAYOFWEEK) != WEDNESDAY && gettime(DT_DAYOFWEEK) != THURSDAY && gettime(DT_DAYOFWEEK) != FRIDAY && gettime(DT_DAYOFWEEK) != SATURDAY && gettime(DT_DAYOFWEEK) != SUNDAY) end;
+//	if (gettime(DT_YYYYMMDD) != 20250126 && gettime(DT_YYYYMMDD) != 20250203) end;
+
+OnFri0000:
+//OnWed0000:
+//OnDay0126:
+	// start double rates on Friday 00:00
+	setbattleflag "base_exp_rate", getbattleflag("base_exp_rate") * 2;
+	setbattleflag "job_exp_rate", getbattleflag("job_exp_rate") * 2;
+//	setbattleflag "item_rate_heal", getbattleflag("item_rate_heal") * 2;
+//	setbattleflag "item_rate_use", getbattleflag("item_rate_use") * 2;
+//	setbattleflag "item_rate_equip", getbattleflag("item_rate_equip") * 2;
+//	setbattleflag "item_rate_card", getbattleflag("item_rate_card") * 2;
+//	setbattleflag "item_rate_card_boss", getbattleflag("item_rate_card_boss") * 2;
+//	setbattleflag "item_rate_card_mvp", getbattleflag("item_rate_card_mvp") * 2;
+	atcommand "@reloadmobdb";
+	announce "[Event] : Double rates enabled!",bc_all,0xFF6060;
+	end;
+
+OnMon0000:
+//OnDay0203:
+	// stop double rates on Monday 00:00
+	setbattleflag "base_exp_rate", getbattleflag("base_exp_rate");
+	setbattleflag "job_exp_rate", getbattleflag("job_exp_rate");
+//	setbattleflag "item_rate_heal", getbattleflag("item_rate_heal");
+//	setbattleflag "item_rate_use", getbattleflag("item_rate_use");
+//	setbattleflag "item_rate_equip", getbattleflag("item_rate_equip");
+//	setbattleflag "item_rate_card", getbattleflag("item_rate_card");
+//	setbattleflag "item_rate_card_boss", getbattleflag("item_rate_card_boss");
+//	setbattleflag "item_rate_card_mvp", getbattleflag("item_rate_card_mvp");
+	atcommand "@reloadmobdb";
+	atcommand "@reloadbattleconf";
+	announce "[Event] : Double rates disabled!",bc_all,0xFF6060;
+	end;
+
+}

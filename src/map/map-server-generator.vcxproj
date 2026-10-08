@@ -1,0 +1,962 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{EB03BC16-8A47-43B9-B5BB-D0200E4A2775}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>mapserver</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>$(DefaultPlatformToolset)</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>$(DefaultPlatformToolset)</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>$(DefaultPlatformToolset)</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>$(DefaultPlatformToolset)</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)</OutDir>
+    <IntDir>$(SolutionDir).vs\build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)</OutDir>
+    <IntDir>$(SolutionDir).vs\build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)</OutDir>
+    <IntDir>$(SolutionDir).vs\build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)</OutDir>
+    <IntDir>$(SolutionDir).vs\build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>$(DefineConstants);MAP_GENERATOR;WIN32;FD_SETSIZE=4096;PCRE_SUPPORT;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;LIBCONFIG_STATIC;YY_USE_CONST;_DEBUG;_CONSOLE;_LIB;_ITERATOR_DEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4018;4200</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)\3rdparty\rapidyaml\src;$(SolutionDir)\3rdparty\rapidyaml\ext\c4core\src;$(SolutionDir)\3rdparty\json\include;$(SolutionDir)\3rdparty\pcre\include;$(SolutionDir)3rdparty\libconfig\;$(SolutionDir)3rdparty\mysql\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>ws2_32.lib;$(SolutionDir).vs\build\ryml.lib;$(SolutionDir).vs\build\common.lib;$(SolutionDir).vs\build\libconfig.lib;$(SolutionDir)3rdparty\zlib\lib\$(Platform)\zlib.lib;$(SolutionDir)3rdparty\pcre\lib\$(Platform)\pcre8.lib;$(SolutionDir)3rdparty\mysql\lib\$(Platform)\libmysql.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>$(DefineConstants);MAP_GENERATOR;WIN32;FD_SETSIZE=4096;PCRE_SUPPORT;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;LIBCONFIG_STATIC;YY_USE_CONST;_DEBUG;_CONSOLE;_LIB;_ITERATOR_DEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4018</DisableSpecificWarnings>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)\3rdparty\rapidyaml\src;$(SolutionDir)\3rdparty\rapidyaml\ext\c4core\src;$(SolutionDir)\3rdparty\json\include;$(SolutionDir)\3rdparty\pcre\include;$(SolutionDir)3rdparty\libconfig\;$(SolutionDir)3rdparty\mysql\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>ws2_32.lib;$(SolutionDir).vs\build\ryml.lib;$(SolutionDir).vs\build\common.lib;$(SolutionDir).vs\build\libconfig.lib;$(SolutionDir)3rdparty\zlib\lib\$(Platform)\zlib.lib;$(SolutionDir)3rdparty\pcre\lib\$(Platform)\pcre8.lib;$(SolutionDir)3rdparty\mysql\lib\$(Platform)\libmysql.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>$(DefineConstants);MAP_GENERATOR;WIN32;FD_SETSIZE=4096;PCRE_SUPPORT;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;LIBCONFIG_STATIC;YY_USE_CONST;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DisableSpecificWarnings>4018</DisableSpecificWarnings>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)\3rdparty\rapidyaml\src;$(SolutionDir)\3rdparty\rapidyaml\ext\c4core\src;$(SolutionDir)\3rdparty\json\include;$(SolutionDir)\3rdparty\pcre\include;$(SolutionDir)3rdparty\libconfig\;$(SolutionDir)3rdparty\mysql\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>ws2_32.lib;$(SolutionDir).vs\build\ryml.lib;$(SolutionDir).vs\build\common.lib;$(SolutionDir).vs\build\libconfig.lib;$(SolutionDir)3rdparty\zlib\lib\$(Platform)\zlib.lib;$(SolutionDir)3rdparty\pcre\lib\$(Platform)\pcre8.lib;$(SolutionDir)3rdparty\mysql\lib\$(Platform)\libmysql.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>$(DefineConstants);MAP_GENERATOR;WIN32;FD_SETSIZE=4096;PCRE_SUPPORT;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;LIBCONFIG_STATIC;YY_USE_CONST;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <DisableSpecificWarnings>4018</DisableSpecificWarnings>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;$(SolutionDir)\3rdparty\rapidyaml\src;$(SolutionDir)\3rdparty\rapidyaml\ext\c4core\src;$(SolutionDir)\3rdparty\json\include;$(SolutionDir)\3rdparty\pcre\include;$(SolutionDir)3rdparty\libconfig\;$(SolutionDir)3rdparty\mysql\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>ws2_32.lib;$(SolutionDir).vs\build\ryml.lib;$(SolutionDir).vs\build\common.lib;$(SolutionDir).vs\build\libconfig.lib;$(SolutionDir)3rdparty\zlib\lib\$(Platform)\zlib.lib;$(SolutionDir)3rdparty\pcre\lib\$(Platform)\pcre8.lib;$(SolutionDir)3rdparty\mysql\lib\$(Platform)\libmysql.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="achievement.hpp" />
+    <ClInclude Include="atcommand.hpp" />
+    <ClInclude Include="battle.hpp" />
+    <ClInclude Include="battleground.hpp" />
+    <ClInclude Include="buyingstore.hpp" />
+    <ClInclude Include="cashshop.hpp" />
+    <ClInclude Include="channel.hpp" />
+    <ClInclude Include="chat.hpp" />
+    <ClInclude Include="chrif.hpp" />
+    <ClInclude Include="clan.hpp" />
+    <ClInclude Include="clif.hpp" />
+    <ClInclude Include="clif_obfuscation.hpp" />
+    <ClInclude Include="clif_packetdb.hpp" />
+    <ClInclude Include="clif_shuffle.hpp" />
+    <ClInclude Include="date.hpp" />
+    <ClInclude Include="duel.hpp" />
+    <ClInclude Include="elemental.hpp" />
+    <ClInclude Include="guild.hpp" />
+    <ClInclude Include="homunculus.hpp" />
+    <ClInclude Include="instance.hpp" />
+    <ClInclude Include="intif.hpp" />
+    <ClInclude Include="itemdb.hpp" />
+    <ClInclude Include="log.hpp" />
+    <ClInclude Include="mail.hpp" />
+    <ClInclude Include="map.hpp" />
+    <ClInclude Include="mapreg.hpp" />
+    <ClInclude Include="mercenary.hpp" />
+    <ClInclude Include="mob.hpp" />
+    <ClInclude Include="navi.hpp" />
+    <ClInclude Include="npc.hpp" />
+    <ClInclude Include="packets.hpp" />
+    <ClInclude Include="packets_struct.hpp" />
+    <ClInclude Include="party.hpp" />
+    <ClInclude Include="path.hpp" />
+    <ClInclude Include="pc.hpp" />
+    <ClInclude Include="pc_groups.hpp" />
+    <ClInclude Include="pet.hpp" />
+    <ClInclude Include="quest.hpp" />
+    <ClInclude Include="script.hpp" />
+    <ClInclude Include="script_constants.hpp" />
+    <ClInclude Include="searchstore.hpp" />
+    <ClInclude Include="skill.hpp" />
+    <ClInclude Include="status.hpp" />
+    <ClInclude Include="storage.hpp" />
+    <ClInclude Include="trade.hpp" />
+    <ClInclude Include="unit.hpp" />
+    <ClInclude Include="vending.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="skills/acolyte/angelus.hpp" />
+    <ClInclude Include="skills/acolyte/aspersio.hpp" />
+    <ClInclude Include="skills/acolyte/blessing.hpp" />
+    <ClInclude Include="skills/acolyte/bssacramenti.hpp" />
+    <ClInclude Include="skills/acolyte/crucis.hpp" />
+    <ClInclude Include="skills/acolyte/cure.hpp" />
+    <ClInclude Include="skills/acolyte/decagi.hpp" />
+    <ClInclude Include="skills/acolyte/gloria.hpp" />
+    <ClInclude Include="skills/acolyte/heal.hpp" />
+    <ClInclude Include="skills/acolyte/holylight.hpp" />
+    <ClInclude Include="skills/acolyte/holywater.hpp" />
+    <ClInclude Include="skills/acolyte/impositiomanus.hpp" />
+    <ClInclude Include="skills/acolyte/incagi.hpp" />
+    <ClInclude Include="skills/acolyte/kyrieeleison.hpp" />
+    <ClInclude Include="skills/acolyte/lexdivina.hpp" />
+    <ClInclude Include="skills/acolyte/magnificat.hpp" />
+    <ClInclude Include="skills/acolyte/magnusexorcismus.hpp" />
+    <ClInclude Include="skills/acolyte/pneuma.hpp" />
+    <ClInclude Include="skills/acolyte/ruwach.hpp" />
+    <ClInclude Include="skills/acolyte/sanctuary.hpp" />
+    <ClInclude Include="skills/acolyte/skill_factory_acolyte.hpp" />
+    <ClInclude Include="skills/acolyte/statusrecovery.hpp" />
+    <ClInclude Include="skills/acolyte/suffragium.hpp" />
+    <ClInclude Include="skills/acolyte/turnundead.hpp" />
+    <ClInclude Include="skills/archer/aimedbolt.hpp" />
+    <ClInclude Include="skills/archer/anklesnare.hpp" />
+    <ClInclude Include="skills/archer/arrowshower.hpp" />
+    <ClInclude Include="skills/archer/arrowstorm.hpp" />
+    <ClInclude Include="skills/archer/beaststrafing.hpp" />
+    <ClInclude Include="skills/archer/blastmine.hpp" />
+    <ClInclude Include="skills/archer/blitzbeat.hpp" />
+    <ClInclude Include="skills/archer/camouflage.hpp" />
+    <ClInclude Include="skills/archer/chargearrow.hpp" />
+    <ClInclude Include="skills/archer/claymoretrap.hpp" />
+    <ClInclude Include="skills/archer/clusterbomb.hpp" />
+    <ClInclude Include="skills/archer/cobalttrap.hpp" />
+    <ClInclude Include="skills/archer/concentration.hpp" />
+    <ClInclude Include="skills/archer/detect.hpp" />
+    <ClInclude Include="skills/archer/detonator.hpp" />
+    <ClInclude Include="skills/archer/doublestrafe.hpp" />
+    <ClInclude Include="skills/archer/electricshocker.hpp" />
+    <ClInclude Include="skills/archer/falconassault.hpp" />
+    <ClInclude Include="skills/archer/fearbreeze.hpp" />
+    <ClInclude Include="skills/archer/firingtrap.hpp" />
+    <ClInclude Include="skills/archer/flasher.hpp" />
+    <ClInclude Include="skills/archer/focusedarrowstrike.hpp" />
+    <ClInclude Include="skills/archer/freezingtrap.hpp" />
+    <ClInclude Include="skills/archer/iceboundtrap.hpp" />
+    <ClInclude Include="skills/archer/landmine.hpp" />
+    <ClInclude Include="skills/archer/magentatrap.hpp" />
+    <ClInclude Include="skills/archer/maizetrap.hpp" />
+    <ClInclude Include="skills/archer/makingarrow.hpp" />
+    <ClInclude Include="skills/archer/phantasmicarrow.hpp" />
+    <ClInclude Include="skills/archer/removetrap.hpp" />
+    <ClInclude Include="skills/archer/sandman.hpp" />
+    <ClInclude Include="skills/archer/sensitivekeen.hpp" />
+    <ClInclude Include="skills/archer/shockwavetrap.hpp" />
+    <ClInclude Include="skills/archer/skidtrap.hpp" />
+    <ClInclude Include="skills/archer/skill_factory_archer.hpp" />
+    <ClInclude Include="skills/archer/springtrap.hpp" />
+    <ClInclude Include="skills/archer/talkiebox.hpp" />
+    <ClInclude Include="skills/archer/verduretrap.hpp" />
+    <ClInclude Include="skills/archer/wargbite.hpp" />
+    <ClInclude Include="skills/archer/wargdash.hpp" />
+    <ClInclude Include="skills/archer/wargmastery.hpp" />
+    <ClInclude Include="skills/archer/wargrider.hpp" />
+    <ClInclude Include="skills/archer/wargstrike.hpp" />
+    <ClInclude Include="skills/archer/windwalker.hpp" />
+    <ClInclude Include="skills/custom/skill_factory_custom.hpp" />
+    <ClInclude Include="skills/gunslinger/bullseye.hpp" />
+    <ClInclude Include="skills/gunslinger/cracker.hpp" />
+    <ClInclude Include="skills/gunslinger/desperado.hpp" />
+    <ClInclude Include="skills/gunslinger/disarm.hpp" />
+    <ClInclude Include="skills/gunslinger/dust.hpp" />
+    <ClInclude Include="skills/gunslinger/fling.hpp" />
+    <ClInclude Include="skills/gunslinger/fullbuster.hpp" />
+    <ClInclude Include="skills/gunslinger/gatlingfever.hpp" />
+    <ClInclude Include="skills/gunslinger/glittering.hpp" />
+    <ClInclude Include="skills/gunslinger/grounddrift.hpp" />
+    <ClInclude Include="skills/gunslinger/piercingshot.hpp" />
+    <ClInclude Include="skills/gunslinger/rapidshower.hpp" />
+    <ClInclude Include="skills/gunslinger/skill_factory_gunslinger.hpp" />
+    <ClInclude Include="skills/gunslinger/spreadattack.hpp" />
+    <ClInclude Include="skills/gunslinger/tracking.hpp" />
+    <ClInclude Include="skills/gunslinger/tripleaction.hpp" />
+    <ClInclude Include="skills/mage/coldbolt.hpp" />
+    <ClInclude Include="skills/mage/earthspike.hpp" />
+    <ClInclude Include="skills/mage/energycoat.hpp" />
+    <ClInclude Include="skills/mage/fireball.hpp" />
+    <ClInclude Include="skills/mage/firebolt.hpp" />
+    <ClInclude Include="skills/mage/firepillar.hpp" />
+    <ClInclude Include="skills/mage/firewall.hpp" />
+    <ClInclude Include="skills/mage/frostdiver.hpp" />
+    <ClInclude Include="skills/mage/frostnova.hpp" />
+    <ClInclude Include="skills/mage/ganbantein.hpp" />
+    <ClInclude Include="skills/mage/gravitationfield.hpp" />
+    <ClInclude Include="skills/mage/heavensdrive.hpp" />
+    <ClInclude Include="skills/mage/icewall.hpp" />
+    <ClInclude Include="skills/mage/jupitelthunder.hpp" />
+    <ClInclude Include="skills/mage/lightningbolt.hpp" />
+    <ClInclude Include="skills/mage/lordofvermilion.hpp" />
+    <ClInclude Include="skills/mage/meteorstorm.hpp" />
+    <ClInclude Include="skills/mage/napalmbeat.hpp" />
+    <ClInclude Include="skills/mage/napalmvulcan.hpp" />
+    <ClInclude Include="skills/mage/quagmire.hpp" />
+    <ClInclude Include="skills/mage/safetywall.hpp" />
+    <ClInclude Include="skills/mage/sense.hpp" />
+    <ClInclude Include="skills/mage/sight.hpp" />
+    <ClInclude Include="skills/mage/sightblaster.hpp" />
+    <ClInclude Include="skills/mage/sightrasher.hpp" />
+    <ClInclude Include="skills/mage/skill_factory_mage.hpp" />
+    <ClInclude Include="skills/mage/soulstrike.hpp" />
+    <ClInclude Include="skills/mage/stonecurse.hpp" />
+    <ClInclude Include="skills/mage/stormgust.hpp" />
+    <ClInclude Include="skills/mage/thunderstorm.hpp" />
+    <ClInclude Include="skills/mage/waterball.hpp" />
+    <ClInclude Include="skills/mercenary/mercenary_bash.hpp" />
+    <ClInclude Include="skills/mercenary/skill_factory_mercenary.hpp" />
+    <ClInclude Include="skills/merchant/aciddemonstration.hpp" />
+    <ClInclude Include="skills/merchant/acidterror.hpp" />
+    <ClInclude Include="skills/merchant/adrenalinerush.hpp" />
+    <ClInclude Include="skills/merchant/advancedadrenalinerush.hpp" />
+    <ClInclude Include="skills/merchant/aidberserkpotion.hpp" />
+    <ClInclude Include="skills/merchant/aidcondensedpotion.hpp" />
+    <ClInclude Include="skills/merchant/aidpotion.hpp" />
+    <ClInclude Include="skills/merchant/alchemicalweapon.hpp" />
+    <ClInclude Include="skills/merchant/biochemicalhelm.hpp" />
+    <ClInclude Include="skills/merchant/bomb.hpp" />
+    <ClInclude Include="skills/merchant/callhomunculus.hpp" />
+    <ClInclude Include="skills/merchant/cartrevolution.hpp" />
+    <ClInclude Include="skills/merchant/carttermination.hpp" />
+    <ClInclude Include="skills/merchant/changecart.hpp" />
+    <ClInclude Include="skills/merchant/crazyuproar.hpp" />
+    <ClInclude Include="skills/merchant/decoratecart.hpp" />
+    <ClInclude Include="skills/merchant/fullprotection.hpp" />
+    <ClInclude Include="skills/merchant/greed.hpp" />
+    <ClInclude Include="skills/merchant/hammerfall.hpp" />
+    <ClInclude Include="skills/merchant/itemappraisal.hpp" />
+    <ClInclude Include="skills/merchant/mammonite.hpp" />
+    <ClInclude Include="skills/merchant/plantcultivation.hpp" />
+    <ClInclude Include="skills/merchant/powerthrust.hpp" />
+    <ClInclude Include="skills/merchant/preparepotion.hpp" />
+    <ClInclude Include="skills/merchant/skill_factory_merchant.hpp" />
+    <ClInclude Include="skills/merchant/skill_vending.hpp" />
+    <ClInclude Include="skills/merchant/summonflora.hpp" />
+    <ClInclude Include="skills/merchant/summonmarinesphere.hpp" />
+    <ClInclude Include="skills/merchant/synthesizedshield.hpp" />
+    <ClInclude Include="skills/merchant/syntheticarmor.hpp" />
+    <ClInclude Include="skills/merchant/twilightalchemy1.hpp" />
+    <ClInclude Include="skills/merchant/twilightalchemy2.hpp" />
+    <ClInclude Include="skills/merchant/twilightalchemy3.hpp" />
+    <ClInclude Include="skills/merchant/upgradeweapon.hpp" />
+    <ClInclude Include="skills/merchant/vaporize.hpp" />
+    <ClInclude Include="skills/merchant/weaponperfection.hpp" />
+    <ClInclude Include="skills/merchant/weaponrepair.hpp" />
+    <ClInclude Include="skills/ninja/skill_factory_ninja.hpp" />
+    <ClInclude Include="skills/novice/doublebowlingbash.hpp" />
+    <ClInclude Include="skills/novice/groundgravitation.hpp" />
+    <ClInclude Include="skills/novice/hellsdrive.hpp" />
+    <ClInclude Include="skills/novice/jackfrostnova.hpp" />
+    <ClInclude Include="skills/novice/jupitelthunderstorm.hpp" />
+    <ClInclude Include="skills/novice/megasonicblow.hpp" />
+    <ClInclude Include="skills/novice/meteorstormbuster.hpp" />
+    <ClInclude Include="skills/novice/napalmvulcanstrike.hpp" />
+    <ClInclude Include="skills/novice/overcomingcrisis.hpp" />
+    <ClInclude Include="skills/novice/shieldchainrush.hpp" />
+    <ClInclude Include="skills/novice/skill_factory_novice.hpp" />
+    <ClInclude Include="skills/novice/spiralpiercemax.hpp" />
+    <ClInclude Include="skills/npc/skill_factory_npc.hpp" />
+    <ClInclude Include="skills/skill_factory.hpp" />
+    <ClInclude Include="skills/skill_impl.hpp" />
+    <ClInclude Include="skills/status_skill_impl.hpp" />
+    <ClInclude Include="skills/summoner/skill_factory_summoner.hpp" />
+    <ClInclude Include="skills/swordman/autoberserk.hpp" />
+    <ClInclude Include="skills/swordman/bash.hpp" />
+    <ClInclude Include="skills/swordman/bowlingbash.hpp" />
+    <ClInclude Include="skills/swordman/brandishspear.hpp" />
+    <ClInclude Include="skills/swordman/counterattack.hpp" />
+    <ClInclude Include="skills/swordman/grandcross.hpp" />
+    <ClInclude Include="skills/swordman/holycross.hpp" />
+    <ClInclude Include="skills/swordman/magnum.hpp" />
+    <ClInclude Include="skills/swordman/pierce.hpp" />
+    <ClInclude Include="skills/swordman/provoke.hpp" />
+    <ClInclude Include="skills/swordman/relax.hpp" />
+    <ClInclude Include="skills/swordman/resistantsouls.hpp" />
+    <ClInclude Include="skills/swordman/sacrifice.hpp" />
+    <ClInclude Include="skills/swordman/selfprovoke.hpp" />
+    <ClInclude Include="skills/swordman/shieldboomerang.hpp" />
+    <ClInclude Include="skills/swordman/shieldreflect.hpp" />
+    <ClInclude Include="skills/swordman/skill_factory_swordman.hpp" />
+    <ClInclude Include="skills/swordman/smite.hpp" />
+    <ClInclude Include="skills/swordman/spearboomerang.hpp" />
+    <ClInclude Include="skills/swordman/spearstab.hpp" />
+    <ClInclude Include="skills/swordman/spiralpierce.hpp" />
+    <ClInclude Include="skills/swordman/traumaticblow.hpp" />
+    <ClInclude Include="skills/swordman/vitalstrike.hpp" />
+    <ClInclude Include="skills/taekwon/circleofdirectionsandelementals.hpp" />
+    <ClInclude Include="skills/taekwon/counter.hpp" />
+    <ClInclude Include="skills/taekwon/downkick.hpp" />
+    <ClInclude Include="skills/taekwon/eska.hpp" />
+    <ClInclude Include="skills/taekwon/eske.hpp" />
+    <ClInclude Include="skills/taekwon/esma.hpp" />
+    <ClInclude Include="skills/taekwon/estin.hpp" />
+    <ClInclude Include="skills/taekwon/estun.hpp" />
+    <ClInclude Include="skills/taekwon/eswoo.hpp" />
+    <ClInclude Include="skills/taekwon/feelingthesunmoonandstars.hpp" />
+    <ClInclude Include="skills/taekwon/hatredofthesunmoonandstars.hpp" />
+    <ClInclude Include="skills/taekwon/exorcismofmalicioussoul.hpp" />
+    <ClInclude Include="skills/taekwon/highjump.hpp" />
+    <ClInclude Include="skills/taekwon/jumpkick.hpp" />
+    <ClInclude Include="skills/taekwon/kaahi.hpp" />
+    <ClInclude Include="skills/taekwon/kaite.hpp" />
+    <ClInclude Include="skills/taekwon/kaizel.hpp" />
+    <ClInclude Include="skills/taekwon/kaupe.hpp" />
+    <ClInclude Include="skills/taekwon/mission.hpp" />
+    <ClInclude Include="skills/taekwon/run.hpp" />
+    <ClInclude Include="skills/taekwon/sevenwind.hpp" />
+    <ClInclude Include="skills/taekwon/skill_factory_taekwon.hpp" />
+    <ClInclude Include="skills/taekwon/soulgathering.hpp" />
+    <ClInclude Include="skills/taekwon/soulofheavenandearth.hpp" />
+    <ClInclude Include="skills/taekwon/spiritofrebirth.hpp" />
+    <ClInclude Include="skills/taekwon/spiritofthealchemist.hpp" />
+    <ClInclude Include="skills/taekwon/spiritoftheartist.hpp" />
+    <ClInclude Include="skills/taekwon/spiritoftheassasin.hpp" />
+    <ClInclude Include="skills/taekwon/spiritoftheblacksmith.hpp" />
+    <ClInclude Include="skills/taekwon/spiritofthecrusader.hpp" />
+    <ClInclude Include="skills/taekwon/spiritofthehunter.hpp" />
+    <ClInclude Include="skills/taekwon/spiritoftheknight.hpp" />
+    <ClInclude Include="skills/taekwon/spiritofthemonk.hpp" />
+    <ClInclude Include="skills/taekwon/spiritofthepriest.hpp" />
+    <ClInclude Include="skills/taekwon/spiritoftherogue.hpp" />
+    <ClInclude Include="skills/taekwon/spiritofthesage.hpp" />
+    <ClInclude Include="skills/taekwon/spiritofthesoullinker.hpp" />
+    <ClInclude Include="skills/taekwon/spiritofthestargladiator.hpp" />
+    <ClInclude Include="skills/taekwon/spiritofthesupernovice.hpp" />
+    <ClInclude Include="skills/taekwon/spiritofthewizard.hpp" />
+    <ClInclude Include="skills/taekwon/stormkick.hpp" />
+    <ClInclude Include="skills/taekwon/talismanofblacktortoise.hpp" />
+    <ClInclude Include="skills/taekwon/talismanofbluedragon.hpp" />
+    <ClInclude Include="skills/taekwon/talismanoffiveelements.hpp" />
+    <ClInclude Include="skills/taekwon/talismanoffourbearinggod.hpp" />
+    <ClInclude Include="skills/taekwon/talismanofmagician.hpp" />
+    <ClInclude Include="skills/taekwon/talismanofprotection.hpp" />
+    <ClInclude Include="skills/taekwon/talismanofredphoenix.hpp" />
+    <ClInclude Include="skills/taekwon/talismanofsoulstealing.hpp" />
+    <ClInclude Include="skills/taekwon/talismanofwarrior.hpp" />
+    <ClInclude Include="skills/taekwon/talismanofwhitetiger.hpp" />
+    <ClInclude Include="skills/taekwon/totemoftutelary.hpp" />
+    <ClInclude Include="skills/taekwon/turnkick.hpp" />
+    <ClInclude Include="skills/taekwon/warmthofthemoon.hpp" />
+    <ClInclude Include="skills/taekwon/warmthofthestars.hpp" />
+    <ClInclude Include="skills/taekwon/warmthofthesun.hpp" />
+    <ClInclude Include="skills/thief/backslide.hpp" />
+    <ClInclude Include="skills/thief/backstab.hpp" />
+    <ClInclude Include="skills/thief/cloaking.hpp" />
+    <ClInclude Include="skills/thief/closeconfine.hpp" />
+    <ClInclude Include="skills/thief/counterinstinct.hpp" />
+    <ClInclude Include="skills/thief/createdeadlypoison.hpp" />
+    <ClInclude Include="skills/thief/detoxify.hpp" />
+    <ClInclude Include="skills/thief/divestall.hpp" />
+    <ClInclude Include="skills/thief/divestarmor.hpp" />
+    <ClInclude Include="skills/thief/divesthelm.hpp" />
+    <ClInclude Include="skills/thief/divestshield.hpp" />
+    <ClInclude Include="skills/thief/divestweapon.hpp" />
+    <ClInclude Include="skills/thief/enchantdeadlypoison.hpp" />
+    <ClInclude Include="skills/thief/enchantpoison.hpp" />
+    <ClInclude Include="skills/thief/envenom.hpp" />
+    <ClInclude Include="skills/thief/findstone.hpp" />
+    <ClInclude Include="skills/thief/grimtooth.hpp" />
+    <ClInclude Include="skills/thief/hiding.hpp" />
+    <ClInclude Include="skills/thief/meteorassault.hpp" />
+    <ClInclude Include="skills/thief/mug.hpp" />
+    <ClInclude Include="skills/thief/remover.hpp" />
+    <ClInclude Include="skills/thief/sandattack.hpp" />
+    <ClInclude Include="skills/thief/scribble.hpp" />
+    <ClInclude Include="skills/thief/sightlessmind.hpp" />
+    <ClInclude Include="skills/thief/skill_factory_thief.hpp" />
+    <ClInclude Include="skills/thief/snatch.hpp" />
+    <ClInclude Include="skills/thief/sonicblow.hpp" />
+    <ClInclude Include="skills/thief/souldestroyer.hpp" />
+    <ClInclude Include="skills/thief/steal.hpp" />
+    <ClInclude Include="skills/thief/stealth.hpp" />
+    <ClInclude Include="skills/thief/stonefling.hpp" />
+    <ClInclude Include="skills/thief/throwvenomknife.hpp" />
+    <ClInclude Include="skills/thief/venomdust.hpp" />
+    <ClInclude Include="skills/thief/venomsplasher.hpp" />
+    <ClInclude Include="skills/weapon_skill_impl.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="achievement.cpp" />
+    <ClCompile Include="atcommand.cpp" />
+    <ClCompile Include="battle.cpp" />
+    <ClCompile Include="battleground.cpp" />
+    <ClCompile Include="buyingstore.cpp" />
+    <ClCompile Include="cashshop.cpp" />
+    <ClCompile Include="channel.cpp" />
+    <ClCompile Include="chat.cpp" />
+    <ClCompile Include="chrif.cpp" />
+    <ClCompile Include="clan.cpp" />
+    <ClCompile Include="clif.cpp" />
+    <ClCompile Include="date.cpp" />
+    <ClCompile Include="duel.cpp" />
+    <ClCompile Include="elemental.cpp" />
+    <ClCompile Include="guild.cpp" />
+    <ClCompile Include="homunculus.cpp" />
+    <ClCompile Include="instance.cpp" />
+    <ClCompile Include="intif.cpp" />
+    <ClCompile Include="itemdb.cpp" />
+    <ClCompile Include="log.cpp" />
+    <ClCompile Include="mail.cpp" />
+    <ClCompile Include="map.cpp" />
+    <ClCompile Include="mapreg.cpp" />
+    <ClCompile Include="mercenary.cpp" />
+    <ClCompile Include="mob.cpp">
+      <Optimization Condition="'$(Configuration)'=='Release'">Disabled</Optimization>
+    </ClCompile>
+    <ClCompile Include="navi.cpp" />
+    <ClCompile Include="npc.cpp" />
+    <ClCompile Include="npc_chat.cpp" />
+    <ClCompile Include="party.cpp" />
+    <ClCompile Include="path.cpp" />
+    <ClCompile Include="pc.cpp" />
+    <ClCompile Include="pc_groups.cpp" />
+    <ClCompile Include="pet.cpp" />
+    <ClCompile Include="quest.cpp" />
+    <ClCompile Include="script.cpp" />
+    <ClCompile Include="searchstore.cpp" />
+    <ClCompile Include="skill.cpp" />
+    <ClCompile Include="status.cpp" />
+    <ClCompile Include="storage.cpp" />
+    <ClCompile Include="trade.cpp" />
+    <ClCompile Include="unit.cpp" />
+    <ClCompile Include="vending.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="skills/acolyte/angelus.cpp" />
+    <ClCompile Include="skills/acolyte/aspersio.cpp" />
+    <ClCompile Include="skills/acolyte/blessing.cpp" />
+    <ClCompile Include="skills/acolyte/bssacramenti.cpp" />
+    <ClCompile Include="skills/acolyte/crucis.cpp" />
+    <ClCompile Include="skills/acolyte/cure.cpp" />
+    <ClCompile Include="skills/acolyte/decagi.cpp" />
+    <ClCompile Include="skills/acolyte/gloria.cpp" />
+    <ClCompile Include="skills/acolyte/heal.cpp" />
+    <ClCompile Include="skills/acolyte/holylight.cpp" />
+    <ClCompile Include="skills/acolyte/holywater.cpp" />
+    <ClCompile Include="skills/acolyte/impositiomanus.cpp" />
+    <ClCompile Include="skills/acolyte/incagi.cpp" />
+    <ClCompile Include="skills/acolyte/kyrieeleison.cpp" />
+    <ClCompile Include="skills/acolyte/lexdivina.cpp" />
+    <ClCompile Include="skills/acolyte/magnificat.cpp" />
+    <ClCompile Include="skills/acolyte/magnusexorcismus.cpp" />
+    <ClCompile Include="skills/acolyte/pneuma.cpp" />
+    <ClCompile Include="skills/acolyte/ruwach.cpp" />
+    <ClCompile Include="skills/acolyte/sanctuary.cpp" />
+    <ClCompile Include="skills/acolyte/skill_factory_acolyte.cpp" />
+    <ClCompile Include="skills/acolyte/statusrecovery.cpp" />
+    <ClCompile Include="skills/acolyte/suffragium.cpp" />
+    <ClCompile Include="skills/acolyte/turnundead.cpp" />
+    <ClCompile Include="skills/archer/aimedbolt.cpp" />
+    <ClCompile Include="skills/archer/anklesnare.cpp" />
+    <ClCompile Include="skills/archer/arrowshower.cpp" />
+    <ClCompile Include="skills/archer/arrowstorm.cpp" />
+    <ClCompile Include="skills/archer/beaststrafing.cpp" />
+    <ClCompile Include="skills/archer/blastmine.cpp" />
+    <ClCompile Include="skills/archer/blitzbeat.cpp" />
+    <ClCompile Include="skills/archer/camouflage.cpp" />
+    <ClCompile Include="skills/archer/chargearrow.cpp" />
+    <ClCompile Include="skills/archer/claymoretrap.cpp" />
+    <ClCompile Include="skills/archer/clusterbomb.cpp" />
+    <ClCompile Include="skills/archer/cobalttrap.cpp" />
+    <ClCompile Include="skills/archer/concentration.cpp" />
+    <ClCompile Include="skills/archer/detect.cpp" />
+    <ClCompile Include="skills/archer/detonator.cpp" />
+    <ClCompile Include="skills/archer/doublestrafe.cpp" />
+    <ClCompile Include="skills/archer/electricshocker.cpp" />
+    <ClCompile Include="skills/archer/falconassault.cpp" />
+    <ClCompile Include="skills/archer/fearbreeze.cpp" />
+    <ClCompile Include="skills/archer/firingtrap.cpp" />
+    <ClCompile Include="skills/archer/flasher.cpp" />
+    <ClCompile Include="skills/archer/focusedarrowstrike.cpp" />
+    <ClCompile Include="skills/archer/freezingtrap.cpp" />
+    <ClCompile Include="skills/archer/iceboundtrap.cpp" />
+    <ClCompile Include="skills/archer/landmine.cpp" />
+    <ClCompile Include="skills/archer/magentatrap.cpp" />
+    <ClCompile Include="skills/archer/maizetrap.cpp" />
+    <ClCompile Include="skills/archer/makingarrow.cpp" />
+    <ClCompile Include="skills/archer/phantasmicarrow.cpp" />
+    <ClCompile Include="skills/archer/removetrap.cpp" />
+    <ClCompile Include="skills/archer/sandman.cpp" />
+    <ClCompile Include="skills/archer/sensitivekeen.cpp" />
+    <ClCompile Include="skills/archer/shockwavetrap.cpp" />
+    <ClCompile Include="skills/archer/skidtrap.cpp" />
+    <ClCompile Include="skills/archer/skill_factory_archer.cpp" />
+    <ClCompile Include="skills/archer/springtrap.cpp" />
+    <ClCompile Include="skills/archer/talkiebox.cpp" />
+    <ClCompile Include="skills/archer/verduretrap.cpp" />
+    <ClCompile Include="skills/archer/wargbite.cpp" />
+    <ClCompile Include="skills/archer/wargdash.cpp" />
+    <ClCompile Include="skills/archer/wargmastery.cpp" />
+    <ClCompile Include="skills/archer/wargrider.cpp" />
+    <ClCompile Include="skills/archer/wargstrike.cpp" />
+    <ClCompile Include="skills/archer/windwalker.cpp" />
+    <ClCompile Include="skills/custom/skill_factory_custom.cpp" />
+    <ClCompile Include="skills/gunslinger/bullseye.cpp" />
+    <ClCompile Include="skills/gunslinger/cracker.cpp" />
+    <ClCompile Include="skills/gunslinger/desperado.cpp" />
+    <ClCompile Include="skills/gunslinger/disarm.cpp" />
+    <ClCompile Include="skills/gunslinger/dust.cpp" />
+    <ClCompile Include="skills/gunslinger/fling.cpp" />
+    <ClCompile Include="skills/gunslinger/fullbuster.cpp" />
+    <ClCompile Include="skills/gunslinger/gatlingfever.cpp" />
+    <ClCompile Include="skills/gunslinger/glittering.cpp" />
+    <ClCompile Include="skills/gunslinger/grounddrift.cpp" />
+    <ClCompile Include="skills/gunslinger/piercingshot.cpp" />
+    <ClCompile Include="skills/gunslinger/rapidshower.cpp" />
+    <ClCompile Include="skills/gunslinger/skill_factory_gunslinger.cpp" />
+    <ClCompile Include="skills/gunslinger/spreadattack.cpp" />
+    <ClCompile Include="skills/gunslinger/tracking.cpp" />
+    <ClCompile Include="skills/gunslinger/tripleaction.cpp" />
+    <ClCompile Include="skills/mage/coldbolt.cpp" />
+    <ClCompile Include="skills/mage/earthspike.cpp" />
+    <ClCompile Include="skills/mage/energycoat.cpp" />
+    <ClCompile Include="skills/mage/fireball.cpp" />
+    <ClCompile Include="skills/mage/firebolt.cpp" />
+    <ClCompile Include="skills/mage/firepillar.cpp" />
+    <ClCompile Include="skills/mage/firewall.cpp" />
+    <ClCompile Include="skills/mage/frostdiver.cpp" />
+    <ClCompile Include="skills/mage/frostnova.cpp" />
+    <ClCompile Include="skills/mage/ganbantein.cpp" />
+    <ClCompile Include="skills/mage/gravitationfield.cpp" />
+    <ClCompile Include="skills/mage/heavensdrive.cpp" />
+    <ClCompile Include="skills/mage/icewall.cpp" />
+    <ClCompile Include="skills/mage/jupitelthunder.cpp" />
+    <ClCompile Include="skills/mage/lightningbolt.cpp" />
+    <ClCompile Include="skills/mage/lordofvermilion.cpp" />
+    <ClCompile Include="skills/mage/meteorstorm.cpp" />
+    <ClCompile Include="skills/mage/napalmbeat.cpp" />
+    <ClCompile Include="skills/mage/napalmvulcan.cpp" />
+    <ClCompile Include="skills/mage/quagmire.cpp" />
+    <ClCompile Include="skills/mage/safetywall.cpp" />
+    <ClCompile Include="skills/mage/sense.cpp" />
+    <ClCompile Include="skills/mage/sight.cpp" />
+    <ClCompile Include="skills/mage/sightblaster.cpp" />
+    <ClCompile Include="skills/mage/sightrasher.cpp" />
+    <ClCompile Include="skills/mage/skill_factory_mage.cpp" />
+    <ClCompile Include="skills/mage/soulstrike.cpp" />
+    <ClCompile Include="skills/mage/stonecurse.cpp" />
+    <ClCompile Include="skills/mage/stormgust.cpp" />
+    <ClCompile Include="skills/mage/thunderstorm.cpp" />
+    <ClCompile Include="skills/mage/waterball.cpp" />
+    <ClCompile Include="skills/mercenary/mercenary_bash.cpp" />
+    <ClCompile Include="skills/mercenary/skill_factory_mercenary.cpp" />
+    <ClCompile Include="skills/merchant/aciddemonstration.cpp" />
+    <ClCompile Include="skills/merchant/acidterror.cpp" />
+    <ClCompile Include="skills/merchant/adrenalinerush.cpp" />
+    <ClCompile Include="skills/merchant/advancedadrenalinerush.cpp" />
+    <ClCompile Include="skills/merchant/aidberserkpotion.cpp" />
+    <ClCompile Include="skills/merchant/aidcondensedpotion.cpp" />
+    <ClCompile Include="skills/merchant/aidpotion.cpp" />
+    <ClCompile Include="skills/merchant/alchemicalweapon.cpp" />
+    <ClCompile Include="skills/merchant/biochemicalhelm.cpp" />
+    <ClCompile Include="skills/merchant/bomb.cpp" />
+    <ClCompile Include="skills/merchant/callhomunculus.cpp" />
+    <ClCompile Include="skills/merchant/cartrevolution.cpp" />
+    <ClCompile Include="skills/merchant/carttermination.cpp" />
+    <ClCompile Include="skills/merchant/changecart.cpp" />
+    <ClCompile Include="skills/merchant/crazyuproar.cpp" />
+    <ClCompile Include="skills/merchant/decoratecart.cpp" />
+    <ClCompile Include="skills/merchant/fullprotection.cpp" />
+    <ClCompile Include="skills/merchant/greed.cpp" />
+    <ClCompile Include="skills/merchant/hammerfall.cpp" />
+    <ClCompile Include="skills/merchant/itemappraisal.cpp" />
+    <ClCompile Include="skills/merchant/mammonite.cpp" />
+    <ClCompile Include="skills/merchant/plantcultivation.cpp" />
+    <ClCompile Include="skills/merchant/powerthrust.cpp" />
+    <ClCompile Include="skills/merchant/preparepotion.cpp" />
+    <ClCompile Include="skills/merchant/skill_factory_merchant.cpp" />
+    <ClCompile Include="skills/merchant/skill_vending.cpp" />
+    <ClCompile Include="skills/merchant/summonflora.cpp" />
+    <ClCompile Include="skills/merchant/summonmarinesphere.cpp" />
+    <ClCompile Include="skills/merchant/synthesizedshield.cpp" />
+    <ClCompile Include="skills/merchant/syntheticarmor.cpp" />
+    <ClCompile Include="skills/merchant/twilightalchemy1.cpp" />
+    <ClCompile Include="skills/merchant/twilightalchemy2.cpp" />
+    <ClCompile Include="skills/merchant/twilightalchemy3.cpp" />
+    <ClCompile Include="skills/merchant/upgradeweapon.cpp" />
+    <ClCompile Include="skills/merchant/vaporize.cpp" />
+    <ClCompile Include="skills/merchant/weaponperfection.cpp" />
+    <ClCompile Include="skills/merchant/weaponrepair.cpp" />
+    <ClCompile Include="skills/ninja/skill_factory_ninja.cpp" />
+    <ClCompile Include="skills/novice/doublebowlingbash.cpp" />
+    <ClCompile Include="skills/novice/groundgravitation.cpp" />
+    <ClCompile Include="skills/novice/hellsdrive.cpp" />
+    <ClCompile Include="skills/novice/jackfrostnova.cpp" />
+    <ClCompile Include="skills/novice/jupitelthunderstorm.cpp" />
+    <ClCompile Include="skills/novice/megasonicblow.cpp" />
+    <ClCompile Include="skills/novice/meteorstormbuster.cpp" />
+    <ClCompile Include="skills/novice/napalmvulcanstrike.cpp" />
+    <ClCompile Include="skills/novice/overcomingcrisis.cpp" />
+    <ClCompile Include="skills/novice/shieldchainrush.cpp" />
+    <ClCompile Include="skills/novice/skill_factory_novice.cpp" />
+    <ClCompile Include="skills/novice/spiralpiercemax.cpp" />
+    <ClCompile Include="skills/npc/skill_factory_npc.cpp" />
+    <ClCompile Include="skills/skill_factory.cpp" />
+    <ClCompile Include="skills/skill_impl.cpp" />
+    <ClCompile Include="skills/status_skill_impl.cpp" />
+    <ClCompile Include="skills/summoner/skill_factory_summoner.cpp" />
+    <ClCompile Include="skills/swordman/autoberserk.cpp" />
+    <ClCompile Include="skills/swordman/bash.cpp" />
+    <ClCompile Include="skills/swordman/bowlingbash.cpp" />
+    <ClCompile Include="skills/swordman/brandishspear.cpp" />
+    <ClCompile Include="skills/swordman/counterattack.cpp" />
+    <ClCompile Include="skills/swordman/grandcross.cpp" />
+    <ClCompile Include="skills/swordman/holycross.cpp" />
+    <ClCompile Include="skills/swordman/magnum.cpp" />
+    <ClCompile Include="skills/swordman/pierce.cpp" />
+    <ClCompile Include="skills/swordman/provoke.cpp" />
+    <ClCompile Include="skills/swordman/relax.cpp" />
+    <ClCompile Include="skills/swordman/resistantsouls.cpp" />
+    <ClCompile Include="skills/swordman/sacrifice.cpp" />
+    <ClCompile Include="skills/swordman/selfprovoke.cpp" />
+    <ClCompile Include="skills/swordman/shieldboomerang.cpp" />
+    <ClCompile Include="skills/swordman/shieldreflect.cpp" />
+    <ClCompile Include="skills/swordman/skill_factory_swordman.cpp" />
+    <ClCompile Include="skills/swordman/smite.cpp" />
+    <ClCompile Include="skills/swordman/spearboomerang.cpp" />
+    <ClCompile Include="skills/swordman/spearstab.cpp" />
+    <ClCompile Include="skills/swordman/spiralpierce.cpp" />
+    <ClCompile Include="skills/swordman/traumaticblow.cpp" />
+    <ClCompile Include="skills/swordman/vitalstrike.cpp" />
+    <ClCompile Include="skills/taekwon/circleofdirectionsandelementals.cpp" />
+    <ClCompile Include="skills/taekwon/counter.cpp" />
+    <ClCompile Include="skills/taekwon/downkick.cpp" />
+    <ClCompile Include="skills/taekwon/eska.cpp" />
+    <ClCompile Include="skills/taekwon/eske.cpp" />
+    <ClCompile Include="skills/taekwon/esma.cpp" />
+    <ClCompile Include="skills/taekwon/estin.cpp" />
+    <ClCompile Include="skills/taekwon/estun.cpp" />
+    <ClCompile Include="skills/taekwon/eswoo.cpp" />
+    <ClCompile Include="skills/taekwon/feelingthesunmoonandstars.cpp" />
+    <ClCompile Include="skills/taekwon/hatredofthesunmoonandstars.cpp" />
+    <ClCompile Include="skills/taekwon/exorcismofmalicioussoul.cpp" />
+    <ClCompile Include="skills/taekwon/highjump.cpp" />
+    <ClCompile Include="skills/taekwon/jumpkick.cpp" />
+    <ClCompile Include="skills/taekwon/kaahi.cpp" />
+    <ClCompile Include="skills/taekwon/kaite.cpp" />
+    <ClCompile Include="skills/taekwon/kaizel.cpp" />
+    <ClCompile Include="skills/taekwon/kaupe.cpp" />
+    <ClCompile Include="skills/taekwon/mission.cpp" />
+    <ClCompile Include="skills/taekwon/run.cpp" />
+    <ClCompile Include="skills/taekwon/sevenwind.cpp" />
+    <ClCompile Include="skills/taekwon/skill_factory_taekwon.cpp" />
+    <ClCompile Include="skills/taekwon/soulgathering.cpp" />
+    <ClCompile Include="skills/taekwon/soulofheavenandearth.cpp" />
+    <ClCompile Include="skills/taekwon/spiritofrebirth.cpp" />
+    <ClCompile Include="skills/taekwon/spiritofthealchemist.cpp" />
+    <ClCompile Include="skills/taekwon/spiritoftheartist.cpp" />
+    <ClCompile Include="skills/taekwon/spiritoftheassasin.cpp" />
+    <ClCompile Include="skills/taekwon/spiritoftheblacksmith.cpp" />
+    <ClCompile Include="skills/taekwon/spiritofthecrusader.cpp" />
+    <ClCompile Include="skills/taekwon/spiritofthehunter.cpp" />
+    <ClCompile Include="skills/taekwon/spiritoftheknight.cpp" />
+    <ClCompile Include="skills/taekwon/spiritofthemonk.cpp" />
+    <ClCompile Include="skills/taekwon/spiritofthepriest.cpp" />
+    <ClCompile Include="skills/taekwon/spiritoftherogue.cpp" />
+    <ClCompile Include="skills/taekwon/spiritofthesage.cpp" />
+    <ClCompile Include="skills/taekwon/spiritofthesoullinker.cpp" />
+    <ClCompile Include="skills/taekwon/spiritofthestargladiator.cpp" />
+    <ClCompile Include="skills/taekwon/spiritofthesupernovice.cpp" />
+    <ClCompile Include="skills/taekwon/spiritofthewizard.cpp" />
+    <ClCompile Include="skills/taekwon/stormkick.cpp" />
+    <ClCompile Include="skills/taekwon/talismanofblacktortoise.cpp" />
+    <ClCompile Include="skills/taekwon/talismanofbluedragon.cpp" />
+    <ClCompile Include="skills/taekwon/talismanoffiveelements.cpp" />
+    <ClCompile Include="skills/taekwon/talismanoffourbearinggod.cpp" />
+    <ClCompile Include="skills/taekwon/talismanofmagician.cpp" />
+    <ClCompile Include="skills/taekwon/talismanofprotection.cpp" />
+    <ClCompile Include="skills/taekwon/talismanofredphoenix.cpp" />
+    <ClCompile Include="skills/taekwon/talismanofsoulstealing.cpp" />
+    <ClCompile Include="skills/taekwon/talismanofwarrior.cpp" />
+    <ClCompile Include="skills/taekwon/talismanofwhitetiger.cpp" />
+    <ClCompile Include="skills/taekwon/totemoftutelary.cpp" />
+    <ClCompile Include="skills/taekwon/turnkick.cpp" />
+    <ClCompile Include="skills/taekwon/warmthofthemoon.cpp" />
+    <ClCompile Include="skills/taekwon/warmthofthestars.cpp" />
+    <ClCompile Include="skills/taekwon/warmthofthesun.cpp" />
+    <ClCompile Include="skills/thief/backslide.cpp" />
+    <ClCompile Include="skills/thief/backstab.cpp" />
+    <ClCompile Include="skills/thief/cloaking.cpp" />
+    <ClCompile Include="skills/thief/closeconfine.cpp" />
+    <ClCompile Include="skills/thief/counterinstinct.cpp" />
+    <ClCompile Include="skills/thief/createdeadlypoison.cpp" />
+    <ClCompile Include="skills/thief/detoxify.cpp" />
+    <ClCompile Include="skills/thief/divestall.cpp" />
+    <ClCompile Include="skills/thief/divestarmor.cpp" />
+    <ClCompile Include="skills/thief/divesthelm.cpp" />
+    <ClCompile Include="skills/thief/divestshield.cpp" />
+    <ClCompile Include="skills/thief/divestweapon.cpp" />
+    <ClCompile Include="skills/thief/enchantdeadlypoison.cpp" />
+    <ClCompile Include="skills/thief/enchantpoison.cpp" />
+    <ClCompile Include="skills/thief/envenom.cpp" />
+    <ClCompile Include="skills/thief/findstone.cpp" />
+    <ClCompile Include="skills/thief/grimtooth.cpp" />
+    <ClCompile Include="skills/thief/hiding.cpp" />
+    <ClCompile Include="skills/thief/meteorassault.cpp" />
+    <ClCompile Include="skills/thief/mug.cpp" />
+    <ClCompile Include="skills/thief/remover.cpp" />
+    <ClCompile Include="skills/thief/sandattack.cpp" />
+    <ClCompile Include="skills/thief/scribble.cpp" />
+    <ClCompile Include="skills/thief/sightlessmind.cpp" />
+    <ClCompile Include="skills/thief/skill_factory_thief.cpp" />
+    <ClCompile Include="skills/thief/snatch.cpp" />
+    <ClCompile Include="skills/thief/sonicblow.cpp" />
+    <ClCompile Include="skills/thief/souldestroyer.cpp" />
+    <ClCompile Include="skills/thief/steal.cpp" />
+    <ClCompile Include="skills/thief/stealth.cpp" />
+    <ClCompile Include="skills/thief/stonefling.cpp" />
+    <ClCompile Include="skills/thief/throwvenomknife.cpp" />
+    <ClCompile Include="skills/thief/venomdust.cpp" />
+    <ClCompile Include="skills/thief/venomsplasher.cpp" />
+    <ClCompile Include="skills/weapon_skill_impl.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <Target Name="AfterClean">
+    <Delete Files="$(SolutionDir)libmysql.dll" ContinueOnError="true" />
+    <Delete Files="$(SolutionDir)zlib.dll" ContinueOnError="true" />
+    <Delete Files="$(SolutionDir)pcre8.dll" ContinueOnError="true" />
+    <Delete Files="$(SolutionDir)navigenerator.bat" ContinueOnError="true" />
+  </Target>
+  <Target Name="AfterBuild">
+    <Copy SourceFiles="$(SolutionDir)3rdparty\mysql\lib\$(Platform)\libmysql.dll" DestinationFolder="$(SolutionDir)" ContinueOnError="true" Condition="!Exists('$(SolutionDir)libmysql.dll')" />
+    <Copy SourceFiles="$(SolutionDir)3rdparty\pcre\lib\$(Platform)\pcre8.dll" DestinationFolder="$(SolutionDir)" ContinueOnError="true" Condition="!Exists('$(SolutionDir)pcre8.dll')" />
+    <Copy SourceFiles="$(SolutionDir)3rdparty\zlib\lib\$(Platform)\zlib.dll" DestinationFolder="$(SolutionDir)" ContinueOnError="true" Condition="!Exists('$(SolutionDir)zlib.dll')" />
+    <Copy SourceFiles="$(SolutionDir)tools\navigenerator.bat" DestinationFolder="$(SolutionDir)" ContinueOnError="true" Condition="!Exists('$(SolutionDir)navigenerator.bat')" />
+    <Copy SourceFiles="$(SolutionDir)conf\import-tmpl\atcommands.yml" DestinationFolder="$(SolutionDir)conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\import\atcommands.yml')" />
+    <Copy SourceFiles="$(SolutionDir)conf\import-tmpl\battle_conf.txt" DestinationFolder="$(SolutionDir)conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\import\battle_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)conf\import-tmpl\char_conf.txt" DestinationFolder="$(SolutionDir)conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\import\char_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)conf\import-tmpl\groups.yml" DestinationFolder="$(SolutionDir)conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\import\groups.yml')" />
+    <Copy SourceFiles="$(SolutionDir)conf\import-tmpl\inter_conf.txt" DestinationFolder="$(SolutionDir)conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\import\inter_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)conf\import-tmpl\inter_server.yml" DestinationFolder="$(SolutionDir)conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\import\inter_server.yml')" />
+    <Copy SourceFiles="$(SolutionDir)conf\import-tmpl\log_conf.txt" DestinationFolder="$(SolutionDir)conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\import\log_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)conf\import-tmpl\login_conf.txt" DestinationFolder="$(SolutionDir)conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\import\login_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)conf\import-tmpl\map_conf.txt" DestinationFolder="$(SolutionDir)conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\import\map_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)conf\import-tmpl\packet_conf.txt" DestinationFolder="$(SolutionDir)conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\import\packet_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)conf\import-tmpl\script_conf.txt" DestinationFolder="$(SolutionDir)conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\import\script_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)conf\msg_conf\import-tmpl\map_msg_chn_conf.txt" DestinationFolder="$(SolutionDir)conf\msg_conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\msg_conf\import\map_msg_chn_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)conf\msg_conf\import-tmpl\map_msg_eng_conf.txt" DestinationFolder="$(SolutionDir)conf\msg_conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\msg_conf\import\map_msg_eng_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)conf\msg_conf\import-tmpl\map_msg_frn_conf.txt" DestinationFolder="$(SolutionDir)conf\msg_conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\msg_conf\import\map_msg_frn_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)conf\msg_conf\import-tmpl\map_msg_grm_conf.txt" DestinationFolder="$(SolutionDir)conf\msg_conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\msg_conf\import\map_msg_grm_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)conf\msg_conf\import-tmpl\map_msg_idn_conf.txt" DestinationFolder="$(SolutionDir)conf\msg_conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\msg_conf\import\map_msg_idn_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)conf\msg_conf\import-tmpl\map_msg_mal_conf.txt" DestinationFolder="$(SolutionDir)conf\msg_conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\msg_conf\import\map_msg_mal_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)conf\msg_conf\import-tmpl\map_msg_por_conf.txt" DestinationFolder="$(SolutionDir)conf\msg_conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\msg_conf\import\map_msg_por_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)conf\msg_conf\import-tmpl\map_msg_rus_conf.txt" DestinationFolder="$(SolutionDir)conf\msg_conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\msg_conf\import\map_msg_rus_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)conf\msg_conf\import-tmpl\map_msg_spn_conf.txt" DestinationFolder="$(SolutionDir)conf\msg_conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\msg_conf\import\map_msg_spn_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)conf\msg_conf\import-tmpl\map_msg_tha_conf.txt" DestinationFolder="$(SolutionDir)conf\msg_conf\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)conf\msg_conf\import\map_msg_tha_conf.txt')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\abra_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\abra_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\achievement_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\achievement_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\achievement_level_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\achievement_level_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\attendance.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\attendance.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\attr_fix.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\attr_fix.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\battleground_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\battleground_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\castle_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\castle_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\const.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\const.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\create_arrow_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\create_arrow_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\elemental_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\elemental_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\enchantgrade.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\enchantgrade.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\exp_homun.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\exp_homun.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\exp_guild.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\exp_guild.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\guild_skill_tree.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\guild_skill_tree.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\homunculus_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\homunculus_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\instance_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\instance_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\item_cash.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\item_cash.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\item_combos.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\item_combos.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\item_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\item_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\item_group_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\item_group_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\item_noequip.txt" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\item_noequip.txt')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\item_randomopt_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\item_randomopt_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\item_randomopt_group.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\item_randomopt_group.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\item_reform.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\item_reform.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\job_noenter_map.txt" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\job_noenter_map.txt')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\job_stats.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\job_stats.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\laphine_synthesis.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\laphine_synthesis.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\laphine_upgrade.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\laphine_upgrade.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\level_penalty.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\level_penalty.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\magicmushroom_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\magicmushroom_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\map_cache.dat" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\map_cache.dat')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\map_drops.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\map_drops.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\map_index.txt" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\map_index.txt')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\mercenary_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\mercenary_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\mob_avail.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\mob_avail.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\mob_summon.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\mob_summon.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\mob_chat_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\mob_chat_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\mob_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\mob_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\mob_item_ratio.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\mob_item_ratio.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\mob_skill_db.txt" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\mob_skill_db.txt')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\pet_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\pet_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\produce_db.txt" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\produce_db.txt')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\quest_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\quest_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\refine.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\refine.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\reputation.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\reputation.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\reputation_group.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\reputation_group.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\size_fix.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\size_fix.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\skill_changematerial_db.txt" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\skill_changematerial_db.txt')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\skill_damage_db.txt" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\skill_damage_db.txt')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\skill_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\skill_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\skill_nocast_db.txt" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\skill_nocast_db.txt')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\skill_tree.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\skill_tree.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\spellbook_db.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\spellbook_db.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\statpoint.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\statpoint.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\status_disabled.txt" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\status_disabled.txt')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\status.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\status.yml')" />
+    <Copy SourceFiles="$(SolutionDir)db\import-tmpl\stylist.yml" DestinationFolder="$(SolutionDir)db\import\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)db\import\stylist.yml')" />
+    <MakeDir Directories="$(SolutionDir)generated\clientside\data\luafiles514\lua files\navigation\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)generated\clientside\data\luafiles514\lua files\navigation\')" />
+    <MakeDir Directories="$(SolutionDir)generated\clientside\data\contentdata\" ContinueOnError="true" Condition="!Exists('$(SolutionDir)generated\clientside\data\contentdata\')" />
+  </Target>
+</Project>

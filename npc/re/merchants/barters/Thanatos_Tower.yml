@@ -1,0 +1,1931 @@
+Header:
+  Type: BARTER_DB
+  Version: 2
+
+Body:
+  - Name: mot_shop_0
+    Items:
+      - Index: 0
+        Item: Sin_Fragment
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Shard_A
+            Amount: 5
+      - Index: 1
+        Item: Sin_Fragment
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Shard_B
+            Amount: 5
+      - Index: 2
+        Item: Sin_Fragment
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Shard_C
+            Amount: 5
+      - Index: 3
+        Item: Sin_Fragment
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Shard_D
+            Amount: 5
+      - Index: 4
+        Item: Sin_Fragment
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Shard_E
+            Amount: 5
+      - Index: 5
+        Item: Fate_Fragment
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Shard_A
+            Amount: 5
+      - Index: 6
+        Item: Fate_Fragment
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Shard_B
+            Amount: 5
+      - Index: 7
+        Item: Fate_Fragment
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Shard_C
+            Amount: 5
+      - Index: 8
+        Item: Fate_Fragment
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Shard_D
+            Amount: 5
+      - Index: 9
+        Item: Fate_Fragment
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Shard_E
+            Amount: 5
+  - Name: mot_shop_1
+    Items:
+      - Index: 0
+        Item: Sin_Ring_R
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 50
+      - Index: 1
+        Item: Sin_Ring_E
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 50
+      - Index: 2
+        Item: Sin_Ring_T
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 50
+      - Index: 3
+        Item: Sin_Ring_A
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 50
+      - Index: 4
+        Item: Sin_Ring_S
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 50
+      - Index: 5
+        Item: Sin_Ring_O
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 50
+      - Index: 6
+        Item: Sin_Necklace_R
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 50
+      - Index: 7
+        Item: Sin_Necklace_E
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 50
+      - Index: 8
+        Item: Sin_Necklace_T
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 50
+      - Index: 9
+        Item: Sin_Necklace_A
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 50
+      - Index: 10
+        Item: Sin_Necklace_S
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 50
+      - Index: 11
+        Item: Sin_Necklace_O
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 50
+  - Name: mot_shop_2
+    Items:
+      - Index: 0
+        Item: Shine_Ring_R
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 50
+      - Index: 1
+        Item: Shine_Ring_A
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 50
+      - Index: 2
+        Item: Shine_Ring_E
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 50
+      - Index: 3
+        Item: Shine_Ring_Z
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 50
+      - Index: 4
+        Item: Shine_Ring_S
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 50
+      - Index: 5
+        Item: Shine_Ring_AQ
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 50
+      - Index: 6
+        Item: Shine_Necklace_R
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 50
+      - Index: 7
+        Item: Shine_Necklace_A
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 50
+      - Index: 8
+        Item: Shine_Necklace_E
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 50
+      - Index: 9
+        Item: Shine_Necklace_Z
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 50
+      - Index: 10
+        Item: Shine_Necklace_S
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 50
+      - Index: 11
+        Item: Shine_Necklace_AQ
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 50
+
+  - Name: t_exchange
+    Items:
+      - Index: 0
+        Item: GoodnEvil_Helm_Hammer
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 250
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 250
+          - Index: 2
+            Item: Hammer_Of_Blacksmith
+            Amount: 10
+          - Index: 3
+            Item: Real_Randel_Card
+            Amount: 1
+          - Index: 4
+            Item: Real_Gertie_Card
+            Amount: 1
+      - Index: 1
+        Item: GoodnEvil_Circlet_EM
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 2
+        Item: GoodnEvil_Circlet_BO
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 3
+        Item: GoodnEvil_Circlet_TR
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 4
+        Item: GoodnEvil_Circlet_SS
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 5
+        Item: GoodnEvil_Circlet_SKE
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 6
+        Item: GoodnEvil_Circlet_SOA
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 7
+        Item: GoodnEvil_Circlet_SH
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 8
+        Item: GoodnEvil_Circlet_NW2
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 9
+        Item: GoodnEvil_Circlet_NW3
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 10
+        Item: GoodnEvil_Circlet_NW4
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 11
+        Item: GoodnEvil_Circlet_HN
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 12
+        Item: GoodnEvil_Circlet_NW5
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 13
+        Item: GoodnEvil_Circlet_CD
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 14
+        Item: GoodnEvil_Circlet_DK
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 15
+        Item: GoodnEvil_Circlet_IQ
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 16
+        Item: GoodnEvil_Circlet_IG
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 17
+        Item: GoodnEvil_Circlet_ABC
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 18
+        Item: GoodnEvil_Circlet_AG
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 19
+        Item: GoodnEvil_Circlet_MT
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 20
+        Item: GoodnEvil_Circlet_NW
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 21
+        Item: GoodnEvil_Circlet_SHC
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+      - Index: 22
+        Item: GoodnEvil_Circlet_WH
+        Zeny: 17600000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 500
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 500
+          - Index: 2
+            Item: S_Circlet_Of_Time
+            Amount: 150
+          - Index: 3
+            Item: Pieces_Of_Sentiment
+            Amount: 1500
+          - Index: 4
+            Item: Mother's_Nightmare
+            Amount: 2
+  - Name: bri_weapon
+    Items:
+      - Index: 0
+        Item: Justice_Weapon_Hammer
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 177
+          - Index: 1
+            Item: Hammer_Of_Blacksmith
+            Amount: 10
+          - Index: 2
+            Item: Oridecon
+            Amount: 25
+          - Index: 3
+            Item: Explosion_Card
+            Amount: 1
+          - Index: 4
+            Item: Real_Magaleta_Card
+            Amount: 1
+      - Index: 1
+        Item: Holy_Raise_Spear
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 2
+        Item: Punish_Hall
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 3
+        Item: Soul_Liberator
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 4
+        Item: Guardian_Saber
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 5
+        Item: Devil_Hunter
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 6
+        Item: Saint_Bringer
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 7
+        Item: Lighting_Splatter
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 8
+        Item: Orign_Of_Life
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 9
+        Item: Lightforce_Foxtail_Wand
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 10
+        Item: Road_Of_Glory
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 11
+        Item: Humma_Brilliance
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 12
+        Item: Holy_Light_Dagger
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 13
+        Item: Destiny_Staff
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 14
+        Item: Shining_Light_Katar
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 15
+        Item: Justice_Bomber
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 16
+        Item: Luppiter_Spear
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 17
+        Item: Light_Power_Harp
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 18
+        Item: Victory_Sword
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 19
+        Item: Angel_Wing_Bow
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 20
+        Item: Last_Dawn
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 21
+        Item: Blessed_Bible
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 22
+        Item: Light_Power_Spark
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 23
+        Item: Divine_Buster
+        Zeny: 16000000
+        RequiredItems:
+          - Index: 0
+            Item: Fate_Fragment
+            Amount: 700
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+  - Name: sin_weapon
+    Items:
+      - Index: 0
+        Item: Injustice_Weapon_Hammer
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 166
+          - Index: 1
+            Item: Hammer_Of_Blacksmith
+            Amount: 10
+          - Index: 2
+            Item: Oridecon
+            Amount: 25
+          - Index: 3
+            Item: Explosion_Card
+            Amount: 1
+          - Index: 4
+            Item: Real_Eremes_Card
+            Amount: 1
+      - Index: 1
+        Item: Demonic_Claw
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 2
+        Item: Sealed_Bible
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 3
+        Item: Darkness_Tablet
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 4
+        Item: Devil_Wing_Staff
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 5
+        Item: Doom_Bible
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 6
+        Item: Soul_Harvest
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 7
+        Item: The_Reaper
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 8
+        Item: Underworld_Knife
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 9
+        Item: Devil_Cursed_Sword
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 10
+        Item: Dark_Angel_Ray_Bow
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 11
+        Item: Crime_Violine
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 12
+        Item: Crime_Whip
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 13
+        Item: RG_5649
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 14
+        Item: Devil_L_Launcher
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 15
+        Item: Screaming_Rifle
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 16
+        Item: Devils_Bullet
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 17
+        Item: Outlaw_Cursed_Shotgun
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 18
+        Item: Blood_Rapier
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 19
+        Item: Destruction_Axe
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 20
+        Item: Devil_Claw
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 21
+        Item: Execution_Great_Sword
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 22
+        Item: Devil_Guardian_Sword
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+      - Index: 23
+        Item: Darkness_Foxtail_Model
+        Zeny: 17000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Evil_Black_Bid
+            Amount: 100
+          - Index: 2
+            Item: Ectoplasmic_Stone
+            Amount: 100
+          - Index: 3
+            Item: Black_Jewelry
+            Amount: 100
+          - Index: 4
+            Item: M_Dimension_Essence
+            Amount: 5
+  - Name: goodevilboots
+    Items:
+      - Index: 0
+        Item: FateSin_Boots_ABC
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 1
+        Item: FateSin_Boots_AG
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 2
+        Item: FateSin_Boots_BO
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 3
+        Item: FateSin_Boots_CD
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 4
+        Item: FateSin_Boots_DK
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 5
+        Item: FateSin_Boots_EM
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 6
+        Item: FateSin_Boots_HN
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 7
+        Item: FateSin_Boots_IG
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 8
+        Item: FateSin_Boots_IQ
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 9
+        Item: FateSin_Boots_MT
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 10
+        Item: FateSin_Boots_NW
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 11
+        Item: FateSin_Boots_SHC
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 12
+        Item: FateSin_Boots_SS
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 13
+        Item: FateSin_Boots_SKE
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 14
+        Item: FateSin_Boots_SOA
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 15
+        Item: FateSin_Boots_SH
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 16
+        Item: FateSin_Boots_TR
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 17
+        Item: FateSin_Boots_WH
+        Zeny: 18000000
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 666
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 600
+          - Index: 2
+            Item: Green_Crystal_Fragment
+            Amount: 100
+          - Index: 3
+            Item: Hard_Ice
+            Amount: 100
+          - Index: 4
+            Item: Mightysoul_Essence
+            Amount: 5
+      - Index: 18
+        Item: FateSin_Boots_Hammer
+        RequiredItems:
+          - Index: 0
+            Item: Sin_Fragment
+            Amount: 200
+          - Index: 1
+            Item: Fate_Fragment
+            Amount: 200
+          - Index: 2
+            Item: Elunium
+            Amount: 40
+          - Index: 3
+            Item: Explosion_Card
+            Amount: 1
+          - Index: 4
+            Item: Real_Flamel_Card
+            Amount: 1
+

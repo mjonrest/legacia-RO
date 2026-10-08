@@ -1,0 +1,617 @@
+glast_01,143,288,5	script	Oscar#OGHCM	4_ED_OSCAR,{
+    .@npc$ = "[Oscar]";
+    .md_name$ = "OGH CM";
+    .@max_difficulty = 10; // Maximum difficulty level
+    .@unlocked_difficulty = min(.@max_difficulty, ( clears / 10) + 1); // Unlock new difficulty every 10 clears
+    mes .@npc$;
+    callfunc "F_OGH_Settings";
+	if(checkquest(200033,PLAYTIME) == 2){
+		erasequest 200033;
+	}
+    mes "Welcome to Old Glast Heim: Challenge Mode!";
+    mes "You have cleared this instance " + clears + " times.";
+    mes "Unlocked difficulty: Level " + .@unlocked_difficulty + ".";
+    mes "Select a difficulty to proceed.";
+    next;
+    for (.@i = 1; .@i <= .@unlocked_difficulty; .@i++)
+        .@menu$ += ":Difficulty Level " + .@i;
+    .@select = select(.@menu$);
+    .@difficulty = .@select - 1;
+
+    $OGHCM[getcharid(1)] = .@difficulty;
+
+	switch(select("create:enter")){
+	case 1:
+    // Check if the player is in a party
+    if (getcharid(1) == 0) {
+        mes "You must be in a party to start this instance.";
+        close;
+    }
+
+    // Check if the player is the party leader
+    if (!is_party_leader()) {
+        mes "Only the party leader can create the instance.";
+        close;
+    }
+    // Create the instance
+    set .@instance_id, instance_create(.md_name$);
+    if (.@instance_id < 0) {
+        mes "Failed to create the instance.";
+        close;
+    }
+
+    // Get the instance map name
+    set .map$, instance_mapname("1@gl_he", .@instance_id);
+	case 2:
+    // Inform the player before warping
+	switch(checkquest(200033,PLAYTIME)){
+		case 0:
+		case 1:
+		mes "you are on cooldown fella";
+		end;
+		}
+	switch(instance_enter(.md_name$)){
+	case IE_OTHER:
+		mes "An unknown error has occurred.";
+		close;
+	case IE_NOINSTANCE:
+		mes "no instance dumb ass";
+		end;
+	case IE_OK:
+	setquest 200033;
+    mes "You and your party will now be warped to the Challenge Mode!";
+    mes "Good luck!";
+	end;
+	}
+}
+/**
+//Warp the party to the instance map
+    getpartymember getcharid(1), 1; // Get party members
+    getpartymember getcharid(1), 2; // Get online party members
+    for (set .@i, 0; .@i < $@partymembercount; .@i++) {
+        if ($@partymemberaid[.@i] > 0) {
+            attachrid $@partymemberaid[.@i];
+            warp .map$, 150, 28;
+        }
+    }
+    detachrid;
+**/
+}
+
+1@gl_he,149,44,5	script	Oscar#instance1	4_ED_OSCAR,{
+set .map$,instance_mapname("1@gl_he");
+    if (!is_party_leader()) {
+        mes "[Oscar]";
+        mes "Only the party leader can speak to me.";
+        close;
+    }
+    mes "[Oscar]";
+    mes "You choose level "+'level_mode+".";
+    mes "";
+	close2;
+	callfunc "F_OGH_Settings";
+//    //Warp the party to the instance map
+//    getpartymember getcharid(1), 1; // Get party members
+//    getpartymember getcharid(1), 2; // Get online party members
+//    for (set .@i, 0; .@i < $@partymembercount; .@i++) {
+//        if ($@partymemberaid[.@i] > 0) {
+//            attachrid $@partymemberaid[.@i];
+//            warp .map$, 126,82;
+//        }
+//    }
+//    detachrid;
+	instance_warpall .map$, 126,82,instance_id(IM_PARTY),IWA_NONE;
+    goto L_Start;
+
+
+L_Start:
+hideonnpc instance_npcname("Oscar#instance1"); // Disable the NPC to prevent re-entry
+//callfunc("F_OGH_Monster_Summon", .map$,31,164,138,62,"--ja--",20574,5,instance_npcname("Oscar#instance1")+"::OnMyMobDeadLeft");
+//callfunc("F_OGH_Monster_Summon", .map$,31,164,138,62,"--ja--",20576,5,instance_npcname("Oscar#instance1")+"::OnMyMobDeadLeft");
+//callfunc("F_OGH_Monster_Summon", .map$,31,164,138,62,"--ja--",20577,10,instance_npcname("Oscar#instance1")+"::OnMyMobDeadLeft");
+//callfunc("F_OGH_Monster_Summon", .map$,31,164,138,62,"--ja--",20578,10,instance_npcname("Oscar#instance1")+"::OnMyMobDeadLeft");
+//callfunc("F_OGH_Monster_Summon", .map$,31,164,138,62,"--ja--",20579,10,instance_npcname("Oscar#instance1")+"::OnMyMobDeadLeft");
+//callfunc("F_OGH_Monster_Summon", .map$,31,164,138,62,"--ja--",20580,10,instance_npcname("Oscar#instance1")+"::OnMyMobDeadLeft");
+areamonster .map$, 31,164,138,62, "--ja--", 20574, 5, instance_npcname("Oscar#instance1")+"::OnMyMobDeadLeft";
+areamonster .map$, 31,164,138,62, "--ja--", 20576, 5, instance_npcname("Oscar#instance1")+"::OnMyMobDeadLeft";
+areamonster .map$, 31,164,138,62, "--ja--", 20577, 10, instance_npcname("Oscar#instance1")+"::OnMyMobDeadLeft";
+areamonster .map$, 31,164,138,62, "--ja--", 20578, 10, instance_npcname("Oscar#instance1")+"::OnMyMobDeadLeft";
+areamonster .map$, 31,164,138,62, "--ja--", 20579, 10, instance_npcname("Oscar#instance1")+"::OnMyMobDeadLeft";
+areamonster .map$, 31,164,138,62, "--ja--", 20580, 10, instance_npcname("Oscar#instance1")+"::OnMyMobDeadLeft";
+
+
+OnMyMobDeadLeft:
+set .@mob_dead_num,mobcount(.map$,instance_npcname("Oscar#instance1")+"::OnMyMobDeadLeft");
+if (.@mob_dead_num == 0) {
+
+    	mapannounce .map$, "Now go to right side ",bc_map,"0xffff00";
+	enablenpc instance_npcname("#left2mid");
+	enablenpc instance_npcname("#mid2right");
+	goto L_Start2;
+	end;
+    //SetItemPartyInMap in_102floor 100
+}
+end;
+
+L_Start2:
+//callfunc("F_OGH_Monster_Summon", .map$,166,165,265,18,"--ja--",20574,5,instance_npcname("Oscar#instance1")+"::OnMyMobDeadRight");
+//callfunc("F_OGH_Monster_Summon", .map$,166,165,265,18,"--ja--",20576,5,instance_npcname("Oscar#instance1")+"::OnMyMobDeadRight");
+//callfunc("F_OGH_Monster_Summon", .map$,166,165,265,18,"--ja--",20577,10,instance_npcname("Oscar#instance1")+"::OnMyMobDeadRight");
+//callfunc("F_OGH_Monster_Summon", .map$,166,165,265,18,"--ja--",20578,10,instance_npcname("Oscar#instance1")+"::OnMyMobDeadRight");
+//callfunc("F_OGH_Monster_Summon", .map$,166,165,265,18,"--ja--",20579,10,instance_npcname("Oscar#instance1")+"::OnMyMobDeadRight");
+//callfunc("F_OGH_Monster_Summon", .map$,166,165,265,18,"--ja--",20580,10,instance_npcname("Oscar#instance1")+"::OnMyMobDeadRight");
+areamonster .map$, 166,165,265,18, "--ja--", 20574, 5, instance_npcname("Oscar#instance1")+"::OnMyMobDeadRight";
+areamonster .map$, 166,165,265,18, "--ja--", 20576, 5, instance_npcname("Oscar#instance1")+"::OnMyMobDeadRight";
+areamonster .map$, 166,165,265,18, "--ja--", 20577, 10, instance_npcname("Oscar#instance1")+"::OnMyMobDeadRight";
+areamonster .map$, 166,165,265,18, "--ja--", 20578, 10, instance_npcname("Oscar#instance1")+"::OnMyMobDeadRight";
+areamonster .map$, 166,165,265,18, "--ja--", 20579, 10, instance_npcname("Oscar#instance1")+"::OnMyMobDeadRight";
+areamonster .map$, 166,165,265,18, "--ja--", 20580, 10, instance_npcname("Oscar#instance1")+"::OnMyMobDeadRight";
+
+
+OnMyMobDeadRight:
+set .@mob_dead_num,mobcount(.map$,instance_npcname("Oscar#instance1")+"::OnMyMobDeadRight");
+if (.@mob_dead_num == 0) {
+    mapannounce .map$, "Now go to Middle",bc_map,"0xffff00";
+    enablenpc instance_npcname("#right2mid");
+    enablenpc instance_npcname("#mid2boss");
+    enablenpc instance_npcname("Oscar#instance2");
+    //SetItemPartyInMap in_102floor 100
+}
+end;
+
+OnInstanceInit:
+'level_mode = $OGHCM[instance_live_info(ILI_OWNER)];
+disablenpc instance_npcname("#left2mid");
+disablenpc instance_npcname("#mid2right");
+disablenpc instance_npcname("#right2mid");
+disablenpc instance_npcname("#mid2boss");
+disablenpc instance_npcname("Oscar#instance2");
+disablenpc instance_npcname("Oscar#instance3");
+disablenpc instance_npcname("Treasure Box#OGHCM");
+disablenpc instance_npcname("Oscar#Defeat");
+end;
+
+}
+
+1@gl_he,149,175,5	script	Oscar#instance2	4_ED_OSCAR,{
+set .map$,instance_mapname("1@gl_he");
+    if (!is_party_leader()) {
+        mes "[Oscar]";
+        mes "Only the party leader can speak to me.";
+        close;
+    }
+    mes "[Oscar]";
+    mes "Congrats to reach this side, now go to boss room";
+    mes "";
+    close2;
+    disablenpc instance_npcname("Oscar#instance2"); // Disable the NPC to prevent re-entry
+    enablenpc instance_npcname("Oscar#instance3");
+}
+
+1@gl_he,158,230,5	script	Oscar#instance3	4_ED_OSCAR,{
+
+	set .map$, instance_mapname("1@gl_he");
+	if (!is_party_leader()) {
+		mes "[Oscar]";
+		mes "Only the party leader can speak to me.";
+		close;
+	}
+	mes "[Oscar]";
+	mes "Let me summon the boss for you";
+	mes "";
+	close2;
+	specialeffect EF_BEGINSPELL;
+	npctalk "Try hard to summon this thing", strnpcinfo(3);
+	progressbar_npc "ffffff", 10, instance_npcname("Oscar#instance3");
+	mapannounce .map$, "Summon MVP With Level ["+'level_mode+"].", bc_map, 0x00ff00;
+	if (rand(1, 10000) < 9000) {
+		callfunc("F_OGH_Monster_Summon", .map$, 158, 239, 158, 239, "Phantom Amdarais", 20573, 1, instance_npcname("Oscar#instance3") + "::OnMyMobDeadBoss");
+	} else {
+	//	callfunc("F_OGH_Monster_Summon", .map$, 158, 239, 158, 239, "--ja--", 20572, 1, instance_npcname("Oscar#instance3") + "::OnMyMobDeadBoss");
+	areamonster .map$, 158, 239, 158, 239, "--ja--", 20572, 1, instance_npcname("Oscar#instance3") + "::OnMyMobDeadBoss";
+	}
+	hideonnpc instance_npcname("Oscar#instance3");
+	end;
+
+OnMyMobDeadBoss:
+	mapannounce .map$, "MVP has been defeated! All dark power dissipates.", bc_map, 0x00ff00;
+	enablenpc instance_npcname("Treasure Box#OGHCM");
+	enablenpc instance_npcname("Oscar#Defeat");
+//	killmonsterall .map$, 0;
+	end;
+}
+
+1@gl_he,158,250,5	script	Oscar#Defeat	4_ED_OSCAR,{
+set .map$,instance_mapname("1@gl_he");
+    if (!is_party_leader()) {
+        mes "[Oscar]";
+        mes "Only the party leader can speak to me.";
+        close;
+    }
+    mes "[Oscar]";
+    mes "Congratulations on completing the challenge!";
+    mes "Here is your reward ["+'level_mode+"].";
+    close2;
+
+    // Calculate the reward based on difficulty
+    .@max_difficulty = 10;
+    .@unlocked_difficulty = min(.@max_difficulty, ( clears / 10) + 1); // Unlock new difficulty every 10 clears
+    .@reward_amount = 2 * .@unlocked_difficulty;
+
+    // Give the item to the player
+    getitem 25864, .@reward_amount; // Sealed Temporal Circlet
+
+    // Increment the clears variable
+    set clears, clears + 1;
+
+    // Warp the player to the save point
+    warp "SavePoint", 0, 0;
+    end;
+}
+
+1@gl_he,158,240,5	script	Treasure Box#OGHCM	4_TREASURE_BOX,{
+set .map$,instance_mapname("1@gl_he");
+    if (!is_party_leader()) {
+        mes "[Oscar]";
+        mes "Only the party leader can speak to me.";
+        close;
+    }
+    mes "[Treasure Box]";
+    mes "Congratulations on defeating Phantom Amdarais!";
+    mes "Here are your rewards["+'level_mode+"].";
+    close2;
+
+    .@max_difficulty = 10; // Maximum difficulty level
+    .@unlocked_difficulty = min(.@max_difficulty, ( clears / 10) + 1); // Unlock new difficulty every 10 clears
+
+    // Define drop area boundaries
+    .@x1 = 150; // Top-left x-coordinate
+    .@y1 = 247; // Top-left y-coordinate
+    .@x2 = 165; // Bottom-right x-coordinate
+    .@y2 = 232; // Bottom-right y-coordinate
+
+    // Reward scaling based on difficulty level
+    switch (.@unlocked_difficulty) {
+        case 1:
+            for (.@i = 0; .@i < rand(1, 5); .@i++) {
+                makeitem 25864, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Sealed Temporal Circlet
+            }
+            for (.@i = 0; .@i < rand(1, 15); .@i++) {
+                makeitem 25867, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Fragment
+            }
+            break;
+        case 2:
+            for (.@i = 0; .@i < rand(1, 6); .@i++) {
+                makeitem 25864, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Sealed Temporal Circlet
+            }
+            for (.@i = 0; .@i < rand(1, 20); .@i++) {
+                makeitem 25867, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Fragment
+            }
+            break;
+        case 3:
+            for (.@i = 0; .@i < rand(2, 7); .@i++) {
+                makeitem 25864, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Sealed Temporal Circlet
+            }
+            for (.@i = 0; .@i < rand(1, 3); .@i++) {
+                makeitem 25865, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Gemstone
+            }
+            for (.@i = 0; .@i < rand(1, 25); .@i++) {
+                makeitem 25867, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Fragment
+            }
+            break;
+        case 4:
+            for (.@i = 0; .@i < rand(2, 8); .@i++) {
+                makeitem 25864, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Sealed Temporal Circlet
+            }
+            for (.@i = 0; .@i < rand(1, 4); .@i++) {
+                makeitem 25865, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Gemstone
+            }
+            for (.@i = 0; .@i < rand(1, 30); .@i++) {
+                makeitem 25867, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Fragment
+            }
+            break;
+        case 5:
+            for (.@i = 0; .@i < rand(3, 9); .@i++) {
+                makeitem 25864, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Sealed Temporal Circlet
+            }
+            for (.@i = 0; .@i < rand(1, 4); .@i++) {
+                makeitem 25865, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Gemstone
+            }
+            for (.@i = 0; .@i < rand(1, 3); .@i++) {
+                makeitem 25866, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Spell
+            }
+            for (.@i = 0; .@i < rand(2, 30); .@i++) {
+                makeitem 25867, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Fragment
+            }
+            break;
+        case 6:
+            for (.@i = 0; .@i < rand(3, 10); .@i++) {
+                makeitem 25864, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Sealed Temporal Circlet
+            }
+            for (.@i = 0; .@i < rand(1, 5); .@i++) {
+                makeitem 25865, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Gemstone
+            }
+            for (.@i = 0; .@i < rand(3, 7); .@i++) {
+                makeitem 25866, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Spell
+            }
+            for (.@i = 0; .@i < rand(2, 30); .@i++) {
+                makeitem 25867, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Fragment
+            }
+            break;
+        case 7:
+            for (.@i = 0; .@i < rand(4, 10); .@i++) {
+                makeitem 25864, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Sealed Temporal Circlet
+            }
+            for (.@i = 0; .@i < rand(2, 5); .@i++) {
+                makeitem 25865, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Gemstone
+            }
+            for (.@i = 0; .@i < rand(5, 11); .@i++) {
+                makeitem 25866, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Spell
+            }
+            for (.@i = 0; .@i < rand(3, 30); .@i++) {
+                makeitem 25867, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Fragment
+            }
+            break;
+        case 8:
+            for (.@i = 0; .@i < rand(4, 10); .@i++) {
+                makeitem 25864, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Sealed Temporal Circlet
+            }
+            for (.@i = 0; .@i < rand(2, 6); .@i++) {
+                makeitem 25865, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Gemstone
+            }
+            for (.@i = 0; .@i < rand(8, 16); .@i++) {
+                makeitem 25866, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Spell
+            }
+            for (.@i = 0; .@i < rand(3, 30); .@i++) {
+                makeitem 25867, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Fragment
+            }
+            break;
+        case 9:
+            for (.@i = 0; .@i < rand(5, 10); .@i++) {
+                makeitem 25864, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Sealed Temporal Circlet
+            }
+            for (.@i = 0; .@i < rand(2, 6); .@i++) {
+                makeitem 25865, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Gemstone
+            }
+            for (.@i = 0; .@i < rand(11, 22); .@i++) {
+                makeitem 25866, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Spell
+            }
+            for (.@i = 0; .@i < rand(4, 30); .@i++) {
+                makeitem 25867, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Fragment
+            }
+            break;
+        case 10:
+            for (.@i = 0; .@i < rand(5, 10); .@i++) {
+                makeitem 25864, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Sealed Temporal Circlet
+            }
+            for (.@i = 0; .@i < rand(2, 7); .@i++) {
+                makeitem 25865, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Gemstone
+            }
+            for (.@i = 0; .@i < rand(14, 28); .@i++) {
+                makeitem 25866, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Spell
+            }
+            for (.@i = 0; .@i < rand(4, 30); .@i++) {
+                makeitem 25867, 1, .map$, rand(.@x1, .@x2), rand(.@y2, .@y1); // Temporal Fragment
+            }
+            break;
+        // Add cases for difficulty levels 6 to 10 similarly
+    }
+
+    // Disable the treasure box after use
+    hideonnpc instance_npcname("Treasure Box#OGHCM");
+    end;
+}
+
+//callfunc("F_OGH_Monster_Summon", .map$,7,351,17,387,"" + 'monster_alias$ + "Metaling",1613,15,instance_npcname("#summon")+"::OnMyMobDead");
+// Difficulty Function
+//============================================================
+function	script	F_OGH_Monster_Summon	{
+	.@map$ = getarg(0, "");
+	.@x1 = getarg(1, 0);
+	.@y1 = getarg(2, 0);
+	.@x2 = getarg(3, 0);
+	.@y2 = getarg(4, 0);
+	.@mob_name$ = getarg(5, "");
+	.@mob_id = getarg(6, 0);
+	.@amount = getarg(7, 0);
+	.@label$ = getarg(8, "");
+	
+	switch('level_mode){
+		case 1:	//level 1
+			.@bonus_hp_rate += $@level1[0];
+			.@bonus_dmg_rate += $@level1[1];
+			.@bonus_damagetaken += $@level1[2];
+			.@bonus_def += $@level1[3];
+			.@bonus_mdef += $@level1[4];
+			.@bonus_hit += $@level1[5];			
+			.@bonus_flee += $@level1[6];	
+			break;
+		case 2:	//level 2
+			.@bonus_hp_rate += $@level1[0];
+			.@bonus_dmg_rate += $@level1[1];
+			.@bonus_damagetaken += $@level1[2];
+			.@bonus_def += $@level1[3];
+			.@bonus_mdef += $@level1[4];
+			.@bonus_hit += $@level1[5];			
+			.@bonus_flee += $@level1[6];				
+			break;
+		case 3:	//level 3
+			.@bonus_hp_rate += $@level3[0];
+			.@bonus_dmg_rate += $@level3[1];
+			.@bonus_damagetaken += $@level3[2];
+			.@bonus_def += $@level3[3];
+			.@bonus_mdef += $@level3[4];
+			.@bonus_hit += $@level3[5];			
+			.@bonus_flee += $@level3[6];		
+			break;
+		case 4:	//level 4
+			.@bonus_hp_rate += $@level3[0];
+			.@bonus_dmg_rate += $@level3[1];
+			.@bonus_damagetaken += $@level3[2];
+			.@bonus_def += $@level3[3];
+			.@bonus_mdef += $@level3[4];
+			.@bonus_hit += $@level3[5];			
+			.@bonus_flee += $@level3[6];		
+			break;
+        	case 5:	//level 5
+			.@bonus_hp_rate += $@level5[0];
+			.@bonus_dmg_rate += $@level5[1];
+			.@bonus_damagetaken += $@level5[2];
+			.@bonus_def += $@level5[3];
+			.@bonus_mdef += $@level5[4];
+			.@bonus_hit += $@level5[5];			
+			.@bonus_flee += $@level5[6];
+			break;
+		case 6:	//level 6
+			.@bonus_hp_rate += $@level5[0];
+			.@bonus_dmg_rate += $@level5[1];
+			.@bonus_damagetaken += $@level5[2];
+			.@bonus_def += $@level5[3];
+			.@bonus_mdef += $@level5[4];
+			.@bonus_hit += $@level5[5];			
+			.@bonus_flee += $@level5[6];	
+			break;
+		case 7:	//level 7
+            		.@bonus_hp_rate += $@level7[0];
+            		.@bonus_dmg_rate += $@level7[1];
+            		.@bonus_damagetaken += $@level7[2];
+            		.@bonus_def += $@level7[3];
+            		.@bonus_mdef += $@level7[4];
+            		.@bonus_hit += $@level7[5];			
+            		.@bonus_flee += $@level7[6];				
+			break;
+		case 8:	//level 8
+			.@bonus_hp_rate += $@level8[0];
+			.@bonus_dmg_rate += $@level8[1];
+			.@bonus_damagetaken += $@level8[2];
+			.@bonus_def += $@level8[3];
+			.@bonus_mdef += $@level8[4];
+			.@bonus_hit += $@level8[5];			
+			.@bonus_flee += $@level8[6];		
+			break;
+		case 9:	//level 9
+			.@bonus_hp_rate += $@level9[0];
+			.@bonus_dmg_rate += $@level9[1];
+			.@bonus_damagetaken += $@level9[2];
+			.@bonus_def += $@level9[3];
+			.@bonus_mdef += $@level9[4];
+			.@bonus_hit += $@level9[5];			
+			.@bonus_flee += $@level9[6];			
+			break;
+        	case 10:	//level 10
+			.@bonus_hp_rate += $@level10[0];
+			.@bonus_dmg_rate += $@level10[1];
+			.@bonus_damagetaken += $@level10[2];
+			.@bonus_def += $@level10[3];
+			.@bonus_mdef += $@level10[4];
+			.@bonus_hit += $@level10[5];			
+			.@bonus_flee += $@level10[6];			
+			break;
+	}
+
+	deletearray $@mobid,getarraysize($@mobid);
+	areamonster .@map$, .@x1, .@y1, .@x2, .@y2, "[Level "+'level_mode+"] "+.@mob_name$, .@mob_id, .@amount, .@label$;
+	copyarray .@GID, $@mobid, getarraysize($@mobid);
+	getunitdata .@GID, .@ST;
+
+freeloop(1);
+	for (.@i = 0; .@i < getarraysize(.@GID); .@i++) {
+		if(.@bonus_hp_rate){
+		//	.@HP = .@ST[UMOB_MAXHP] + ((.@ST[UMOB_MAXHP] * .@bonus_hp_rate ) /100);
+			.@HP_Inc = .@ST[UMOB_MAXHP] + (.@bonus_hp_rate * 1000000);	
+				setunitdata(.@GID[.@i], UMOB_MAXHP, .@HP_Inc);
+				setunitdata(.@GID[.@i], UMOB_HP, .@HP_Inc);
+		}
+		if(.@bonus_dmg_rate){
+			.@ATKMIN = .@ST[UMOB_ATKMIN] + ((.@ST[UMOB_ATKMIN] * .@bonus_dmg_rate) /100);
+			.@ATKMAX = .@ST[UMOB_ATKMAX] + ((.@ST[UMOB_ATKMAX] * .@bonus_dmg_rate) /100);
+			.@MATKMIN = .@ST[UMOB_MATKMIN] + ((.@ST[UMOB_MATKMIN] * .@bonus_dmg_rate) /100);
+			.@MATKMAX = .@ST[UMOB_MATKMAX] + ((.@ST[UMOB_MATKMAX] * .@bonus_dmg_rate) /100);
+				setunitdata(.@GID[.@i], UMOB_ATKMIN, .@ATKMIN);
+				setunitdata(.@GID[.@i], UMOB_ATKMAX, .@ATKMAX);
+				setunitdata(.@GID[.@i], UMOB_MATKMIN, .@MATKMIN);
+				setunitdata(.@GID[.@i], UMOB_MATKMAX, .@MATKMAX);
+		}
+		if(.@bonus_damagetaken){
+			.@DAMAGETAKEN = .@ST[UMOB_DAMAGETAKEN] + ((.@ST[UMOB_DAMAGETAKEN] * .@bonus_damagetaken) /100);
+				setunitdata(.@GID[.@i], UMOB_DAMAGETAKEN, .@DAMAGETAKEN);
+		}
+		if(.@bonus_def){
+			.@DEF = .@ST[UMOB_DEF] + ((.@ST[UMOB_DEF] * .@bonus_def) /100);	
+				setunitdata(.@GID[.@i], UMOB_DEF, .@DEF);
+		}	
+		if(.@bonus_mdef){
+			.@MDEF = .@ST[UMOB_MDEF] + ((.@ST[UMOB_MDEF] * .@bonus_mdef) /100);	
+				setunitdata(.@GID[.@i], UMOB_MDEF, .@MDEF);
+		}
+		if(.@bonus_hit){
+			.@HIT = .@ST[UMOB_HIT] + ((.@ST[UMOB_HIT] * .@bonus_hit) /100);	
+				setunitdata(.@GID[.@i], UMOB_HIT, .@HIT);
+		}		
+		if(.@bonus_flee){
+			.@FLEE = .@ST[UMOB_FLEE] + ((.@ST[UMOB_FLEE] * .@bonus_flee) /100);	
+				setunitdata(.@GID[.@i], UMOB_FLEE, .@FLEE);
+		}
+	}
+freeloop(0);
+return;
+}
+
+function	script	F_OGH_Settings	{
+
+	setarray $@level1,  0		//bonus_hp_rate
+			, 0		//bonus_dmg_rate
+			, 0		//bonus_damagetaken
+			, 0		//bonus_def
+			, 0		//bonus_mdef
+			, 0		//bonus_hit
+			, 0;		//bonus_flee
+	setarray $@level3, 300		//bonus_hp_rate
+			, 150		//bonus_dmg_rate
+			, -10		//bonus_damagetaken
+			, 0		//bonus_def
+			, 0		//bonus_mdef
+			, 0		//bonus_hit
+			, 100;		//bonus_flee
+    setarray $@level5, 600		//bonus_hp_rate
+			, 150		//bonus_dmg_rate
+			, -10		//bonus_damagetaken
+			, 0		//bonus_def
+			, 0		//bonus_mdef
+			, 0		//bonus_hit
+			, 100;		//bonus_flee
+    setarray $@level7, 900		//bonus_hp_rate
+			, 200		//bonus_dmg_rate
+			, -10		//bonus_damagetaken
+			, 0		//bonus_def
+			, 0		//bonus_mdef
+			, 0		//bonus_hit
+			, 100;		//bonus_flee
+    setarray $@level8, 1050		//bonus_hp_rate
+			, 250		//bonus_dmg_rate
+			, -10		//bonus_damagetaken
+			, 0		//bonus_def
+			, 0		//bonus_mdef
+			, 0		//bonus_hit
+			, 100;		//bonus_flee                                   
+    setarray $@level9, 1200		//bonus_hp_rate
+			, 900		//bonus_dmg_rate
+			, -10		//bonus_damagetaken
+			, 0		//bonus_def
+			, 0		//bonus_mdef
+			, 0		//bonus_hit
+			, 100;		//bonus_flee
+    setarray $@level10, 1400		//bonus_hp_rate
+			, 1000		//bonus_dmg_rate
+			, -10		//bonus_damagetaken
+			, 0		//bonus_def
+			, 0		//bonus_mdef
+			, 0		//bonus_hit
+			, 100;		//bonus_flee
+return;
+}
+
+1@gl_he,133,82,0	warp	#left2mid	2,2,1@gl_he,153,81
+1@gl_he,153,100,0	warp	#mid2right	2,2,1@gl_he,174,102
+1@gl_he,165,101,0	warp	#right2mid	2,2,1@gl_he,147,100
+1@gl_he,150,163,0	warp	#mid2boss	2,2,1@gl_he,150,170

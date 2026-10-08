@@ -1,0 +1,467 @@
+//===== rAthena Script ======================================= 
+//= Episode 12 Socket Enchant NPC
+//===== By: ================================================== 
+//= Gepard
+//===== Current Version: ===================================== 
+//= 1.2 (custom)
+//===== Compatible With: ===================================== 
+//= rAthena Project
+//===== Description: ========================================= 
+//= [Official Conversion + Custom]
+//= Adds slots to selected weapons and armor.
+//= Custom: item must be equipped, refine + random options are kept,
+//= optional Spiritual Auger (item is not destroyed on failure).
+//===== Additional Comments: ================================= 
+//= 1.0 First version.
+//= 1.1 Duplicates now spawn from floating NPCs. [L0ne_W0lf]
+//= 1.1a Added 'disable_items' command. [Euphy]
+//= 1.2 Fixed NPC getting stuck (wrong equip slot detection for
+//=     two-handed weapons, multi-slot headgears, accessories).
+//=     Merged normal/Auger functions into Func_Socket2.
+//=     Spiritual Auger is now checked before it is consumed.
+//============================================================ 
+
+-	script	Leablem#dummy::SocketEnchant2	-1,{
+	if (checkweight(1201,1) == 0) {
+		mes "- Wait a minute !! -";
+		mes "- Currently you're carrying -";
+		mes "- too many items with you. -";
+		mes "- Please try again -";
+		mes "- after you lose some weight. -";
+		close;
+	}
+	mes "[Leablem]";
+	mes "Good day. My name is Leablem,";
+	mes "and I'm a technician that specializes in";
+	mes "adding slots to weapons and armors.";
+	mes "It can be very hard sometimes, but I like";
+	mes "what I do, and take pride in it.";
+	mes "Anyways, do you have any equipment";
+	mes "which you'd like to add to the slots?";
+	mes "My service charge, the materials,";
+	mes "and the success chance all depend on";
+	mes "the specific item I'm working on.";
+	next;
+	// .@a = 0 : without Spiritual Auger, 1 : with Spiritual Auger
+	.@a = select("Without Spiritual Auger:With Spiritual Auger") - 1;
+	mes "[Leablem]";
+	if (.@a)
+		mes "You choose ^0000FFwith Spiritual Auger^000000.";
+	else
+		mes "You choose ^FF0000without Spiritual Auger^000000.";
+	next;
+	switch(select("Weapon:Armor:About that thing you skipped:More information:Quit")) {
+	case 1:
+		mes "[Leablem]";
+		mes "Weapon, you said? Sure, no problem.";
+		mes "Weapons are divided into 4 different class";
+		mes "depending on the work difficulty.";
+		mes "C class is the easiest one, and S class is the hardest one.";
+		mes "Which class would you like to try?";
+		next;
+		switch(select("C:B:A:S")) {
+		case 1:
+			mes "[Leablem]";
+			mes "C class, I see.";
+			mes "So, what kind of weapon do you have?";
+			next;
+			switch(select("Book of Mother Earth:Book of Billows:Book of Gust of Wind:Book of the Blazing Sun")) {
+			case 1: callfunc "Func_Socket2",.@a,1554,1569,40,66,200,1010,10;
+			case 2: callfunc "Func_Socket2",.@a,1553,1568,40,66,200,1010,10;
+			case 3: callfunc "Func_Socket2",.@a,1556,1571,40,66,200,1010,10;
+			case 4: callfunc "Func_Socket2",.@a,1555,1570,40,66,200,1010,10;
+			}
+			end;
+		case 2:
+			mes "[Leablem]";
+			mes "You have chosen average B class.";
+			mes "So, what kind of weapon do you have?";
+			next;
+			switch(select("Orcish Axe:Scimiter:Spike")) {
+			case 1: callfunc "Func_Socket2",.@a,1304,1309,40,66,200,984,1;
+			case 2: callfunc "Func_Socket2",.@a,1113,1114,40,66,200,984,1;
+			case 3: callfunc "Func_Socket2",.@a,1523,1538,40,61,300,984,1;
+			}
+			end;
+		case 3:
+			mes "[Leablem]";
+			mes "A class? You seem to want little too much. But, no problem.";
+			mes "So, what kind of weapon do you have?";
+			next;
+			switch(select("Dragon Killer:Katar of Quaking:Katar of Raging Blaze:Katar of Frozen Icicle:Katar of Piercing Wind:Golden Mace:Oriental Lute:Queen's Whip:Spectral Spear:Gae Bolg:Schweizersabel")) {
+			case 1:  callfunc "Func_Socket2",.@a,13001,13030,40,61,500,984,2;
+			case 2:  callfunc "Func_Socket2",.@a, 1257, 1276,40,66,500,984,2;
+			case 3:  callfunc "Func_Socket2",.@a, 1258, 1277,40,66,500,984,2;
+			case 4:  callfunc "Func_Socket2",.@a, 1256, 1275,40,66,500,984,2;
+			case 5:  callfunc "Func_Socket2",.@a, 1259, 1278,40,66,500,984,2;
+			case 6:  callfunc "Func_Socket2",.@a, 1524, 1539,40,61,500,984,2;
+			case 7:  callfunc "Func_Socket2",.@a, 1918, 1922,40,61,500,984,2;
+			case 8:  callfunc "Func_Socket2",.@a, 1970, 1976,40,61,500,984,2;
+			case 9:  callfunc "Func_Socket2",.@a, 1477, 1479,40,56,500,984,2;
+			case 10: callfunc "Func_Socket2",.@a, 1474, 1480,40,56,500,984,2;
+			case 11: callfunc "Func_Socket2",.@a, 1167, 1178,40,61,500,984,2;
+			}
+			end;
+		case 4:
+			mes "[Leablem]";
+			mes "Huh, S Class?! Oh my god, are you serious?*Tremble*";
+			mes "So...which S class weapon would you like to make a slot?!";
+			next;
+			switch(select("Zephyrus:Mailbreaker:Dragon Slayer:Swordbreaker:Assasin Dagger:Grand Cross:Executioner")) {
+			case 1: callfunc "Func_Socket2",.@a,1468, 1481,40,51,1000,984,5,999,10;
+			case 2: callfunc "Func_Socket2",.@a,1225,13032,40,51,1000,984,5,999,10;
+			case 3: callfunc "Func_Socket2",.@a,1166, 1180,40,51,1000,984,5,999,10;
+			case 4: callfunc "Func_Socket2",.@a,1224,13031,40,51,1000,984,5,999,10;
+			case 5: callfunc "Func_Socket2",.@a,1232,13033,40,51,1000,984,5,999,10;
+			case 6: callfunc "Func_Socket2",.@a,1528, 1540,40,51,1000,984,5,999,10;
+			case 7: callfunc "Func_Socket2",.@a,1169, 1179,40,51,1000,984,5,999,10;
+			}
+			end;
+		}
+		end;
+
+	case 2:
+		mes "[Leablem]";
+		mes "Armor, you said? Sure, no problem.";
+		mes "Armors are divided into 4 different class";
+		mes "depending on the work difficulty.";
+		mes "C class is the easiest one, and S class is the hardest one.";
+		mes "Which class would you like to try?";
+		next;
+		switch(select("C:B:A:S")) {
+		case 1:
+			mes "[Leablem]";
+			mes "C class, I see.";
+			mes "So, what kind of armor do you have?";
+			next;
+			switch(select("Sunflower:Ph.D Hat:Big Ribbon:Boys Cap")) {
+			case 1: callfunc "Func_Socket2",.@a,2253,5351,40,66,100,999,3;
+			case 2: callfunc "Func_Socket2",.@a,5012,5347,40,66,100,999,3;
+			case 3: callfunc "Func_Socket2",.@a,2244,5348,40,66,100,999,5;
+			case 4: callfunc "Func_Socket2",.@a,5016,5349,40,66,100,999,5;
+			}
+			end;
+		case 2:
+			mes "[Leablem]";
+			mes "You have chosen average B class.";
+			mes "So, what kind of armor do you have?";
+			next;
+			switch(select("Skull Ring:High Heels")) {
+			case 1: callfunc "Func_Socket2",.@a,2609,2715,40,61,300,999,5;
+			case 2: callfunc "Func_Socket2",.@a,2409,2432,40,61,300,999,5;
+			}
+			end;
+		case 3:
+			mes "[Leablem]";
+			mes "A class? You seem to want little too much. But, no problem.";
+			mes "So, what kind of armor do you have?";
+			next;
+			switch(select("Pirate Bandana:Black Leather Boots")) {
+			case 1: callfunc "Func_Socket2",.@a,2287,5350,50,61,500,985,1; // 50,61 - it's not a typo
+			case 2: callfunc "Func_Socket2",.@a,2425,2434,40,51,500,985,1;
+			//case 3: callfunc "Func_Socket2",.@a,15053,15056,x,x,x,x,x;	// Special Ninja Suit (Needs more info)
+			}
+			end;
+		case 4:
+			mes "[Leablem]";
+			mes "Huh, S Class?! Oh my god, are you serious?*Tremble*";
+			mes "So...which S class armor would you like to make a slot?!";
+			next;
+			switch(select("Mage Coat:Holy Robe:Sacred Mission:Undershirt:Pantie")) {
+			case 1: callfunc "Func_Socket2",.@a,2334,2372,40,51,1000,985,1; // Mage Coat has 10% success chance
+			case 2: callfunc "Func_Socket2",.@a,2327,2373,45,51,1000,985,1; // the rest has 5%
+			case 3: callfunc "Func_Socket2",.@a,2111,2128,45,51,1000,985,1;
+			case 4: callfunc "Func_Socket2",.@a,2522,2523,45,51,1000,985,1;
+			case 5: callfunc "Func_Socket2",.@a,2339,2371,45,51,1000,985,1;
+			}
+			end;
+		}
+		end;
+
+	case 3:
+		callsub L_SunGod, .@a;
+		end;
+
+	case 4:
+		mes "[Leablem]";
+		mes "Do you want to know more information?";
+		mes "Well, I don't think there's something";
+		mes "that you specifically need to know.";
+		mes "But I can at least give you a tip.";
+		next;
+		mes "[Leablem]";
+		mes "Make sure you are ^FF0000wearing^000000 the equipment";
+		mes "you want me to work on. I will only work on";
+		mes "the item that is currently equipped.";
+		next;
+		mes "[Leablem]";
+		mes "Without a ^0000FFSpiritual Auger^000000, a failed attempt";
+		mes "^FF0000destroys the equipment, its upgrades and any Cards^000000.";
+		mes "With a Spiritual Auger, the equipment survives a failure,";
+		mes "but the Auger, materials and zeny are still used up.";
+		next;
+		mes "[Leablem]";
+		mes "I hope this information will be helpful to you.";
+		mes "Thanks.";
+		close;
+
+	case 5:
+		mes "[Leablem]";
+		mes "Alright, then.";
+		close;
+	}
+	end;
+
+// Hat of the Sun God special service
+// getarg(0) : 1 = with Spiritual Auger
+L_SunGod:
+	.@auger = getarg(0);
+	if (!.@auger) {
+		mes "[Leablem]";
+		mes "Oh, it's nothing special, but he thinks";
+		mes "it's not something for humans to mess with.";
+		mes "I don't want to upset my brother,";
+		mes "so I'd better forget about it.";
+		next;
+		mes "[Leablem]";
+		mes "...That service itself has a very high success chance,";
+		mes "but requires a lot of materials and a high-rate service charge.";
+		mes "I highly doubt that anyone would actually want to use";
+		mes "the service, even if I did open it.";
+		next;
+		mes "[Leablem]";
+		mes ".............";
+		next;
+		mes "[Leablem]";
+		mes "You seem interested in using that service.";
+		mes "If you want, I can at least tell you about it.";
+		mes "But you must promise to keep this a secret.";
+		mes "If my brother finds out what I'm about to tell you,";
+		mes "he's gonna give me a beating!";
+		next;
+		mes "[Leablem]";
+		mes "This special service has a 90% success chance,";
+		mes "but requires 2 Gold and 2 hundred million zeny:";
+		mes "I can add slots to the Hat of the Sun God.";
+		next;
+	}
+	mes "[Leablem]";
+	mes "My brother said that, even since ancient times, it's forbidden to modify that hat.";
+	mes "But I believe humans are too curious not to";
+	mes "experiment, especially when it's forbidden.";
+	mes "I just don't want my brother to yell at me. That's all.";
+	next;
+	if (select("Use the Service:Quit") == 2) {
+		mes "[Leablem]";
+		mes "Don't ever tell anyone";
+		mes "about what I told you. Okay?";
+		close;
+	}
+	if (!.@auger) {
+		mes "[Leablem]";
+		mes "...Wh... What? No!";
+		mes "Giving me that dirty look";
+		mes "won't make me do it!";
+		mes "No, I said no! No is no! No!";
+		next;
+		mes "[Leablem]";
+		mes ".................";
+		next;
+		mes "[Leablem]";
+		mes "You're so persistent. Okay, I'll make you an exception.";
+		mes "Just don't tell anyone,";
+		mes "especially my brother. Do you promise?";
+		next;
+	}
+	mes "[Leablem]";
+	mes "Okay then, please bring me";
+	mes "^FF00002 Gold, 200,000,000 zeny -- the service charge --,";
+	if (.@auger)
+		mes "^FF00001 " + getitemname(6396) + ",";
+	mes "^FF0000and a Hat of the Sun God.";
+	mes "^FF0000You know your chance of success is 90% with this, don't you?^000000";
+	next;
+	if (Zeny < 200000000 || countitem(969) < 2 || countitem(5022) < 1 || (.@auger && countitem(6396) < 1)) {
+		mes "[Leablem]";
+		mes "Umm...";
+		next;
+		mes "[Leablem]";
+		mes "You don't have enough materials.";
+		mes "Man, why did you even ask me to try?";
+		close;
+	}
+	mes "[Leablem]";
+	mes "Shall we start now?";
+	mes "Pray to your gods for good luck.";
+	next;
+	delitem 969,2;      // Gold
+	if (.@auger)
+		delitem 6396,1; // Spiritual Auger
+	Zeny -= 200000000;
+	.@roll = rand(1,100);
+	if (.@roll > 4 && .@roll < 95) {
+		specialeffect EF_LORD;
+		delitem 5022,1;  // Helm_Of_Sun
+		getitem 5353,1;  // Helm_Of_Sun_
+		mes "[Leablem]";
+		mes "Excellent! Wow, I guess the 90% success chance is true!";
+		mes "Look, the slot was added in the perfect place.";
+		mes "Congratulations.";
+		next;
+		mes "[Leablem]";
+		mes "This is the first and last time I will do this for you.";
+		mes "Don't ever tell anyone about this. Okay?";
+		close;
+	}
+	specialeffect EF_SUI_EXPLOSION;
+	if (!.@auger)
+		delitem 5022,1;  // destroyed only without Spiritual Auger
+	mes "[Leablem]";
+	mes "Wah! Oh my god, we failed!";
+	if (.@auger)
+		mes "Luckily the Spiritual Auger protected your hat.";
+	mes "My god, I guess we had the worst kind of luck...";
+	next;
+	mes "[Leablem]";
+	mes "No, don't ever ask me to do such a risky thing again!";
+	mes "Bah~";
+	close;
+}
+
+payon,236,199,3	duplicate(SocketEnchant2)	Leablem#pay	86
+lighthalzen,96,137,3	duplicate(SocketEnchant2)	Leablem#lhz	86
+prt_in,22,60,6	duplicate(SocketEnchant2)	Leablem#prt	86
+
+//============================================================
+//= Func_Socket2
+//= getarg(0) : 1 = use Spiritual Auger, 0 = normal
+//= getarg(1) : item id (unslotted)
+//= getarg(2) : item id (slotted result)
+//= getarg(3) : success roll low bound  (success if roll > low)
+//= getarg(4) : success roll high bound (success if roll < high)
+//= getarg(5) : zeny fee in thousands
+//= getarg(6),getarg(7) : material 1 id, amount
+//= getarg(8),getarg(9) : material 2 id, amount (optional)
+//============================================================
+function	script	Func_Socket2	{
+	.@auger    = getarg(0);
+	.@item_id  = getarg(1);
+	.@new_id   = getarg(2);
+	.@low      = getarg(3);
+	.@high     = getarg(4);
+	.@zeny_req = getarg(5) * 1000;
+	setarray .@item_req[0], getarg(6), getarg(8,0);
+	setarray .@req_amount[0], getarg(7), getarg(9,0);
+	.@auger_id = 6396; // Spiritual Auger
+	.@type$ = (getiteminfo(.@item_id, ITEMINFO_LOCATIONS) & EQP_HAND_R) ? "weapon" : "armor";
+
+	disable_items;
+
+	// Find the slot where the item is actually equipped
+	.@item_loc = -1;
+	setarray .@pos[0], EQI_HAND_R, EQI_HAND_L, EQI_ARMOR, EQI_GARMENT, EQI_SHOES,
+	                   EQI_HEAD_TOP, EQI_HEAD_MID, EQI_HEAD_LOW, EQI_ACC_L, EQI_ACC_R;
+	for (.@i = 0; .@i < 10; .@i++) {
+		if (getequipid(.@pos[.@i]) == .@item_id) {
+			.@item_loc = .@pos[.@i];
+			break;
+		}
+	}
+	if (.@item_loc < 0) {
+		mes "[Leablem]";
+		mes "You need to equip your ^0000FF" + getitemname(.@item_id) + "^000000 to continue.";
+		close;
+	}
+
+	// Material text
+	.@mat$ = .@req_amount[0] + "ea " + getitemname(.@item_req[0]);
+	if (.@item_req[1] && .@req_amount[1])
+		.@mat$ = .@mat$ + " and " + .@req_amount[1] + "ea " + getitemname(.@item_req[1]);
+	if (.@auger)
+		.@mat$ = "1 " + getitemname(.@auger_id) + ", " + .@mat$;
+
+	mes "[Leablem]";
+	mes getitemname(.@item_id) + "? Okay, then you need to bring me";
+	mes "^FF0000" + callfunc("F_InsertComma", .@zeny_req) + " zeny as service charge,";
+	mes "^FF0000" + .@mat$ + ".";
+	mes "^FF0000Of course, you need to wear the " + getitemname(.@item_id) + ".^000000";
+	next;
+	mes "[Leablem]";
+	mes "Did you already bring all of them?";
+	if (.@auger) {
+		mes "Thanks to the Spiritual Auger, your " + .@type$ + " will ^0000FFNOT be destroyed^000000 if I fail,";
+		mes "but the materials and zeny will still be used.";
+	} else {
+		mes "For your information, if you fail to create a slot,";
+		mes "you will lose all the item requirement as well as the target " + .@type$ + ".";
+	}
+	mes "If I succeed, the upgrade level is kept, but any compounded ^FF0000Cards will be lost^000000.";
+	next;
+	if (select("Ask for slot creation.:Try next time.") == 2) {
+		mes "[Leablem]";
+		mes "See you next time.";
+		close;
+	}
+
+	// Requirement check
+	if (Zeny < .@zeny_req
+	 || countitem(.@item_req[0]) < .@req_amount[0]
+	 || (.@item_req[1] && .@req_amount[1] && countitem(.@item_req[1]) < .@req_amount[1])
+	 || (.@auger && countitem(.@auger_id) < 1)
+	 || getequipid(.@item_loc) != .@item_id) {
+		mes "[Leablem]";
+		mes "Are you stupid or what? You didn't bring all of the required items!";
+		mes "Go bring them quick!";
+		close;
+	}
+
+	// Save refine + random options before touching the item
+	.@ref = getequiprefinerycnt(.@item_loc);
+	for (.@j = 0; .@j < 5; .@j++) {
+		.@OptID[.@j]    = getequiprandomoption(.@item_loc, .@j, ROA_ID);
+		.@OptVal[.@j]   = getequiprandomoption(.@item_loc, .@j, ROA_VALUE);
+		.@OptParam[.@j] = getequiprandomoption(.@item_loc, .@j, ROA_PARAM);
+	}
+
+	mes "[Leablem]";
+	mes "Alright then, let the work begin!";
+	mes "You'd better pray for a successful result.";
+	next;
+
+	// Consume materials and fee (always)
+	delitem .@item_req[0], .@req_amount[0];
+	if (.@item_req[1] && .@req_amount[1])
+		delitem .@item_req[1], .@req_amount[1];
+	if (.@auger)
+		delitem .@auger_id, 1;
+	Zeny -= .@zeny_req;
+
+	.@roll = rand(1,100);
+	if (.@roll > .@low && .@roll < .@high) {
+		specialeffect EF_LORD;
+		delequip .@item_loc;
+		getitem3 .@new_id, 1, 1, .@ref, 0, 0, 0, 0, 0, .@OptID, .@OptVal, .@OptParam;
+		mes "[Leablem]";
+		mes "Great, it seems to be successful.";
+		mes "It looks pretty well done. Congratulations!";
+		next;
+		mes "[Leablem]";
+		mes "See you again, buddy!";
+		close;
+	}
+
+	specialeffect EF_SUI_EXPLOSION;
+	if (!.@auger)
+		delequip .@item_loc; // destroyed only without Spiritual Auger
+	mes "[Leablem]";
+	mes "Wah! ...I am so sorry, it failed.";
+	if (.@auger)
+		mes "Luckily the Spiritual Auger protected your " + .@type$ + ".";
+	mes "However, I am completely innocent.";
+	mes "This is your luck, and it is destined by god, okay?";
+	mes "Don't be so disappointed, and try next time.";
+	next;
+	mes "[Leablem]";
+	mes "See you again, buddy!";
+	close;
+}

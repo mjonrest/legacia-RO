@@ -1,0 +1,156 @@
+// ------------------------------------------------------------------------------------------
+// ------ Script Release
+// Title: Premium/ViP Services System
+// Author: Diconfrost VaNz - diconfrost13@gmail.com - http://www.facebook.com/diconfrost13
+// Version: 2.1
+// Special thanks to the following for helping me making this script
+// Jezu
+// Dastgr
+// clydelion
+// 
+// Note: This is a character-based script. If you want to make this into Account-Based, just put "#" beside "prmm".
+// ------------------------------------------------------------------------------------------
+prontera,147,169,6	script	VIP Manager	833,{
+
+
+	mes "[^FF0000Premium Manager^000000]";
+	mes "Hello "+strcharinfo(0)+", I'm ^FF0000Premium Manager the butcher^000000.";
+	mes "I will be of help if you need something.";
+next;
+	mes "[^FF0000Premium Manager^000000]";
+	mes "Oh! you need help?";
+	mes "What kind of help do you need?";
+next;
+	menu "Claim Reward",P_New,"I'm a ViP!",P_VIP,"Benefit!",P_Info,"Nevermind",P_NVM;
+
+P_New:
+	if (!#prmm){
+	mes "[^FF0000Premium Manager^000000]";
+	mes "Im sorry, i dont have any business with you";
+	close;
+	}
+	if(#timedelay < gettimetick(2)){ // Check timer, if over it will allow you to continue.
+	mes "[^FF0000Premium Manager^000000]";
+	// Item list (format: {Item ID, Amount})
+	setarray .ItemIDs[0], 14545,12103,6635,6439,6438,7619,7620,30007,30014;
+	setarray .ItemAmounts[0], 3,5,3,1,1,2,2,3,1;
+
+	// Generate random index
+	.@i = rand( getarraysize(.ItemIDs) );
+
+	// Give reward
+	getitembound .ItemIDs[.@i], .ItemAmounts[.@i],Bound_Account;
+
+	mes "You received ^0055FF" + .ItemAmounts[.@i] + "^000000x ^FF0000" + getitemname(.ItemIDs[.@i]) + "^000000!";
+	announce  "[Premium Manager]: Our VIP user "+strcharinfo(0)+" Received " + .ItemAmounts[.@i] + "x " + getitemname(.ItemIDs[.@i]) + " for daily claim.",bc_blue|bc_all;
+	set #timedelay,gettimetick(2)+64800; // 18 hours
+	mes "Come back again after 24 hours";
+	close;
+	}
+	if ( #timedelay > gettimetick(2)){
+	set .@delayremaining,(((#timedelay-gettimetick(2))+1)/60);
+	mes "[^FF0000Premium Manager^000000]";
+	mes "Come back again after "+Time2Str(#timedelay)+" to claim your next reward.";
+	close;
+	}
+
+
+P_VIP:
+	if (#prmm){
+	mes "[^FF0000Premium Manager^000000]";
+	mes "Oh you avail our ViP Ticket!";
+	mes "Thank you!";
+	next;
+	mes "[^FF0000Premium Manager^000000]";
+	mes "Your Premium Service will expire after " + callfunc("Time2Str",#prmm);
+	mes "You should maximize it";
+	mes "Grind your skills and hunt now!";
+	close;
+	}
+	mes "[^FF0000Premium Manager^000000]";
+	mes "Purchase your premium first";
+	close;
+
+P_Info:
+	mes "[^FF0000Premium Manager^000000]";
+	mes "Premium Benefit:";
+	mes "1. Free Claim Daily Reward";
+	mes "2. Longer Buff Duration from Healer";
+	mes "3. Extra Buffer from Healer";
+	mes "4. Permanent EXP and Drop Rate Boost";
+	close;
+
+
+P_NVM:
+	mes "[^FF0000Premium Manager^000000]";
+	mes "Thank you!";
+	mes "Come Again!";
+	close;
+
+Oninit:
+waitingroom "Premium Manager",0;
+end;
+}
+
+function	script	getPremium	{
+	set .@ticks, getarg(0);
+	if (.@ticks <= 0)
+	{
+		debugmes "getPremium - tried to set a timer in the past";
+		end;
+	}
+	specialeffect2 440;
+	set #prmm, ((#prmm > gettimetick(2)) ? #prmm : gettimetick(2)) + .@ticks;
+	doevent "login::OnPCLoginEvent";
+	return;
+}
+
+-	script	login	-1,{
+OnPCLoginEvent:
+	if (#prmm > gettimetick(2)) {
+		dispbottom "Your Premium Service will expire after " + callfunc("Time2Str",#prmm);
+		sc_start SC_EXPBOOST,(( #prmm - gettimetick(2) ) * 1000 ),200;
+		sc_start SC_JEXPBOOST,(( #prmm - gettimetick(2) ) * 1000 ),200;
+		sc_start SC_ITEMBOOST,(( #prmm - gettimetick(2) ) * 1000 ),100;
+	//	if( getgmlevel() >= 3 ){
+	//	}
+	//	else {
+	//	atcommand "@adjgroup 1 "+strcharinfo(0);
+	//	}
+		deltimer strnpcinfo(3)+"::OnPCLoginEvent";
+		if ((#prmm - gettimetick(2)) < 2147483)
+		{
+			addtimer (#prmm - gettimetick(2)) *1000, strnpcinfo(3)+"::OnPCLoginEvent";
+		}
+		else
+		{
+			addtimer 2147483000, strnpcinfo(3)+"::OnPCLoginEvent";
+		}
+	} else if (#prmm) {
+	//	if( getgmlevel() >= 3 ){
+	//	}
+	//	else {
+	//	atcommand "@adjgroup 0 "+strcharinfo(0);
+	//	}
+		sc_end SC_EXPBOOST;
+		sc_end SC_JEXPBOOST;
+		sc_end SC_ITEMBOOST;
+		set #prmm, 0;
+		dispbottom "Premium Services has ended.";
+	}
+end;
+
+	
+
+}
+
+-	script	vip#command	-1,{
+
+OnInit:
+	bindatcmd "premium",strnpcinfo(3)+"::OnAtcommand";
+	end; 
+
+OnAtcommand:
+	dispbottom "Your Premium Service will expire after " + callfunc("Time2Str",#prmm);
+	end;
+}

@@ -1,0 +1,419 @@
+//--------------------------------------------------
+// DAILY QUEST SYSTEM (SQL-BASED RESET)
+//--------------------------------------------------
+-	script	DailyQuestSystem	-1,{
+	OnClock0005:
+		callsub S_CleanupOldRows;
+		end;
+
+	S_CleanupOldRows:
+		query_sql(
+			"DELETE FROM daily_quest "+
+			"WHERE play_date < '"+gettimestr("%Y-%m-%d", 21)+"'"
+		);
+		return;
+
+
+	OnInit:
+		bindatcmd "dailyquest", strnpcinfo(0)+"::OnOpen", 0, 99;
+		end;
+	//--------------------------------------------------
+	// DAILY QUEST MENU
+	//--------------------------------------------------
+	OnOpen:
+	.@today$ = gettimestr("%Y-%m-%d", 21);
+
+		if (callfunc("F_DailyQuest_IsUIDBlocked")) {
+			mes "[Daily Quest]";
+			mes "This unique ID has already claimed today's quests";
+			mes "on a different account. Abuse is not allowed.";
+			close;
+		}
+
+
+	// Already started today's quest
+	if (#D_QuestStarted$ != .@today$) {
+
+	mes "[Daily Quest]";
+	mes "Do you want to start today's Daily Quest?";
+	mes "";
+	mes "You can complete the daily quests";
+	mes "and earn Daily Points.";
+	next;
+
+	if (select("Yes, start Daily Quest:No, maybe later") == 1) {
+		callfunc "F_DailyQuest_Init";
+		set #D_QuestStarted$, .@today$;
+		dispbottom "[Daily Quest] Today's Daily Quest has started!";
+	}
+	else {
+		dispbottom "[Daily Quest] You can start it later using @dailyquest.";
+	}
+	close;
+}
+		mes "[Daily Quest]";
+		mes "Daily Points: ^00FF00"+#D_Point+" / 5^000000";
+		mes "";
+
+		mes "1. Kill 1000 monsters: "+(#D_Q1?"^00FF00Done":"^FF0000"+#D_MobKill+"/1000")+"^000000";
+		mes "2. Kill 1 MVP: "+(#D_Q2?"^00FF00Done":"^FF0000"+#D_MVP+"/1")+"^000000";
+		mes "3. PvP activity: "+(#D_Q3?"^00FF00Done":"^FF0000Not yet")+"^000000";
+		mes "4. Buy item: "+(#D_Q4?"^00FF00Done":"^FF0000"+getitemname(#D_BuyTarget))+"^000000";
+		mes "5. Refine items: "+(#D_Q5?"^00FF00Done":"^FF0000"+#D_Refine+"/10")+"^000000";
+	if ( !#D_Q1 || !#D_Q2 || !#D_Q3 || !#D_Q4 || !#D_Q5 ) {
+	close;
+	}
+	next;
+	switch(select("Headgear Shop(5 point):Cosummable(1 point)")){
+	case 1: // Daily Point Shop
+
+	.@item = callfunc("F_GetDailyShopItem");
+
+	mes "[Daily Point Shop]";
+	mes "Today's Item:";
+	mes mesitemlink(.@item);
+	mes "";
+	mes "Daily Points: "+#D_Point;
+	next;
+
+	if (#D_Point < 5) {
+		mes "[Daily Point Shop]";
+		mes "You don't have enough Daily Points.";
+		close;
+	}
+
+	if (select("Buy for 5 Daily Point:Cancel") == 2)
+		close;
+
+	set #D_Point,#D_Point-5;
+	getitem .@item, 1;
+
+	query_sql(
+		"UPDATE daily_quest SET points = "+#D_Point+
+		" WHERE account_id = "+getcharid(3)+
+		" AND play_date = '"+gettimestr("%Y-%m-%d",21)+"'"
+	);
+
+	mes "[Daily Point Shop]";
+	mes "You received:";
+	mes mesitemlink(.@item);
+	close;
+
+	case 2:
+	if (#D_Point < 1) {
+		mes "[Daily Quest]";
+		mes "You don't have enough Daily Points.";
+		close;
+	}
+	mes "Which one do you with to purchase?";
+	switch(select("Light White Potion:Light Blue Potion")){
+	case 1:
+		mes "Item: "+mesitemlink(13534);
+		mes "How many do you wish to purchase?";
+		mes "Your current point : "+#D_Point+" pt(s).";
+		input .@input;
+		if ( .@input > #D_Point){
+		mes "You dont have enough point";
+		close;
+		}
+	set #D_Point, #D_Point - .@input;
+	getitem 13534,.@input;
+
+	// Sync to SQL
+	query_sql(
+		"UPDATE daily_quest SET points = "+#D_Point+
+		" WHERE account_id = "+getcharid(3)+
+		" AND play_date = '"+gettimestr("%Y-%m-%d",21)+"'"
+	);
+	end;
+	case 2:
+		mes "Item: "+mesitemlink(13810);
+		mes "How many do you wish to purchase?";
+		mes "Your current point : "+#D_Point+" pt(s).";
+		input .@input;
+		if ( .@input > #D_Point){
+		mes "You dont have enough point";
+		close;
+		}
+	set #D_Point, #D_Point - .@input;
+	getitem 13810,.@input;
+
+	// Sync to SQL
+	query_sql(
+		"UPDATE daily_quest SET points = "+#D_Point+
+		" WHERE account_id = "+getcharid(3)+
+		" AND play_date = '"+gettimestr("%Y-%m-%d",21)+"'"
+	);
+	end;
+	}
+	}
+
+	//--------------------------------------------------
+	// MONSTER KILL (ANY)
+	//--------------------------------------------------
+	//--------------------------------------------------
+	// MONSTER KILL (ANY)
+	//--------------------------------------------------
+	OnNPCKillEvent:
+
+		// ==============================================
+		// MVP QUEST
+		// ==============================================
+		if (!#D_Q2) {
+			if (getmonsterinfo(killedrid, MOB_MVPEXP) > 0) {
+				set #D_Q2, 1;
+				callsub S_AddPoint;
+
+				dispbottom "[Daily Quest] MVP kill completed!";
+			}
+		}
+
+		// ==============================================
+		// NORMAL MONSTER QUEST
+		// ==============================================
+		if (#D_Q1)
+			end;
+
+		set #D_MobKill, #D_MobKill + 1;
+
+		if (#D_MobKill >= 1000) {
+			set #D_Q1, 1;
+			callsub S_AddPoint;
+
+			dispbottom "[Daily Quest] Kill 1000 monsters completed!";
+		}
+
+		end;
+	//--------------------------------------------------
+	// PVP ACTIVITY (KILL OR DIE)
+	//--------------------------------------------------
+	OnPCKillEvent:
+		if (#D_Q3) end;
+
+		if (getmapflag(strcharinfo(3), mf_pvp)) {
+			set #D_Q3, 1;
+			callsub S_AddPoint;
+			dispbottom "[Daily Quest] PvP activity completed!";
+		}
+		end;
+
+	OnPCDieEvent:
+		if (#D_Q3) end;
+
+		if (getmapflag(strcharinfo(3), mf_pvp)) {
+			set #D_Q3, 1;
+			callsub S_AddPoint;
+			dispbottom "[Daily Quest] PvP activity completed!";
+		}
+		end;
+
+	//--------------------------------------------------
+	// ADD DAILY POINT + SQL SYNC
+	//--------------------------------------------------
+S_AddPoint:
+		set #D_Point, #D_Point + 1;
+
+		query_sql(
+			"UPDATE daily_quest SET points = "+#D_Point+
+			" WHERE account_id = "+getcharid(3)+
+			" AND play_date = '"+gettimestr("%Y-%m-%d",21)+"'"
+		);
+		return;
+}
+
+//--------------------------------------------------
+// DAILY QUEST INIT FUNCTION
+//--------------------------------------------------
+function	script	F_DailyQuest_Init	{
+
+	.@today$ = gettimestr("%Y-%m-%d", 21);
+
+	// Check if today record exists
+	query_sql(
+		"SELECT COUNT(*) FROM daily_quest "+
+		"WHERE account_id = "+getcharid(3)+" AND play_date = '"+.@today$+"'",
+		.@exists
+	);
+
+	//--------------------------------------------------
+	// NEW DAY ? CREATE NEW ROW
+	//--------------------------------------------------
+	if (.@exists == 0) {
+
+		// Random buy target
+		setarray .@items[0],
+			1110,1113,1122,1119,1123,1126,1129,1116,
+			2103,2226,2328,2307,2309,2312,2314,2627;
+
+		set #D_BuyTarget, .@items[rand(getarraysize(.@items))];
+
+		// Reset progress
+		set #D_Point, 0;
+		set #D_MobKill, 0;
+		set #D_MVP, 0;
+		set #D_Refine, 0;
+
+		set #D_Q1, 0;
+		set #D_Q2, 0;
+		set #D_Q3, 0;
+		set #D_Q4, 0;
+		set #D_Q5, 0;
+
+		.@uid$ = callfunc("F_DailyQuest_GetUID");
+
+		query_sql(
+			"INSERT INTO daily_quest "+
+			"(account_id, unique_id, play_date, points, buy_target, daily_shop_item) "+
+			"VALUES ("+getcharid(3)+", '"+escape_sql(.@uid$)+"', '"+.@today$+"', 0, "+#D_BuyTarget+", 0)"
+		);
+		dispbottom "[Daily Quest] New daily quests are available!";
+		return;
+	}
+
+	//--------------------------------------------------
+	// SAME DAY ? LOAD DATA
+	//--------------------------------------------------
+	query_sql(
+		"SELECT points, buy_target FROM daily_quest "+
+		"WHERE account_id = "+getcharid(3)+" AND play_date = '"+.@today$+"'",
+		#D_Point, #D_BuyTarget
+	);
+
+	return;
+}
+
+function	script	F_GetDailyShopItem	{
+
+	.@today$ = gettimestr("%Y-%m-%d", 21);
+
+	// Try to get existing item
+	query_sql(
+		"SELECT daily_shop_item FROM daily_quest "+
+		"WHERE account_id = "+getcharid(3)+" AND play_date = '"+.@today$+"'",
+		.@item
+	);
+
+	// Already assigned today
+	if (.@item > 0)
+		return .@item;
+
+	// ---------------- RANDOM HEADGEAR ----------------
+	setarray .@geararray[0],
+	// ===== Group 1 =====
+	5086,5137,5074,5132,5153,2284,5270,5174,5277,2237,5147,5057,5076,5236,5235,5237,5382,
+	5065,5052,2296,5129,5102,5040,5109,5016,5110,5191,
+	5169,5034,2214,5105,5175,5080,5024,5028,5200,5184,5359,5214,5026,
+	5142,5283,5260,5075,5048,5036,5135,5181,5108,5254,
+
+	// ===== Group 2 =====
+	5038,5229,5227,5228,5186,5091,5082,2273,5258,5198,
+	5058,5233,5231,5232,5230,5234,5253,5252,2283,5243,
+	5259,5205,5068,5304,5207,5333,5312,5379,5416,5401,
+	5427,5404,5800,5429,5338,5300,5378,5414,5307,5431,
+	5341,5131,5417,5373,5340,5313,5258,5292,5396,
+
+	// ===== Group 3 =====
+	5146,5282,5247,5364,5210,5047,5170,5380,5303,5302,
+	5056,5390,5144,5063,5193,5021,5179,5176,5001,5031,
+	5025,5061,5139,5070,5071,5173,5321,5374,2240,5405,
+	5410,5421,5424,5425,5276,5156,5154,5155,5018,5403,
+	5317,5269,5334,5376,5400,5339,5361,5377,5346,5433,
+
+	// ===== Group 4 =====
+	5262,5336,5273,5319,5363,5314,5360,5383,5423,5209,
+	5396,5371,5426,5322,5291,5372,5311,5418,5422,5324,
+	5448,5449,5332,5392,5393,5365,5143,5020,5140,
+	5069,5185,5130,5177,5084,5027,5241,5240,5238,
+	5239,5242,5054,5187,5138,5099,5031,5081,5073,5117,
+
+	// ===== Group 5 =====
+	5183,5151,2281,5043,5094,5196,5078,5004,5275,5389,
+	5420,5323,5806,5315,5807,5375,5370,5060,5299,5023,
+	5286,5271,5352,2293,5194,5202,5182,5213,5033,5039,
+	5288,5195,5211,5208,5083,2280,5100,5067,5133,5149,
+	5064,2278,5203,5212,5257,5029,2272,5062,5049,5287,
+
+	// ===== Group 6 =====
+	5032,5103,5022,5395,5059,5107,5255,5077,5337,5358,
+	5152,5305,5413,5415,5318,5409,5051,5293,5325,
+	5320,5354,5811,5381,5397,5355,5243,5310,5274,5261,
+	5388,5342,5297,5335,5412,5343,5098,5430,5384,5316,
+	5289,5805,5301,5344,5345,5411,5385,5079,5171,
+	5256,5285,5357,5188,2292,5294,5115,5284,5050,5206,
+	5197,5278,5192,5121,
+
+	// ===== Group 7 =====
+	5095,5465,5466,5467,5468,5469,5470,5471,5472,
+	5475,5484,5534,5551,5580,5602,5607,5608,
+	5611,5614,5619,5620,5226,
+	5657,5661,5673,5675,5679,5680,
+	5548,
+	5759,5764,5765,5766,5767,5768,5772,5773,5774,
+	5776,5777,5780,5780,5780,5782,5783,5784,5785,5790,
+	5847,5852,5864,5865,5866,5868,5869,5879,5881,5916,
+	5973,5917,5919,5921,5924,5936,5937,5938,5940,5944,
+	5946,5953,5972,
+	15920,15921,15922,15923,2855,28351,5986,18656,
+
+	// ===== Group 8 =====
+	18522,5654;
+	.@pick = .@geararray[rand(getarraysize(.@geararray))];
+
+	// Save into today's daily quest row
+	query_sql(
+		"UPDATE daily_quest SET daily_shop_item = "+.@pick+
+		" WHERE account_id = "+getcharid(3)+
+		" AND play_date = '"+.@today$+"'"
+	);
+
+	return .@pick;
+}
+
+//--------------------------------------------------
+// GET UNIQUE ID FROM LOGIN DB
+//--------------------------------------------------
+function	script	F_DailyQuest_GetUID	{
+	.@uid$ = "";
+	query_sql(
+		"SELECT last_unique_id FROM login "+
+		"WHERE account_id = "+getcharid(3),
+		.@uid$
+	);
+	// Treat empty / NULL / "0" as "no UID available"
+	if (.@uid$ == "" || .@uid$ == "0")
+		return "";
+	return .@uid$;
+}
+
+//--------------------------------------------------
+// ABUSE CHECK — return 1 if blocked
+//--------------------------------------------------
+function	script	F_DailyQuest_IsUIDBlocked	{
+	.@today$ = gettimestr("%Y-%m-%d", 21);
+	.@uid$   = callfunc("F_DailyQuest_GetUID");
+
+	// No UID on file ? fall back to normal behaviour
+	if (.@uid$ == "")
+		return 0;
+
+	query_sql(
+		"SELECT COUNT(*) FROM daily_quest "+
+		"WHERE play_date = '"+.@today$+"' "+
+		"AND unique_id = '"+escape_sql(.@uid$)+"' "+
+		"AND account_id <> "+getcharid(3),
+		.@abuse
+	);
+	return (.@abuse > 0) ? 1 : 0;
+}
+/**
+CREATE TABLE `daily_quest` (
+  `account_id` INT UNSIGNED NOT NULL,
+  `unique_id` VARCHAR(32) NOT NULL DEFAULT '',
+  `play_date` DATE NOT NULL,
+  `points` INT NOT NULL DEFAULT 0,
+  `buy_target` INT NOT NULL DEFAULT 0,
+  `daily_shop_item` INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (`account_id`, `play_date`),
+  INDEX `idx_uid_date` (`unique_id`, `play_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+**/

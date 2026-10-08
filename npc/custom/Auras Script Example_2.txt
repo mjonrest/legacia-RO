@@ -1,0 +1,12 @@
+-	script	auras	-1,{
+	end;
+
+OnUpdateAuras:
+	if (BaseLevel > 98)
+	{
+		set_aura(153, 118, 36);
+		end;
+	}
+		set_aura(0, 0, 0);
+		end;
+}

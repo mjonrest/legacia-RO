@@ -1,0 +1,144 @@
+prontera,147,174,5	script	VIP Account	758,{
+
+	set .@name$,"[VIP Admin]";
+	mes .@name$;
+	mes "Hello "+strcharinfo(0)+".";
+
+	// Show VIP status
+	if (vip_status(1)) {
+		set .@timer, vip_status(2);
+		mes "You are currently a VIP user.";
+		mes "VIP Time Left: ^00FF00"+ callfunc("Time2Str",.@timer) +"^000000";
+	} else {
+		mes "You are not a VIP user.";
+	}
+	next;
+
+	// Full menu
+	.@menu$ = "Buy VIP with cash point:";
+
+	if (vip_status(VIP_STATUS_ACTIVE)) {
+		.@menu$ += "Claim Reward:";
+	}
+
+	.@menu$ += "VIP Benefits Information:Cancel";
+	
+	switch (select(.@menu$)) {
+
+case 1:
+	mes .@name$;
+	mes "VIP costs ^00FF002 Cash Points per day^000000.";
+	mes "How many days do you want?";
+	next;
+	input .@days;
+
+	// Validate input
+	if (.@days <= 0) {
+		mes .@name$;
+		mes "Invalid number of days.";
+		close;
+	}
+
+	.@cost = .@days * 2;
+
+	if (#CASHPOINTS < .@cost) {
+		mes .@name$;
+		mes "You don't have enough Cash Points.";
+		mes "Required: " + .@cost + " CP.";
+		close;
+	}
+
+	// Deduct CP
+	set #CASHPOINTS, #CASHPOINTS - .@cost;
+
+	// Convert days ? minutes (1 day = 1440 minutes)
+	.@minutes = .@days * 1440;
+
+	// Add VIP time
+	vip_time(.@minutes);
+	mes .@name$;
+	mes "You have received ^00FF00" + .@days + " day(s) VIP^000000!";
+	mes "Total Cost: ^FF0000" + .@cost + " CP^000000.";
+	mes "Enjoy your benefits!";
+	close;
+		// -------------------------------
+		// VIP INFORMATION
+		// -------------------------------
+		case 2:
+		if (vip_status(VIP_STATUS_ACTIVE)) {
+	if(#timedelay < gettimetick(2)){ // Check timer, if over it will allow you to continue.
+	mes "[^FF0000Premium Manager^000000]";
+	// Item list (format: {Item ID, Amount})
+	setarray .ItemIDs[0], 12208,14592;
+	setarray .ItemAmounts[0], 1,1;
+
+	// Generate random index
+	.@i = rand( getarraysize(.ItemIDs) );
+
+	// Give reward
+	getitem .ItemIDs[.@i], .ItemAmounts[.@i];
+
+	mes "You received ^0055FF" + .ItemAmounts[.@i] + "^000000x ^FF0000" + getitemname(.ItemIDs[.@i]) + "^000000!";
+	announce  "[Premium Manager]: Our VIP user "+strcharinfo(0)+" Received " + .ItemAmounts[.@i] + "x " + getitemname(.ItemIDs[.@i]) + " for daily claim.",bc_blue|bc_all;
+	set #timedelay,gettimetick(2)+64800; // 18 hours
+	mes "Come back again after 24 hours";
+	close;
+	}
+	if ( #timedelay > gettimetick(2)){
+	set .@delayremaining,(((#timedelay-gettimetick(2))+1)/60);
+	mes "[^FF0000Premium Manager^000000]";
+	mes "Come back again after "+Time2Str(#timedelay)+" to claim your next reward.";
+	close;
+	}
+		}
+			mes .@name$;
+			mes "As a VIP user, you will receive the following perks:";
+			mes " ";
+			mes "• Character Slot increased from ^00FF009 -> 15^000000";
+			mes "• Storage Capacity increased from ^00FF00300 -> 600^000000";
+			mes "• Base EXP Rate: ^00FF00+50%^000000";
+			mes "• Job EXP Rate: ^00FF00+50%^000000";
+			mes "• Item Drop Rate: ^00FF00+50%^000000";
+			mes "• All Gemstone Requirements Removed";
+			mes "• 2x Hourly Point";
+			mes " ";
+			next;
+			mes .@name$;
+			mes "• Extra Buff from Healer NPC";
+			mes "• Longer Healer Buff Duration";
+			mes "Enjoy these boosts when you become VIP!";
+			close;
+	case 3:
+			mes .@name$;
+			mes "As a VIP user, you will receive the following perks:";
+			mes " ";
+			mes "• Character Slot increased from ^00FF009 -> 15^000000";
+			mes "• Storage Capacity increased from ^00FF00300 -> 600^000000";
+			mes "• Base EXP Rate: ^00FF00+50%^000000";
+			mes "• Job EXP Rate: ^00FF00+50%^000000";
+			mes "• Item Drop Rate: ^00FF00+50%^000000";
+			mes "• All Gemstone Requirements Removed";
+			mes "• 2x Hourly Point";
+			mes " ";
+			next;
+			mes .@name$;
+			mes .@name$;
+			mes "• Extra Buff from Healer NPC";
+			mes "• Longer Healer Buff Duration";
+			mes "Enjoy these boosts when you become VIP!";
+			close;
+
+
+		// -------------------------------
+		// CANCEL
+		// -------------------------------
+		case 4:
+			mes .@name$;
+			mes "Take your time. See you again.";
+			close;
+	}
+
+OnInit:
+waitingroom "VIP Account",0;
+end;
+}

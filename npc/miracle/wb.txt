@@ -1,0 +1,249 @@
+prontera,136,170,4	script	World Boss	10308,{
+
+$kill_count = (.monster_kill_requirement - $world_boss_counter);
+mes "[ World Boss ]";
+if ( $world_boss_active == 0 ) mes "Status : ^FF0000Inactive^000000";
+if ( $world_boss_active == 1 ) mes "Status : ^00FF00Active^000000";
+if ( $world_boss_active == 2 ) mes "Status : ^00FF00Preparing^000000";
+if ( $kill_count < 0){ set $kill_count,0; }
+mes "Kill Remaining - [ ^0000FF"+$kill_count+"^000000 ]";
+mes "=============================";
+mes "Reward:";
+mes "<ITEM>World Boss Reward<INFO>30007</INFO></ITEM>";
+mes "=============================";
+if ( $world_boss_active == 1){
+switch(select("Warp me")){
+	case 1:
+		warp "ordeal_2-1",149,149;
+		end;
+	}
+}
+else{
+close;
+}
+
+OnNPCKillEvent:
+	if($world_boss_active > 0) end;
+		$world_boss_counter += 1;
+		if($world_boss_counter == .monster_kill_requirement){ 
+			donpcevent "World Boss::OnSummon";
+			}
+		end;
+
+OnSummon:
+	$world_boss_active = 2;
+	announce "[World Boss]: Attention All, World boss has awaken!",0;
+	sleep (10 * 1000);
+	announce "[World Boss]: The seal will break and Gate will open in 5 minutes",0;
+	sleep (1 * 1000);
+	announce "[World Boss]: For all adventurers please prepare yourself",0;
+	sleep (4 * 60 * 1000);
+	announce "[World Boss]: 1 minutes left",0;
+	sleep (1 * 60 * 1000);
+	announce "[World Boss]: Gate has open. WORLD BOSS WILL VANISH IF NOT FINISH AFTER 1 HOUR.",0;
+	$world_boss_active = 1;
+	monster "ordeal_2-1",149,273,"[WB] Demonic Chaos Dragon",3328,1,strnpcinfo(0)+"::OnMobDead";
+	.GID = $@mobid[0];
+	donpcevent strnpcinfo(0)+"::OnCheck";
+	setnpctimer 0;
+	initnpctimer;
+	end;
+
+OnCheck:
+    while ($world_boss_active == 1) {
+		getunitdata .GID,.@wb;
+		.@hp = .@wb[2];
+		.@maxhp = .@wb[3];
+	    if ( $wb_phase_two == 1 ) end;
+            if (.@hp <= (.@maxhp / 2)) {
+		$wb_phase_two = 1;
+                donpcevent "World Boss::OnPhaseTwo";
+            }
+	sleep 1000;	
+    	}
+    end;
+
+OnTimer3600000:
+	stopnpctimer;
+	setnpctimer 0;
+	announce "[World Boss]: Seems like Nobody can defeat World Boss, The Gate suddenly close.",0;
+	mapwarp "ordeal_2-1","prontera",156,191,0;
+	killmonsterall "ordeal_2-1",0;
+	query_sql "UPDATE `world_boss` SET `count`= `count`+1 WHERE `set` = 'WB' ";
+	query_sql "SELECT `count` FROM `world_boss` WHERE `set` = 'wb' ", .@wb;
+	.monster_kill_requirement = 10000 + ((.@wb - 2)*5000);
+	$world_boss_active = 0;
+	$world_boss_counter = 0;
+	$kill_count = (.monster_kill_requirement - $world_boss_counter);
+	end;
+
+	
+OnMobDead:
+	stopnpctimer;
+	setnpctimer 0;
+	getitem 30007,rand(10,15);
+	query_sql "UPDATE `world_boss` SET `count`= `count`+1 WHERE `set` = 'WB' ";
+	query_sql "SELECT `count` FROM `world_boss` WHERE `set` = 'wb' ", .@wb;
+	announce "[World Boss] Demonic Chaos Dragon has been slained by "+strcharinfo(0)+"!!",0;
+	mapannounce "ordeal_2-1","[WB] Demonic Chaos Dragon : This cant be Possible. I've been beaten by mortals",0;
+	sleep 5000;
+	mapannounce "ordeal_2-1","You may leave thru World Boss Spirit and claim your rewards.",0;
+	.monster_kill_requirement = 10000 + ((.@wb - 2)*5000);
+	$world_boss_active = 0;
+	$world_boss_counter = 0;
+	$kill_count = (.monster_kill_requirement - $world_boss_counter);
+	enablenpc "World Boss Spirit";
+	end;
+
+OnPhaseTwo:
+	// Enable damage reduction
+	setunitdata(.GID, UMOB_DMGIMMUNE, 1);
+
+	mapannounce "ordeal_2-1","[World Boss]: You think you've won? Face my guardians!", bc_map,"0x0000FF";
+	sleep 5000;
+	mapannounce "ordeal_2-1","[Strange Voice]: You have to find and Kill 7 guardians spread around this map!", bc_map,"0xFFCE00";
+	sleep 5000;
+	mapannounce "ordeal_2-1","[Strange Voice]: It can return Him to normal Form!", bc_map,"0xFFCE00";
+
+
+	// Summon guardians
+	monster "ordeal_2-1", 245, 245, "[WB] Guardian", 2408, 1, "World Boss::OnGuardDead";
+	monster "ordeal_2-1", 273, 149, "[WB] Guardian", 2408, 1, "World Boss::OnGuardDead";
+	monster "ordeal_2-1", 245, 52, "[WB] Guardian", 2408, 1, "World Boss::OnGuardDead";
+	monster "ordeal_2-1", 149, 26, "[WB] Guardian", 2408, 1, "World Boss::OnGuardDead";
+	monster "ordeal_2-1", 54, 54, "[WB] Guardian", 2408, 1, "World Boss::OnGuardDead";
+	monster "ordeal_2-1", 26, 150, "[WB] Guardian", 2408, 1, "World Boss::OnGuardDead";
+	monster "ordeal_2-1", 53, 245, "[WB] Guardian", 2408, 1, "World Boss::OnGuardDead";
+	end;
+
+OnGuardDead:
+	set .@mob_count,mobcount("ordeal_2-1","World Boss::OnGuardDead");
+	if ( .@mob_count <= 0) {
+		$wb_phase_two = 0;
+		mapannounce "ordeal_2-1","[Strage Voice]: You did Great job, now beat Him!", bc_map,"0xFFCE00";
+
+		// Remove damage reduction
+		setunitdata(.GID, UMOB_DMGIMMUNE, 0);
+	}
+	end;		
+	
+OnInit:
+	query_sql "SELECT `count` FROM `world_boss` WHERE `set` = 'wb' ", .@wb;
+	disablenpc "World Boss Spirit";
+	$wb_phase_two = 0;
+	$world_boss_active = 0;
+	$world_boss_counter = 0;
+	.monster_kill_requirement = 10000 + ((.@wb - 2)*5000);
+	$kill_count = (.monster_kill_requirement - $world_boss_counter);
+	announce "World Boss encounter : "+callfunc("F_InsertComma",$kill_count)+" left.",0,0xff0000;
+	freeloop(1);
+	while(1){
+		$kill_count = (.monster_kill_requirement - $world_boss_counter);
+		if ( $kill_count < 0){ set $kill_count,0; }
+		waitingroom "Kill Left : ["+$kill_count+"]",0;
+    		query_sql "UPDATE `world_boss` SET `kill_count` = " + $kill_count + " WHERE `set` = 'wb'";
+		sleep 2000; //= 1 Second Refresh
+		delwaitingroom;
+	}
+	freeloop(0);
+	initnpctimer("OnMinute", 60000); // Mulai timer untuk update kill_count setiap menit
+	end;
+}
+
+ordeal_2-1,149,273,0	script	World Boss Spirit	10045,{
+	//	.@Delay = 5*60;
+	//	#HD = gettimetick(2) - .@Delay;
+		getitem 30007,rand(10,15);
+		warp "prontera",156,191;
+		sleep2 5000;
+		if (getmapusers("ordeal_2-1") == 0 ){
+		disablenpc "World Boss Spirit";
+		}
+		end;
+}
+-	script	wbannouncer	-1,{
+OnMinute00:
+OnMinute10:
+OnMinute20:
+OnMinute30:
+OnMinute40:
+OnMinute50:
+	if ( $world_boss_active == 2) {
+	announce "World Boss will awake soon",0,0xff0000;
+	end;
+	}
+	if ( $world_boss_active == 1) {
+	announce "World Boss is currently active",0,0xff0000;
+	end;
+	}
+	if ( $world_boss_active == 0) {
+	announce "World Boss encounter : "+callfunc("F_InsertComma",$kill_count)+" left.",0,0xff0000;
+	end;
+	}
+}
+-	script	wbcondition	-1,{
+OnPCLoginEvent:
+	if ( strcharinfo(3) == "ordeal_2-1" && $world_boss_active == 0){
+		warp "prontera",156,191;
+		end;
+		}
+OnPCDieEvent:
+	if(strcharinfo(3) == "ordeal_2-1"){
+		mes "[World Boss Angel]";
+		mes "Do you want to be resurrected?";
+		switch(select("Yes:Please send me back to town")){
+		case 1:
+		mes "--------------------------------------";
+		mes "--------------------------------------";
+		mes "You will be ressurect in 5 second";
+		sleep2 5000;
+		warp "ordeal_2-1",149,149;
+		percentheal 100,100;
+		specialeffect2 EF_INCAGILITY;
+		sc_start SC_INCREASEAGI,(5 * 60 * 1000),10;
+		specialeffect2 EF_BLESSING;
+		sc_start SC_BLESSING,(5 * 60 * 1000),10;
+		end;
+		case 2:
+		warp "prontera",156,191;
+		}
+	}
+}
+-	script	wbreset	-1,{
+OnClock0000:
+query_sql "SELECT `count` FROM `world_boss` WHERE `set` = 'wb' ", .@wb;
+query_sql "UPDATE `world_boss` SET `count`= '1' WHERE `set` = 'WB' ";
+}
+
+ordeal_2-1	mapflag	nowarp	99
+ordeal_2-1	mapflag	nowarpto	99
+ordeal_2-1	mapflag	nocommand	99
+ordeal_2-1	mapflag	nobranch
+ordeal_2-1	mapflag	noteleport	99
+ordeal_2-1	mapflag	nogo	99
+
+-	script	afk_kicker	-1,{
+OnInit:
+	setarray .@map_name$, "ordeal_2-1";
+	.@size_map = getarraysize( .@map_name$ );
+	for ( .@i = 0; .@i < .@size_map; .@i++ )
+		setmapflag .@map_name$[.@i], mf_loadevent;
+	.bg_map$ = implode( .@map_name$, "|" );
+	end;
+OnPCLoadMapEvent:
+	if ( !compare( .bg_map$, strcharinfo(3) ) || @loop_bg ) end;
+	@loop_bg++;
+	while( compare( .bg_map$, strcharinfo(3) )) {
+		sleep2 10000;
+		if( checkidle() > 60 && checkidle() <= 70 )
+			announce "Dont Afk or you will get kicked from World Boss Room", bc_self;
+		else if( checkidle() > 90 && checkidle() <= 100 )
+			announce "you got 30 seconds to move", bc_self;
+		else if( checkidle() > 120 ) {
+			warp "SavePoint", 0, 0;
+			break;
+		}
+	}
+	@loop_bg = 0;
+	end;
+}

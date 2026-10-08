@@ -1,0 +1,289 @@
+einbech,153,257,5	script	Flush MK4U	10081,{
+	set .@name$,"[Flush MK4U]";
+	mes .@name$;
+	mes "Choose what service do you like";
+	switch(select("Refrorm Weapon:Buy Hammer:enchant flush weapon")){
+	case 1:
+	switch(select("Metal Detector Mk47-2:Metal Detector Mk47:Jewel Detector Mk47:Safety Saber:Safety Foxtail:Blocking Spear:Claw Sword:Rubber Hammer:Saw Axe:Safety Knuckle:Safety Manual:Welding Wand:Detecting Staff:Grinder Huuma Shuriken:Bolt Shooter:Bolt Crusher:Bolt Revolver:Safety Whip:Safety Lute")){
+	case 1:
+	close2;
+	item_reform("Amp_Blueprint19");
+	end;
+	case 2:
+	close2;
+	item_reform("Amp_Blueprint1");
+	end;
+	case 3:
+	close2;
+	item_reform("Amp_Blueprint2");
+	end;
+	case 4:
+	close2;
+	item_reform("Amp_Blueprint3");
+	end;
+	case 5:
+	close2;
+	item_reform("Amp_Blueprint4");
+	end;
+	case 6:
+	close2;
+	item_reform("Amp_Blueprint5");
+	end;
+	case 7:
+	close2;
+	item_reform("Amp_Blueprint6");
+	end;
+	case 8:
+	close2;
+	item_reform("Amp_Blueprint7");
+	end;
+	case 9:
+	close2;
+	item_reform("Amp_Blueprint8");
+	end;
+	case 10:
+	close2;
+	item_reform("Amp_Blueprint9");
+	end;
+	case 11:
+	close2;
+	item_reform("Amp_Blueprint10");
+	end;
+	case 12:
+	close2;
+	item_reform("Amp_Blueprint11");
+	end;
+	case 13:
+	close2;
+	item_reform("Amp_Blueprint12");
+	end;
+	case 14:
+	close2;
+	item_reform("Amp_Blueprint13");
+	end;
+	case 15:
+	close2;
+	item_reform("Amp_Blueprint14");
+	end;
+	case 16:
+	close2;
+	item_reform("Amp_Blueprint15");
+	end;
+	case 17:
+	close2;
+	item_reform("Amp_Blueprint16");
+	end;
+	case 18:
+	close2;
+	item_reform("Amp_Blueprint17");
+	end;
+	case 19:
+	close2;
+	item_reform("Amp_Blueprint18");
+	end;
+	}
+	case 2:
+	close2;
+	callshop "ein_hammer",1;
+	end;
+	case 3:
+	close2;
+	item_enchant(63);
+	end;
+	}
+
+OnInit:
+    setunittitle( getnpcid(0), "<Reform & Enchanter>" );
+}
+
+-	shop	ein_hammer	-1,No,102124:10000000
+
+/** monster yml
+
+  - Id: 21951
+    AegisName: PUNCH_BUG
+    Name: Punch Bug
+    Level: 262
+    Hp: 46915251
+    BaseExp: 723723
+    JobExp: 503581
+    Attack: 16234
+    Attack2: 3365
+    Defense: 486
+    MagicDefense: 188
+    Resistance: 457
+    MagicResistance: 214
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Medium
+    Race: Insect
+    Element: Earth
+    ElementLevel: 3
+    WalkSpeed: 150
+    AttackDelay: 416
+    AttackMotion: 660
+    DamageMotion: 480
+    Ai: 04
+    Drops:
+      - Item: Fresh_Pear
+        Rate: 2250
+      - Item: Worm_Peelings
+        Rate: 250
+      - Item: Solid_Peeling
+        Rate: 3250
+      - Item: Punch_Bug_Card
+        Rate: 1
+        StealProtected: true
+  - Id: 21952
+    AegisName: AFERDE
+    Name: Aferde
+    Level: 264
+    Hp: 46254911
+    BaseExp: 723723
+    JobExp: 503581
+    Attack: 14314
+    Attack2: 4787
+    Defense: 478
+    MagicDefense: 275
+    Resistance: 482
+    MagicResistance: 387
+    AttackRange: 2
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Large
+    Race: Insect
+    Element: Wind
+    ElementLevel: 2
+    WalkSpeed: 170
+    AttackDelay: 448
+    AttackMotion: 792
+    DamageMotion: 336
+    Ai: 04
+    Drops:
+      - Item: Slicky_Fluid
+        Rate: 2250
+      - Item: Short_Leg
+        Rate: 2668
+      - Item: Zargon
+        Rate: 600
+      - Item: Aferde_Card
+        Rate: 1
+        StealProtected: true
+  - Id: 21953
+    AegisName: DISPOL
+    Name: Dispol
+    Level: 263
+    Hp: 44652659
+    BaseExp: 723723
+    JobExp: 503581
+    Attack: 12948
+    Attack2: 5382
+    Defense: 284
+    MagicDefense: 300
+    Resistance: 227
+    MagicResistance: 376
+    AttackRange: 3
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Small
+    Race: Brute
+    Element: Holy
+    ElementLevel: 1
+    WalkSpeed: 130
+    AttackDelay: 740
+    AttackMotion: 480
+    DamageMotion: 240
+    Ai: 04
+    Drops:
+      - Item: Cool_Liquid
+        Rate: 2250
+      - Item: Moustache_Of_Mole
+        Rate: 4500
+      - Item: Nail_Of_Mole
+        Rate: 2500
+      - Item: Dispol_Card
+        Rate: 1
+        StealProtected: true
+  - Id: 21954
+    AegisName: TIMBERS
+    Name: Timbers
+    Level: 265
+    Hp: 47189684
+    BaseExp: 723723
+    JobExp: 503581
+    Attack: 14722
+    Attack2: 4874
+    Defense: 472
+    MagicDefense: 271
+    Resistance: 469
+    MagicResistance: 377
+    AttackRange: 2
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Medium
+    Race: Plant
+    Element: Neutral
+    ElementLevel: 4
+    WalkSpeed: 160
+    AttackDelay: 418
+    AttackMotion: 720
+    DamageMotion: 576
+    Ai: 04
+    Drops:
+      - Item: Whittling
+        Rate: 2250
+      - Item: Resin
+        Rate: 2000
+      - Item: Wooden_Block
+        Rate: 1500
+      - Item: Timbers_Card
+        Rate: 1
+        StealProtected: true
+  - Id: 21955
+    AegisName: RENIRE
+    Name: Renire
+    Level: 270
+    Hp: 384095393
+    BaseExp: 2723723
+    JobExp: 2503581
+    Attack: 21177
+    Attack2: 6930
+    Defense: 472
+    MagicDefense: 270
+    Resistance: 481
+    MagicResistance: 381
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Medium
+    Race: Insect
+    Element: Water
+    ElementLevel: 3
+    WalkSpeed: 150
+    AttackDelay: 574
+    AttackMotion: 600
+    DamageMotion: 432
+    DamageTaken: 10
+    Ai: 21
+    Class: Boss
+    Modes:
+      Mvp: true
+    MvpDrops:
+      - Item: Mjo_Treasure
+        Rate: 3000
+      - Item: Bs_Making_S
+        Rate: 3000
+      - Item: Old_Card_Album
+        Rate: 2000
+    Drops:
+      - Item: Green_Crystal_Fragment
+        Rate: 1800
+      - Item: Cool_Liquid
+        Rate: 1800
+      - Item: Long_Limb
+        Rate: 2200
+      - Item: Renire_Card
+        Rate: 1
+        StealProtected: true
+**/

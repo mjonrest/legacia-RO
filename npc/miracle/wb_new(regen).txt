@@ -1,0 +1,1103 @@
+// ============================================================
+// World Boss Script – Random Map, Damage Tracking, Mail Rewards
+// ============================================================
+
+prontera,136,171,4	script	World Boss	10308,{
+
+	// ---------- CONFIGURATION (edit these) ----------
+	// How many kills (souls) needed to summon
+	set .@kills, 35000;
+
+	// Damage required to qualify for a reward (1,000,000 = 1M)
+	set .min_damage, 1000000;
+
+	// Reward list: { ItemID, min_amount, max_amount, drop_rate (0-100) }
+	// Example: 501 (10% chance), 502 (5% chance)
+	setarray .reward_item[0], 12103,23537,30014,12246,7621,101047,101048,1000337;
+	setarray .reward_min[0],  1,1,1,1,1,1,1,1;
+	setarray .reward_max[0], 20,2,3,5,20,5,5,20;
+	setarray .reward_rate[0], 10,5,5,10,10,5,5,15;   // 10% for 501, 5% for 502
+
+	// Default item that always drops (100% chance)
+	setarray .default_item[0], 30007;   // change to your default item ID
+	setarray .default_min[0],  20;
+	setarray .default_max[0], 30;
+
+	// Extra reward for the killer (same structure with rates)
+	setarray .killer_item[0], 30007;
+	setarray .killer_min[0],  20;
+	setarray .killer_max[0], 30;
+	// ---------- END OF CONFIGURATION ----------
+
+	// Get current souls from SQL
+	query_sql "SELECT `kill_count` FROM `world_boss` WHERE `set` = 'wb' ", .@kill_count;
+
+	mes "[ World Boss ]";
+	if ( $world_boss_active == 0 ) mes "Status : ^FF0000Inactive^000000";
+	if ( $world_boss_active == 1 ) mes "Status : ^00FF00Active^000000";
+	if ( $world_boss_active == 2 ) mes "Status : ^00FF00Preparing^000000";
+	if ( $world_boss_active == 3 ) mes "Status : ^00FF00Cleaning^000000";
+	mes "Collected Souls - [ ^0000FF"+callfunc("F_Comma",.@kill_count)+"^000000 ]";
+	mes "=============================";
+	mes "Reward (always drops):";
+	for ( .@i = 0; .@i < getarraysize(.default_item); .@i++ )
+		mes "<ITEM>" + getitemname(.default_item[.@i]) + "<INFO>" + .default_item[.@i] + "</INFO></ITEM> ( " + .default_min[.@i] + " ~ " + .default_max[.@i] + " )";
+	mes "Extra Drops (each with chance):";
+	for ( .@i = 0; .@i < getarraysize(.reward_item); .@i++ )
+		mes "<ITEM>" + getitemname(.reward_item[.@i]) + "<INFO>" + .reward_item[.@i] + "</INFO></ITEM> ( " + .reward_min[.@i] + " ~ " + .reward_max[.@i] + ", " + .reward_rate[.@i] + "% chance )";
+	mes "=============================";
+	mes "Bonus for the Top Damage:";
+	for ( .@i = 0; .@i < getarraysize(.killer_item); .@i++ )
+		mes "<ITEM>" + getitemname(.killer_item[.@i]) + "<INFO>" + .killer_item[.@i] + "</INFO></ITEM> ( " + .killer_min[.@i] + " ~ " + .killer_max[.@i] + " )";
+	next;
+
+	// ----- Dynamic menu -----
+	set .@menu$, "";
+	set .@opt_id, 0;
+
+	if ($world_boss_active == 1) {
+		.@menu$ = .@menu$ + "Enter Map:";
+		setarray .@opt[.@opt_id++], 1;
+	}
+	if (.@kill_count >= .@kills && $world_boss_active == 0) {
+		.@menu$ = .@menu$ + "Summon World Boss:";
+		setarray .@opt[.@opt_id++], 2;
+	}
+	if ($world_boss_active >= 2) {
+		.@menu$ = .@menu$ + "Information";
+		setarray .@opt[.@opt_id++], 3;
+	}
+
+	if (.@menu$ == "") {
+		mes "[ World Boss ]";
+		mes "Each monster kill by a player increases the soul count by 1.";
+		mes "When "+callfunc("F_Comma",.@kills)+" souls are collected, anyone can summon the World Boss.";
+		close;
+	}
+
+	set .@s, select(.@menu$) - 1;
+	switch (.@opt[.@s]) {
+	case 1: // Enter map
+		if ( getmapusers($world_boss_map$) >= 100 ) {
+			mes "The boss map is full (100 players). Try again later.";
+			close;
+		}
+		announce "[World Boss]: "+strcharinfo(0)+" just entered the World Boss Map!", bc_all, 0x00FF00;
+		warp $world_boss_map$, 0, 0;  // random warp
+		end;
+
+	case 2: // Summon
+		query_sql "SELECT `kill_count` FROM `world_boss` WHERE `set` = 'wb' ", .@kill_count;
+		mes "[ World Boss ]";
+		mes "Hello " + strcharinfo(0) + ", do you wish to summon the World Boss?";
+		next;
+		switch(select("Let me think again:Yes, Please")) {
+		case 1:
+			mes "Please take your time.";
+			close;
+		case 2:
+			// --- NEW: Level check (must be at least 275) ---
+			if ( BaseLevel < 275 ) {
+				mes "[ World Boss ]";
+				mes "Only adventurers with ^FF0000level 275^000000 can summon the World Boss.";
+				mes "Your level: ^0000FF" + BaseLevel + "^000000";
+				close;
+			}
+
+			// --- NEW: Second confirmation (double check) ---
+			mes "[ World Boss ]";
+			mes "Are you ^FF0000ABSOLUTELY SURE^000000?";
+			mes "Summoning the boss will consume ^0000FF" + callfunc("F_Comma",.@kills) + "^000000 souls.";
+			mes "The boss will appear on a random field and last for 1 hour.";
+			mes "Only players with more than ^0000FF" + callfunc("F_Comma",.min_damage) + "^000000 damage will receive rewards.";
+			next;
+			switch(select("No, cancel summon:Yes, I want to summon the boss!")) {
+			case 1:
+				mes "Summon cancelled.";
+				close;
+			case 2:
+				// Re-check conditions because player might have waited
+				if ($world_boss_active != 0) {
+					mes "Sorry, the World Boss is no longer available for summoning.";
+					mes "Current status: " + $world_boss_active + ".";
+					close;
+				}
+				query_sql "SELECT `kill_count` FROM `world_boss` WHERE `set` = 'wb' ", .@kill_count_now;
+				if (.@kill_count_now < .@kills) {
+					mes "Not enough souls anymore. Need " + callfunc("F_Comma",.@kills) + ", have " + callfunc("F_Comma",.@kill_count_now) + ".";
+					close;
+				}
+
+				// Reserve summon
+				set $world_boss_active, 2;  // Preparing
+				query_sql "UPDATE `world_boss` SET `kill_count` = `kill_count` - "+.@kills+" WHERE `set` = 'wb'";
+
+				// Choose random map
+				.@map_idx = callfunc("F_RandSafe", getarraysize($wb_maps$));
+				$world_boss_map$ = $wb_maps$[.@map_idx];
+
+				// Apply mapflags to prevent cheating
+				setmapflag $world_boss_map$, mf_loadevent;   // for no-dual script
+
+				announce "[World Boss]: " + strcharinfo(0) + " just summoned the World Boss", bc_all;
+				donpcevent "World Boss::OnSummon";
+				close;
+			}
+		}
+		end;
+
+	case 3: // Information
+		mes "[ World Boss ]";
+		mes "Each monster kill increases the soul count by 1.";
+		mes "When "+callfunc("F_Comma",.@kills)+" souls are collected, anyone can summon the World Boss.";
+		mes "The boss spawns on a random map, together with guardians.";
+		mes "Only players who deal more than "+callfunc("F_Comma",.min_damage)+" damage receive rewards by mail.";
+		close;
+	}
+
+// -----------------------------------------------------------
+// SUMMON EVENT
+// -----------------------------------------------------------
+OnSummon:
+	$world_boss_active = 2;
+	$world_boss_instance++;
+	query_sql( "UPDATE `world_boss_state` SET `last_instance_id` = "+$world_boss_instance+" WHERE `id` = 1" );
+	debugmes "World Boss Instance ID: "+$world_boss_instance;
+
+	// Initialize boss skills (arrays will be overwritten)
+	$wb_skill_count = 0;
+	$wb_last_attack_cast = gettimetick(1);  // needed for attack cooldown
+
+	// Add attack skills
+	for (.@i = 0; .@i < getarraysize($wb_attack_skill_id); .@i++) {
+		$wb_skill_id[$wb_skill_count] = $wb_attack_skill_id[.@i];
+		$wb_skill_lvl[$wb_skill_count] = $wb_attack_skill_lvl[.@i];
+		$wb_skill_type[$wb_skill_count] = 0;  // attack
+		$wb_skill_cooldown[$wb_skill_count] = 20;  // 20 sec interval
+		$wb_skill_active[$wb_skill_count] = 1;
+		$wb_skill_lastcast[$wb_skill_count] = gettimetick(1);
+		$wb_skill_count++;
+	}
+	// Add buff skills
+	for (.@i = 0; .@i < getarraysize($wb_buff_skill_id); .@i++) {
+		$wb_skill_id[$wb_skill_count] = $wb_buff_skill_id[.@i];
+		$wb_skill_lvl[$wb_skill_count] = $wb_buff_skill_lvl[.@i];
+		$wb_skill_type[$wb_skill_count] = 1;  // buff
+		$wb_skill_cooldown[$wb_skill_count] = $wb_buff_cooldown[.@i];
+		$wb_skill_active[$wb_skill_count] = 1;
+		$wb_skill_lastcast[$wb_skill_count] = gettimetick(1);
+		$wb_skill_count++;
+	}
+
+	sleep 5000;
+	announce "[World Boss]: Attention all, the World Boss has awakened!", bc_all;
+	sleep 10000;
+	announce "[World Boss]: The seal will break and the gate will open in 15 minutes!", bc_all;
+	sleep 1000;
+	announce "[World Boss]: All adventurers, please prepare yourselves!", bc_all;
+	sleep (4 * 60 * 1000);
+	announce "[World Boss]: 10 minute left!", bc_all;
+	sleep (4 * 60 * 1000);
+	announce "[World Boss]: 5 minute left!", bc_all;
+	sleep (3 * 60 * 1000);
+	announce "[World Boss]: 1 minute left!", bc_all;
+	sleep (1 * 60 * 1000);
+	announce "[World Boss]: The gate is open! The World Boss will vanish if not defeated in 1 hour.", bc_all;
+	$world_boss_active = 1;
+
+	// Spawn the boss at random position
+	monster $world_boss_map$, 0, 0, "[WB] Demonic Chaos Dragon", $wb_boss_mob, 1, strnpcinfo(0)+"::OnMobDead";
+	.GID = $@mobid[0];
+	$world_boss_gid = .GID;
+	//sc_start SC_RELIEVE_ON, 3600000, 10, 10000, SCSTART_NOAVOID, $world_boss_gid;
+	unitskilluseid $world_boss_gid,771,10;
+
+	// Spawn guardians
+	$wb_alive_guardians = 0;
+	for ( .@i = 0; .@i < $wb_guardian_count; .@i++ ){
+		monster $world_boss_map$, 0, 0, "[WB] Guardian", $wb_guardian_mob, 1, strnpcinfo(0)+"::OnGuardDead";
+		$wb_alive_guardians++;
+	}
+
+	// Start regeneration check
+	donpcevent strnpcinfo(0)+"::OnStartRegen";
+	// Start skill manager (background loop)
+	donpcevent strnpcinfo(0)+"::OnStartSkillManager";
+	// 1 hour timer
+	setnpctimer 0;
+	initnpctimer;
+	end;
+
+// -----------------------------------------------------------
+// REGENERATION (based on alive guardians)
+// -----------------------------------------------------------
+OnStartRegen:
+	while ($world_boss_active == 1) {
+		sleep 5000; // Check every 5 seconds
+
+		// Count alive guardians using the same pattern as the old script
+		.@alive_guardians = mobcount( $world_boss_map$, strnpcinfo(0)+"::OnGuardDead" );
+
+		// Calculate regen percentage
+		.@regen_percent = $wb_regen_base + ($wb_regen_per_guardian * .@alive_guardians);
+
+		// --- Get boss current HP and Max HP using the stored global GID ---
+		getunitdata( $world_boss_gid, .@wb );
+		.@current_hp = .@wb[UMOB_HP];
+		.@max_hp = .@wb[UMOB_MAXHP];
+		// ---
+
+		// Calculate regen amount
+		.@regen_amount = .@max_hp * .@regen_percent / 100;
+
+		// Apply regen (capped at max HP)
+		.@new_hp = min(.@current_hp + .@regen_amount, .@max_hp);
+		setunitdata $world_boss_gid, UMOB_HP, .@new_hp;
+
+		// Notify players in the area
+		unittalk $world_boss_gid, "HP Regen " + .@regen_percent + "% (" + .@alive_guardians + " guardians alive)!", bc_area;
+	}
+	end;
+
+// -----------------------------------------------------------
+// SKILL MANAGER (background loop – no player attachment needed)
+// -----------------------------------------------------------
+OnStartSkillManager:
+	while ($world_boss_active == 1) {
+
+		sleep 5000;
+
+		if ($world_boss_active != 1) end;
+		if (!$world_boss_gid) end;
+		if (!unitexists($world_boss_gid)) end;
+
+		.@count = 0;
+
+		// rebuild active pool fresh every cycle
+		for (.@i = 0; .@i < $wb_skill_count; .@i++) {
+			if ($wb_skill_active[.@i] == 1) {
+				.@pool[.@count] = .@i;
+				.@count++;
+			}
+		}
+
+		// no skill available
+		if (.@count <= 0)
+			continue;
+
+		// pick one active skill
+		if (.@count == 1)
+			.@idx = .@pool[0];
+		else
+			.@idx = .@pool[rand(.@count)];
+
+		.@skill_id = $wb_skill_id[.@idx];
+
+		switch (.@skill_id) {
+
+			case 653:
+				donpcevent strnpcinfo(0)+"::OnSkill_Earthquake";
+				break;
+
+			case 2213:
+				donpcevent strnpcinfo(0)+"::OnSkill_Comet";
+				break;
+
+			case 5243:
+				donpcevent strnpcinfo(0)+"::OnSkill_MassiveBlaster";
+				break;
+
+			case 5294:
+				donpcevent strnpcinfo(0)+"::OnSkill_ShadowCrow";
+				break;
+
+			case 465:
+				donpcevent strnpcinfo(0)+"::OnSkill_Reflect";
+				break;
+
+			case 2322:
+				donpcevent strnpcinfo(0)+"::OnSkill_Rebound";
+				break;
+
+			case 5269:
+				donpcevent strnpcinfo(0)+"::OnSkill_Mediale";
+				break;
+		}
+	}
+	end;
+
+// -----------------------------------------------------------
+// INDIVIDUAL ATTACK SKILLS
+// -----------------------------------------------------------
+OnSkill_Earthquake:
+	if ($world_boss_active != 1) end;
+	if (!$world_boss_gid) end;
+	unittalk $world_boss_gid, "[ Earthquake ] !!";
+	unitskilluseid $world_boss_gid, 653, 10;
+	end;
+
+
+OnSkill_Comet:
+	if ($world_boss_active != 1) end;
+	if (!$world_boss_gid) end;
+	unittalk $world_boss_gid, "[ Comet ] !!", bc_area;
+	// Get boss position
+	getunitdata($world_boss_gid, .@boss_data);
+	.@boss_x = .@boss_data[UMOB_X];
+	.@boss_y = .@boss_data[UMOB_Y];
+	// Collect players within 30 cells
+	deletearray .@near_players;
+	getmapunits(BL_PC, $world_boss_map$, .@all_players);
+	for (.@i = 0; .@i < getarraysize(.@all_players); .@i++) {
+		getunitdata(.@all_players[.@i], .@pdata);
+		.@dx = .@pdata[UMOB_X] - .@boss_x;
+		.@dy = .@pdata[UMOB_Y] - .@boss_y;
+		if (sqrt(.@dx * .@dx + .@dy * .@dy) <= 10) {
+			.@near_players[getarraysize(.@near_players)] = .@all_players[.@i];
+		}
+	}
+	if (getarraysize(.@near_players) > 0) {
+		.@target_gid = .@near_players[callfunc("F_RandSafe", getarraysize(.@near_players))];
+		getunitdata(.@target_gid, .@target_data);
+		.@x = .@target_data[UMOB_X];
+		.@y = .@target_data[UMOB_Y];
+		// small random offset ±2
+		.@x += callfunc("F_RandSafe", 5) - 2;
+		.@y += callfunc("F_RandSafe", 5) - 2;
+		unitskillusepos $world_boss_gid, 2213, 5, .@x, .@y, -9, 0;
+	} else {
+		unitskillusepos $world_boss_gid, 2213, 5, .@boss_x, .@boss_y, -9, 0;
+	}
+	end;
+
+OnSkill_MassiveBlaster:
+	if ($world_boss_active != 1) end;
+	if (!$world_boss_gid) end;
+
+	// ----------------------------------------
+	// Get boss position
+	// ----------------------------------------
+	getunitdata($world_boss_gid, .@boss);
+	.@bx = .@boss[UMOB_X];
+	.@by = .@boss[UMOB_Y];
+
+	// ----------------------------------------
+	// Get all players on map
+	// ----------------------------------------
+	getmapunits(BL_PC, $world_boss_map$, .@players);
+
+	.@best_dist = 999999;
+	.@target_gid = 0;
+
+	// ----------------------------------------
+	// Find closest player
+	// ----------------------------------------
+	for (.@i = 0; .@i < getarraysize(.@players); .@i++) {
+
+		if (!unitexists(.@players[.@i]))
+			continue;
+
+		getunitdata(.@players[.@i], .@p);
+
+		.@dx = .@p[UMOB_X] - .@bx;
+		.@dy = .@p[UMOB_Y] - .@by;
+
+		// Manual absolute value
+		if (.@dx < 0) .@dx = -.@dx;
+		if (.@dy < 0) .@dy = -.@dy;
+
+		.@dist = .@dx + .@dy;
+
+		if (.@dist < .@best_dist) {
+			.@best_dist = .@dist;
+			.@target_gid = .@players[.@i];
+		}
+	}
+
+	// ----------------------------------------
+	// Attack closest player
+	// ----------------------------------------
+	if (.@target_gid) {
+
+		if (attachrid(.@target_gid)) {
+
+			unittalk $world_boss_gid, "[ Massive F Blaster ] !!";
+
+			unitskilluseid $world_boss_gid, 5243, 10, playerattached(), 1, 0, 0, 0;
+
+			detachrid;
+		}
+	}
+	end;
+
+OnSkill_ShadowCrow:
+	if ($world_boss_active != 1) end;
+	if (!$world_boss_gid) end;
+
+	// ----------------------------------------
+	// Get boss position
+	// ----------------------------------------
+	getunitdata($world_boss_gid, .@boss);
+	.@bx = .@boss[UMOB_X];
+	.@by = .@boss[UMOB_Y];
+
+	// ----------------------------------------
+	// Get all players on map
+	// ----------------------------------------
+	getmapunits(BL_PC, $world_boss_map$, .@players);
+
+	.@best_dist = 999999;
+	.@target_gid = 0;
+
+	// ----------------------------------------
+	// Find closest player
+	// ----------------------------------------
+	for (.@i = 0; .@i < getarraysize(.@players); .@i++) {
+
+		if (!unitexists(.@players[.@i]))
+			continue;
+
+		getunitdata(.@players[.@i], .@p);
+
+		.@dx = .@p[UMOB_X] - .@bx;
+		.@dy = .@p[UMOB_Y] - .@by;
+
+		// Manual absolute value
+		if (.@dx < 0) .@dx = -.@dx;
+		if (.@dy < 0) .@dy = -.@dy;
+
+		.@dist = .@dx + .@dy;
+
+		if (.@dist < .@best_dist) {
+			.@best_dist = .@dist;
+			.@target_gid = .@players[.@i];
+		}
+	}
+
+	// ----------------------------------------
+	// Attack closest player
+	// ----------------------------------------
+	if (.@target_gid) {
+
+		if (attachrid(.@target_gid)) {
+
+			unittalk $world_boss_gid, "[ Fatal Shadow Crow ] !!";
+
+			unitskilluseid $world_boss_gid, 5294, 10, playerattached(), 1, 0, 0, 0;
+
+			detachrid;
+		}
+	}
+	end;
+
+// -----------------------------------------------------------
+// INDIVIDUAL BUFF SKILLS
+// -----------------------------------------------------------
+OnSkill_Reflect:
+	if ($world_boss_active != 1) end;
+	if (!$world_boss_gid) end;
+	unittalk $world_boss_gid, "[ Reflect Damage ] !!", bc_area;
+	unitskilluseid $world_boss_gid, 465, 7,$world_boss_gid,0,0;
+	end;
+
+OnSkill_Rebound:
+	if ($world_boss_active != 1) end;
+	if (!$world_boss_gid) end;
+	unittalk $world_boss_gid, "[ Piety ] !!", bc_area;
+	unitskilluseid $world_boss_gid, 2322, 5,$world_boss_gid,0,0;
+	end;
+
+OnSkill_Mediale:
+	if ($world_boss_active != 1) end;
+	if (!$world_boss_gid) end;
+	unittalk $world_boss_gid, "[ Mediale Votum ] !!", bc_area;
+	unitskilluseid $world_boss_gid, 5269, 5,$world_boss_gid,0,0;
+	end;
+
+// -----------------------------------------------------------
+// GUARDIAN RESPAWN (FIXED)
+// -----------------------------------------------------------
+OnGuardDead:
+    if ($world_boss_active != 1) end;
+
+    // Decrement the manual guardian counter
+    $wb_alive_guardians--;
+
+    // --- If NO guardians left, disable ALL remaining skills (ensures last skill is gone) ---
+    if ($wb_alive_guardians == 0) {
+        for (.@i = 0; .@i < $wb_skill_count; .@i++) {
+            $wb_skill_active[.@i] = 0;
+        }
+        mapannounce $world_boss_map$, "[World Boss]: The last guardian falls! The boss loses all remaining skills!", bc_map;
+    }
+
+    // --- Remove one random ACTIVE skill ---
+    .@active_count = 0;
+    for (.@i = 0; .@i < $wb_skill_count; .@i++) {
+        if ($wb_skill_active[.@i]) {
+            .@active_skills[.@active_count] = .@i;
+            .@active_count++;
+        }
+    }
+
+    if (.@active_count > 0) {
+        .@pick = rand(.@active_count);
+        .@remove_idx = .@active_skills[.@pick];
+        $wb_skill_active[.@remove_idx] = 0;
+        .@skill_name$ = getskillname($wb_skill_id[.@remove_idx]);
+        mapannounce $world_boss_map$, "[World Boss]: A guardian has fallen! The boss loses the skill '" + .@skill_name$ + "'!", bc_map;
+    } else {
+        mapannounce $world_boss_map$, "[Debug] No active skills to remove (but boss may still have skills? Check your arrays).", bc_map;
+    }
+
+    // Schedule respawn
+    addtimer ( $wb_guardian_respawn_delay * 1000 ), strnpcinfo(0)+"::OnRespawnGuardian";
+    end;
+
+OnRespawnGuardian:
+	if ($world_boss_active != 1) end;
+
+	// Respawn one guardian
+	monster $world_boss_map$, 0, 0, "[WB] Guardian", $wb_guardian_mob, 1, strnpcinfo(0)+"::OnGuardDead";
+	$wb_alive_guardians++;
+	mapannounce $world_boss_map$, "[World Boss]: A guardian has respawned! (Total: " + $wb_alive_guardians + ")", bc_map;
+
+	// Restore one random DISABLED skill
+	.@disabled_count = 0;
+	for (.@i = 0; .@i < $wb_skill_count; .@i++) {
+		if ($wb_skill_active[.@i] == 0) .@disabled_count++;
+	}
+	if (.@disabled_count > 0) {
+		.@restore_idx = -1;
+		.@rand = callfunc("F_RandSafe", .@disabled_count);
+		for (.@i = 0; .@i < $wb_skill_count; .@i++) {
+			if ($wb_skill_active[.@i] == 0) {
+				if (.@rand == 0) {
+					.@restore_idx = .@i;
+					break;
+				}
+				.@rand--;
+			}
+		}
+		if (.@restore_idx >= 0) {
+			$wb_skill_active[.@restore_idx] = 1;
+			.@skill_name$ = getskillname($wb_skill_id[.@restore_idx]);
+			mapannounce $world_boss_map$, "[World Boss]: A guardian respawns! The boss regains the skill '" + .@skill_name$ + "'!", bc_map;
+		}
+	} else {
+		debugmes "World Boss: No disabled skills to restore.";
+		mapannounce $world_boss_map$, "[Debug] No disabled skills to restore.", bc_map;
+	}
+	end;
+
+// -----------------------------------------------------------
+// 1 HOUR TIMEOUT
+// -----------------------------------------------------------
+OnTimer3600000:
+	stopnpctimer;
+	setnpctimer 0;
+	announce "[World Boss]: Nobody could defeat the World Boss. The gate suddenly closes.", bc_all;
+	mapwarp $world_boss_map$, "prontera", 156, 191;
+	killmonster $world_boss_map$,strnpcinfo(0)+"::OnGuardDead";
+	killmonster $world_boss_map$,strnpcinfo(0)+"::OnMobDead";
+	// Clean up mapflags and variables
+	callsub OnCleanup;
+	end;
+
+// -----------------------------------------------------------
+// BOSS DEATH
+// -----------------------------------------------------------
+OnMobDead:
+	stopnpctimer;
+	setnpctimer 0;
+	$world_boss_active = 3;   // Cleaning
+
+	// Rental bonus configuration
+	.rental_bonus_item = 30034;   // item that grants bonus
+	.rental_bonus_extra = 5;      // extra amount added to default reward
+
+	// Get all participants from SQL who dealt >= .min_damage
+	.@size = query_sql( "SELECT `char_id`, `total_damage`, `account_id` FROM `world_boss_participants` WHERE `instance_id` = "+$world_boss_instance+" AND `total_damage` >= "+.min_damage, .@cid, .@dmg, .@aid );
+
+	// --- Filter participants: online AND on the boss map ---
+	deletearray .@valid_cid;
+	deletearray .@valid_dmg;
+	deletearray .@valid_aid;
+	.@valid_count = 0;
+
+	for ( .@i = 0; .@i < .@size; .@i++ ) {
+		// Check if the specific character is online
+		if ( isloggedin( .@aid[.@i], .@cid[.@i] ) ) {
+			attachrid( .@aid[.@i] );
+			if ( strcharinfo(3) == $world_boss_map$ ) {
+				.@valid_cid[.@valid_count] = .@cid[.@i];
+				.@valid_dmg[.@valid_count] = .@dmg[.@i];
+				.@valid_aid[.@valid_count] = .@aid[.@i];
+				.@valid_count++;
+			}
+			detachrid;
+		}
+	}
+	// Send mail to each qualified participant (normal rewards)
+	for ( .@i = 0; .@i < .@valid_count; .@i++ ) {
+		if ( !attachrid( .@valid_aid[.@i] ) ) continue;
+
+		deletearray .@items;
+		deletearray .@amounts;
+		.@item_count = 0;
+
+		// 1) Default items (always drop)
+		.@def_count = getarraysize(.default_item);
+		for ( .@j = 0; .@j < .@def_count; .@j++ ) {
+			.@amt = rand( .default_min[.@j], .default_max[.@j] );
+
+			if ( rentalcountitem( .rental_bonus_item ) ) {
+				.@amt += .rental_bonus_extra;
+				dispbottom "[Charm of Brightness] active bonus applied! (+" + .rental_bonus_extra + " coins)", 0xFFFF00;
+			}
+
+			.@items[.@item_count] = .default_item[.@j];
+			.@amounts[.@item_count] = .@amt;
+
+			query_sql(
+				"INSERT INTO `world_boss_rewards` "+
+				"(`instance_id`,`char_id`,`account_id`,`item_id`,`amount`,`is_killer`,`map_name`,`boss_id`,`damage`,`reward_type`) VALUES ("+
+				$world_boss_instance+","+.@valid_cid[.@i]+","+.@valid_aid[.@i]+","+.@items[.@item_count]+","+.@amounts[.@item_count]+
+				",0,'"+escape_sql($world_boss_map$)+"',"+$wb_boss_mob+","+.@valid_dmg[.@i]+",'default')"
+			);
+			.@item_count++;
+		}
+
+		// 2) Chance-based rewards (no rental bonus)
+		.@rew_count = getarraysize(.reward_item);
+		for ( .@j = 0; .@j < .@rew_count; .@j++ ) {
+			if ( rand(100) < .reward_rate[.@j] ) {
+				.@amt = rand( .reward_min[.@j], .reward_max[.@j] );
+				.@items[.@item_count] = .reward_item[.@j];
+				.@amounts[.@item_count] = .@amt;
+
+				query_sql(
+					"INSERT INTO `world_boss_rewards` "+
+					"(`instance_id`,`char_id`,`account_id`,`item_id`,`amount`,`is_killer`,`map_name`,`boss_id`,`damage`,`reward_type`) VALUES ("+
+					$world_boss_instance+","+.@valid_cid[.@i]+","+.@valid_aid[.@i]+","+.@items[.@item_count]+","+.@amounts[.@item_count]+
+					",0,'"+escape_sql($world_boss_map$)+"',"+$wb_boss_mob+","+.@valid_dmg[.@i]+",'random')"
+				);
+				.@item_count++;
+			}
+		}
+
+		.@title$ = "World Boss Victory!";
+		.@body$ = "You dealt " + callfunc("F_Comma",.@valid_dmg[.@i]) + " damage to the Demonic Chaos Dragon. Here is your reward.";
+		mail .@valid_cid[.@i], "World Boss", .@title$, .@body$, 0, .@items, .@amounts;
+
+		detachrid;
+	}
+
+	// --- Find the top damage dealer among valid participants ---
+	.@top_damage = 0;
+	.@top_index = -1;
+	for ( .@i = 0; .@i < .@valid_count; .@i++ ) {
+		if ( .@valid_dmg[.@i] > .@top_damage ) {
+			.@top_damage = .@valid_dmg[.@i];
+			.@top_index = .@i;
+		}
+	}
+
+	// --- Extra reward for the top damage dealer (if any) ---
+	if ( .@top_index >= 0 ) {
+		.@top_cid = .@valid_cid[.@top_index];
+		.@top_aid = .@valid_aid[.@top_index];
+		.@top_dmg = .@valid_dmg[.@top_index];
+
+		deletearray .@k_items;
+		deletearray .@k_amounts;
+		.@k_item_count = getarraysize(.killer_item);
+		for ( .@j = 0; .@j < .@k_item_count; .@j++ ) {
+			.@k_items[.@j] = .killer_item[.@j];
+			.@k_amounts[.@j] = rand( .killer_min[.@j], .killer_max[.@j] );
+			// SQL LOG (top damage dealer)
+			query_sql(
+			"INSERT INTO `world_boss_rewards` "+
+			"(`instance_id`,`char_id`,`account_id`,`item_id`,`amount`,`is_killer`,`map_name`,`boss_id`,`damage`,`reward_type`) VALUES ("+
+			$world_boss_instance+","+.@top_cid+","+.@top_aid+","+.@k_items[.@j]+","+.@k_amounts[.@j]+
+			",1,'"+escape_sql($world_boss_map$)+"',"+$wb_boss_mob+","+.@top_dmg+",'killer')"
+		);
+		}
+		.@k_title$ = "World Boss – Top Damage Dealer!";
+		.@k_body$ = "You dealt the highest damage (" + callfunc("F_Comma",.@top_dmg) + ") to the Demonic Chaos Dragon. Extra reward just for you!";
+		mail .@top_cid, "World Boss", .@k_title$, .@k_body$, 0, .@k_items, .@k_amounts;
+	} else {
+		debugmes "World Boss: No valid participant found for top damage reward.";
+	}
+
+	// Announce
+	mapannounce $world_boss_map$, "[WB] Demonic Chaos Dragon : This can't be possible! I've been beaten by mortals!", bc_map;
+	sleep 5000;
+	mapannounce $world_boss_map$, "Rewards have been sent by mail. The map will close soon.", bc_map;
+
+	// Cleanup
+	killmonster $world_boss_map$, strnpcinfo(0)+"::OnGuardDead";
+	callsub OnCleanup;
+	end;
+
+// -----------------------------------------------------------
+// CLEANUP (mapflags, variables, monsters)
+// -----------------------------------------------------------
+OnCleanup:
+	removemapflag $world_boss_map$, mf_loadevent;
+	$world_boss_active = 0;
+	$world_boss_gid = 0;
+	$guardian_respawn_time = 0;
+	$wb_alive_guardians = 0;   // reset counter
+	// Reset skill arrays (no need to delete; just reset counter and let next summon overwrite)
+	$wb_skill_count = 0;
+	$wb_last_attack_cast = 0;
+	// Delete SQL logs for this instance
+	query_sql( "DELETE FROM `world_boss_attack_log` WHERE `instance_id` = "+$world_boss_instance );
+	query_sql( "DELETE FROM `world_boss_participants` WHERE `instance_id` = "+$world_boss_instance );
+	end;
+// -----------------------------------------------------------
+// SOUL COUNT UPDATE (on any kill)
+// -----------------------------------------------------------
+OnNPCKillEvent:
+//	if ($world_boss_active > 0) end;
+	query_sql "UPDATE `world_boss` SET `kill_count` = `kill_count` + 1 WHERE `set` = 'wb'";
+	end;
+
+// -----------------------------------------------------------
+// WAITING ROOM & CONFIG INIT
+// -----------------------------------------------------------
+OnInit:
+	// ---------- SKILL CONFIGURATION ----------
+	// Attack skills 
+	setarray $wb_attack_skill_id[0],    653, 2213, 5243, 5294;
+	setarray $wb_attack_skill_lvl[0],   10,  5, 10, 10;
+	// Buff skills 
+	setarray $wb_buff_skill_id[0],      465, 2322, 5269;
+	setarray $wb_buff_skill_lvl[0],     7, 5, 5;
+	setarray $wb_buff_cooldown[0],      30, 30, 30;   // cooldown in seconds for buffs
+
+	// Rental bonus item ID and extra amount
+	set .rental_bonus_item, 30034;   // item that grants bonus
+	set .rental_bonus_extra, 5;      // extra amount added to default reward
+
+	// ----- Global Configuration (set once at server start) -----
+	setarray $wb_maps$[0],
+		"prt_fild00",   // Prontera Field
+		"prt_fild05",
+		"prt_fild08",
+		"moc_fild01",   // Morroc Field
+		"moc_fild07",
+		"moc_fild11",
+		"pay_fild01",   // Payon Field
+		"pay_fild08",
+		"pay_fild10",
+		"gef_fild00",   // Geffen Field
+		"gef_fild06",
+		"gef_fild14",
+		"mjolnir_01",   // Mjolnir Area
+		"mjolnir_02",
+		"mjolnir_05",
+		"yuno_fild01",  // Juno Field
+		"yuno_fild08",
+		"ein_fild01",   // Einbroch Field
+		"ein_fild05",
+		"lhz_fild01";   // Lighthalzen Field
+
+	set $wb_guardian_count, 7;
+	set $wb_guardian_mob, 2408;   // Guardian monster ID
+	set $wb_boss_mob, 1006;       // Boss monster ID
+	set $wb_regen_base, 5;        // Base regen % per 5 sec
+	set $wb_regen_per_guardian, 5; // Extra % per alive guardian
+	set $wb_guardian_respawn_delay, 300; // Respawn delay in seconds (300 = 5 minutes)
+	// ------------------------------------------------
+
+	// Load instance counter from SQL (persists across restarts/reloads)
+	.@last_id = 0;
+	query_sql( "SELECT `last_instance_id` FROM `world_boss_state` WHERE `id` = 1", .@last_id );
+	if ( .@last_id == 0 ) {
+		// Table row doesn't exist – create it
+		query_sql( "INSERT INTO `world_boss_state` (`id`, `last_instance_id`) VALUES (1, 0)" );
+		$world_boss_instance = 0;
+	} else {
+		$world_boss_instance = .@last_id;
+	}
+
+	$world_boss_active = 0;
+	$guardian_respawn_time = 0;
+	freeloop(1);
+	while(1) {
+		query_sql "SELECT `kill_count` FROM `world_boss` WHERE `set` = 'wb' ", .@kill_count;
+		waitingroom "Souls : ["+callfunc("F_Comma",.@kill_count)+"]", 0;
+		sleep 2000;
+		delwaitingroom;
+	}
+	freeloop(0);
+	end;
+}
+
+// ============================================================
+// DAMAGE TRACKER (OnPCAttackEvent)
+// ============================================================
+-	script	wb_damage_tracker	-1,{
+OnPCAttackEvent:
+	// Only track if world boss is active and the target is the boss
+	if ( $world_boss_active != 1 ) end;
+	if ( @damagegid != $world_boss_gid ) end;
+
+	// Get character and account ID
+	.@cid = getcharid(0);
+	.@aid = getcharid(3);
+
+	// Log every attack for abuse checking (optional, can be heavy)
+	query_sql( "INSERT INTO `world_boss_attack_log` (`instance_id`, `char_id`, `account_id`, `damage`, `attack_time`) VALUES ( "+
+		$world_boss_instance+", "+.@cid+", "+.@aid+", "+@damage+", NOW() )" );
+
+	// Update total damage for this character in the current instance
+	query_sql( "INSERT INTO `world_boss_participants` (`instance_id`, `char_id`, `account_id`, `map_name`, `total_damage`, `last_attack`) VALUES ( "+
+		$world_boss_instance+", "+.@cid+", "+.@aid+", '"+escape_sql(strcharinfo(3))+"', "+@damage+", NOW() ) "+
+		"ON DUPLICATE KEY UPDATE `total_damage` = `total_damage` + "+@damage+", `last_attack` = NOW()" );
+
+	end;
+}
+
+// ============================================================
+// NO-DUAL LOGIN CHECK ON WORLD BOSS MAP
+// ============================================================
+-	script	wb_no_dual	-1,{
+OnInit:
+	// 1 = use Gepard UID, 0 = use IP
+	.Gepard = 1;
+	end;
+
+OnPCLoadMapEvent:
+	// Only act if this map is the current world boss map AND boss is active
+	if ( strcharinfo(3) != $world_boss_map$ ) end;
+	if ( $world_boss_active != 1 ) end;
+
+	if ( .Gepard ) {
+		query_sql( "SELECT last_unique_id FROM login WHERE account_id = "+getcharid(3), .@uid$ );
+		query_sql( "SELECT account_id FROM login WHERE last_unique_id = '"+escape_sql(.@uid$)+"'", .@accs );
+	} else {
+		query_sql( "SELECT last_ip FROM login WHERE account_id = "+getcharid(3), .@ip$ );
+		query_sql( "SELECT last_ip FROM login WHERE last_ip = '"+escape_sql(.@ip$)+"'", .@accs );
+	}
+
+	.@count = 0;
+	.@target = 0;
+
+	for ( .@i = 0; .@i < getarraysize(.@accs); .@i++ ) {
+		if ( attachrid( .@accs[.@i] ) ) {
+			// Skip GMs (optional)
+			if ( getgmlevel() > 0 ) {
+				detachrid;
+				continue;
+			}
+			if ( strcharinfo(3) == $world_boss_map$ ) {
+				.@count++;
+				.@target = getcharid(3);
+			}
+			detachrid;
+		}
+	}
+
+	if ( .@count > 1 && .@target ) {
+		if ( attachrid( .@target ) ) {
+			dispbottom "You already have another character on the World Boss map. Dual logging is not allowed.";
+			warp "prontera", 156, 191;
+		}
+		detachrid;
+	}
+	end;
+}
+
+// ============================================================
+// MAPFLAGS FOR WORLD BOSS MAP (automatically added at summon)
+// ============================================================
+// (setmapflag is done inside the summon event, no need here)
+
+// ============================================================
+// HELPER FUNCTION: comma formatting
+// ============================================================
+function	script	F_Comma	{
+	.@n$ = ""+getarg(0);
+	.@len = getstrlen(.@n$);
+	.@res$ = "";
+	.@neg = 0;
+	if ( charat(.@n$,0) == "-" ) {
+		.@neg = 1;
+		.@n$ = substr(.@n$,1,.@len-1);
+		.@len = getstrlen(.@n$);
+	}
+	for ( .@i = .@len-1; .@i >= 0; .@i-- ) {
+		.@res$ = charat(.@n$,.@i) + .@res$;
+		.@count++;
+		if ( .@count == 3 && .@i > 0 ) {
+			.@res$ = "," + .@res$;
+			.@count = 0;
+		}
+	}
+	if ( .@neg ) .@res$ = "-" + .@res$;
+	return .@res$;
+}
+
+// ============================================================
+// SAFE RANDOM FUNCTION (prevents range 0 error)
+// ============================================================
+function	script	F_RandSafe	{
+	.@max = getarg(0);
+	if (.@max <= 0) return 0;
+	return rand(.@max);
+}
+
+-	script	wb_afk_kicker	-1,{
+OnInit:
+	end;
+
+OnPCLoadMapEvent:
+	// Only run if entering WB map AND boss is active
+	if ( strcharinfo(3) != $world_boss_map$ ) end;
+	if ( $world_boss_active != 1 ) end;
+	if ( @wb_afk_loop ) end;
+
+	@wb_afk_loop = 1;
+
+	// Optional grace period (recommended)
+	sleep2 5000;
+
+	while ( strcharinfo(3) == $world_boss_map$ && $world_boss_active == 1 ) {
+
+		sleep2 10000; // 10 sec check
+
+		// Idle warning 1
+		if ( checkidle() > 60 && checkidle() <= 70 )
+			dispbottom "Don't AFK or you will be kicked from World Boss map.";
+
+		// Warning 2
+		else if ( checkidle() > 90 && checkidle() <= 100 )
+			dispbottom "You have 30 seconds to move!";
+
+		// Kick
+		else if ( checkidle() > 120 ) {
+			dispbottom "You were kicked for being AFK.";
+			warp "SavePoint", 0, 0;
+			break;
+		}
+	}
+
+	@wb_afk_loop = 0;
+	end;
+}
+
+-	script	wbannouncer	-1,{
+OnMinute00:
+OnMinute10:
+OnMinute20:
+OnMinute30:
+OnMinute40:
+OnMinute50:
+	if ( $world_boss_active == 3) {
+		announce "World Boss is clearing...",0,0xff0000;
+		end;
+	}
+
+	if ( $world_boss_active == 2) {
+		announce "World Boss will awake soon",0,0xff0000;
+		end;
+	}
+	if ( $world_boss_active == 1) {
+		announce "World Boss is currently active",0,0xff0000;
+		end;
+	}
+	if ( $world_boss_active == 0) {
+		query_sql "SELECT `kill_count` FROM `world_boss` WHERE `set` = 'wb' ", .@kill_count;
+		announce "World Boss Souls : "+callfunc("F_Comma",.@kill_count)+" collected.",0,0xff0000;
+		end;
+	}
+}
+
+// ============================================================
+// SQL TABLES (run these once on your database)
+// ============================================================
+/*
+-- Table to keep total kill count (already present, but ensure it exists)
+CREATE TABLE IF NOT EXISTS `world_boss` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `set` VARCHAR(50) NOT NULL DEFAULT 'wb',
+  `kill_count` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `set_unique` (`set`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table to store total damage per player per boss instance
+CREATE TABLE IF NOT EXISTS `world_boss_participants` (
+  `instance_id` INT NOT NULL,
+  `char_id` INT NOT NULL,
+  `account_id` INT NOT NULL,
+  `map_name` VARCHAR(30) NOT NULL,
+  `total_damage` BIGINT NOT NULL DEFAULT 0,
+  `last_attack` DATETIME NOT NULL,
+  PRIMARY KEY (`instance_id`, `char_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table to log every single attack (for abuse checking)
+CREATE TABLE IF NOT EXISTS `world_boss_attack_log` (
+  `log_id` INT NOT NULL AUTO_INCREMENT,
+  `instance_id` INT NOT NULL,
+  `char_id` INT NOT NULL,
+  `account_id` INT NOT NULL,
+  `damage` INT NOT NULL,
+  `attack_time` DATETIME NOT NULL,
+  PRIMARY KEY (`log_id`),
+  KEY `instance_id` (`instance_id`),
+  KEY `char_id` (`char_id`),
+  KEY `account_id` (`account_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `world_boss_state` (
+  `id` INT NOT NULL DEFAULT 1,
+  `last_instance_id` INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Insert initial row if missing
+INSERT INTO `world_boss_state` (`id`, `last_instance_id`) VALUES (1, 0)
+ON DUPLICATE KEY UPDATE `id` = `id`;
+
+CREATE TABLE IF NOT EXISTS `world_boss_rewards` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+
+  -- Core reference
+  `instance_id` INT NOT NULL,
+  `char_id` INT NOT NULL,
+  `account_id` INT NOT NULL,
+
+  -- Reward info
+  `item_id` INT NOT NULL,
+  `amount` INT NOT NULL DEFAULT 1,
+
+  -- Flags
+  `is_killer` TINYINT(1) NOT NULL DEFAULT 0,   -- 1 = killing blow bonus
+  `is_bonus` TINYINT(1) NOT NULL DEFAULT 0,    -- future use (event bonus, etc.)
+
+  -- Context info (VERY useful for debugging & analytics)
+  `map_name` VARCHAR(30) NOT NULL,
+  `boss_id` INT NOT NULL,
+  `damage` BIGINT NOT NULL DEFAULT 0,          -- player's total damage
+  `reward_type` ENUM('default','random','killer') NOT NULL,
+
+  -- Timestamp
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (`id`),
+
+  -- Performance indexes
+  KEY `idx_instance` (`instance_id`),
+  KEY `idx_char` (`char_id`),
+  KEY `idx_account` (`account_id`),
+  KEY `idx_item` (`item_id`),
+  KEY `idx_killer` (`is_killer`),
+  KEY `idx_created` (`created_at`)
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+*/

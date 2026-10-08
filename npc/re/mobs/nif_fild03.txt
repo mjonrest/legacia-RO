@@ -1,0 +1,12 @@
+
+nif_fild03,0,0	monster	Sturdy Spiding	22386,17,5000
+nif_fild03,0,0	monster	Sturdy Violen	22384,10,5000
+nif_fild03,0,0	monster	Spiding	22385,55,5000
+nif_fild03,0,0	monster	Violen	22383,30,5000
+nif_fild03,0,0	monster	Garling	22387,35,5000
+nif_fild03,0,0	monster	Sturdy Garling	22388,14,5000
+nif_fild03,0,0	monster	Sturdy Jackonette	22390,17,5000
+nif_fild03,0,0	monster	Jackonette	22389,55,5000
+nif_fild03,0,0	monster	Sturdy Liamette	22392,17,5000
+nif_fild03,0,0	monster	Liamette	22389,55,5000
+nif_fild03,0,0,0,0	boss_monster	Nightmare Piamette	22394,1,3600000,600000,0

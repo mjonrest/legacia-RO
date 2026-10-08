@@ -1,0 +1,310 @@
+Header:
+  Type: BARTER_DB
+  Version: 2
+
+Body:
+  - Name: twisted1
+    Items:
+      - Index: 0
+        Item: Crystal_Of_Pollution
+        Zeny: 20000
+        RequiredItems:
+          - Index: 0
+            Item: Fragments_Of_Pollution
+            Amount: 100
+      - Index: 1
+        Item: Mocadas_Gold
+        Zeny: 20000
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 3
+          - Index: 1
+            Item: Sources_Of_Pollution
+            Amount: 10
+      - Index: 2
+        Item: Mocadas_Water
+        Zeny: 20000
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 1
+          - Index: 1
+            Item: Sources_Of_Pollution
+            Amount: 30
+      - Index: 3
+        Item: Mocadas_G_Sword
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 4
+        Item: Mocadas_C_Sword
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 5
+        Item: Mocadas_Knife
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 6
+        Item: Mocadas_Degger
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 7
+        Item: Mocadas_Axe
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 8
+        Item: Mocadas_Spellbooks
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 9
+        Item: Mocadas_Book
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 10
+        Item: Mocadas_Rod
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 11
+        Item: Mocadas_Foxtail
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 12
+        Item: Mocadas_Wand
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 13
+        Item: Mocadas_Knuckle
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 14
+        Item: Mocadas_Instrument
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 15
+        Item: Mocadas_Whip
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 16
+        Item: Mocadas_Judgement
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 17
+        Item: Mocadas_Hall
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 18
+        Item: Mocadas_Katar
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 19
+        Item: Mocadas_Spear
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 20
+        Item: Mocadas_Stem
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 21
+        Item: Mocadas_Bow
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 22
+        Item: Mocadas_Rifle
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 23
+        Item: Mocadas_Shotgun
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 24
+        Item: Mocadas_Gatling
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100
+      - Index: 25
+        Item: Mocadas_Launcher
+        RequiredItems:
+          - Index: 0
+            Item: Crystal_Of_Pollution
+            Amount: 100
+          - Index: 1
+            Item: Mocadas_Gold
+            Amount: 100
+          - Index: 2
+            Item: Mocadas_Water
+            Amount: 100

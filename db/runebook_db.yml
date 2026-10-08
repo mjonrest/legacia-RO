@@ -1,0 +1,17 @@
+# This file is a part of Shakto.
+#   Copyright(C) 2023 Shakto Script
+#   https://ronovelty.com/
+#
+###########################################################################
+# Rune Book Database
+###########################################################################
+# - Id                         Client side LUB index. (RUNEIDTBL in runesystemid.lub)
+#   Name:                      Name of rune book.
+#   Materials:                 Materials needed to activate a rune book
+#     - Material               Name of the item
+#       Amount                 Quantity
+###########################################################################
+
+Header:
+  Type: RUNEBOOK_DB
+  Version: 1

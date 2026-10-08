@@ -1,0 +1,1067 @@
+//===== Giraffe Simulator - Script ===================
+//**********Author: [Leo]**************************
+// Contact: https://discord.gg/JVeaMmkRZD
+//===== Description: ==============================
+//
+//*************************************************
+//===============Please retain the above information===============
+
+1@gl_he	mapflag	noteleport
+1@gl_he	mapflag	nosave	SavePoint
+1@gl_he	mapflag	nomemo
+1@gl_he	mapflag	nobranch
+1@gl_he	mapflag	noicewall
+1@gl_he	mapflag	restricted	6
+1@gl_he	mapflag	monster_noteleport
+1@gl_he	mapflag	partylock
+1@gl_he	mapflag	novending
+1@gl_he	mapflag	nochat
+
+glast_01,143,288,5	script	Glastheim Challenge Mode Administrator	10307,{
+
+    .@npc$ = "[Oscar]";
+    .md_name$ = "Glastheim Challenge Mode";
+
+    mes .@npc$;
+    if (checkquest(200033, PLAYTIME) == 2) {
+        erasequest 200033;
+    }
+
+    mes "Welcome to Old Glast Heim: Challenge Mode!";
+    next;
+
+    switch(select("create:enter")) {
+        case 1:
+            // Check if the player is in a party
+            if (getcharid(1) == 0) {
+                mes "You must be in a party to start this instance.";
+                close;
+            }
+
+            // Check if the player is the party leader
+            if (!is_party_leader()) {
+                mes "Only the party leader can create the instance.";
+                close;
+            }
+
+            // Create the instance
+            set .@instance_id, instance_create(.md_name$);
+            if (.@instance_id < 0) {
+                mes "Failed to create the instance.";
+                close;
+            }
+
+            // Get the instance map name
+            set .map$, instance_mapname("1@gl_he", .@instance_id);
+            mes "Instance created successfully.";
+            close;
+            break;
+
+        case 2:
+            // Check cooldown
+            switch(checkquest(200033, PLAYTIME)) {
+                case 0:
+                case 1:
+                    mes "You are on cooldown, fella.";
+                    close;
+            }
+
+            // Try to enter instance
+            switch(instance_enter(.md_name$)) {
+                case IE_OTHER:
+                    mes "An unknown error has occurred.";
+                    close;
+                case IE_NOINSTANCE:
+                    mes "No instance available.";
+                    close;
+                case IE_OK:
+                    setquest 200033;
+                    mes "You and your party will now be warped to the Challenge Mode!";
+                    mes "Good luck!";
+                    close;
+            }
+            break;
+    }
+}
+
+
+//============================================================
+1@gl_he,149,45,5	script	Oscar#oscar_1	4_ED_OSCAR,{
+	if(getpartyleader(getcharid(1),1) == getcharid(3)) 
+	{
+
+		cutin "oscar01",2;
+		mes "[Oscar]";
+		mes "Please carefully choose the difficulty level you wish to challenge.";
+		mes "The strength of the monsters will vary depending on the selected stage.";
+		mes "The rewards will also differ accordingly.";
+		mes "The clearance time will affect the instance's progress.";
+		next;
+		set .@typeChoice, select("I want to wait a bit longer", "Select the Contaminated Magic Stage Level");
+		switch(.@typeChoice) {
+		case 1:
+			mes "[Oscar]";
+			mes "Let me know when you're ready.";
+			cutin "gl_heinrich1",255;
+			close;
+		case 2:
+			mes "[Oscar]";
+			mes "Current Playtime : "+CGHTYPE+" times.";
+			set .@typeset, (CGHTYPE / 10)+1;
+			if ( .@typeset < 1) {
+				set .@typeset,1;
+			}
+			if (.@typeset > 9) set .@typeset, 10;
+			for ( .@i = 1; .@i <= .@typeset; .@i++ ) {
+				  .@menu$ += "Contaminated Magic Stage [" + .@i + "]";
+				  .@menu$ += ":";
+			}
+			'selectdiff = select(.@menu$);
+			break;
+		}
+		mes "You have selected Stage ["+'selectdiff +"]";
+		mes "Is this correct?";
+		next;
+		if(select("No", "Yes, that's correct.") == 1) {
+			mes "[Oscar]";
+			mes "Please make another selection.";
+			cutin "gl_heinrich1",255;
+			close;
+		}
+	if (rand(1, 10000) < 9000) {
+		set 'mob,20573;
+	}
+	else{
+		set 'mob,20572;
+	}
+		donpcevent instance_npcname("#CGH_ghmemorialmob05")+"::OnEnable";
+		donpcevent instance_npcname("#CGH_ghmemorialmob08")+"::OnEnable";
+		donpcevent instance_npcname("#checkkill")+"::OnEnable";
+		set .@partpeople,getmapusers(instance_mapname("1@gl_he"));
+		set 'warppeople,.@partpeople/2;
+		set 'warppeopleto1,0;
+		set 'warppeopleto2,0;
+		donpcevent instance_npcname("Oscar#oscar_1")+"::OnPrize1";
+		disablenpc instance_npcname("Exit#ogh_CM");
+		disablenpc instance_npcname("Oscar#oscar_1");
+		cutin "gl_heinrich1",255;
+		end;
+	}else{
+		mes "[Oscar]";
+		mes "Please ask the party leader to speak to me.";
+	}
+	close;
+	
+	OnPrize1://Party evenly distributed warp
+		addrid(4,0,166,12,133,43);
+		if( rand(2) ){
+			warp instance_mapname("1@gl_he"),126,123;
+			set 'warppeopleto1,'warppeopleto1+1;
+				if ('warppeopleto1 > 'warppeople){
+					warp instance_mapname("1@gl_he"),167,140;
+					set 'warppeopleto2,'warppeopleto2+1;
+				}
+		}else{
+			warp instance_mapname("1@gl_he"),167,141;
+			set 'warppeopleto2,'warppeopleto2+1;
+				if ('warppeopleto2 > 'warppeople){
+					warp instance_mapname("1@gl_he"),126,123;
+					set 'warppeopleto1,'warppeopleto1+1;
+				}
+		}
+	end;
+}
+
+//----Warp Settings------
+1@gl_he,135,124,0	warp	LeftWarps#face	1,1,1@gl_he,150,69
+1@gl_he,146,122,0	warp	midLeftWarps#face	1,1,1@gl_he,126,123
+1@gl_he,164,140,0	warp	RightWarps#face	1,1,1@gl_he,150,69
+1@gl_he,154,100,0	warp	midRightWarps#face	1,1,1@gl_he,167,141
+1@gl_he,150,163,0	warp	Toboss#face	1,1,1@gl_he,150,168
+
+1@gl_he,145,124,0	warp	WarpGate#Gl_he_01	2,2,1@gl_he,127,124
+1@gl_he,134,124,0	warp	WarpGate#Gl_he_02	2,2,1@gl_he,151,124
+1@gl_he,154,101,0	warp	WarpGate#Gl_he_03	2,2,1@gl_he,173,101
+1@gl_he,165,101,0	warp	WarpGate#Gl_he_04	2,2,1@gl_he,149,101
+
+//------------------
+
+1@gl_he,0,0,0	script	#CGH_ghmemorialmob05	-1,{//Left Area
+OnInstanceInit:
+	hideonnpc instance_npcname("Oscar#oscar_2");
+	hideonnpc instance_npcname("Oscar#oscar_3");
+	hideonnpc instance_npcname("TreasureBox#chatnmtop");
+	hideonnpc instance_npcname("Oscar#oscar_5");
+	hideonnpc instance_npcname("Oscar#oscar_4");
+	disablenpc instance_npcname("LeftWarps#face");
+	disablenpc instance_npcname("RightWarps#face");
+	disablenpc instance_npcname("midLeftWarps#face");
+	disablenpc instance_npcname("midRightWarps#face");
+	disablenpc instance_npcname("Toboss#face");
+OnDisable:
+	disablenpc instance_npcname("#CGH_ghmemorialmob05");
+	end;
+OnEnable:
+	enablenpc instance_npcname("#CGH_ghmemorialmob05");
+	set .@map$, instance_mapname("1@gl_he");
+	set .@label$, instance_npcname("#CGH_ghmemorialmob05")+"::OnMyMobDead";
+
+
+	mapannounce .@map$, "Oscar: To eliminate the contaminated magic in this space, we must first purify the contaminated phantom monsters on both sides.",bc_map,"0xFFFF00";
+	mapannounce .@map$, "Oscar: I will inform you how many contaminated phantoms remain to be purified.",bc_map,"0xFFFF00";
+	
+	areamonster .@map$,124,20,31,162,"--ja--",20574,10,.@label$;
+	areamonster .@map$,124,20,31,162,"--ja--",20576,10,.@label$;
+	areamonster .@map$,124,20,31,162,"--ja--",20577,10,.@label$;
+	areamonster .@map$,124,20,31,162,"--ja--",20578,10,.@label$;
+	areamonster .@map$,124,20,31,162,"--ja--",20579,10,.@label$;
+	areamonster .@map$,124,20,31,162,"--ja--",20579,10,.@label$;
+	set 'MyMobs2,50;
+	end;
+
+OnMyMobDead:
+	if ('MyMobs2 < 0) {end;}
+	set 'MyMobs2, 'MyMobs2-1;
+	set .@map$, instance_mapname("1@gl_he");
+	areaannounce .@map$,124,20,31,162,""+'MyMobs2+" <- Unpurified Phantoms (Left) -> "+'MyMobs ,bc_map,"0xFF8800";
+
+	if ('MyMobs2 == 0) {
+		areaannounce .@map$,124,20,31,162, "Oscar: The phantoms on the right side have not been fully purified. The warp to the right area has been activated.",bc_map,"0xFFFF00";
+		enablenpc instance_npcname("LeftWarps#face");
+		enablenpc instance_npcname("midRightWarps#face");
+		donpcevent instance_npcname("#checkkill")+"::OnEnd";
+		donpcevent instance_npcname("Oscar#oscar_1")+"::OnPrize1";
+		
+	}
+	end;
+}
+
+
+1@gl_he,0,0,0	script	#CGH_ghmemorialmob08	-1,{
+OnInstanceInit:
+OnDisable:
+	disablenpc instance_npcname("#CGH_ghmemorialmob08");
+	end;
+OnEnable:
+	enablenpc instance_npcname("#CGH_ghmemorialmob08");
+	set .@map$, instance_mapname("1@gl_he");
+	set .@label$, instance_npcname("#CGH_ghmemorialmob08")+"::OnMyMobDead";
+	areamonster .@map$,175,163,265,18,"--ja--",20574,10,.@label$;
+	areamonster .@map$,175,163,265,18,"--ja--",20576,10,.@label$;
+	areamonster .@map$,175,163,265,18,"--ja--",20577,10,.@label$;
+	areamonster .@map$,175,163,265,18,"--ja--",20578,10,.@label$;
+	areamonster .@map$,175,163,265,18,"--ja--",20579,10,.@label$;
+	areamonster .@map$,175,163,265,18,"--ja--",20579,10,.@label$;
+	set 'MyMobs,50;
+	end;
+
+OnMyMobDead:
+	if ('MyMobs < 0) {end;}
+	set 'MyMobs, 'MyMobs-1;
+	set .@map$, instance_mapname("1@gl_he");
+	areaannounce .@map$,157,165,269,18,'MyMobs2 +"<- Unpurified Phantoms (Right) -> "+'MyMobs,bc_map,"0xFF8800";
+
+	if ('MyMobs == 0) {
+		areaannounce .@map$,175,163,265,18, "Oscar: The phantoms on the left side have not been fully purified. The warp to the left area has been activated.",bc_map,"0xFFFF00";
+		enablenpc instance_npcname("RightWarps#face");
+		enablenpc instance_npcname("midLeftWarps#face");
+		donpcevent instance_npcname("#checkkill")+"::OnEnd";
+	}
+	end;
+}
+
+//-----------Check if both sides are cleared--------------
+1@gl_he,172,206,4	script	#checkkill	-1,{
+OnEnable:
+	enablenpc instance_npcname("#checkkill");
+	set 'checkkillcheck,2;
+	end;
+OnEnd:
+	set 'checkkillcheck,'checkkillcheck-1;
+	if('checkkillcheck){
+	}else{
+
+		set .@map$, instance_mapname("1@gl_he");
+		disablenpc instance_npcname("midLeftWarps#face");
+		disablenpc instance_npcname("midRightWarps#face");
+		mapannounce .@map$, "Oscar: Purification complete. The warp to the central area has been activated.",bc_map,"0xFFFF00";
+		mapannounce .@map$, "Oscar: After arriving, proceed to the 12 o'clock direction and find me.",bc_map,"0xFFFF00";
+		hideoffnpc instance_npcname("Oscar#oscar_2");
+		areamonster .@map$,150,158,150,158,"--ja--",20575,1;
+	}
+	end;
+}
+
+
+1@gl_he,150,163,1	script	#bossdoor	139,{
+end;
+OnEnable:
+	initnpctimer;
+	specialeffect 831;
+	end;
+OnTimer3000:
+	specialeffect 135;
+	enablenpc instance_npcname("#bossdoor");
+	hideonnpc instance_npcname("#bossdoor");
+	stopnpctimer;
+	end;
+}
+
+1@gl_he,150,158,1	script	Oscar#oscar_2	4_ED_OSCAR,{
+	if(getpartyleader(getcharid(1),1) == getcharid(3)) {
+		cutin "oscar01",2;
+		mes "[Oscar]";
+		mes "If the king asks...";
+		mes "This is the only way. I have no choice but to do it.";
+		next;
+		mes "[Oscar]";
+		mes "We don't have much time left.";
+		mes "Don't forget why we came here.";
+		next;
+		if(select("Wait!", "Transform") == 1) {
+			mes "[Oscar]";
+			mes "Let me know when you're ready.";
+			cutin "gl_heinrich1",255;
+			close;
+		}
+		cutin "gl_heinrich1",255;
+		close2;
+		
+		npctalk "(Transforming)";
+		donpcevent instance_npcname("#bossdoor")+"::OnEnable";
+		progressbar_npc "ffff00",2;
+		specialeffect 521;
+		specialeffect 215;
+		setnpcdisplay strnpcinfo(3), "Oscar", 1713;
+		npctalk "This is my true form";
+		initnpctimer;
+
+
+		end;
+	}else{
+		mes "[Oscar]";
+		mes "Please ask the party leader to speak to me.";
+	}
+	close;
+	
+	OnTimer1000:
+	npcspeed 200;
+	npcwalkto 150,162;
+	end;
+	OnTimer2000:
+	enablenpc instance_npcname("Toboss#face");
+	hideonnpc instance_npcname("Oscar#oscar_2");
+	specialeffect 215;
+	stopnpctimer;
+	donpcevent instance_npcname("Oscar#oscar_3")+"::OnEnable";
+	end;
+}
+
+1@gl_he,150,169,1	script	Oscar#oscar_3	4_ED_OSCAR,{
+end;
+OnEnable:
+	hideoffnpc instance_npcname("Oscar#oscar_3");
+	initnpctimer;
+	setnpcdisplay strnpcinfo(3), "Oscar", 1713;
+	end;
+OnTimer3000:
+	npcspeed 200;
+	npcwalkto 150,199;
+	end;
+OnTimer9000:
+	npcspeed 200;
+	npcwalkto 157,229;
+	end;
+OnTimer15500:
+	specialeffect 215;
+	stopnpctimer;
+	hideonnpc instance_npcname("Oscar#oscar_3");
+	hideoffnpc instance_npcname("Oscar#oscar_4");
+	donpcevent instance_npcname("#bosseffect")+"::OnEnable";
+	end;
+}
+
+1@gl_he,157,240,1	script	#bosseffect	139,{
+end;
+OnEnable:
+	specialeffect 838;
+	specialeffect 1085;
+	end;
+OnStrat:
+	initnpctimer;
+	specialeffect 1066;
+	end;
+OnTimer3000:
+	specialeffect 840;
+	specialeffect 1068;
+	stopnpctimer;
+	end;
+}
+//==================BOSS Summon==============
+1@gl_he,157,229,1	script	Oscar#oscar_4	4_ED_OSCAR,{
+	stopnpctimer;
+	if(getpartyleader(getcharid(1),1) == getcharid(3)) {
+		cutin "oscar01",2;
+		mes "[Oscar]";
+		mes "This blurry thing before us,";
+		mes "is the source of contaminated magic in the distorted time.";
+		next;
+		mes "[Oscar]";
+		mes "Now I will purify it again.";
+		mes "If everything goes well, it will appear here.";
+		next;
+		mes "[Oscar]";
+		mes "Please be especially careful.";
+		mes "This contamination source is extremely powerful.";
+		mes "Always remain vigilant.";
+		next;
+		mes "[Oscar]";
+		mes "Let me know when you're ready.";
+		next;
+		if(select("Wait!", "We're ready") == 1) {
+			mes "[Oscar]";
+			mes "Let me know when you're ready.";
+			cutin "gl_heinrich1",255;
+			close;
+		}
+		cutin "gl_heinrich1",255;
+		close2;
+		npctalk "A phantom of contamination level "+'selectdiff+" is about to appear. I need it to be in the central magic circle to purify it. Please find a way to trap it in the central area.";
+		donpcevent instance_npcname("#bosseffect")+"::OnStrat";
+		initnpctimer;
+		progressbar_npc "ffff00",5;
+		donpcevent instance_npcname("#CGH_BOSS")+"::OnEnable";
+		donpcevent instance_npcname("#bossarea")+"::OnEnable";
+		
+
+		end;
+	}else{
+		mes "[Oscar]";
+		mes "Please ask the party leader to speak to me.";
+	}
+	close;
+	OnTimer4000:
+	specialeffect 236;
+	end;
+	OnTimer5000:
+	hideonnpc instance_npcname("Oscar#oscar_4");
+	end;
+	OnTimer6000:
+	mapwarp instance_mapname("1@gl_he"),instance_mapname("1@gl_he"),157,227;
+	stopnpctimer;
+	set .@map$,instance_mapname("1@gl_he");
+	mapannounce .@map$, "Oscar: The magic of Dark Dhalis's phantom will cause us to lose ourselves in this space. Be very careful when dealing with it!",bc_map,"0xFFFF00";
+	unittalk 'BossID, "Are you my new master?";
+	end;
+}
+
+1@gl_he,2,3,4	script	#CGH_BOSS	-1,{
+
+OnEnable:
+	enablenpc instance_npcname("#CGH_BOSS");
+	donpcevent instance_npcname("#CGH_BOSS")+"::OnStart";
+	end;
+
+OnStart:
+	set .@map$,instance_mapname("1@gl_he");
+	set .@killboss$, instance_npcname("#CGH_BOSS")+"::OnKillMob";
+	monster .@map$,157,239,"--ja--",'mob,1,instance_npcname("#CGH_BOSS")+"::OnKillMob";
+	'BossID = $@mobid[0];
+	initnpctimer;
+	'bossf2 = 0;
+	
+	//Set contamination level HP
+	getunitdata 'BossID,'amdaraisdata;
+	setarray .@AMDARAIS[0],600000000,750000000,900000000,1050000000,1200000000,1350000000,1500000000,1650000000,1800000000,2000000000;
+	setarray .@HEMEL[0],600000000,750000000,900000000,1050000000,1200000000,1350000000,1500000000,1650000000,1800000000,2000000000;
+	setarray .@bosshp[0],600000000,750000000,900000000,1050000000,1200000000,1350000000,1500000000,1650000000,1800000000,2000000000;
+
+	setunitdata 'BossID,3,.@bosshp['selectdiff -1];
+	end;
+	
+OnKillMob:
+	if ('fail == 0){
+	stopnpctimer;
+	set .@map$,instance_mapname("1@gl_he");
+	mapannounce .@map$, "Oscar: The phantom of Dark Dhalis has been purified.",bc_map,"0xFFFF00";
+	killmonsterall .@map$;
+	donpcevent instance_npcname("#CGH_BOSS")+"::Onstoptime";
+	donpcevent instance_npcname("#bossarea")+"::Onstoptime";
+	hideoffnpc instance_npcname("TreasureBox#chatnmtop");
+	hideoffnpc instance_npcname("Oscar#oscar_5");
+	'bossf2 = 1;
+	end;
+	}
+	end;
+	
+Onrandwarp:
+	addrid(4,0,30,267,265,18);
+		if(rand(100) > 65){
+		warp instance_mapname("1@gl_he"),0,0;
+		}
+	end;
+
+
+Onstoptime:
+	stopnpctimer;
+	end;
+	
+Onstarttime:
+	initnpctimer;
+	end;
+
+OnSkillunit:
+	end;
+
+
+OnTimer5000:
+	if ('bossf2 != 1){
+	getunitdata 'BossID,'amdaraisdata;
+	.@label$ = instance_npcname("#CGH_BOSS") + "::OnSkillunit";
+	.@x = 'amdaraisdata[6];
+	.@y = 'amdaraisdata[7];
+	.@skill = rand(1,6);
+
+	set .@map$,instance_mapname("1@gl_he");
+	switch(.@skill) {
+	case 1:  //Wide-range
+		unittalk 'BossID, "Wide-range Curse";
+		sleep 1000;
+		monster .@map$,.@x+4,.@y-4,"--ja--",20581,1,.@label$;		
+		.@id[0] = $@mobid[0];
+		monster .@map$,.@x+8,.@y-4,"--ja--",20581,1,.@label$;
+		.@id[1] = $@mobid[0];
+		monster .@map$,.@x+4,.@y+4,"--ja--",20581,1,.@label$;
+		.@id[2] = $@mobid[0];
+		monster .@map$,.@x+8,.@y+4,"--ja--",20581,1,.@label$;
+		.@id[3] = $@mobid[0];
+		for(.@i = 0; .@i < 4; .@i++) {
+			unitskilluseid .@id[.@i], 353, 1;
+		}
+		sleep 500;
+		for(.@i = 0; .@i <= 18; .@i=.@i+2){
+			if(unitexists(.@id[0]) == true)
+				unitskillusepos .@id[0],83,5,.@x+.@i,.@y+.@i,-10;
+			if(unitexists(.@id[1]) == true)
+				unitskillusepos .@id[1],83,5,.@x+.@i,.@y-.@i,-10;
+			if(unitexists(.@id[2]) == true)
+				unitskillusepos .@id[2],83,5,.@x-.@i,.@y-.@i,-10;
+			if(unitexists(.@id[3]) == true)
+				unitskillusepos .@id[3],83,5,.@x-.@i,.@y+.@i,-10;
+			sleep 500;
+		}
+		sleep 1000;
+			break;
+	case 2: //Cross Earthquake
+		unittalk 'BossID, "!!";
+		sleep 1000;
+		monster .@map$,.@x+9,.@y+3,"--ja--",20581,1,.@label$;
+		.@id[0] = $@mobid[0];
+		monster .@map$,.@x-9,.@y-3,"--ja--",20581,1,.@label$;
+		.@id[1] = $@mobid[0];
+		monster .@map$,.@x-3,.@y+9,"--ja--",20581,1,.@label$;
+		.@id[2] = $@mobid[0];
+		monster .@map$,.@x+3,.@y-9,"--ja--",20581,1,.@label$;
+		.@id[3] = $@mobid[0];
+		for(.@i = 0; .@i < 4; .@i++) {
+			setunitdata .@id[.@i], 29, 1;
+			unitskilluseid .@id[.@i], 353, 1;
+		}
+		sleep 500;
+			if(unitexists(.@id[0]) == true)
+				unitskillusepos .@id[0],91,5,.@x+2,.@y,-5;
+			if(unitexists(.@id[1]) == true)
+				unitskillusepos .@id[1],91,5,.@x-2,.@y,-5;
+			if(unitexists(.@id[2]) == true)
+				unitskillusepos .@id[2],91,5,.@x,.@y+2,-5;
+			if(unitexists(.@id[3]) == true)
+				unitskillusepos .@id[3],91,5,.@x,.@y-2,-5;
+		sleep 10;
+			if(unitexists(.@id[0]) == true)
+				unitskillusepos .@id[0],91,5,.@x+6,.@y,-5;
+			if(unitexists(.@id[1]) == true)
+				unitskillusepos .@id[1],91,5,.@x-6,.@y,-5;
+			if(unitexists(.@id[2]) == true)
+				unitskillusepos .@id[2],91,5,.@x,.@y+6,-5;
+			if(unitexists(.@id[3]) == true)
+				unitskillusepos .@id[3],91,5,.@x,.@y-6,-5;
+			if(unitexists(.@id[0]) == true)
+				unitskillusepos .@id[0],91,5,.@x+4,.@y+4,-5;
+			if(unitexists(.@id[1]) == true)
+				unitskillusepos .@id[1],91,5,.@x-4,.@y-4,-5;
+			if(unitexists(.@id[2]) == true)
+				unitskillusepos .@id[2],91,5,.@x-4,.@y+4,-5;
+			if(unitexists(.@id[3]) == true)
+				unitskillusepos .@id[3],91,5,.@x+4,.@y-4,-5;
+		sleep 10;
+			if(unitexists(.@id[0]) == true)
+				unitskillusepos .@id[0],91,5,.@x+9,.@y,-5;
+			if(unitexists(.@id[1]) == true)
+				unitskillusepos .@id[1],91,5,.@x-9,.@y,-5;
+			if(unitexists(.@id[2]) == true)
+				unitskillusepos .@id[2],91,5,.@x,.@y+9,-5;
+			if(unitexists(.@id[3]) == true)
+				unitskillusepos .@id[3],91,5,.@x,.@y-9,-5;
+			if(unitexists(.@id[0]) == true)
+				unitskillusepos .@id[0],91,5,.@x+7,.@y+7,-5;
+			if(unitexists(.@id[1]) == true)
+				unitskillusepos .@id[1],91,5,.@x-7,.@y-7,-5;
+			if(unitexists(.@id[2]) == true)
+				unitskillusepos .@id[2],91,5,.@x-7,.@y+7,-5;
+			if(unitexists(.@id[3]) == true)
+				unitskillusepos .@id[3],91,5,.@x+7,.@y-7,-5;
+		sleep 10;
+			if(unitexists(.@id[0]) == true)
+				unitskillusepos .@id[0],91,5,.@x+13,.@y,-5;
+			if(unitexists(.@id[1]) == true)               
+				unitskillusepos .@id[1],91,5,.@x-13,.@y,-5;
+			if(unitexists(.@id[2]) == true)               
+				unitskillusepos .@id[2],91,5,.@x,.@y+13,-5;
+			if(unitexists(.@id[3]) == true)               
+				unitskillusepos .@id[3],91,5,.@x,.@y-13,-5;
+			if(unitexists(.@id[0]) == true)
+				unitskillusepos .@id[0],91,5,.@x+10,.@y+10,-5;
+			if(unitexists(.@id[1]) == true)                  
+				unitskillusepos .@id[1],91,5,.@x-10,.@y-10,-5;
+			if(unitexists(.@id[2]) == true)                  
+				unitskillusepos .@id[2],91,5,.@x-10,.@y+10,-5;
+			if(unitexists(.@id[3]) == true)                  
+				unitskillusepos .@id[3],91,5,.@x+10,.@y-10,-5;
+		sleep 10;
+			if(unitexists(.@id[0]) == true)
+				unitskillusepos .@id[0],91,5,.@x+16,.@y,-5;
+			if(unitexists(.@id[1]) == true)               
+				unitskillusepos .@id[1],91,5,.@x-16,.@y,-5;
+			if(unitexists(.@id[2]) == true)               
+				unitskillusepos .@id[2],91,5,.@x,.@y+16,-5;
+			if(unitexists(.@id[3]) == true)               
+				unitskillusepos .@id[3],91,5,.@x,.@y-16,-5;
+			if(unitexists(.@id[0]) == true)
+				unitskillusepos .@id[0],91,5,.@x+13,.@y+13,-5;
+			if(unitexists(.@id[1]) == true)                  
+				unitskillusepos .@id[1],91,5,.@x-13,.@y-13,-5;
+			if(unitexists(.@id[2]) == true)                  
+				unitskillusepos .@id[2],91,5,.@x-13,.@y+13,-5;
+			if(unitexists(.@id[3]) == true)                  
+				unitskillusepos .@id[3],91,5,.@x+13,.@y-13,-5;
+		sleep 1000;
+		break;
+	case 3: //Spread Earthquake
+		unittalk 'BossID, "Rage Blast!!";
+		sleep 500;
+		monster .@map$,.@x+9,.@y+3,"--ja--",20581,1,.@label$;
+		.@id[0] = $@mobid[0];
+		monster .@map$,.@x-9,.@y-3,"--ja--",20581,1,.@label$;
+		.@id[1] = $@mobid[0];
+		monster .@map$,.@x-3,.@y+9,"--ja--",20581,1,.@label$;
+		.@id[2] = $@mobid[0];
+		monster .@map$,.@x+3,.@y-9,"--ja--",20581,1,.@label$;
+		.@id[3] = $@mobid[0];
+		for(.@i = 0; .@i < 4; .@i++) {
+			setunitdata .@id[.@i], 29, 1;
+			unitskilluseid .@id[.@i], 353, 1;
+		}
+		sleep 500;
+			if(unitexists(.@id[0]) == true)
+				unitskillusepos .@id[0],91,5,.@x+2,.@y,-5;
+			if(unitexists(.@id[1]) == true)              
+				unitskillusepos .@id[1],91,5,.@x-2,.@y,-5;
+			if(unitexists(.@id[2]) == true)              
+				unitskillusepos .@id[2],91,5,.@x,.@y+2,-5;
+			if(unitexists(.@id[3]) == true)              
+				unitskillusepos .@id[3],91,5,.@x,.@y-2,-5;
+		sleep 10;
+			if(unitexists(.@id[0]) == true)
+				unitskillusepos .@id[0],91,5,.@x+6,.@y,-5;
+			if(unitexists(.@id[1]) == true)              
+				unitskillusepos .@id[1],91,5,.@x-6,.@y,-5;
+			if(unitexists(.@id[2]) == true)              
+				unitskillusepos .@id[2],91,5,.@x,.@y+6,-5;
+			if(unitexists(.@id[3]) == true)              
+				unitskillusepos .@id[3],91,5,.@x,.@y-6,-5;
+			if(unitexists(.@id[0]) == true)
+				unitskillusepos .@id[0],91,5,.@x+4,.@y+4,-5;
+			if(unitexists(.@id[1]) == true)                
+				unitskillusepos .@id[1],91,5,.@x-4,.@y-4,-5;
+			if(unitexists(.@id[2]) == true)                
+				unitskillusepos .@id[2],91,5,.@x-4,.@y+4,-5;
+			if(unitexists(.@id[3]) == true)                
+				unitskillusepos .@id[3],91,5,.@x+4,.@y-4,-5;
+		sleep 10;
+			if(unitexists(.@id[0]) == true)
+				unitskillusepos .@id[0],91,5,.@x+9,.@y,-5;
+			if(unitexists(.@id[1]) == true)              
+				unitskillusepos .@id[1],91,5,.@x-9,.@y,-5;
+			if(unitexists(.@id[2]) == true)              
+				unitskillusepos .@id[2],91,5,.@x,.@y+9,-5;
+			if(unitexists(.@id[3]) == true)              
+				unitskillusepos .@id[3],91,5,.@x,.@y-9,-5;
+			if(unitexists(.@id[0]) == true)
+				unitskillusepos .@id[0],91,5,.@x+7,.@y+7,-5;
+			if(unitexists(.@id[1]) == true)                
+				unitskillusepos .@id[1],91,5,.@x-7,.@y-7,-5;
+			if(unitexists(.@id[2]) == true)                
+				unitskillusepos .@id[2],91,5,.@x-7,.@y+7,-5;
+			if(unitexists(.@id[3]) == true)                
+				unitskillusepos .@id[3],91,5,.@x+7,.@y-7,-5;
+		sleep 10;
+			if(unitexists(.@id[0]) == true)
+				unitskillusepos .@id[0],91,5,.@x+4,.@y+6,-5;
+			if(unitexists(.@id[1]) == true)                
+				unitskillusepos .@id[1],91,5,.@x-4,.@y+6,-5;
+			if(unitexists(.@id[2]) == true)                
+				unitskillusepos .@id[2],91,5,.@x+4,.@y-6,-5;
+			if(unitexists(.@id[3]) == true)                
+				unitskillusepos .@id[3],91,5,.@x-4,.@y-6,-5;
+		sleep 1000;
+		break;
+	case 4: //Cross Firewall
+		unittalk 'BossID, "!!";
+		sleep 1000;
+		monster .@map$,.@x+1,.@y+1,"--ja--",20581,1,.@label$;
+		.@id[0] = $@mobid[0];
+		monster .@map$,.@x-1,.@y-1,"--ja--",20581,1,.@label$;
+		.@id[1] = $@mobid[0];
+		monster .@map$,.@x-1,.@y+1,"--ja--",20581,1,.@label$;
+		.@id[2] = $@mobid[0];
+		monster .@map$,.@x+1,.@y-1,"--ja--",20581,1,.@label$;
+		.@id[3] = $@mobid[0];
+		for(.@i = 0; .@i < 4; .@i++) {
+			setunitdata .@id[.@i], 29, 1;
+			unitskilluseid .@id[.@i], 353, 1;
+		}
+		sleep 500;
+		for(.@i = 0; .@i <= 8; .@i++){
+			if(unitexists(.@id[0]) == true)
+				unitskillusepos .@id[0],18,5,.@x+.@i,.@y+.@i,-5;
+			if(unitexists(.@id[1]) == true)                    
+				unitskillusepos .@id[1],18,5,.@x+.@i,.@y-.@i,-5;
+			if(unitexists(.@id[2]) == true)                    
+				unitskillusepos .@id[2],18,5,.@x-.@i,.@y-.@i,-5;
+			if(unitexists(.@id[3]) == true)                    
+				unitskillusepos .@id[3],18,5,.@x-.@i,.@y+.@i,-5;
+			sleep 10;
+		}
+		break;
+	case 5: //Random Warp
+		if(rand(100) > 60){
+			donpcevent instance_npcname("#CGH_BOSS")+"::Onrandwarp";//Call random warp event
+		}
+		break;
+	
+	case 6: //Dark Judgment Event
+		unittalk 'BossID, "!!";
+		donpcevent instance_npcname("#Dc_GRANDCROSS")+"::OnEnable";//Call judgment event
+		set 'bossf2 , 1;
+		break;
+	}
+	sleep 1000;
+	killmonster .@map$,.@label$;
+	if(!'bossf2)
+		initnpctimer;
+	end;
+	}
+	end;
+}
+
+1@gl_he,2,2,4	script	#bossarea	-1,{
+
+OnEnable:
+	initnpctimer;
+	enablenpc instance_npcname("#bossarea");
+	set .outside,0;
+	set 'fail,0;
+	sleep 2000;
+	end;
+
+Onstoptime:
+	stopnpctimer;
+	end;
+
+OnTimer10000://Check every 10 seconds. If outside for more than 30 seconds, restart the fight.
+	getunitdata 'BossID,'amdaraisdata;
+	.@x = 'amdaraisdata[6];
+	.@y = 'amdaraisdata[7];
+	if (.@x < 150 || .@x > 165 || .@y > 245 || .@y <232){
+		set .outside,.outside + 1;
+		set .@map$,instance_mapname("1@gl_he");
+		mapannounce .@map$, "Oscar: Dark Dhalis's phantom has been away from the center for too long. If it stays away for too long, the critical point of this spacetime will be breached, and I won't be able to complete the purification.",bc_map,"0xA42D00";
+	}
+	else{
+		set .outside,0;
+	}
+	initnpctimer;
+	if (.outside >= 3){
+		set 'fail,1;
+		donpcevent instance_npcname("#CGH_BOSS")+"::Onstoptime";
+		set 'bossf2 , 1;
+		donpcevent instance_npcname("#CGH_BOSS")+"::Onstoptime";
+		donpcevent instance_npcname("#bossarea")+"::Onstoptime";
+		hideoffnpc instance_npcname("Oscar#oscar_4");
+		unitkill 'BossID;
+		stopnpctimer;
+		detachnpctimer;
+		set .@map$,instance_mapname("1@gl_he");
+		mapannounce .@map$, "Dark Dhalis's Phantom: It seems you are not worthy to be my new master.",bc_map,"0xFF3333";
+		killmonsterall .@map$;
+		end;
+	}
+	end;
+
+}
+
+1@gl_he,172,206,4	script	#Dc_GRANDCROSS	-1,{
+
+OnEnable:
+	enablenpc instance_npcname("#Dc_GRANDCROSS");
+	donpcevent instance_npcname("#Dc_GRANDCROSS")+"::OnStart";
+	end;
+OnStart:
+	set .@map$,instance_mapname("1@gl_he");
+	set .@labelG$, instance_npcname("#Dc_GRANDCROSS")+"::OnKillGRANDCROSS";
+	setarray 'gid[0], 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0;
+	set .@k,0;
+	for(.@i = 224; .@i <= 251; .@i=.@i+9){
+		set  'gid[.@k], bg_monster(0,.@map$,144,.@i,"Contaminated Bone Thorn",20581,.@labelG$);
+		set  'gid[.@k+1], bg_monster(0,.@map$,153,.@i,"Contaminated Bone Thorn",20581,.@labelG$);
+		set  'gid[.@k+2], bg_monster(0,.@map$,162,.@i,"Contaminated Bone Thorn",20581,.@labelG$);
+		set  'gid[.@k+3], bg_monster(0,.@map$,171,.@i,"Contaminated Bone Thorn",20581,.@labelG$);
+		set .@k,.@k+4;
+	}
+
+	initnpctimer;
+	end;
+
+OnKillGRANDCROSS:
+	end;
+
+OnGRANDCROSS:
+	for(.@i = 0; .@i <= 15; .@i++){
+	
+		if(unitexists('gid[.@i]) == true){
+			setunitdata 'gid[.@i], 2, 50;
+			getunitdata 'gid[.@i],'mobGRANDCROSS;
+			.@x = 'mobGRANDCROSS[6];
+			.@y = 'mobGRANDCROSS[7];
+			unitskillusepos 'gid[.@i],339,5,.@x,.@y,1;
+		}
+	}
+	end;
+
+OnTimer15000:
+	donpcevent instance_npcname("#Dc_GRANDCROSS")+"::OnGRANDCROSS";
+	end;
+OnTimer17000:
+	donpcevent instance_npcname("#Dc_GRANDCROSS")+"::OnGRANDCROSS";
+	end;
+OnTimer18000:
+	donpcevent instance_npcname("#Dc_GRANDCROSS")+"::OnGRANDCROSS";
+	end;
+OnTimer20000:
+	donpcevent instance_npcname("#Dc_GRANDCROSS")+"::OnGRANDCROSS";
+	end;
+OnTimer22000:
+	donpcevent instance_npcname("#Dc_GRANDCROSS")+"::OnGRANDCROSS";
+	end;
+OnTimer24000:
+	donpcevent instance_npcname("#Dc_GRANDCROSS")+"::OnGRANDCROSS";
+	end;
+OnTimer26500:
+	for(.@i = 0; .@i <= 15; .@i++){
+		if(unitexists('gid[.@i]) == true){
+			unitkill 'gid[.@i];
+		}
+	
+	}
+	donpcevent instance_npcname("#CGH_BOSS")+"::Onstarttime";
+	set 'bossf2 , 0;
+	end;
+	
+}
+
+
+//===================================
+//--------------END--------------------
+
+//Item Drop Settings
+1@gl_he,158,240,3	script	TreasureBox#chatnmtop	10005,{
+	setarray .@gain[0],25864,25865,25866,25867; // Reward Item IDs
+
+	// Reward item drop ranges by difficulty (index 1–10)
+	setarray .@item25864min[1],3,3,3,4,5,6,6,6,8,8;
+	setarray .@item25864max[1],5,6,7,8,9,10,10,10,10,10;
+
+	setarray .@item25865min[1],0,0,1,1,1,1,2,2,2,2;
+	setarray .@item25865max[1],0,0,3,4,4,5,5,6,6,7;
+
+	setarray .@item25866min[1],0,0,0,0,1,3,5,8,11,14;
+	setarray .@item25866max[1],0,0,0,0,3,7,11,16,22,28;
+
+	setarray .@item25867min[1],6,7,10,12,15,17,18,19,20,22;
+	setarray .@item25867max[1],15,20,25,30,30,30,30,30,30,30;
+
+	// Get difficulty level from instance variable
+	.@diff = getinstancevar('selectdiff,instance_id(IM_PARTY));
+	if (.@diff < 1 || .@diff > 10) {
+		end; // Prevent out-of-bounds access
+	}
+
+	.@idx = .@diff;
+
+	getmapxy(.@map$, .@x, .@y, BL_NPC, instance_npcname(strnpcinfo(0)));
+	specialeffect 10;
+	hideonnpc instance_npcname(strnpcinfo(0));
+
+	// Always generate item 25864
+	.@min = .@item25864min[.@idx];
+	.@max = .@item25864max[.@idx];
+	if (.@min || .@max) {
+		for (.@i = 0; .@i <= rand(.@min, .@max); .@i++)
+			makeitem .@gain[0], 1, .@map$, .@x + rand(5) - 1, .@y + rand(5) - 1;
+	}
+
+	// Always generate item 25867
+	.@min = .@item25867min[.@idx];
+	.@max = .@item25867max[.@idx];
+	if (.@min || .@max) {
+		for (.@i = 0; .@i <= rand(.@min, .@max); .@i++)
+			makeitem .@gain[3], 1, .@map$, .@x + rand(5) - 1, .@y + rand(5) - 1;
+	}
+
+	// Generate item 25865 for difficulty >= 3
+	if (.@diff >= 3) {
+		.@min = .@item25865min[.@idx];
+		.@max = .@item25865max[.@idx];
+		if (.@min || .@max) {
+			for (.@i = 0; .@i <= rand(.@min, .@max); .@i++)
+				makeitem .@gain[1], 1, .@map$, .@x + rand(5) - 1, .@y + rand(5) - 1;
+		}
+	}
+
+	// Generate item 25866 for difficulty >= 5
+	if (.@diff >= 5) {
+		.@min = .@item25866min[.@idx];
+		.@max = .@item25866max[.@idx];
+		if (.@min || .@max) {
+			for (.@i = 0; .@i <= rand(.@min, .@max); .@i++)
+				makeitem .@gain[2], 1, .@map$, .@x + rand(5) - 1, .@y + rand(5) - 1;
+		}
+	}
+
+	end;
+}
+
+
+1@gl_he,158,247,1	script	Oscar#oscar_5	4_ED_OSCAR,{
+
+	//Dangerous Challenge Quest Rewards
+	if(checkquest(12495,HUNTING)==2 ) { 
+	mes "[Oscar]";
+	mes "^0000FFSealed Time Crown^000000 x1";
+	mes "This is a trophy obtained from Dark Dhalis.";
+	next;
+	getitem 25864,1;	//Sealed Time Crown
+	erasequest 12495;
+	}
+	if(checkquest(12496,HUNTING)==2 ) { 
+	mes "[Oscar]";
+	mes "^0000FFSealed Time Crown^000000 x1";
+	mes "This is a trophy obtained from Himelze.";
+	next;
+	getitem 25864,1;	//Sealed Time Crown
+	erasequest 12496;
+	}
+
+	if (is_party_leader())
+	{
+		mes "[Oscar]";
+		mes "Congratulations on completing the instance.";
+		mes "Here are the rewards I offer. Please take them!";
+		next;
+		addrid(2,1,'party_id);
+		//---Set difficulty (currently, one stage must be cleared once to advance to the next stage)
+		CGHTYPE = CGHTYPE+1;
+		//next;
+		//mes "Before this place collapses,";
+		//mes "I will use all my strength to warp you out.";
+		//mes "Farewell, brave one.";
+		//next;
+		'ClearInatance = 1;
+		getmapxy(.@m$,'passx,'passy,BL_PC);
+	//	donpcevent instance_npcname("Instance Treasure Box#1@gl_he")+"::OnEnable";
+		enablenpc instance_npcname("Exit#ogh_CM");
+		disablenpc instance_npcname("Oscar#oscar_5");
+		end;
+	}
+	else
+	{
+		showscript "Please ask the party leader to claim the rewards.",getcharid(3),SELF;
+		end;
+	}
+end;
+}
+
+1@gl_he,158,247,1	script	Exit#ogh_CM	4_ED_OSCAR,{
+	warp "glast_01",139,288;
+	callfunc("F_EarnInstancePoints",10);
+	end;
+}
+
+/**
+1@gl_he,0,0,0	script	Instance Treasure Box#1@gl_he	obj_a2,{
+	if ( !'ClearInatance ){
+		message strcharinfo(0),"Game Hint : The instance is not yet completed!";
+		end;
+	}
+
+	//Instance Quest Rewards 1
+	if(checkquest(32022,HUNTING)==2 ) {
+	dispbottom "Glastheim Challenge Mode quest completed. Here are your rewards!!"; 
+	set #Instance_Points,#Instance_Points+20;	//Instance Points +20
+	dispbottom "Instance Points +20";
+	dispbottom "Current Instance Points: ^0000ff"+#Instance_Points+"^000000";
+	getitem 61006,10;	//Mall 1-Point Coin
+	erasequest 32022; }
+	//Instance Quest Rewards 2
+	if(checkquest(32026,HUNTING)==2 ) {
+	dispbottom "Glastheim Challenge Mode quest completed. Here are your rewards!!"; 
+	set #Instance_Points,#Instance_Points+20;	//Instance Points +20
+	dispbottom "Instance Points +20";
+	dispbottom "Current Instance Points: ^0000ff"+#Instance_Points+"^000000";
+	getitem 61006,10;	//Mall 1-Point Coin
+	erasequest 32026; }
+
+	//Dangerous Challenge Quest Rewards
+	if(checkquest(12495,HUNTING)==2 ) { 
+	mes "[Oscar]";
+	mes "^0000FFSealed Time Crown^000000 x1";
+	mes "This is a trophy obtained from Dark Dhalis.";
+	next;
+	getitem 25864,1*$EP1702;	//Sealed Time Crown
+	erasequest 12495;
+	}
+	if(checkquest(12496,HUNTING)==2 ) { 
+	mes "[Oscar]";
+	mes "^0000FFSealed Time Crown^000000 x1";
+	mes "This is a trophy obtained from Himelze.";
+	next;
+	getitem 25864,1*$EP1702;	//Sealed Time Crown
+	erasequest 12496;
+	}
+	callfunc "offical_instance_finish",46;
+	warp $Instance_MA$,$Instance_MAP_X,$Instance_MAP_Y;
+	end;
+
+OnEnable:
+	enablenpc instance_npcname(strnpcinfo(0));
+	movenpc instance_npcname(strnpcinfo(0)),'passx,'passy;
+	end;
+OnDisable:
+	disablenpc instance_npcname(strnpcinfo(0));
+	end;
+OnInstanceInit:
+	disablenpc instance_npcname(strnpcinfo(0));
+	'map_reward$ = instance_mapname("1@gl_he");
+	end;
+}
+**/

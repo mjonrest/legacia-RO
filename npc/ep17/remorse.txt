@@ -1,0 +1,26 @@
+dali02,78,112,3	script	Marquis of Remorse#remorse1	20899,{
+disable_items;
+			mes "[ Marquis of Remorse ]";
+			mes "If you have a jewel given to you, a stone where the princess' remorse are gathered.";
+			mes "That thing won't be a use to you, hero. If you need anything, I'll exchange it for that.";
+			next;
+			switch(select("Jewel Exchange.:Weapon Exchange.:Reform Material:Enchant Thanathos Helmet")){
+				case 1:
+					callshop "remorse_item",1;
+					end;
+					
+				case 2:
+					callshop "remorse_weapon",1;
+					end;
+					
+				case 3:
+					callshop "remorse_reform",1;
+					end;
+				case 4:
+					item_enchant(32);
+					end;
+
+
+			}
+			end;
+}

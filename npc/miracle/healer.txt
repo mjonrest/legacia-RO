@@ -1,0 +1,268 @@
+//===== rAthena Script =======================================
+//= Healer
+//===== By: ==================================================
+//= Euphy
+//===== Current Version: =====================================
+//= 1.1
+//===== Compatible With: =====================================
+//= rAthena Project
+//===== Description: =========================================
+//= Basic healer script.
+//===== Additional Comments: =================================
+//= 1.0 Initial script.
+//= 1.1 Aligned coordinates with @go.
+//============================================================
+
+-	script	Healer	-1,{
+//	.@Price = 0;	// Zeny required for heal
+	.@Price = 0;
+	.@Total = 1;
+	.@Buffs = 1;	// Also buff players? (1: yes / 0: no)
+	.@Delay = 1;	// Heal delay, in seconds
+
+//	if (getgmlevel() >= 99) {
+//	percentheal 100,100;
+//	repairall;
+//	atcommand "@identifyall";
+//	skilleffect 378,0; sc_end SC_EDP;
+//	skilleffect 384,0; sc_end SC_MELTDOWN;
+/**
+	skilleffect 384,0; sc_start SC_MELTDOWN,360000,5;
+	skilleffect 383,0; sc_start SC_WINDWALK,360000,5;
+	skilleffect 378,0; sc_start SC_EDP,360000,5;
+	skilleffect 465,0; sc_start SC_KAITE,360000,7;
+	skilleffect 464,0; sc_start SC_KAUPE,360000,3;
+	skilleffect 463,0; sc_start SC_KAAHI,360000,7;
+	skilleffect 462,0; sc_start SC_KAIZEL,360000,7;
+	skilleffect 8,0; sc_start SC_ENDURE,360000,10;
+	skilleffect 33,0; sc_start SC_ANGELUS,360000,10;
+	skilleffect 45,0; sc_start SC_CONCENTRATE,360000,10;
+	skilleffect 74,0; sc_start SC_MAGNIFICAT,360000,5;
+	skilleffect 75,0; sc_start SC_GLORIA,360000,5;
+	skilleffect 459,0; sc_start SC_ADRENALINE2,360000,1;
+	skilleffect 66,0; sc_start SC_IMPOSITIO,360000,5;
+	skilleffect 67,0; sc_start SC_SUFFRAGIUM,360000,3;
+	skilleffect 34,0; sc_start SC_BLESSING,360000,10;
+	skilleffect 29,0; sc_start SC_INCREASEAGI,360000,10;
+	skilleffect 112,0; sc_start SC_WEAPONPERFECTION,360000,10;
+	skilleffect 113,0; sc_start SC_OVERTHRUST,360000,5;
+	skilleffect 114,0; sc_start SC_MAXIMIZEPOWER,360000,5;
+	skilleffect 357,0; sc_start SC_CONCENTRATION,360000,5;
+	skilleffect 355,0; sc_start SC_AURABLADE,360000,5;
+	skilleffect 155,0; sc_start SC_LOUD,360000,1;
+	skilleffect 157,0; sc_start SC_ENERGYCOAT,360000,1;
+	sc_start SC_ASPDPOTION2,360000,0;
+	sc_start SC_STRFood,360000,10;
+	sc_start SC_AGIFood,360000,10;
+	sc_start SC_VITFood,360000,10;
+	sc_start SC_INTFood,360000,10;
+	sc_start SC_DEXFood,360000,10;
+	sc_start SC_LUKFood,360000,10;
+	sc_start SC_HitFood,1200000,30;
+	sc_start SC_FleeFood,1200000,30;
+	sc_start SC_BATKFood,1200000,10;
+	sc_start SC_MATKFood,120000,10;
+	skilleffect 380,0; sc_start SC_TRUESIGHT,360000,5;
+	skilleffect 361,0; sc_start SC_ASSUMPTIO,360000,5;
+	sc_end SC_STONE;
+	switch ( basejob ) {
+	  case Job_Alchemist:	set .@spirit, 445; break;
+	  case Job_Monk:	 set .@spirit, 447; break;
+	  case Job_Star_Gladiator:  set .@spirit, 448; break;
+	  case Job_Sage:	 set .@spirit, 449; break;
+	  case Job_Crusader:	set .@spirit, 450; break;
+	  case Job_SuperNovice:   set .@spirit, 451; break;
+	  case Job_Knight:	set .@spirit, 452; break;
+	  case Job_Wizard:	set .@spirit, 453; break;
+	  case Job_Priest:	set .@spirit, 454; break;
+	  case Job_Bard: case Job_Dancer: set .@spirit, 455; break;
+	  case Job_Rogue:	 set .@spirit, 456; break;
+	  case Job_Assassin:	set .@spirit, 457; break;
+	  case Job_Blacksmith:   set .@spirit, 458; break;
+	  case Job_Hunter:	set .@spirit, 460; break;
+	  case Job_Soul_Linker:   set .@spirit, 461; break;
+	  default:
+	   if ( upper == 1 && baselevel < 70 )
+		set .@spirit, 494;
+	}
+	if ( .@spirit ) {
+		sc_start4 sc_spirit, 360000, 5, .@spirit,0,0;
+		skilleffect .@spirit, 5;
+	}
+	end;
+**/
+//	}
+	if (@HD > gettimetick(2))
+		end;
+	if (vip_status(VIP_STATUS_ACTIVE)) {
+	sc_end SC_STONE;
+	sc_end SC_FREEZE;
+	sc_end SC_STUN;
+	sc_end SC_SLEEP;
+	sc_end SC_POISON;
+	sc_end SC_CURSE;
+	sc_end SC_SILENCE;
+	sc_end SC_CONFUSION;
+	sc_end SC_BLIND;
+	sc_end SC_BLOODING;
+	sc_end SC_DPOISON;
+	sc_end SC_FEAR;
+	sc_end SC_COLD;
+	sc_end SC_BURNING;
+	sc_end SC_DEEP_SLEEP;
+	sc_end SC_DEC_AGI;
+	sc_end SC_BROKENARMOR;
+	sc_end SC_BROKENWEAPON;
+	sc_end SC_NOEQUIPWEAPON;
+	sc_end SC_NOEQUIPSHIELD;
+	sc_end SC_NOEQUIPARMOR;
+	sc_end SC_NOEQUIPHELM;
+	sc_end SC_STRIPACCESSARY;
+	sc_end SC_PROPERTYUNDEAD;
+	sc_end SC_ORCISH;
+	sc_end SC_BERSERK;
+	sc_end SC_SKE;
+	sc_end SC_SWOO;
+	sc_end SC_SKA;
+	specialeffect2 EF_HEAL2;
+	if (.@Buffs) {
+		specialeffect2 EF_INCAGILITY;
+		sc_start SC_INCREASEAGI,(30 * 60 * 1000),10;
+		specialeffect2 EF_BLESSING;
+		sc_start SC_BLESSING,(30 * 60 * 1000),10;
+		skilleffect 361,0; sc_start SC_ASSUMPTIO,(30 * 60 * 1000),5;
+		repairall;
+		atcommand "@identifyall";
+		sc_start SC_STRFood,(30 * 60 * 1000),3;
+		sc_start SC_AGIFood,(30 * 60 * 1000),3;
+		sc_start SC_VITFood,(30 * 60 * 1000),3;
+		sc_start SC_INTFood,(30 * 60 * 1000),3;
+		sc_start SC_DEXFood,(30 * 60 * 1000),3;
+		sc_start SC_LUKFood,(30 * 60 * 1000),3;
+		skilleffect 66,0; sc_start SC_IMPOSITIO,(30 * 60 * 1000),5;
+		skilleffect 67,0; sc_start SC_SUFFRAGIUM,(30 * 60 * 1000),3;
+	//	skilleffect 2515,0; sc_start SC_SECRAMENT,(3 * 60 * 1000),5;
+//		skilleffect 479,0; sc_start SC_FULLPROTECTION,360000,5;
+		switch ( basejob ) {
+			case Job_Alchemist:	set .@spirit, 445; break;
+			case Job_Monk:	 set .@spirit, 447; break;
+			case Job_Star_Gladiator:  set .@spirit, 448; break;
+			case Job_Sage:	 set .@spirit, 449; break;
+			case Job_Crusader:	set .@spirit, 450; break;
+			case Job_SuperNovice:   set .@spirit, 451; break;
+			case Job_Knight:	set .@spirit, 452; break;
+			case Job_Wizard:	set .@spirit, 453; break;
+			case Job_Priest:	set .@spirit, 454; break;
+			case Job_Bard: case Job_Dancer: set .@spirit, 455; break;
+			case Job_Rogue:	 set .@spirit, 456; break;
+			case Job_Assassin:	set .@spirit, 457; break;
+			case Job_Blacksmith:   set .@spirit, 458; break;
+			case Job_Hunter:	set .@spirit, 460; break;
+			case Job_Soul_Linker:   set .@spirit, 461; break;
+			default:
+				if ( upper == 1 && baselevel < 70 )
+					set .@spirit, 494;
+		}
+		if ( .@spirit ) {
+			sc_start4 sc_spirit, 360000, 5, .@spirit,0,0;
+			skilleffect .@spirit, 5;
+		}
+		healap 150;
+		percentheal 100,100;
+	}
+	end;
+}	
+	else {
+	specialeffect2 EF_HEAL2;
+	percentheal 100,100;
+	if (.@Buffs) {
+		specialeffect2 EF_INCAGILITY;
+		sc_start SC_INCREASEAGI,(5 * 60 * 1000),10;
+		specialeffect2 EF_BLESSING;
+		sc_start SC_BLESSING,(5 * 60 * 1000),10;
+	//	getinventorylist;
+	//	for( set .@i,0; .@i < @inventorylist_count; set .@i, .@i +1 ) {
+	//	if ( @inventorylist_identify[.@i] > 0 ) continue;
+	//	if ( Zeny < 10000 ){
+	//	dispbottom "You need 10.000 to use identify all";
+	//	end;
+	//	} else if ( Zeny >= 10000) {Zeny = Zeny - 10000; atcommand "@identifyall";}
+	//	}
+		atcommand "@identifyall";
+		end;
+	}
+}
+}
+
+
+
+// Duplicates
+//============================================================
+alberta,25,240,6	duplicate(Healer)	Legacia Support#alb	936
+aldebaran,135,118,6	duplicate(Healer)	Legacia Support#alde	936
+amatsu,200,79,4	duplicate(Healer)	Legacia Support#ama	936
+ayothaya,207,169,6	duplicate(Healer)	Legacia Support#ayo	936
+comodo,184,158,6	duplicate(Healer)	Legacia Support#com	936
+einbech,57,36,6	duplicate(Healer)	Legacia Support#einbe	936
+einbroch,57,202,6	duplicate(Healer)	Legacia Support#einbr	936
+geffen,115,72,6	duplicate(Healer)	Legacia Support#gef	936
+gonryun,156,122,6	duplicate(Healer)	Legacia Support#gon	936
+hugel,89,150,6	duplicate(Healer)	Legacia Support#hug	936
+izlude,121,150,6	duplicate(Healer)	Legacia Support#izl	936	//Pre-RE: (125,118)
+jawaii,250,139,4	duplicate(Healer)	Legacia Support#jaw	936
+lighthalzen,152,100,6	duplicate(Healer)	Legacia Support#lhz	936
+louyang,226,103,4	duplicate(Healer)	Legacia Support#lou	936
+manuk,272,144,6	duplicate(Healer)	Legacia Support#man	936
+//mid_camp,203,289,6	duplicate(Healer)	Legacia Support#mid	936
+moc_ruins,72,164,4	duplicate(Healer)	Legacia Support#moc	936
+morocc,153,97,6	duplicate(Healer)	Legacia Support#mor	936
+moscovia,220,191,4	duplicate(Healer)	Legacia Support#mos	936
+niflheim,212,182,5	duplicate(Healer)	Legacia Support#nif	936
+payon,179,106,4	duplicate(Healer)	Legacia Support#pay	936
+//prontera,153,193,6	duplicate(Healer)	Legacia Support#prt	936
+rachel,125,116,6	duplicate(Healer)	Legacia Support#rac	936
+splendide,201,153,4	duplicate(Healer)	Legacia Support#spl	936
+thor_camp,249,74,4	duplicate(Healer)	Legacia Support#thor	936
+umbala,105,148,3	duplicate(Healer)	Legacia Support#umb	936
+veins,217,121,4	duplicate(Healer)	Legacia Support#ve	936
+xmas,143,136,4	duplicate(Healer)	Legacia Support#xmas	936
+//yuno,164,45,4	duplicate(Healer)	Legacia Support#yuno	936
+
+// Duplicates (Renewal)
+//============================================================
+brasilis,194,221,6	duplicate(Healer)	Legacia Support#bra	936
+dewata,195,187,4	duplicate(Healer)	Legacia Support#dew	936
+dicastes01,201,194,4	duplicate(Healer)	Legacia Support#dic	936
+ecl_in01,45,60,4	duplicate(Healer)	Legacia Support#ecl	936
+malangdo,132,114,6	duplicate(Healer)	Legacia Support#mal	936
+malaya,227,204,6	duplicate(Healer)	Legacia Support#ma	936
+mora,55,152,4	duplicate(Healer)	Legacia Support#mora	936
+
+//
+function	script	portable_link	{
+	switch ( basejob ) {
+	  case Job_Alchemist:	set .@spirit, 445; break;
+	  case Job_Monk:	 set .@spirit, 447; break;
+	  case Job_Star_Gladiator:  set .@spirit, 448; break;
+	  case Job_Sage:	 set .@spirit, 449; break;
+	  case Job_Crusader:	set .@spirit, 450; break;
+	  case Job_SuperNovice:   set .@spirit, 451; break;
+	  case Job_Knight:	set .@spirit, 452; break;
+	  case Job_Wizard:	set .@spirit, 453; break;
+	  case Job_Priest:	set .@spirit, 454; break;
+	  case Job_Bard: case Job_Dancer: set .@spirit, 455; break;
+	  case Job_Rogue:	 set .@spirit, 456; break;
+	  case Job_Assassin:	set .@spirit, 457; break;
+	  case Job_Blacksmith:   set .@spirit, 458; break;
+	  case Job_Hunter:	set .@spirit, 460; break;
+	  case Job_Soul_Linker:   set .@spirit, 461; break;
+	  default:
+	   if ( upper == 1 && baselevel < 70 )
+		set .@spirit, 494;
+	}
+	if ( .@spirit ) {
+		sc_start4 sc_spirit, 360000, 5, .@spirit,0,0;
+		skilleffect .@spirit, 5;
+	}
+	end;
+	}

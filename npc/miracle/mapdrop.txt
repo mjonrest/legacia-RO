@@ -1,0 +1,343 @@
+/**
+prontera,147,164,6	script	Map Drop Viewer	4_F_KAFRA1,{
+
+	// =========================
+	// MAP MENU
+	// =========================
+	mes "[Map Drop Viewer]";
+	mes "Select a map.";
+	next;
+
+	.@map_rows = query_sql(
+		"SELECT DISTINCT map_name FROM map_drop_viewer ORDER BY map_name",
+		.@map$
+	);
+
+	if (!.@map_rows) {
+		mes "No map data found.";
+		close;
+	}
+
+// Build menu string from SQL array
+.@menu$ = "";
+
+for (.@i = 0; .@i < .@map_rows; .@i++) {
+	if (.@i)
+		.@menu$ += ":";
+
+	.@menu$ += .@map$[.@i];
+}
+
+// Debug (optional)
+// dispbottom "MAP MENU=" + .@menu$;
+
+.@map_sel = select(.@menu$) - 1;
+.@map$ = .@map$[.@map_sel];
+	// =========================
+	// CHECK SPECIFIC MONSTERS
+	// =========================
+	.@mon_rows = query_sql(
+		"SELECT DISTINCT monster FROM map_drop_viewer WHERE map_name='"+.@map$+"' AND monster!='ALL' ORDER BY monster",
+		.@mon$
+	);
+
+	// =========================
+	// NO MONSTERS ? SHOW ITEMS
+	// =========================
+	if (!.@mon_rows) {
+		callsub S_ShowItems, .@map$, "ALL";
+		close;
+	}
+
+	// =========================
+	// MONSTER MENU
+	// =========================
+	mes "[Map Drop Viewer]";
+	mes "Select monster.";
+	next;
+
+	.@menu$ = "";
+	for (.@i = 0; .@i < .@mon_rows; .@i++) {
+		if (.@i)
+			.@menu$ += ":";
+		.@menu$ += getmonsterinfo(.@mon$[.@i],MOB_NAME);
+	}
+
+	.@mon_sel = select(.@menu$) - 1;
+	.@monster$ = .@mon$[.@mon_sel];
+
+	callsub S_ShowItems, .@map$, .@monster$;
+	close;
+
+	// =========================
+	// ITEM LIST
+	// =========================
+S_ShowItems:
+	.@map$ = getarg(0);
+	.@monster$ = getarg(1);
+
+	mes "[Map Drop Viewer]";
+	mes "Map: ^0000FF"+.@map$+"^000000";
+
+	if (.@monster$ == "ALL")
+		mes "Monster: ^00AA00All Monsters^000000";
+	else
+		mes "Monster: ^FF0000"+.@monster$+"^000000";
+
+	next;
+
+	.@rows = query_sql(
+		"SELECT item_name, rate FROM map_drop_viewer WHERE map_name='"+.@map$+"' AND monster='"+.@monster$+"' ORDER BY drop_index",
+		.@item$, .@rate
+	);
+
+	if (!.@rows) {
+		mes "No drops found.";
+		close;
+	}
+
+	for (.@i = 0; .@i < .@rows; .@i++) {
+		.@whole = .@rate[.@i] / 1000;
+		.@dec = (.@rate[.@i] % 1000) / 10;
+		if (.@dec < 10) .@dec$ = "0"+.@dec;
+		else .@dec$ = ""+.@dec;
+
+		mes getitemname(.@item$[.@i])+" ("+.@whole+"."+.@dec$+"%)";
+	}
+
+	close;
+
+OnInit:
+	waitingroom "Map Drop Info",0;
+	end;
+}
+**/
+prontera,147,164,6	script	Map Drop Viewer	4_F_KAFRA1,{
+
+	// =========================
+	// MAIN MENU (NEW)
+	// =========================
+	mes "[Map Drop Viewer]";
+	mes "How do you want to browse drops?";
+	next;
+
+	if (select("Search by Map:Search by Item") == 2) {
+		callsub S_SearchByItem;
+		close;
+	}
+
+	// =========================
+	// MAP MENU (UNCHANGED)
+	// =========================
+	mes "[Map Drop Viewer]";
+	mes "Select a map.";
+	next;
+
+	.@map_rows = query_sql(
+		"SELECT DISTINCT map_name FROM map_drop_viewer ORDER BY map_name",
+		.@map$
+	);
+
+	if (!.@map_rows) {
+		mes "No map data found.";
+		close;
+	}
+
+	.@menu$ = "";
+	for (.@i = 0; .@i < .@map_rows; .@i++) {
+		if (.@i) .@menu$ += ":";
+		.@menu$ += .@map$[.@i];
+	}
+
+	.@map_sel = select(.@menu$) - 1;
+	.@map$ = .@map$[.@map_sel];
+
+	// =========================
+	// CHECK SPECIFIC MONSTERS
+	// =========================
+	.@mon_rows = query_sql(
+		"SELECT DISTINCT monster FROM map_drop_viewer WHERE map_name='"+.@map$+"' AND monster!='ALL' ORDER BY monster",
+		.@mon$
+	);
+
+	// =========================
+	// NO MONSTERS ? SHOW ITEMS
+	// =========================
+	if (!.@mon_rows) {
+		callsub S_ShowItems, .@map$, "ALL";
+		close;
+	}
+
+	// =========================
+	// MONSTER MENU
+	// =========================
+	mes "[Map Drop Viewer]";
+	mes "Select monster.";
+	next;
+
+	.@menu$ = "";
+	for (.@i = 0; .@i < .@mon_rows; .@i++) {
+		if (.@i) .@menu$ += ":";
+		.@menu$ += getmonsterinfo(.@mon$[.@i], MOB_NAME);
+	}
+
+	.@mon_sel = select(.@menu$) - 1;
+	.@monster$ = .@mon$[.@mon_sel];
+
+	callsub S_ShowItems, .@map$, .@monster$;
+	close;
+
+	// =========================
+	// ITEM LIST (UNCHANGED)
+	// =========================
+S_ShowItems:
+	.@map$ = getarg(0);
+	.@monster$ = getarg(1);
+
+	mes "[Map Drop Viewer]";
+	mes "Map: ^0000FF"+.@map$+"^000000";
+
+	if (.@monster$ == "ALL")
+		mes "Monster: ^00AA00All Monsters^000000";
+	else
+		mes "Monster: ^FF0000"+.@monster$+"^000000";
+
+	next;
+
+	.@rows = query_sql(
+		"SELECT item_name, rate FROM map_drop_viewer "+
+		"WHERE map_name='"+.@map$+"' AND monster='"+.@monster$+"' "+
+		"ORDER BY drop_index",
+		.@item$, .@rate
+	);
+
+	if (!.@rows) {
+		mes "No drops found.";
+		close;
+	}
+
+	for (.@i = 0; .@i < .@rows; .@i++) {
+		.@whole = .@rate[.@i] / 1000;
+		.@dec = (.@rate[.@i] % 1000) / 10;
+		if (.@dec < 10) .@dec$ = "0"+.@dec;
+		else .@dec$ = ""+.@dec;
+
+		mes getitemname(.@item$[.@i])+" ("+.@whole+"."+.@dec$+"%)";
+	}
+
+	close;
+
+	// =====================================================
+	// NEW : SEARCH BY ITEM (ADDED SUB ONLY)
+	// =====================================================
+// =====================================================
+// SEARCH BY ITEM (ACTUALLY FIXED)
+// =====================================================
+S_SearchByItem:
+	.@per_page = 20;
+	.@page = 0;
+
+	.@item_rows = query_sql(
+		"SELECT DISTINCT item_name FROM map_drop_viewer ORDER BY item_name",
+		.@item$
+	);
+
+	if (!.@item_rows) {
+		mes "[Map Drop Viewer]";
+		mes "No item data found.";
+		return;
+	}
+
+	while (true) {
+
+		mes "[Map Drop Viewer]";
+		mes "Select an item.";
+		next;
+
+		.@menu$ = "";
+		.@start = .@page * .@per_page;
+		.@end   = min(.@start + .@per_page, .@item_rows);
+
+		.@item_count = 0;
+		for (.@i = .@start; .@i < .@end; .@i++) {
+			if (.@menu$ != "") .@menu$ += ":";
+			.@menu$ += getitemname(.@item$[.@i]);
+			.@item_count++;
+		}
+
+		if (.@end < .@item_rows)
+			.@menu$ += ":>> Next Page";
+
+		if (.@page > 0)
+			.@menu$ += ":<< Previous Page";
+
+		.@menu$ += ":Cancel";
+
+		.@sel = select(.@menu$);
+
+		// Cancel
+		if (.@sel == .@item_count + 1 + (.@end < .@item_rows) + (.@page > 0))
+			return;
+
+		// Next
+		if (.@end < .@item_rows && .@sel == .@item_count + 1) {
+			.@page++;
+			continue;
+		}
+
+		// Previous
+		if (.@page > 0 && .@sel == .@item_count + 1 + (.@end < .@item_rows)) {
+			.@page--;
+			continue;
+		}
+
+		if (.@sel < 1 || .@sel > .@item_count)
+			continue;
+
+		// ? STRING VARIABLE
+		.@item_name$ = .@item$[.@start + (.@sel - 1)];
+		break;
+	}
+
+	mes "[Map Drop Viewer]";
+	mes "Item: ^0000FF"+.@item_name$+"^000000";
+	next;
+
+	.@rows = query_sql(
+		"SELECT map_name, monster, rate FROM map_drop_viewer "+
+		"WHERE item_name='"+.@item_name$+"' "+
+		"ORDER BY map_name, monster",
+		.@map$, .@monster$, .@rate
+	);
+
+	if (!.@rows) {
+		mes "No drop sources found.";
+		return;
+	}
+
+	for (.@i = 0; .@i < .@rows; .@i++) {
+		.@whole = .@rate[.@i] / 1000;
+		.@dec = (.@rate[.@i] % 1000) / 10;
+		if (.@dec < 10) .@dec$ = "0"+.@dec;
+		else .@dec$ = ""+.@dec;
+
+	if (.@monster$[.@i] == "ALL") {
+	mes "^00AA00All Monsters^000000"
+		+" @ "+.@map$[.@i]
+		+" ("+.@whole+"."+.@dec$+"%)";
+	}
+	else {
+	// If stored as ID string or name, both work
+	mes getmonsterinfo(.@monster$[.@i], MOB_NAME)
+		+" @ "+.@map$[.@i]
+		+" ("+.@whole+"."+.@dec$+"%)";
+	}
+}
+	return;
+
+
+OnInit:
+	waitingroom "Map Drop Info",0;
+	end;
+}
+

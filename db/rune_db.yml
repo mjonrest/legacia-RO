@@ -1,0 +1,36 @@
+# This file is a part of Shakto.
+#   Copyright(C) 2023 Shakto Script
+#   https://ronovelty.com/
+#
+###########################################################################
+# Rune Database
+###########################################################################
+# - Id                         Client side LUB index. (RUNETAGIDTBL in runesystemid.lub)
+#   Name:                      Name of rune tag.
+#   Set:                       Liste of set per tag
+#     - Id                     Id of set (RUNESETIDTBL in runesystemid.lub)
+#       Name                   Name of set on client side
+#       Books                  Liste of book related to this set for the effect
+#          - Slot              Slot number of the book on client side
+#            Name              Name of the book declared in runebook_db 
+#       Activation             Activation materials to activate the set
+#          - Material          Materials name
+#            Amount            Amount
+#        Scripts               Script effect when a number of book is activated
+#       Reward                 Feward from  runeset_reward.lub
+#          - Slot              Slot number of the reward on client side
+#            Name              Name of item as reward
+#       Scripts                Script effect when a number of book is activated
+#          - Amount            Amount of book activted needed to have following effect script
+#            Script            Script effect
+#       Upgrades               Upgrades infos to upgrade a set
+#          - Grade             Upgrade number to reach
+#            Chance            Chance to upgrade
+#            ChancePerFail     Up the fail chance to upgrade per fail
+#              - Material      Materials name
+#                Amount        Amount
+###########################################################################
+
+Header:
+  Type: RUNE_DB
+  Version: 1

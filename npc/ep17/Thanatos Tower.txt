@@ -1,0 +1,691 @@
+/*
+ * Thanatos Tower Instance Script
+ * Translated to English (code preserved)
+ */
+
+//------------------------------ Entry NPC
+thana_step,154,367,4	script	Thanatos Tower Entry	10246,{
+
+OnStart:
+	set .@party_id,getcharid(1);
+	set .@p_name$,getpartyname(.@party_id);
+	if(checkquest(200075,PLAYTIME) == 2){
+		erasequest 200075;
+	}
+
+	if (!.@party_id) {
+		mes "[Party]";
+		mes "Are you not in a party?";
+		close;
+	}
+	
+	.@md_name$ = "Thanatos Tower";
+	
+	if (getcharid(0) == getpartyleader(.@party_id,2))
+		set @menu$, "Generate "+.@md_name$+":"+"Enter "+.@md_name$;
+	else
+		set @menu$, ":Enter "+.@md_name$;
+		
+	mes "[Party]";
+	mes "Are you ready?";
+	next;
+	.@i = select(@menu$)-1;
+	switch(.@i) {
+	case 0:
+		if(BaseLevel < 180) {
+			mes "[Party]";
+			mes "Sorry, you must be at least Lv.180 to enter.";
+			mes "You must be at least Lv.180 to enter.";
+			close;
+		}
+		
+		if (instance_create(.@md_name$) < 0) {
+			mes "[Party]";
+			mes "[Error]";
+			mes "Party name: "+.@p_name$;
+			mes "Party leader: "+strcharinfo(0);
+			mes "^0000ff"+.@md_name$+" ^000000- Instance creation failed!";
+			close;
+		}
+
+		mapannounce strnpcinfo(4),"Party "+getpartyname(.@party_id)+" has started the instance "+.@md_name$+"!",bc_map,"0x33ea91";
+		mes "[Info]";
+		mes ""+.@md_name$+" has been created.";
+		mes "Please ^0066CCenter "+.@md_name$+"^000000.";
+		
+		.@iid = instance_id(IM_PARTY);
+		set getinstancevar('party_id, .@iid), getcharid(1);
+		//Entry time
+		//set Instance_Annal,gettimetick(2);
+		close;
+	case 1:
+		if(BaseLevel < 180) {
+			mes "[Info]";
+			mes "Sorry, you must be at least Lv.180 to enter."; 
+			mes "You must be at least Lv.180 to enter."; 
+			close;
+		}
+	if ( getinstancevar('Win,instance_id(IM_PARTY)) ) {
+	mes "The instance has already started, you cannot enter.";
+	close;
+	}
+		switch(checkquest(200075,PLAYTIME)){
+			case 0:
+			case 1:
+				mes "you are on cooldown fella";
+				end;
+		}
+
+		switch(instance_enter(.@md_name$)) {
+		case IE_OTHER:
+			mes "An error occurred.";
+			close;
+		case IE_NOINSTANCE:
+			mes .@md_name$+" instance does not exist.";
+			mes "Please try again later.";
+			close;
+		case IE_NOMEMBER:
+			mes "You are not a member of the "+.@md_name$+" instance.";
+			close;
+		case IE_OK:
+			setquest 200075;
+			end;
+		}
+	}
+	close;
+	
+OnInit:
+	waitingroom "Thanatos Tower",0;
+	end;
+}
+
+
+//------------------------------ Main Instance Controller
+1@thts,0,0,0	script	Thanatos Controller	-1,{
+
+
+OnInstanceInit:
+	//Initialize instance map names
+	'map_name$[0] = instance_mapname("1@thts");
+	'map_name$[1] = instance_mapname("2@thts");
+	'map_name$[2] = instance_mapname("3@thts");
+	'map_name$[3] = instance_mapname("4@thts");
+	'map_name$[4] = instance_mapname("5@thts");
+	'map_name$[5] = instance_mapname("6@thts");
+	'map_name$[6] = instance_mapname("7@thts");
+	'map_name$[7] = instance_mapname("8@thts");
+	//Disable NPCs
+	disablenpc instance_npcname("Reward#Thts_01");
+	disablenpc instance_npcname("Guardian Stone#Thts_01");
+	disablenpc instance_npcname("Guardian Middle#Thts_01");
+	disablenpc instance_npcname("Guardian Upper#Thts_01");
+//	disablenpc instance_npcname("Guardian Lower#Thts_01");
+	disablenpc instance_npcname("Chest#Thts_01");
+	disablenpc instance_npcname("Key#Thts_01");
+	disablenpc instance_npcname("Key#Thts_02");
+	disablenpc instance_npcname("Key#Thts_03");
+	disablenpc instance_npcname("Key#Thts_04");
+	disablenpc instance_npcname("Key#Thts_05");
+	disablenpc instance_npcname("Guardian Final#Thts_01");
+	disablenpc instance_npcname("Warp#Thts_02");
+	disablenpc instance_npcname("Warp#Thts_03");
+	disablenpc instance_npcname("Warp#Thts_04");
+	disablenpc instance_npcname("Warp#Thts_05");
+	disablenpc instance_npcname("Warp#Thts_06");
+	disablenpc instance_npcname("Warp#Thts_07");
+	disablenpc instance_npcname("Warp#Thts_08");
+	disablenpc instance_npcname("Warp#Thts_09");
+	disablenpc instance_npcname("Warp#Thts_10");
+	disablenpc instance_npcname("Warp#Thts_11");
+	disablenpc instance_npcname("Warp#Thts_12");
+
+	disablenpc instance_npcname("Warp#Thts_s02");
+	disablenpc instance_npcname("Warp#Thts_s03");
+	disablenpc instance_npcname("Warp#Thts_s04");
+	disablenpc instance_npcname("Warp#Thts_s05");
+	disablenpc instance_npcname("Warp#Thts_s06");
+	disablenpc instance_npcname("Warp#Thts_s07");
+	disablenpc instance_npcname("Warp#Thts_s08");
+	disablenpc instance_npcname("Warp#Thts_s09");
+	disablenpc instance_npcname("Warp#Thts_s10");
+	disablenpc instance_npcname("Warp#Thts_s11");
+	disablenpc instance_npcname("FinalEvent#Thts_01");
+	//Instance variables
+	set 'Thts_01,0;
+	set 'Thts_02,0;
+	set 'Thts_03,0;
+	set 'Thts_item_01,0;
+	set 'Thts_item_02,0;
+	set 'Thts_item_03,0;
+	set 'Thts_item_04,0;
+	set 'Thts_item_05,0;
+	set 'Thts_item_on_01,0;
+	set 'Thts_item_on_02,0;
+	set 'Thts_item_on_03,0;
+	set 'Thts_item_on_04,0;
+	set 'Thts_item_on_05,0;
+	end;
+
+	OnCcdd1:
+	set 'Thts_Mob_01,'Thts_Mob_01-1;
+	instance_announce instance_id(1),"Remaining monsters: "+'Thts_Mob_01+" left",bc_all,0xD7BA98;
+	if ('Thts_Mob_01>0) end;
+	set 'Thts_Mob_01,20;
+	enablenpc instance_npcname("Warp#Thts_02");
+	enablenpc instance_npcname("Warp#Thts_03");
+	enablenpc instance_npcname("Warp#Thts_s02");
+	enablenpc instance_npcname("Warp#Thts_s03");
+	areamonster 'map_name$[5],18,40,29,21,"--ja--",20789,5,instance_npcname("Thanatos Controller")+"::OnCcdd2";
+	areamonster 'map_name$[5],66,39,80,25,"--ja--",20789,5,instance_npcname("Thanatos Controller")+"::OnCcdd2";
+	areamonster 'map_name$[5],19,86,47,76,"--ja--",20789,5,instance_npcname("Thanatos Controller")+"::OnCcdd2";
+	areamonster 'map_name$[5],60,85,81,73,"--ja--",20789,5,instance_npcname("Thanatos Controller")+"::OnCcdd2";
+	instance_announce 0, "1st wave of monsters has appeared! Defeat them all!",bc_map,"0x00cc66";
+	end;
+
+	OnCcdd2:
+	set 'Thts_Mob_01,'Thts_Mob_01-1;
+	instance_announce instance_id(1),"Remaining monsters: "+'Thts_Mob_01+" left",bc_all,0xD7BA98;
+	if ('Thts_Mob_01>0) end;
+	enablenpc instance_npcname("Guardian Stone#Thts_01");
+	areamonster 'map_name$[5],50,50,50,50,"--ja--",20797,1,instance_npcname("Thanatos Controller")+"::OnCcdd3";
+	instance_announce 0, "Guardian Stone has appeared!",bc_map,"0x00cc66";
+	end;
+
+	OnCcdd3:
+	set 'Thts_Mob_01,25;
+	enablenpc instance_npcname("Warp#Thts_04");
+	enablenpc instance_npcname("Warp#Thts_05");
+	enablenpc instance_npcname("Warp#Thts_s04");
+	enablenpc instance_npcname("Warp#Thts_s05");
+	areamonster 'map_name$[4],100,110,115,95,"--ja--",20791,5,instance_npcname("Thanatos Controller")+"::OnCcdd4";
+	areamonster 'map_name$[4],95,130,113,115,"--ja--",20791,5,instance_npcname("Thanatos Controller")+"::OnCcdd4";
+	areamonster 'map_name$[4],145,135,165,123,"--ja--",20791,5,instance_npcname("Thanatos Controller")+"::OnCcdd4";
+	areamonster 'map_name$[4],162,166,147,161,"--ja--",20791,5,instance_npcname("Thanatos Controller")+"::OnCcdd4";
+	areamonster 'map_name$[4],95,160,125,150,"--ja--",20791,5,instance_npcname("Thanatos Controller")+"::OnCcdd4";
+	instance_announce 0, "3rd wave of monsters has appeared! Defeat them all!",bc_map,"0x00cc66";
+	end;
+
+	OnCcdd4:
+	set 'Thts_Mob_01,'Thts_Mob_01-1;
+	instance_announce instance_id(1),"Remaining monsters: "+'Thts_Mob_01+" left",bc_all,0xD7BA98;
+	if ('Thts_Mob_01>0) end;
+	set 'Thts_Mob_01,2;
+	enablenpc instance_npcname("Guardian Middle#Thts_01");
+	areamonster 'map_name$[4],129,155,129,155,"--ja--",20798,1,instance_npcname("Thanatos Controller")+"::OnCcdd5";
+	instance_announce 0, "Middle Guardian has appeared!",bc_map,"0xFF0000";
+	end;
+
+	OnCcdd5:
+	set 'Thts_Mob_01,25;
+	enablenpc instance_npcname("Warp#Thts_06");
+	enablenpc instance_npcname("Warp#Thts_07");
+	enablenpc instance_npcname("Warp#Thts_s06");
+	enablenpc instance_npcname("Warp#Thts_s07");
+	areamonster 'map_name$[3],23,110,40,100,"--ja--",20790,3,instance_npcname("Thanatos Controller")+"::OnCcdd6";
+	areamonster 'map_name$[3],14,153,36,140,"--ja--",20790,10,instance_npcname("Thanatos Controller")+"::OnCcdd6";
+	areamonster 'map_name$[3],74,162,86,105,"--ja--",20790,12,instance_npcname("Thanatos Controller")+"::OnCcdd6";
+	instance_announce 0, "3rd wave of monsters has appeared! Defeat them all!",bc_map,"0x00cc66";
+	end;
+
+	OnCcdd6:
+	set 'Thts_Mob_01,'Thts_Mob_01-1;
+	instance_announce instance_id(1),"Remaining monsters: "+'Thts_Mob_01+" left",bc_all,0xD7BA98;
+	if ('Thts_Mob_01>0) end;
+	enablenpc instance_npcname("Guardian Upper#Thts_01");
+	areamonster 'map_name$[3],52,133,52,133,"--ja--",20799,1,instance_npcname("Thanatos Controller")+"::OnCcdd7";
+	instance_announce 0, "Upper Guardian has appeared!",bc_map,"0xFF0000";
+	end;
+
+	OnCcdd7:
+	set 'Thts_Mob_01,45;
+	enablenpc instance_npcname("Guardian Stone#Thts_01");
+	enablenpc instance_npcname("Warp#Thts_08");
+	enablenpc instance_npcname("Warp#Thts_09");
+	enablenpc instance_npcname("Warp#Thts_s08");
+	enablenpc instance_npcname("Warp#Thts_s09");
+	areamonster 'map_name$[2],50,34,62,29,"--ja--",20788,5,instance_npcname("Thanatos Controller")+"::OnCcdd8";
+	areamonster 'map_name$[2],34,123,41,93,"--ja--",20788,5,instance_npcname("Thanatos Controller")+"::OnCcdd8";
+	areamonster 'map_name$[2],34,167,41,140,"--ja--",20787,5,instance_npcname("Thanatos Controller")+"::OnCcdd8";
+	areamonster 'map_name$[2],42,184,62,174,"--ja--",20787,5,instance_npcname("Thanatos Controller")+"::OnCcdd8";
+	areamonster 'map_name$[2],58,180,65,138,"--ja--",20787,5,instance_npcname("Thanatos Controller")+"::OnCcdd8";
+	areamonster 'map_name$[2],74,165,81,134,"--ja--",20788,5,instance_npcname("Thanatos Controller")+"::OnCcdd8";
+	areamonster 'map_name$[2],74,76,81,30,"--ja--",20787,10,instance_npcname("Thanatos Controller")+"::OnCcdd8";
+	areamonster 'map_name$[2],94,71,105,52,"--ja--",20788,5,instance_npcname("Thanatos Controller")+"::OnCcdd8";
+	instance_announce 0, "3rd wave of monsters has appeared! Defeat them all!",bc_map,"0x00cc66";
+	end;
+
+	OnCcdd8:
+	set 'Thts_Mob_01,'Thts_Mob_01-1;
+	instance_announce instance_id(1),"Remaining monsters: "+'Thts_Mob_01+" left",bc_all,0xD7BA98;
+	if ('Thts_Mob_01>0) end;
+	disablenpc instance_npcname("Guardian Stone#Thts_01");
+	areamonster 'map_name$[2],74,121,82,113,"--ja--",20796,1,instance_npcname("Thanatos Controller")+"::OnCcdd9";
+	instance_announce 0, "Final Guardian has appeared!",bc_map,"0x00cc66";
+	end;
+
+	OnCcdd9:
+	set 'Thts_Mob_01,15;
+	enablenpc instance_npcname("Chest#Thts_01");
+	enablenpc instance_npcname("Warp#Thts_10");
+	enablenpc instance_npcname("Warp#Thts_11");
+	enablenpc instance_npcname("Warp#Thts_s10");
+	enablenpc instance_npcname("Warp#Thts_s11");
+	set 'Thts_Mob_01,15;
+	areamonster 'map_name$[6],93,85,163,18,"--ja--",20787,3,instance_npcname("Thanatos Controller")+"::OnCcdd10";
+	areamonster 'map_name$[6],93,85,163,18,"--ja--",20788,3,instance_npcname("Thanatos Controller")+"::OnCcdd10";
+	areamonster 'map_name$[6],93,85,163,18,"--ja--",20789,3,instance_npcname("Thanatos Controller")+"::OnCcdd10";
+	areamonster 'map_name$[6],93,85,163,18,"--ja--",20790,3,instance_npcname("Thanatos Controller")+"::OnCcdd10";
+	areamonster 'map_name$[6],93,85,163,18,"--ja--",20791,3,instance_npcname("Thanatos Controller")+"::OnCcdd10";
+	instance_announce 0, "Final challenge begins now!",bc_map,"0x00cc66";
+	sleep 3000;
+	instance_announce 0, "5th wave of monsters has appeared! Defeat them all!",bc_map,"0x00cc66";
+	end;
+
+	OnCcdd10:
+	set 'Thts_Mob_01,'Thts_Mob_01-1;
+	instance_announce instance_id(1),"Remaining monsters: "+'Thts_Mob_01+" left",bc_all,0xD7BA98;
+	if ('Thts_Mob_01>0) end;
+	set 'Thts_Mob_01,4;
+	instance_announce 0, "What's this? A mysterious power is awakening!",bc_map,"0x00cc66";
+	enablenpc instance_npcname("Key#Thts_01");
+	sleep 2000;
+	enablenpc instance_npcname("Key#Thts_02");
+	sleep 2000;
+	enablenpc instance_npcname("Key#Thts_03");
+	sleep 2000;
+	enablenpc instance_npcname("Key#Thts_04");
+	sleep 2000;
+	enablenpc instance_npcname("Key#Thts_05");
+	end;
+
+	OnCcdd11:
+	set 'Thts_Mob_01,'Thts_Mob_01-1;
+	instance_announce 0, "Time remaining: "+'Thts_Mob_01+" seconds",bc_map,"0x00cc66";
+	if ('Thts_Mob_01>0) end;
+	enablenpc instance_npcname("FinalEvent#Thts_01");
+	enablenpc instance_npcname("Guardian Final#Thts_01");
+	enablenpc instance_npcname("Warp#Thts_12");
+	instance_announce 0, "The final battle begins now!",bc_map,"0x00cc66";
+	end;
+
+	OnEnd:
+	'win = 1;
+	//Record clear time
+	set Instance_Miao,gettimetick(2)-Instance_Annal;
+	announce "Thanatos Tower has been cleared by ["+strcharinfo(1)+"] party led by "+getpartyleader(getcharid(1),0)+"!",bc_all,0xD7BA98;
+	enablenpc instance_npcname("Reward#Thts_01");
+	doevent instance_npcname("Boss#Thts_01")+"::OnStop";
+	doevent instance_npcname("Boss#Thts_02")+"::OnStop";
+	instance_announce 0, "The Final Guardian is weakening... weakening...",bc_map,"0xFF0000";
+	end;
+}
+
+
+//------------------------------ Guardian NPC
+2@thts,57,171,4	script	Guardian#Thts_01	20800,5,5,{end;
+
+OnTouch:
+	if (getpartyleader(getcharid(1),2)!=getcharid(0)) end;
+	if ('Thts_01==1) {end;}
+	set 'Thts_01,1;
+	npctalk "Who dares disturb my slumber?";
+	sleep 2000;
+	npctalk "You shall not pass the Guardian's Trial!";
+	sleep 2000;
+	set 'Thts_Mob_01,37;
+	disablenpc instance_npcname("Guardian#Thts_01");
+	areamonster 'map_name$[1],55,182,62,177,"--ja--",20800,3,instance_npcname("Thanatos Controller")+"::OnCcdd1";
+	areamonster 'map_name$[1],43,175,50,165,"--ja--",20800,3,instance_npcname("Thanatos Controller")+"::OnCcdd1";
+	areamonster 'map_name$[1],55,165,63,162,"--ja--",20800,3,instance_npcname("Thanatos Controller")+"::OnCcdd1";
+	areamonster 'map_name$[1],30,150,44,117,"--ja--",20800,5,instance_npcname("Thanatos Controller")+"::OnCcdd1";
+	areamonster 'map_name$[1],78,45,107,33,"--ja--",20800,5,instance_npcname("Thanatos Controller")+"::OnCcdd1";
+	areamonster 'map_name$[1],32,47,43,40,"--ja--",20800,3,instance_npcname("Thanatos Controller")+"::OnCcdd1";
+	areamonster 'map_name$[1],31,99,43,61,"--ja--",20800,5,instance_npcname("Thanatos Controller")+"::OnCcdd1";
+	areamonster 'map_name$[1],96,99,107,78,"--ja--",20800,5,instance_npcname("Thanatos Controller")+"::OnCcdd1";
+	areamonster 'map_name$[1],78,172,108,161,"--ja--",20800,5,instance_npcname("Thanatos Controller")+"::OnCcdd1";
+	end;
+}
+
+
+6@thts,50,50,4	script	Guardian Stone#Thts_01	20797,{
+	if (getpartyleader(getcharid(1),2)!=getcharid(0)) end;
+	getitem 7439,1;	//Stone Key
+	specialeffect 100;
+	disablenpc instance_npcname("Guardian Stone#Thts_01");
+	end;
+}
+
+5@thts,129,155,4	script	Guardian Middle#Thts_01	20798,{
+	if (getpartyleader(getcharid(1),2)!=getcharid(0)) end;
+	getitem 7437,1;	//Middle Key
+	specialeffect 100;
+	disablenpc instance_npcname("Guardian Middle#Thts_01");
+	end;
+}
+
+4@thts,52,133,4	script	Guardian Upper#Thts_01	20799,{
+	if (getpartyleader(getcharid(1),2)!=getcharid(0)) end;
+	getitem 7436,1;	//Upper Key
+	specialeffect 100;
+	disablenpc instance_npcname("Guardian Upper#Thts_01");
+	end;
+}
+
+//3@thts,70,105,4	script	Guardian Final#Thts_01	20796,{end;}
+3@thts,70,105,4	script	Chest#Thts_01	10042,{
+	if (getpartyleader(getcharid(1),2)!=getcharid(0)) end;
+	getitem 7438,1;	//Final Key
+	specialeffect 100;
+	disablenpc instance_npcname("Chest#Thts_01");
+	end;
+}
+
+7@thts,127,47,1	script	Key#Thts_01	802,{
+	if (getpartyleader(getcharid(1),2)!=getcharid(0)) end;
+	if ('Thts_item_on_01==1) {end;}
+
+	mes "This ancient device requires a special key";
+	mes "Insert the Middle Key to activate it";
+	mes "Will you proceed?";
+	menu "Insert Middle Key",-;
+
+	//if (countitem(7437)<0) {
+	//mes "You don't have the required key";
+	//close; }
+	mes "The Middle Key fits perfectly";
+	mes "The device begins to glow with energy";
+	misceffect 100;
+	//delitem 7437,1;
+	set 'Thts_item_on_01,1;
+	areamonster 'map_name$[6],127,47,127,47,"--ja--",20798,1,instance_npcname("Thanatos Controller")+"::OnCcdd11";
+	close;
+}
+
+7@thts,125,52,1	script	Key#Thts_02	802,{
+	if (getpartyleader(getcharid(1),2)!=getcharid(0)) end;
+	if ('Thts_item_on_02==1) {end;}
+
+	mes "This ancient device requires a special key";
+	mes "Insert the Upper Key to activate it";
+	mes "Will you proceed?";
+	menu "Insert Upper Key",-;
+
+	//if (countitem(7436)<0) {
+	//mes "You don't have the required key";
+	//close; }
+	mes "The Upper Key fits perfectly";
+	mes "The device begins to glow with energy";
+	misceffect 100;
+	//delitem 7436,1;
+	set 'Thts_item_on_02,1;
+	areamonster 'map_name$[6],125,52,125,52,"--ja--",20799,1,instance_npcname("Thanatos Controller")+"::OnCcdd11";
+	close;
+}
+
+
+7@thts,129,56,1	script	Key#Thts_03	802,{
+	if (getpartyleader(getcharid(1),2)!=getcharid(0)) end;
+	if ('Thts_item_on_03==1) {end;}
+
+	mes "This ancient device requires a special key";
+	mes "Insert the Final Key to activate it";
+	mes "Will you proceed?";
+	menu "Insert Final Key",-;
+
+	//if (countitem(7438)<0) {
+	//mes "You don't have the required key";
+	//close; }
+	mes "The Final Key fits perfectly";
+	mes "The device begins to glow with energy";
+	misceffect 100;
+	//delitem 7438,1;
+	set 'Thts_item_on_03,1;
+	areamonster 'map_name$[6],129,56,129,56,"--ja--",20799,1,instance_npcname("Thanatos Controller")+"::OnCcdd11";
+	close;
+}
+
+7@thts,134,52,1	script	Key#Thts_04	802,{
+	if (getpartyleader(getcharid(1),2)!=getcharid(0)) end;
+	if ('Thts_item_on_04==1) {end;}
+
+	mes "This ancient device requires a special key";
+	mes "Insert the Stone Key to activate it";
+	mes "Will you proceed?";
+	menu "Insert Stone Key",-;
+
+	//if (countitem(7439)<0) {
+	//mes "You don't have the required key";
+	//close; }
+	mes "The Stone Key fits perfectly";
+	mes "The device begins to glow with energy";
+	misceffect 100;
+	//delitem 7439,1;
+	set 'Thts_item_on_04,1;
+	areamonster 'map_name$[6],134,52,134,52,"--ja--",20799,1,instance_npcname("Thanatos Controller")+"::OnCcdd11";
+	close;
+}
+
+
+7@thts,132,47,1	script	Key#Thts_05	802,{end;}
+
+
+8@thts,135,139,6	script	FinalEvent#Thts_01	-1,5,5,{ end;
+OnTouch:
+	if (getpartyleader(getcharid(1),2)!=getcharid(0)) end;
+	if ('Thts_02==1) {end;}
+	set 'Thts_02,1;
+	donpcevent instance_npcname("Guardian Final#Thts_01")+"::OnEffect1";
+	instance_announce 0, "The Final Guardian is awakening....",bc_map,"0x00cc66";
+	sleep 500;
+	donpcevent instance_npcname("Guardian Final#Thts_01")+"::OnEffect1";
+	sleep 500;
+	donpcevent instance_npcname("Guardian Final#Thts_01")+"::OnEffect1";
+	instance_announce 0, "The Final Guardian has fully awakened!",bc_map,"0x00cc66";
+	sleep 500;
+	donpcevent instance_npcname("Guardian Final#Thts_01")+"::OnEffect1";
+	sleep 500;
+	donpcevent instance_npcname("Guardian Final#Thts_01")+"::OnEffect1";
+	sleep 5000;
+	instance_announce 0, "The Final Guardian is attacking....",bc_map,"0x00cc66";
+	donpcevent instance_npcname("Boss#Thts_01")+"::OnStart";
+	donpcevent instance_npcname("Boss#Thts_02")+"::OnStart";
+	areamonster 'map_name$[7],135,139,135,139,"--ja--",rand(20784,20785),1,instance_npcname("Thanatos Controller")+"::OnEnd";
+	disablenpc instance_npcname("Guardian Final#Thts_01");
+	end;
+}
+
+
+8@thts,135,139,6	script	Guardian Final#Thts_01	10045,{ end;
+OnEffect1:
+	specialeffect 897;	//Glowing effect
+	end;
+OnEffect2:
+	specialeffect 897;	//Glowing effect
+	end;
+OnEffect3:
+	specialeffect 897;	//Glowing effect
+	end;
+OnEffect4:
+	specialeffect 897;	//Glowing effect
+	end;
+OnEffect5:
+	specialeffect 897;	//Glowing effect
+	end;
+}
+
+
+//------------------------------ Boss NPCs
+8@thts,135,139,1	script	Boss#Thts_01	-1,{
+OnStart:
+	initnpctimer;
+	end;
+OnTimer50000:
+	areamonster 'map_name$[7],150,247,165,232,"--ja--",20792,1,instance_npcname("Boss#Thts_01")+"::OnDead";
+	areamonster 'map_name$[7],150,247,165,232,"--ja--",20792,1,instance_npcname("Boss#Thts_01")+"::OnDead";
+	stopnpctimer;
+	end;
+OnDead:
+	initnpctimer;
+	end;
+OnStop:
+	stopnpctimer;
+	end;
+}
+
+
+8@thts,135,139,1	script	Boss#Thts_02	-1,{
+OnStart:
+	initnpctimer;
+	end;
+OnTimer50000:
+	areamonster 'map_name$[7],150,247,165,232,"--ja--",rand(20793,20795),2,instance_npcname("Boss#Thts_02")+"::OnDead";
+	areamonster 'map_name$[7],150,247,165,232,"--ja--",rand(20793,20795),2,instance_npcname("Boss#Thts_02")+"::OnDead";
+	stopnpctimer;
+	end;
+OnDead:
+	initnpctimer;
+	end;
+OnStop:
+	stopnpctimer;
+	end;
+}
+
+
+//------------------------------ Warps
+1@thts,173,372,0	warp	Warp#Thts_01	2,2,2@thts,30,166
+2@thts,112,166,0	warp	Warp#Thts_02	2,2,1@thts,72,287
+1@thts,173,288,0	warp	Warp#Thts_03	2,2,6@thts,50,16
+6@thts,90,36,0	warp	Warp#Thts_04	2,2,1@thts,32,223
+1@thts,31,165,0	warp	Warp#Thts_05	2,2,5@thts,155,100
+5@thts,168,138,0	warp	Warp#Thts_06	2,2,1@thts,16,73
+1@thts,15,15,0	warp	Warp#Thts_07	2,2,4@thts,20,94
+4@thts,92,145,0	warp	Warp#Thts_08	2,2,1@thts,182,223
+1@thts,181,165,0	warp	Warp#Thts_09	2,2,3@thts,29,44
+3@thts,113,43,0	warp	Warp#Thts_10	2,2,1@thts,183,73
+1@thts,181,15,0	warp	Warp#Thts_11	2,2,7@thts,120,16
+7@thts,129,51,0	warp	Warp#Thts_12	2,2,8@thts,136,115
+//------------------------------ Secret Warps
+1@thts,68,287,0	warp	Warp#Thts_s02	2,2,2@thts,108,166
+6@thts,53,15,0	warp	Warp#Thts_s03	2,2,1@thts,169,288
+1@thts,28,223,0	warp	Warp#Thts_s04	2,2,6@thts,85,36
+5@thts,157,97,0	warp	Warp#Thts_s05	2,2,1@thts,36,165
+1@thts,12,73,0	warp	Warp#Thts_s06	2,2,5@thts,164,138
+4@thts,16,94,0	warp	Warp#Thts_s07	2,2,1@thts,19,15
+1@thts,178,223,0	warp	Warp#Thts_s08	2,2,4@thts,87,142
+3@thts,25,44,0	warp	Warp#Thts_s09	2,2,1@thts,186,165
+1@thts,178,73,0	warp	Warp#Thts_s10	2,2,3@thts,108,43
+7@thts,124,16,0	warp	Warp#Thts_s11	2,2,1@thts,186,15
+
+
+//------------------------------ Reward NPC
+8@thts,140,131,4	script	Reward#Thts_01	667,{
+	setarray .reward_items[0], 400023, 436000, 436001, 436002, 480136, 490099;
+	mes "[Reward]";
+	mes "Congratulations on clearing the Thanatos Tower!";
+	mes "Please select your reward:";
+	mes "^FF0000NOTE: YOU will have a chance to obtain headgear and accessory as reward^000000";
+	next;
+	switch(select("Cancel","Reward Option 1 (Fragment of Sin)","Reward Option 2 (Fragment of Godwill)")) {
+
+	case 1:
+	close;
+	case 2:
+	if (rand(100) < 1) { // 1% chance
+		.@i = rand(getarraysize(.reward_items)); // Pick random index
+		.@item_id = .reward_items[.@i];
+		getitem .@item_id, 1;
+		mes "Congratulations!";
+		mes "You received: ^00ff99" + getitemname(.@item_id) + "^000000!";
+	} else {
+		mes "Sorry you are not lucky enough this time.";
+	}
+	close2;
+	getitem 1000257,10;	//Experience Orb x10
+	getitem 102572,1;
+	warp "prontera",155,181;
+	end;
+	case 3:
+	if (rand(100) < 1) { // 1% chance
+		.@i = rand(getarraysize(.reward_items)); // Pick random index
+		.@item_id = .reward_items[.@i];
+		getitem .@item_id, 1;
+		mes "Congratulations!";
+		mes "You received: ^00ff99" + getitemname(.@item_id) + "^000000!";
+	} else {
+		mes "Sorry you are not lucky enough this time.";
+	}
+	close2;
+	getitem 1000263,10;	//Treasure Box x10
+	getitem 102572,1;
+	set .@ipoint,rand(20,40);
+	callfunc("F_EarnInstancePoints",.@ipoint);
+	warp "prontera",155,181;
+	end;
+	}
+}
+
+
+//------------------------------ Map Flags
+1@thts	mapflag	partylock
+1@thts	mapflag	noteleport
+1@thts	mapflag	nosave	SavePoint
+1@thts	mapflag	nomemo
+1@thts	mapflag	nobranch
+1@thts	mapflag	noicewall
+1@thts	mapflag	restricted	6
+
+2@thts	mapflag	partylock
+2@thts	mapflag	noteleport
+2@thts	mapflag	nosave	SavePoint
+2@thts	mapflag	nomemo
+2@thts	mapflag	nobranch
+2@thts	mapflag	noicewall
+2@thts	mapflag	restricted	6
+
+3@thts	mapflag	partylock
+3@thts	mapflag	noteleport
+3@thts	mapflag	nosave	SavePoint
+3@thts	mapflag	nomemo
+3@thts	mapflag	nobranch
+3@thts	mapflag	noicewall
+3@thts	mapflag	restricted	6
+
+4@thts	mapflag	partylock
+4@thts	mapflag	noteleport
+4@thts	mapflag	nosave	SavePoint
+4@thts	mapflag	nomemo
+4@thts	mapflag	nobranch
+4@thts	mapflag	noicewall
+4@thts	mapflag	restricted	6
+
+5@thts	mapflag	partylock
+5@thts	mapflag	noteleport
+5@thts	mapflag	nosave	SavePoint
+5@thts	mapflag	nomemo
+5@thts	mapflag	nobranch
+5@thts	mapflag	noicewall
+5@thts	mapflag	restricted	6
+
+6@thts	mapflag	partylock
+6@thts	mapflag	noteleport
+6@thts	mapflag	nosave	SavePoint
+6@thts	mapflag	nomemo
+6@thts	mapflag	nobranch
+6@thts	mapflag	noicewall
+6@thts	mapflag	restricted	6
+
+7@thts	mapflag	partylock
+7@thts	mapflag	noteleport
+7@thts	mapflag	nosave	SavePoint
+7@thts	mapflag	nomemo
+7@thts	mapflag	nobranch
+7@thts	mapflag	noicewall
+7@thts	mapflag	restricted	6
+
+8@thts	mapflag	partylock
+8@thts	mapflag	noteleport
+8@thts	mapflag	nosave	SavePoint
+8@thts	mapflag	nomemo
+8@thts	mapflag	nobranch
+8@thts	mapflag	noicewall
+8@thts	mapflag	restricted	6

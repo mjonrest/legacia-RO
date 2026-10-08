@@ -1,0 +1,62 @@
+Header:
+  Type: BARTER_DB
+  Version: 2
+
+Body:
+  - Name: Rusbald
+    Items:
+      - Index: 0
+        Item: MD_Airboat_Tokken
+        RequiredItems:
+          - Index: 0
+            Item: MD_Airboat_Ore
+            Amount: 10
+      - Index: 1
+        Item: MD_Airboat_Random
+        Zeny: 150000
+        RequiredItems:
+          - Index: 0
+            Item: MD_Airboat_Tokken
+            Amount: 17
+      - Index: 2
+        Item: MD_Airboat_Boots
+        RequiredItems:
+          - Index: 0
+            Item: MD_Airboat_Tokken
+            Amount: 185
+      - Index: 3
+        Item: MD_Airboat_Boots2
+        RequiredItems:
+          - Index: 0
+            Item: MD_Airboat_Tokken
+            Amount: 185
+      - Index: 4
+        Item: MD_Airboat_Boots3
+        RequiredItems:
+          - Index: 0
+            Item: MD_Airboat_Tokken
+            Amount: 185
+      - Index: 5
+        Item: MD_Airboat_Boots4
+        RequiredItems:
+          - Index: 0
+            Item: MD_Airboat_Tokken
+            Amount: 185
+      - Index: 6
+        Item: MD_Airboat_Boots5
+        RequiredItems:
+          - Index: 0
+            Item: MD_Airboat_Tokken
+            Amount: 185
+      - Index: 7
+        Item: MD_Airboat_Boots6
+        RequiredItems:
+          - Index: 0
+            Item: MD_Airboat_Tokken
+            Amount: 185
+      - Index: 8
+        Item: MD_Airboat_Reward
+        RequiredItems:
+          - Index: 0
+            Item: MD_Airboat_Tokken
+            Amount: 2500

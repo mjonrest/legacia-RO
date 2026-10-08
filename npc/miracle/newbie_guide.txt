@@ -1,0 +1,175 @@
+prontera,150,185,5	script	Newbie Guide	857,{
+	set .@npcname$,"^0080FF[ Newbie Guide ]^000000";
+
+	mes .@npcname$;
+	mes "Hello, ^00FF00"+strcharinfo(0)+"^000000!";
+	mes "Welcome to ^FF8000Miracle MMO^000000!";
+	mes "I'm here to guide you on your journey.";
+	next;
+
+	switch(select(">> What should I do first?:>> Important Information:>> Recommended Gear")){
+		case 1:
+			mes .@npcname$;
+			mes "^0080FF-- First Steps --^000000";
+			mes ">> Claim your ^00FF00Newbie Reward^000000 from:";
+			mes "   <NAVI>[Crazy Frog]<INFO>prontera,139,174,0,000,0</INFO></NAVI>";
+			next;
+			mes .@npcname$;
+			mes ">> Skip story episodes via:";
+			mes "   <NAVI>[Episode Skip]<INFO>prontera,163,163,0,000,0</INFO></NAVI>";
+			next;
+			mes .@npcname$;
+			mes ">> Earn coins by Hunting Missions:";
+			mes "   <NAVI>[Hunting Mission]<INFO>prontera,142,227,0,000,0</INFO></NAVI>";
+			next;
+			mes .@npcname$;
+			mes ">> Exchange Coins:";
+			mes "   - Bronze/Mithril: <NAVI>[Quest Npc]<INFO>prontera,144,229,0,000,0</INFO></NAVI>";
+			mes "   - Grace Coin: <NAVI>[Grace Merchant]<INFO>prontera,147,163,0,000,0</INFO></NAVI>";
+			next;
+			mes .@npcname$;
+			mes ">> Starter Equipment:";
+			mes "   <NAVI>[Paradise Merchant]<INFO>prontera,147,160,0,000,0</INFO></NAVI>";
+			close;
+
+		case 2:
+			mes .@npcname$;
+			mes "^0080FF-- Important Information --^000000";
+			mes "1. "+mesitemlink(30007)+" from World Boss";
+			mes "2. Instance Points from Instances";
+			mes "3. Daily Gacha: <NAVI>[Gacha Machine]<INFO>prontera,130,220,0,000,0</INFO></NAVI>";
+			mes "4. AFK Rewards: <NAVI>[Hourly Merchant]<INFO>prontera,140,225,0,000,0</INFO></NAVI>";
+			mes "5. Event Rewards: <NAVI>[Event Shop]<INFO>prontera,163,159,0,000,0</INFO></NAVI>";
+			mes "6. Pokemon Catching: <NAVI>[Pokemon]<INFO>prontera,96,232,0,000,0</INFO></NAVI>";
+			close;
+
+		case 3:
+			mes .@npcname$;
+			mes "^0080FF-- Recommended Gear Guides --^000000";
+			mes "Check these guides to build your equipment:";
+			mes ">> <URL>Automatic Equipment<INFO>https://wiki.muhro.eu/Automatic_Equipment_(17.2)</INFO></URL>";
+			mes ">> <URL>Edda & Ancient Weapon<INFO>https://wiki.muhro.eu/Edda_Weapons</INFO></URL>";
+			mes ">> <URL>Old Headgear<INFO>https://irowiki.org/wiki/Nightmare_Biolabs_Headgear_Quests</INFO></URL>";
+			mes ">> <URL>Temporal Circlet<INFO>https://wiki.muhro.eu/Temporal_Circlet</INFO></URL>";
+			mes ">> <URL>Faith Helm<INFO>https://wiki.muhro.eu/Helms_of_Faith</INFO></URL>";
+			mes ">> <URL>Thanatos Tower<INFO>https://wiki.muhro.eu/Thanatos_Tower_Revamp</INFO></URL>";
+			mes ">> <URL>Constellation Tower<INFO>https://wiki.muhro.eu/Constellation_Tower</INFO></URL>";
+			mes ">> <URL>Tomb of Remorse<INFO>https://wiki.muhro.eu/Tomb_of_Remorse</INFO></URL>";
+			next;
+			mes .@npcname$;
+			mes "Farm vermeal and magical soap thru npc Hunting Mission, <NAVI>[Hunting Mission]<INFO>prontera,142,227,0,000,0</INFO></NAVI>";
+			switch(select(">> Warp to Automatic Equipment Room?")){
+				case 1:
+					warp "ba_in01",79,379;
+					end;
+			}
+			end;
+	}
+	OnInit:
+		questinfo QTYPE_CLICKME,QMARK_NONE;
+		end;	
+}
+
+-	script	newbie_message	-1,{
+
+OnPCLoginEvent:
+	if (!Newbie) {
+		.@npcname$ = "[Newbie Guide]";
+		mes .@npcname$;
+		mes "Hello, ^00FF00"+strcharinfo(0)+"^000000!";
+		mes "Welcome to ^FF8000Miracle MMO^000000!";
+		mes "I'm here to guide you on your journey.";
+		next;
+
+		switch(prompt(">> What should I do first?:>> Important Information:>> Recommended Gear")) {
+
+		case 1:
+			mes .@npcname$;
+			mes "^0080FF-- First Steps --^000000";
+			mes ">> Claim your ^00FF00Newbie Reward^000000 from:";
+			mes "   <NAVI>[Crazy Frog]<INFO>prontera,139,174,0,000,0</INFO></NAVI>";
+			next;
+			mes .@npcname$;
+			mes ">> Skip story episodes via:";
+			mes "   <NAVI>[Episode Skip]<INFO>prontera,163,163,0,000,0</INFO></NAVI>";
+			next;
+			mes .@npcname$;
+			mes ">> Earn coins by Hunting Missions:";
+			mes "   <NAVI>[Hunting Mission]<INFO>prontera,142,227,0,000,0</INFO></NAVI>";
+			next;
+			mes .@npcname$;
+			mes ">> Exchange Coins:";
+			mes "   - Bronze/Mithril: <NAVI>[Quest Npc]<INFO>prontera,144,229,0,000,0</INFO></NAVI>";
+			mes "   - Grace Coin: <NAVI>[Grace Merchant]<INFO>prontera,147,163,0,000,0</INFO></NAVI>";
+			next;
+			mes .@npcname$;
+			mes ">> Starter Equipment:";
+			mes "   <NAVI>[Paradise Merchant]<INFO>prontera,147,160,0,000,0</INFO></NAVI>";
+			next;
+			goto OnClose;
+
+		case 2:
+			mes .@npcname$;
+			mes "^0080FF-- Important Information --^000000";
+			mes "1. "+mesitemlink(30007)+" from World Boss";
+			mes "2. Instance Points from Instances";
+			mes "3. Daily Gacha: <NAVI>[Gacha Machine]<INFO>prontera,130,220,0,000,0</INFO></NAVI>";
+			mes "4. AFK Rewards: <NAVI>[Hourly Merchant]<INFO>prontera,140,225,0,000,0</INFO></NAVI>";
+			mes "5. Event Rewards: <NAVI>[Event Shop]<INFO>prontera,163,159,0,000,0</INFO></NAVI>";
+			mes "6. Pokemon Catching: <NAVI>[Pokemon]<INFO>prontera,96,232,0,000,0</INFO></NAVI>";
+			next;
+			goto OnClose;
+
+		case 3:
+			mes .@npcname$;
+			mes "^0080FF-- Recommended Gear Guides --^000000";
+			mes "Check these guides to build your equipment:";
+			mes ">> <URL>Automatic Equipment<INFO>https://wiki.muhro.eu/Automatic_Equipment_(17.2)</INFO></URL>";
+			mes ">> <URL>Edda & Ancient Weapon<INFO>https://wiki.muhro.eu/Edda_Weapons</INFO></URL>";
+			mes ">> <URL>Old Headgear<INFO>https://irowiki.org/wiki/Nightmare_Biolabs_Headgear_Quests</INFO></URL>";
+			mes ">> <URL>Temporal Circlet<INFO>https://wiki.muhro.eu/Temporal_Circlet</INFO></URL>";
+			mes ">> <URL>Faith Helm<INFO>https://wiki.muhro.eu/Helms_of_Faith</INFO></URL>";
+			mes ">> <URL>Thanatos Tower<INFO>https://wiki.muhro.eu/Thanatos_Tower_Revamp</INFO></URL>";
+			mes ">> <URL>Constellation Tower<INFO>https://wiki.muhro.eu/Constellation_Tower</INFO></URL>";
+			mes ">> <URL>Tomb of Remorse<INFO>https://wiki.muhro.eu/Tomb_of_Remorse</INFO></URL>";
+			next;
+			mes .@npcname$;
+			mes "Farm vermeal and magical soap thru npc Hunting Mission, <NAVI>[Hunting Mission]<INFO>prontera,142,227,0,000,0</INFO></NAVI>";
+			if (prompt(">> Warp to Automatic Equipment Room?") == 1) {
+				warp "ba_in01",79,379;
+				end;
+			}
+			goto OnClose;
+
+		case 255: // Cancel pressed
+		mes .@npcname$;
+		mes "Do you wish to see this message again?";
+		switch(prompt("Yes:No")) {
+		case 1:
+			mes "Thank you and see you next time!";
+			close;
+		case 2:
+			mes "Alright, I won’t show this message again.";
+			set Newbie,1;
+			close;
+		case 255:
+			end;
+		}
+		}
+
+OnClose:
+		mes .@npcname$;
+		mes "Do you wish to see this message again?";
+		switch(prompt("Yes:No")) {
+		case 1:
+			mes "Thank you and see you next time!";
+			close;
+		case 2:
+			mes "Alright, I won’t show this message again.";
+			set Newbie,1;
+			close;
+		}
+	}
+	end;
+}
+

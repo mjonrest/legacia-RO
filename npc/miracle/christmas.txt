@@ -1,0 +1,148 @@
+function	script	F_ChristmasBox	{
+
+	// =========================
+	// Reward Arrays
+	// =========================
+	setarray .@patent[0],
+	590012,530006,540011,500017,510019,510020,640011,640012,550012,550013,
+	560008,560009,500013,500014,700018,700019,570009,580009,700013,620004,
+	590011,610009,610008,21058,600009,510022,650004,830002,800002,820001,
+	540010,840001,810001,550015,550015,510071,550081;
+
+	setarray .@faith[0],
+	400178,400179,400180,400181,400189,400190,400191,400192,400198,400199,
+	400200,400201,400216,400217,400218,400219,400226,400227,400228,400229,
+	400230,400231,400233,400234,400235,400236,400237,400238,400239,400240,
+	400241,400242,400243,400244;
+
+	setarray .@gray[0],
+	450177,450178,480091,480090,470087,470088,490106,490108,490109,490107;
+
+	setarray .@costume[0],
+	20222,20545,31132,19955,19976,31910,19697,480405,19981,20592,19682,19685,19702;
+
+	// =========================
+	// Random Category (0~3)
+	// =========================
+	.@group = rand(4);
+
+	if (.@group == 0) {
+		.@item = .@patent[rand(getarraysize(.@patent))];
+		.@group_name$ = "Patent Weapon";
+	}
+	else if (.@group == 1) {
+		.@item = .@faith[rand(getarraysize(.@faith))];
+		.@group_name$ = "Faith Helm";
+	}
+	else if (.@group == 2) {
+		.@item = .@gray[rand(getarraysize(.@gray))];
+		.@group_name$ = "Gray Equip";
+	}
+	else {
+		.@item = .@costume[rand(getarraysize(.@costume))];
+		.@group_name$ = "Costumes";
+	}
+
+	// =========================
+	// Give Item (Account Bound)
+	// =========================
+	getitem .@item, 1;
+
+	// =========================
+	// Announcement
+	// =========================
+	announce "[Christmas Event] " + strcharinfo(0) +
+	         " obtained " + itemlink(.@item) +
+	         " from the " + .@group_name$ + " Category!", bc_all;
+
+	end;
+}
+
+/**
+-	script	Real_Antonio_Event	-1,{
+
+OnInit:
+	.event_map$ = "xmas"; // Map where Antonios are
+	.real_mob = 1247;           // Real Antonio
+	.reward_id = 30026;         // Christmas Reward Box
+	.delay = 30 * 60000;        // 30 minutes
+
+	.next_spawn = 0;            // Tracks respawn timestamp
+	.real_alive = false;        // Tracks if real Antonio is alive
+
+	// Start automatically
+	donpcevent strnpcinfo(3)+"::OnSpawnReal";
+	end;
+
+
+OnSpawnReal:
+	monster .event_map$, 0, 0, "Antonio", .real_mob, 1, strnpcinfo(3)+"::OnRealKilled";
+
+	.real_alive = true;
+	.next_spawn = 0; // reset countdown
+
+	announce "[Christmas Event]: The REAL Antonio has appeared somewhere in " + .event_map$ + "!", bc_all, 0x33FFFF;
+	end;
+
+
+OnRealKilled:
+	.real_alive = false;
+	getitem .reward_id, 1;
+	announce "[Christmas Event]: " + strcharinfo(0) + " has slain the REAL Antonio and received a "+itemlink(.reward_id)+"!", bc_all, 0xCC66FF;
+	announce "[Christmas Event]: The REAL Antonio will return in 30 minutes!", bc_all, 0xFFD700;
+
+	// Save respawn time
+	.next_spawn = gettimetick(2) + (.delay / 1000);
+
+	sleep .delay;
+
+	donpcevent strnpcinfo(3)+"::OnSpawnReal";
+	end;
+
+}
+
+xmas,0,0	monster	Antonio	1247,100,5000,0
+
+prontera,145,185,5	script	Antonio Info	718,{
+
+	// Link to event controller
+	.@npc$ = "Real_Antonio_Event";
+	
+	// Read status
+	.@alive = getvariableofnpc(.real_alive, .@npc$);
+	.@next = getvariableofnpc(.next_spawn, .@npc$);
+
+	if (.@alive) {
+		mes "[Real Antonio Status]";
+		mes "The REAL Antonio is currently:";
+		mes " ^00FF00[ ALIVE ]^000000";
+		close;
+	}
+
+	// If dead ? show remaining time
+	.@now = gettimetick(2);
+	.@left = .@next - .@now;
+
+	if (.@left <= 0) {
+		mes "[Real Antonio Status]";
+		mes "The REAL Antonio is currently:";
+		mes " ^FF0000[ DEAD ]^000000";
+		mes "Respawn is happening ^00FF00now^000000.";
+		close;
+	}
+
+	// Convert seconds to minutes & seconds
+	.@m = .@left / 60;
+	.@s = .@left % 60;
+
+	mes "[Real Antonio Status]";
+	mes "The REAL Antonio is currently:";
+	mes " ^FF0000[ DEAD ]^000000";
+	mes " ";
+	mes "Next Respawn In:";
+	mes " ^66CCFF" + .@m + " minute(s) " + .@s + " second(s)^000000";
+
+	close;
+}
+
+**/

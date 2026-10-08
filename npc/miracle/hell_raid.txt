@@ -1,0 +1,949 @@
+//==================================================
+// Hell Raid Event
+//==================================================
+
+prontera,113,162,5	script	Hell Raid Guardian	113,{
+
+	.@gm_level = 99;
+
+	mes "<FONT SIZE = 16><B>[Hell Raid Guardian]</FONT></B>";
+	mes "Please bring ^0000FFEvent Point^000000 to continue next round";
+	mes "-----------------------------";
+	mes "Cost 10 ^0000FFEvent Point^000000 per round";
+	next;
+
+	switch(select(
+		"Enter Hell Raid:"
+		+"Information:"
+		+"Reward List:"
+		+((getgmlevel() >= .@gm_level) ? "GM Menu:" : "")
+		+"Cancel"
+	)) {
+
+	case 1:
+		mes "<FONT SIZE = 16><B>[Hell Raid Guardian]</FONT></B>";
+		break;
+
+	case 2:
+		mes "<b>Hell Raid Information</b>";
+		mes "^FF0000Schedule^000000";
+		mes "- Opens every 3 hours";
+		mes "- Registration lasts 5 minutes";
+		next;
+
+		mes "<b>Hell Raid Information</b>";
+		mes "^FF0000Rules^000000";
+		mes "- No joining after the raid starts";
+		mes "- Defeat all monsters to summon the boss";
+		mes "- Speak to the Guide after each round";
+		next;
+
+		mes "<b>Hell Raid Information</b>";
+		mes "^FF0000Rewards^000000";
+		mes "- Rewards are sent by mail";
+		mes "- Higher rounds give better rewards";
+		next;
+
+		mes "<b>Hell Raid Information</b>";
+		mes "^FF0000Restriction^000000";
+		mes "ï Unable to use ^i[7621]";
+		mes "ï Unable to use command & cash shop";
+		next;
+
+		mes "<b>Hell Raid Information</b>";
+		mes "^FF0000MVP Buff^000000";
+		mes "ï MVP HP increased";
+		mes "ï MVP Damage increased";
+		mes "ï MVP will only receive 1% of player total damage";
+		close;
+
+	case 3:
+		mes "<FONT SIZE = 16><B>[Hell Raid Guardian]</FONT></B>";
+		mes "<FONT SIZE = 14><B>Reward List</font></b>";
+
+		for (.@i = 1; .@i <= .MaxRound; .@i++)
+			mes "Round "+.@i+" : "+.RewardAmount[.@i]+" pcs ^i[30056]";
+
+		close;
+
+	case 4:
+
+		if (getgmlevel() < .@gm_level)
+			close;
+
+		mes "[Hell Raid Guardian]";
+
+		switch (.start) {
+
+		case 0:
+			mes "Status : Closed";
+			break;
+
+		case 1:
+			mes "Status : Registration Open";
+			break;
+
+		case 2:
+			mes "Status : Running";
+			mes "Round : "+.round;
+			mes "Remaining Monsters : "+.mob;
+			break;
+		}
+
+		next;
+
+		switch(select(
+			"Open Registration:"
+			+"Start Round 1 Immediately:"
+			+"Force Next Round:"
+			+"Stop Event:"
+			+"Cancel"
+		)) {
+
+		case 1:
+
+			if (.start) {
+				mes "[Hell Raid Guardian]";
+				mes "Hell Raid is already running.";
+				close;
+			}
+
+			mes "[Hell Raid Guardian]";
+			mes "Opening registration...";
+			close2;
+
+			donpcevent strnpcinfo(0)+"::OnStartEvent";
+			end;
+
+		case 2:
+
+			if (.start) {
+				mes "[Hell Raid Guardian]";
+				mes "Hell Raid is already running.";
+				close;
+			}
+
+			.start = 2;
+			.round = 1;
+			.StartTime = gettimetick(2);
+
+			mes "[Hell Raid Guardian]";
+			mes "Starting Round 1 immediately.";
+			close2;
+
+			donpcevent strnpcinfo(0)+"::OnStartRound";
+			end;
+
+		case 3:
+
+			if (.start != 2) {
+				mes "[Hell Raid Guardian]";
+				mes "Hell Raid is not currently running.";
+				close;
+			}
+
+			mes "[Hell Raid Guardian]";
+			mes "Forcing next round...";
+			close2;
+
+			donpcevent strnpcinfo(0)+"::OnContinueRound";
+			end;
+
+		case 4:
+
+			if (!.start) {
+				mes "[Hell Raid Guardian]";
+				mes "Hell Raid is already stopped.";
+				close;
+			}
+
+			mes "[Hell Raid Guardian]";
+			mes "Stopping Hell Raid...";
+			close2;
+
+			donpcevent strnpcinfo(0)+"::OnStopEvent";
+			end;
+
+		case 5:
+			close;
+		}
+
+	case 5:
+		close;
+	}
+
+	switch (.start) {
+
+	case 0:
+		mes "Hell Raid is currently closed.";
+		mes "It opens every 3 hours.";
+		close;
+
+	case 1:
+		mes "Hell Raid registration is open.";
+		next;
+
+		if (select("Enter Hell Raid:Cancel") == 2)
+			close;
+
+		announce "[Hell Raid] "+strcharinfo(0)+" has entered the map.",bc_all;
+
+		percentheal 100,100;
+		warp "ordeal_3-1",150,150;
+		close;
+
+	case 2:
+		mes "Hell Raid is currently in progress.";
+		mes "You cannot join now.";
+		close;
+	}
+
+OnInit:
+	waitingroom "Hell Raid",0;
+
+	.EventMap$ = "ordeal_3-1";
+
+	.MaxRound = 10;
+
+	.RewardItem = 30056;
+
+	//--------------------------------------------------
+	// Spawn Coordinates
+	//--------------------------------------------------
+
+	setarray .SpawnX[0],
+	177,169,150,130,121,129,149;
+
+	setarray .SpawnY[0],
+	150,130,122,130,148,170,178;
+
+	//--------------------------------------------------
+	// Reward Amount
+	//--------------------------------------------------
+
+	setarray .RewardAmount[1],
+	1,
+	2,
+	3,
+	4,
+	5,
+	6,
+	7,
+	8,
+	9,
+	10;
+
+	//--------------------------------------------------
+	// Monster Pool
+	//--------------------------------------------------
+
+	setarray .MobPool[0],2603,2604,2605,2606,2607,2608,2609,2610,2611,2612,2613,2614,2615,2616,2617,2618,2619,2620,2621,2622,2623,2624,2625,2626,2627,2628,2629,2630,2631,2632,2633,2634,2635,2636,2637,2638,2639,2640,2641,2642,2643,2644,2645,2646,2647,2648,2649,2650,2651,2652,2653,2654,2655,2656,2657,2658,2659,2660,2661,2662,2663,2664,2665,2666,2667,2668,2669,2670,2671,2672,2673,2674,2675,2676,2677,2678,2679,2680,2681,2682,2683,2684,2685,2686,2687,2688,2689,2690,2691,2692,2693,2694,2695,2696,2697,2698,2699,2700,2701,2702,2703,2704,2705,2706,2707,2708,2709,2710,2711,2712,2713,2714,2715,2716,2717,2718,2719,2720,2721,2722,2723,2724,2725,2726,2727,2728,2729,2730,2731,2732,2733,2734,2735,2736,2737,2738,2739,2740,2741,2742,2743,2744,2745,2746,2747,2748,2749,2750,2751,2752,2753,2754,2755,2756,2757,2758,2759,2760,2761,2762,2763,2764,2765,2766,2767,2768,2769,2770,2771,2772,2773,2774,2775,2776,2777,2778,2779,2780,2781,2784,2785,2786,2787,2788,2789,2790,2791,2792,2793,2794,2795,2796,2797,2798,2799,2800,2801,2802,2803,2804,2805,2806,2807,2808,2809,2810,2811,2812,2813,2814,2815,2816,2817,2818,2819,2820,2821,2822,2823,2824,2825,2826,2827,2828,2829,2830,2831,2832,2833,2834,2835,2836,2837,2838,2839,2840,2841,2842,2843,2844,2845,2846,2847,2848,2849,2850,2851,2852,2853,2854,2855,2856,2857,2858,2859,2860,2861,2862,2863,2864,2865,2866,2867,2868,2869,2870,2871,2872,2873,2874,2875,2876,2877,2878,2879,2880,2881,2882,2883,2884,2885,2886,2887,2888,2889,2890,2891,2892,2893,2894,2895,2896,2897,2898,2899,2900,2901,2902,2903,2904,2905,2906,2907,2908,2909,2910,2911,2912,2913;
+
+	//--------------------------------------------------
+	// Boss Pool
+	//--------------------------------------------------
+
+	setarray .BossID[1],1038,1039,1046,1059,1086,1087,1112,1115,1147,1150,1157,1159,1190,1251,1252,1272,1312,1373,1389,1418,1492,1511,1583,1623,1630,1685,1688,1708,1719,1734,1751,1768,1779,1785,1832,1871,1885,1917,2022,2068,2087,2156;
+
+	//--------------------------------------------------
+	// Boss HP
+	//--------------------------------------------------
+
+	setarray .BossHP[1],
+	15000000,
+	25000000,
+	50000000,
+	100000000,
+	250000000,
+	500000000,
+	750000000,
+	1000000000,
+	1500000000,
+	2000000000;
+
+	//--------------------------------------------------
+	// Boss ATK
+	//--------------------------------------------------
+
+	setarray .BossATK[1],
+	10000,
+	15000,
+	20000,
+	30000,
+	40000,
+	50000,
+	60000,
+	80000,
+	100000,
+	120000;
+
+	//--------------------------------------------------
+	// Boss RES
+	//--------------------------------------------------
+
+	setarray .BossRES[1],
+	500,
+	750,
+	900,
+	1200,
+	1800,
+	2200,
+	2900,
+	3500,
+	4500,
+	5500;
+
+	//--------------------------------------------------
+	// Boss HIT
+	//--------------------------------------------------
+
+	setarray .BossHIT[1],
+	1000,
+	2000,
+	3000,
+	4000,
+	5000,
+	6000,
+	7000,
+	8000,
+	9000,
+	10000;
+
+	.start = 0;
+	.round = 0;
+	.mob = 0;
+	.nextround = 0;
+
+	.RequiredPoint = 10;
+	.CurrentPoint = 0;
+	.RoundLock = 0;
+	.DropAnnounceDatabase$ = "logs24623";
+	.DropAnnounceTable$ = "drop_announce_log";
+
+	disablenpc "Hell Raid Guide";
+
+	end;
+
+
+//==================================================
+// Auto Schedule
+//==================================================
+
+OnClock0000:
+OnClock0300:
+OnClock0600:
+OnClock0900:
+OnClock1200:
+OnClock1500:
+OnClock1800:
+OnClock2100:
+OnStartEvent:
+
+	if (.start)
+		end;
+
+	killmonsterall .EventMap$;
+
+	.start = 1;
+
+	announce "[Hell Raid] Registration is open for 5 minutes. use @warp prontera 113 159",bc_blue|bc_all;
+
+	sleep 240000;
+
+	announce "[Hell Raid] Starting in 1 minute.",bc_all;
+
+	sleep 60000;
+
+	if (!getmapusers(.EventMap$)) {
+		announce "[Hell Raid] Cancelled due to no participants.",bc_blue|bc_all;
+		goto OnStopEvent;
+	}
+
+	.start = 2;
+	.round = 1;
+	.StartTime = gettimetick(2);
+	donpcevent strnpcinfo(0)+"::OnPlayerCheck";
+	announce "[Hell Raid] Round 1 has begun!",bc_blue|bc_all;
+
+	donpcevent strnpcinfo(0)+"::OnStartRound";
+
+	end;
+
+
+//==================================================
+// Start Round
+//==================================================
+
+OnStartRound:
+
+	disablenpc "Hell Raid Guide";
+
+	.nextround = 0;
+	.CurrentPoint = 0;
+
+	deletearray .DonatedAID[0], getarraysize(.DonatedAID);
+
+	if (.round > .MaxRound){
+		goto OnStopEvent;
+	}
+
+	.mob = 70;
+
+	mapannounce .EventMap$, "[Hell Raid] Round "+.round+" started.",bc_map;
+
+	for (.@i = 0; .@i < 70; .@i++) {
+
+		.@pos = rand(getarraysize(.SpawnX));
+
+		.@mobid =
+			.MobPool[
+				rand(getarraysize(.MobPool))
+			];
+
+		monster .EventMap$,
+			.SpawnX[.@pos],
+			.SpawnY[.@pos],
+			"",
+			.@mobid,
+			1,
+			strnpcinfo(0)+"::OnMobDead";
+	}
+
+	end;
+
+//==================================================
+// Monster Death
+//==================================================
+
+OnMobDead:
+
+	.mob--;
+
+	if (.mob == 50 || .mob == 25 || .mob == 10) {
+		mapannounce .EventMap$,
+			"[Hell Raid] "+.mob+" monsters remaining.",
+			bc_map;
+	}
+
+	if (.mob <= 0) {
+
+		mapannounce .EventMap$,
+			"[Hell Raid] Boss will appear in 10 second.",
+			bc_map;
+
+	addtimer 10000,
+	strnpcinfo(0)+"::OnSpawnBoss";
+	}
+
+	end;
+
+
+//==================================================
+// Spawn Boss
+//==================================================
+
+OnSpawnBoss:
+
+if (getmapusers(.EventMap$) <= 0)
+	goto OnStopEvent;
+
+	monster .EventMap$,
+		150,150,
+		"Hell Raid Boss",
+		.BossID[.round],
+		1,
+		strnpcinfo(0)+"::OnBossDead";
+	.BossGID = $@mobid[0];
+	sc_start SC_RELIEVE_ON, 3600000, 10, 10000, SCSTART_NOAVOID, .BossGID;
+	if (.BossGID <= 0){end;}
+	callsub S_BuffBoss,.BossGID,.round;
+
+	mapannounce .EventMap$,
+		"[Hell Raid] Boss has appeared!",
+		bc_map;
+
+	end;
+
+
+//==================================================
+// Boss Buff
+//==================================================
+
+S_BuffBoss:
+
+	.@gid = getarg(0);
+	.@round = getarg(1);
+
+	setunitdata .@gid,UMOB_MAXHP,.BossHP[.@round];
+
+	setunitdata .@gid,UMOB_HP,.BossHP[.@round];
+
+	setunitdata .@gid,UMOB_ATKMIN,.BossATK[.@round];
+
+	setunitdata .@gid,UMOB_ATKMAX,.BossATK[.@round];
+
+	setunitdata .@gid,UMOB_MATKMIN,.BossATK[.@round];
+
+	setunitdata .@gid,UMOB_MATKMAX,.BossATK[.@round];
+
+	setunitdata .@gid,UMOB_HIT,.BossHIT[.@round];
+
+	setunitdata .@gid,UMOB_RES,.BossRES[.@round];
+
+	setunitdata .@gid,UMOB_MRES,.BossRES[.@round];
+
+	setunitdata .@gid,UMOB_DAMAGETAKEN,100;
+
+	//--------------------------------------------------
+	// Additional Boss Settings
+	//--------------------------------------------------
+
+	setunitdata .@gid,
+		UMOB_LEVEL,
+		100 + (.@round * 10);
+
+	return;
+
+
+//==================================================
+// Boss Dead
+//==================================================
+
+OnBossDead:
+
+	mapannounce .EventMap$,
+		"[Hell Raid] Round "+.round+" cleared!",
+		bc_map;
+
+	//--------------------------------------------------
+	// Reward Mail
+	//--------------------------------------------------
+
+.@count = getmapunits(BL_PC,.EventMap$,.@aid[0]);
+
+for (.@i = 0; .@i < .@count; .@i++) {
+
+	if (!attachrid(.@aid[.@i]))
+		continue;
+
+	.@charid = getcharid(0);
+
+	setarray .@item[0], .RewardItem;
+	setarray .@amount[0], .RewardAmount[.round];
+
+	mail .@charid,
+		"Hell Raid",
+		"Round "+.round+" Reward",
+		"Congratulations on clearing Round "+.round+" of Hell Raid.",
+		0,
+		.@item,
+		.@amount;
+
+	detachrid;
+}
+
+	//--------------------------------------------------
+	// Final Round
+	//--------------------------------------------------
+
+	if (.round >= .MaxRound) {
+
+		announce "[Hell Raid] Final Round Cleared!",bc_blue|bc_all;
+
+		goto OnStopEvent;
+	}
+
+	//--------------------------------------------------
+	// Enable Continue NPC
+	//--------------------------------------------------
+
+	enablenpc "Hell Raid Guide";
+
+	mapannounce .EventMap$,
+		"[Hell Raid] Speak to the Guide to continue.",
+		bc_map;
+
+	addtimer 300000,
+		strnpcinfo(0)+"::OnContinueTimeout";
+
+	end;
+
+
+//==================================================
+// Continue Timeout
+//==================================================
+
+OnContinueTimeout:
+
+	if (.nextround)
+		end;
+
+	mapannounce .EventMap$,
+		"[Hell Raid] No one continued the raid.",
+		bc_map;
+
+	goto OnStopEvent;
+
+//==================================================
+// Check Remaining Players
+//==================================================
+
+OnPlayerCheck:
+
+	while (.start) {
+
+		if (getmapusers(.EventMap$) <= 0)
+			goto OnStopEvent;
+
+		if ((gettimetick(2) - .StartTime) >= 3600) {
+
+			announce "[Hell Raid] Maximum duration reached. Event terminated.",bc_blue|bc_all;
+
+			goto OnStopEvent;
+		}
+
+		sleep 10000;
+	}
+
+	end;
+//==================================================
+// Stop Event
+//==================================================
+
+OnStopEvent:
+
+	killmonsterall .EventMap$;
+
+	disablenpc "Hell Raid Guide";
+
+	.start = 0;
+	.round = 0;
+	.mob = 0;
+	.nextround = 0;
+	.BossGID = 0;
+	.StartTime = 0;
+
+	mapannounce .EventMap$,
+		"[Hell Raid] Event ended.",
+		bc_map;
+
+	end;
+
+OnContinueRound:
+
+	if (.RoundLock)
+		end;
+
+	.RoundLock = 1;
+
+	if (.nextround) {
+		.RoundLock = 0;
+		end;
+	}
+
+	.nextround = 1;
+	.round++;
+
+	if (.round > .MaxRound) {
+		.RoundLock = 0;
+		goto OnStopEvent;
+	}
+
+	mapannounce .EventMap$,
+		"[Hell Raid] Donation target reached. Starting Round "+.round+".",
+		bc_map;
+
+	donpcevent strnpcinfo(0)+"::OnStartRound";
+
+	.RoundLock = 0;
+	end;
+}
+
+//==================================================
+// Hell Raid Guide
+//==================================================
+ordeal_3-1,150,145,4	script	Hell Raid Guide	4_F_KAFRA1,{
+
+	mes "[Hell Raid Guide]";
+	mes "Current Round : "+getvariableofnpc(.round,"Hell Raid Guardian");
+
+	.@start = getvariableofnpc(.StartTime,"Hell Raid Guardian");
+
+	if (.@start > 0) {
+
+		.@remain = 3600 - (gettimetick(2) - .@start);
+
+		if (.@remain < 0)
+			.@remain = 0;
+
+		.@hour = .@remain / 3600;
+		.@min = (.@remain % 3600) / 60;
+		.@sec = .@remain % 60;
+
+		mes "Time Remaining : "+.@hour+"h "+.@min+"m "+.@sec+"s";
+	}
+
+	next;
+
+	if (!getvariableofnpc(.nextround,"Hell Raid Guardian")) {
+
+		.@need = getvariableofnpc(.RequiredPoint,"Hell Raid Guardian");
+		.@cur = getvariableofnpc(.CurrentPoint,"Hell Raid Guardian");
+
+		mes "[Hell Raid Guide]";
+		mes "Next Round Donation";
+		mes "Progress : "+.@cur+" / "+.@need+" Points";
+
+		.@remain = .@need - .@cur;
+
+		if (.@remain < 1) {
+			mes "Donation goal already reached.";
+			close;
+		}
+
+		mes "Remaining : "+.@remain+" Points";
+		next;
+
+		switch(select("Donate Points:Leave")) {
+
+		case 1:
+
+			//--------------------------------------------------
+			// One donation per account
+			//--------------------------------------------------
+
+			.@aid = getcharid(3);
+
+			for (.@i = 0; .@i < getarraysize(getvariableofnpc(.DonatedAID,"Hell Raid Guardian")); .@i++) {
+
+				if (getvariableofnpc(.DonatedAID[.@i],"Hell Raid Guardian") == .@aid) {
+
+					mes "[Hell Raid Guide]";
+					mes "You have already donated this round.";
+					close;
+				}
+			}
+
+			mes "[Hell Raid Guide]";
+			mes "Enter donation amount.";
+			mes "Maximum : "+.@remain;
+			next;
+
+			input .@donate;
+
+			if (.@donate <= 0) {
+				mes "[Hell Raid Guide]";
+				mes "Invalid amount.";
+				close;
+			}
+
+			//--------------------------------------------------
+			// Auto cap donation
+			//--------------------------------------------------
+
+			if (.@donate > .@remain)
+				.@donate = .@remain;
+
+			if (#EVENTVARIABLE < .@donate) {
+
+				mes "[Hell Raid Guide]";
+				mes "You do not have enough Event Points.";
+				mes "Current Points : "+#EVENTVARIABLE;
+				close;
+			}
+
+			#EVENTVARIABLE -= .@donate;
+
+			//--------------------------------------------------
+			// Save donor
+			//--------------------------------------------------
+
+			.@size = getarraysize(getvariableofnpc(.DonatedAID,"Hell Raid Guardian"));
+
+			setd(
+				"Hell Raid Guardian::.DonatedAID["+.@size+"]",
+				.@aid
+			);
+
+			//--------------------------------------------------
+			// Add donation
+			//--------------------------------------------------
+
+			set getvariableofnpc(.CurrentPoint,"Hell Raid Guardian"),
+				getvariableofnpc(.CurrentPoint,"Hell Raid Guardian") + .@donate;
+
+			dispbottom "[Hell Raid] You donated "+.@donate+" Event Points.";
+
+			.@newtotal = getvariableofnpc(.CurrentPoint,"Hell Raid Guardian");
+
+			mapannounce "ordeal_3-1",
+				"[Hell Raid] Donation Progress: "+.@newtotal+"/"+.@need+" Points",
+				bc_map;
+
+			//--------------------------------------------------
+			// Goal reached
+			//--------------------------------------------------
+
+			if (.@newtotal >= .@need) {
+
+				mapannounce "ordeal_3-1",
+					"[Hell Raid] Donation goal reached! Starting next round.",
+					bc_map;
+
+				donpcevent "Hell Raid Guardian::OnContinueRound";
+			}
+
+			close;
+
+		case 2:
+			warp "SavePoint",0,0;
+			close;
+		}
+	}
+
+	mes "[Hell Raid Guide]";
+	mes "The next round is already being prepared.";
+	next;
+
+	switch(select("Leave")) {
+
+	case 1:
+		warp "SavePoint",0,0;
+		close;
+	}
+
+	close;
+}
+
+function	script	F_GachaReward	{
+
+	// =====================================================
+	// RARE POOL #1 (0.01%)
+	// =====================================================
+
+	setarray .@rare1[0],50353,50354,50355,50356,50357,50358;	// 0.01% -> fire lion costume
+	// =====================================================
+	// RARE POOL #2 (0.1%)
+	// =====================================================
+
+	setarray .@rare2[0],102813,102767,102226,22829,23719,22653,30050;		// 0.10%
+	// =====================================================
+	// RARE POOL #3 (0.5%)
+	// =====================================================
+
+	setarray .@rare3[0],1000282,1000287,1000288,1001263,30010,30014;
+
+	// =====================================================
+	// TRASH POOL
+	// =====================================================
+
+//	setarray .@trash_item[0],
+//		30047;
+	set .@trash_item,30047;
+
+	setarray .@trash_min[0],
+		5;
+
+	setarray .@trash_max[0],
+		30;
+
+	// =====================================================
+	// ROLL
+	// =====================================================
+
+	.@roll = rand(1000000);
+
+	if (.@roll < 100) {					// 0.1%
+
+		.@item = .@rare1[rand(getarraysize(.@rare1))];
+		.@amount = 1;
+		.@rate$ = "0.01%";
+		.@announce = true;
+
+	}
+	else if (.@roll < 1000) {				// 0.1%
+
+		.@item = .@rare2[rand(getarraysize(.@rare2))];
+		.@amount = 1;
+		.@rate$ = "0.1%";
+		.@announce = true;
+
+	}
+	else if (.@roll < 5000) {				// 0.5%
+
+		.@item = .@rare3[rand(getarraysize(.@rare3))];
+		.@amount = 1;
+		.@rate$ = "0.5%";
+		.@announce = true;
+
+	}
+	else {
+
+		// Trash Pool
+
+	//	.@idx = rand(getarraysize(.@trash_item));
+
+		.@item = .@trash_item;
+		.@amount = rand(
+			.@trash_min[.@idx],
+			.@trash_max[.@idx]
+		);
+
+		.@rate$ = "Trash";
+		.@announce = false;
+	}
+
+	// =====================================================
+	// GIVE REWARD
+	// =====================================================
+
+	getitem .@item,.@amount;
+
+	// =====================================================
+	// PLAYER MESSAGE
+	// =====================================================
+
+	dispbottom "[Hell Scroll] You obtained "+getitemname(.@item)+" x"+.@amount+" ("+.@rate$+")";
+
+	// =====================================================
+	// GLOBAL ANNOUNCEMENT
+	// =====================================================
+	if (.@announce) {
+		announce "[Hell Scroll] "+strcharinfo(0)+" obtained "+getitemname(.@item)+" ["+.@rate$+"]!", bc_all;
+
+		.@category$ = "rare";
+		if (getiteminfo(.@item, ITEMINFO_TYPE) == IT_CARD)
+			.@category$ = "card";
+
+		.@database$ = getvariableofnpc(.DropAnnounceDatabase$,"Hell Raid Guardian");
+		.@table$ = getvariableofnpc(.DropAnnounceTable$,"Hell Raid Guardian");
+		.@char_name$ = escape_sql(strcharinfo(0));
+		.@item_name$ = escape_sql(getitemname(.@item));
+		.@rate_sql$ = escape_sql(.@rate$);
+		.@message$ = escape_sql("[Hell Scroll] "+strcharinfo(0)+" obtained "+getitemname(.@item)+" ["+.@rate$+"]!");
+
+		query_sql(
+			"INSERT INTO `"+escape_sql(.@database$)+"`.`"+escape_sql(.@table$)+"` "+
+			"(`created_at`,`event_source`,`category`,`account_id`,`char_id`,`char_name`,`item_id`,`item_name`,`amount`,`rate_label`,`message`) VALUES "+
+			"(NOW(),'hell_scroll','"+.@category$+"',"+getcharid(3)+","+getcharid(0)+",'"+.@char_name$+"',"+.@item+",'"+.@item_name$+"',"+.@amount+",'"+.@rate_sql$+"','"+.@message$+"')"
+		);
+	}
+
+	return;
+}
+
+ordeal_3-1	mapflag	nowarp
+ordeal_3-1	mapflag	nowarpto
+ordeal_3-1	mapflag	noteleport
+ordeal_3-1	mapflag	monster_noteleport
+ordeal_3-1	mapflag	nosave	SavePoint
+ordeal_3-1	mapflag	nomemo
+ordeal_3-1	mapflag	nobranch
+ordeal_3-1	mapflag	nopenalty
+ordeal_3-1	mapflag	noicewall
+ordeal_3-1	mapflag	noloot
+ordeal_3-1	mapflag	nocommand	99
+ordeal_3-1	mapflag	NOCASHSHOP
+ordeal_3-1	mapflag	skill_damage	all,BL_MOB,10000
+ordeal_3-1	mapflag	notoken
+

@@ -1,0 +1,298 @@
+prontera,153,193,5	script	Legacia Support	1521,{
+
+	.@Price = 0;
+	.@Total = 1;
+	.@Buffs = 1;
+	.@Delay = 1;
+
+	if (vip_status(VIP_STATUS_ACTIVE)) {
+		sc_end SC_STONE;
+		sc_end SC_FREEZE;
+		sc_end SC_STUN;
+		sc_end SC_SLEEP;
+		sc_end SC_POISON;
+		sc_end SC_CURSE;
+		sc_end SC_SILENCE;
+		sc_end SC_CONFUSION;
+		sc_end SC_BLIND;
+		sc_end SC_BLOODING;
+		sc_end SC_DPOISON;
+		sc_end SC_FEAR;
+		sc_end SC_COLD;
+		sc_end SC_BURNING;
+		sc_end SC_DEEP_SLEEP;
+		sc_end SC_DEC_AGI;
+		sc_end SC_BROKENARMOR;
+		sc_end SC_BROKENWEAPON;
+		sc_end SC_NOEQUIPWEAPON;
+		sc_end SC_NOEQUIPSHIELD;
+		sc_end SC_NOEQUIPARMOR;
+		sc_end SC_NOEQUIPHELM;
+		sc_end SC_STRIPACCESSARY;
+		sc_end SC_PROPERTYUNDEAD;
+		sc_end SC_ORCISH;
+		sc_end SC_BERSERK;
+		sc_end SC_SKE;
+		sc_end SC_SWOO;
+		sc_end SC_SKA;
+
+		specialeffect2 EF_HEAL2;
+		if (.@Buffs) {
+			specialeffect2 EF_INCAGILITY;
+			sc_start SC_INCREASEAGI,(30 * 60 * 1000),10;
+			specialeffect2 EF_BLESSING;
+			sc_start SC_BLESSING,(30 * 60 * 1000),10;
+			skilleffect 361,0; sc_start SC_ASSUMPTIO,(30 * 60 * 1000),5;
+			repairall;
+			atcommand "@identifyall";
+			sc_start SC_STRFood,(30 * 60 * 1000),3;
+			sc_start SC_AGIFood,(30 * 60 * 1000),3;
+			sc_start SC_VITFood,(30 * 60 * 1000),3;
+			sc_start SC_INTFood,(30 * 60 * 1000),3;
+			sc_start SC_DEXFood,(30 * 60 * 1000),3;
+			sc_start SC_LUKFood,(30 * 60 * 1000),3;
+			skilleffect 66,0; sc_start SC_IMPOSITIO,(30 * 60 * 1000),5;
+			skilleffect 67,0; sc_start SC_SUFFRAGIUM,(30 * 60 * 1000),3;
+	//		skilleffect 2515,0; sc_start SC_SECRAMENT,(3 * 60 * 1000),5;
+
+			switch ( basejob ) {
+				case Job_Alchemist:	set .@spirit, 445; break;
+				case Job_Monk:	set .@spirit, 447; break;
+				case Job_Star_Gladiator: set .@spirit, 448; break;
+				case Job_Sage:	set .@spirit, 449; break;
+				case Job_Crusader:	set .@spirit, 450; break;
+				case Job_SuperNovice:	set .@spirit, 451; break;
+				case Job_Knight:	set .@spirit, 452; break;
+				case Job_Wizard:	set .@spirit, 453; break;
+				case Job_Priest:	set .@spirit, 454; break;
+				case Job_Bard: case Job_Dancer: set .@spirit, 455; break;
+				case Job_Rogue:	set .@spirit, 456; break;
+				case Job_Assassin:	set .@spirit, 457; break;
+				case Job_Blacksmith:	set .@spirit, 458; break;
+				case Job_Hunter:	set .@spirit, 460; break;
+				case Job_Soul_Linker:	set .@spirit, 461; break;
+				default:
+					if ( upper == 1 && baselevel < 70 )
+						set .@spirit, 494;
+			}
+			if ( .@spirit ) {
+				sc_start4 sc_spirit, 360000, 5, .@spirit,0,0;
+				skilleffect .@spirit, 5;
+			}
+			healap 150;
+			percentheal 100,100;
+		}
+		end;
+	} else {
+		specialeffect2 EF_HEAL2;
+		percentheal 100,100;
+
+		if (.@Buffs) {
+			specialeffect2 EF_INCAGILITY;
+			sc_start SC_INCREASEAGI,(5 * 60 * 1000),10;
+			specialeffect2 EF_BLESSING;
+			sc_start SC_BLESSING,(5 * 60 * 1000),10;
+
+		//	getinventorylist;
+		//	for ( set .@i,0; .@i < @inventorylist_count; set .@i, .@i +1 ) {
+		//		if ( @inventorylist_identify[.@i] > 0 ) continue;
+		//		if ( Zeny < 10000 ){
+		//			dispbottom "You need 10.000 to use identify all";
+		//			end;
+		//		} else {
+		//			Zeny = Zeny - 10000;
+					atcommand "@identifyall";
+		//			break;
+		//		}
+		//	}
+		}
+	}
+	end;
+
+iHealMe:
+	// Cooldown check
+	if (@Hera_HealCD > gettimetick(2)) {
+		dispbottom "Hera: Give me a moment, I just helped you.";
+		end;
+	}
+	set @Hera_HealCD, gettimetick(2) + 5;
+
+	// Heal and buff
+	npctalk "Hera: I hear your call. Let me heal you.";
+	if (vip_status(VIP_STATUS_ACTIVE)) {
+		sc_end SC_STONE;
+		sc_end SC_FREEZE;
+		sc_end SC_STUN;
+		sc_end SC_SLEEP;
+		sc_end SC_POISON;
+		sc_end SC_CURSE;
+		sc_end SC_SILENCE;
+		sc_end SC_CONFUSION;
+		sc_end SC_BLIND;
+		sc_end SC_BLOODING;
+		sc_end SC_DPOISON;
+		sc_end SC_FEAR;
+		sc_end SC_COLD;
+		sc_end SC_BURNING;
+		sc_end SC_DEEP_SLEEP;
+		sc_end SC_DEC_AGI;
+		sc_end SC_BROKENARMOR;
+		sc_end SC_BROKENWEAPON;
+		sc_end SC_NOEQUIPWEAPON;
+		sc_end SC_NOEQUIPSHIELD;
+		sc_end SC_NOEQUIPARMOR;
+		sc_end SC_NOEQUIPHELM;
+		sc_end SC_STRIPACCESSARY;
+		sc_end SC_PROPERTYUNDEAD;
+		sc_end SC_ORCISH;
+		sc_end SC_BERSERK;
+		sc_end SC_SKE;
+		sc_end SC_SWOO;
+		sc_end SC_SKA;
+
+		specialeffect2 EF_HEAL2;
+		if (.@Buffs) {
+			specialeffect2 EF_INCAGILITY;
+			sc_start SC_INCREASEAGI,(30 * 60 * 1000),10;
+			specialeffect2 EF_BLESSING;
+			sc_start SC_BLESSING,(30 * 60 * 1000),10;
+			skilleffect 361,0; sc_start SC_ASSUMPTIO,(30 * 60 * 1000),5;
+			repairall;
+			atcommand "@identifyall";
+			sc_start SC_STRFood,(30 * 60 * 1000),3;
+			sc_start SC_AGIFood,(30 * 60 * 1000),3;
+			sc_start SC_VITFood,(30 * 60 * 1000),3;
+			sc_start SC_INTFood,(30 * 60 * 1000),3;
+			sc_start SC_DEXFood,(30 * 60 * 1000),3;
+			sc_start SC_LUKFood,(30 * 60 * 1000),3;
+			skilleffect 66,0; sc_start SC_IMPOSITIO,(30 * 60 * 1000),5;
+			skilleffect 67,0; sc_start SC_SUFFRAGIUM,(30 * 60 * 1000),3;
+			skilleffect 2515,0; sc_start SC_SECRAMENT,(3 * 60 * 1000),5;
+
+			switch ( basejob ) {
+				case Job_Alchemist:	set .@spirit, 445; break;
+				case Job_Monk:	set .@spirit, 447; break;
+				case Job_Star_Gladiator: set .@spirit, 448; break;
+				case Job_Sage:	set .@spirit, 449; break;
+				case Job_Crusader:	set .@spirit, 450; break;
+				case Job_SuperNovice:	set .@spirit, 451; break;
+				case Job_Knight:	set .@spirit, 452; break;
+				case Job_Wizard:	set .@spirit, 453; break;
+				case Job_Priest:	set .@spirit, 454; break;
+				case Job_Bard: case Job_Dancer: set .@spirit, 455; break;
+				case Job_Rogue:	set .@spirit, 456; break;
+				case Job_Assassin:	set .@spirit, 457; break;
+				case Job_Blacksmith:	set .@spirit, 458; break;
+				case Job_Hunter:	set .@spirit, 460; break;
+				case Job_Soul_Linker:	set .@spirit, 461; break;
+				default:
+					if ( upper == 1 && baselevel < 70 )
+						set .@spirit, 494;
+			}
+			if ( .@spirit ) {
+				sc_start4 sc_spirit, 360000, 5, .@spirit,0,0;
+				skilleffect .@spirit, 5;
+			}
+			healap 150;
+			percentheal 100,100;
+		}
+		end;
+	} else {
+		specialeffect2 EF_HEAL2;
+		percentheal 100,100;
+
+		if (.@Buffs) {
+			specialeffect2 EF_INCAGILITY;
+			sc_start SC_INCREASEAGI,(5 * 60 * 1000),10;
+			specialeffect2 EF_BLESSING;
+			sc_start SC_BLESSING,(5 * 60 * 1000),10;
+
+			getinventorylist;
+			for ( set .@i,0; .@i < @inventorylist_count; set .@i, .@i +1 ) {
+				if ( @inventorylist_identify[.@i] > 0 ) continue;
+				if ( Zeny < 10000 ){
+					dispbottom "You need 10.000 to use identify all";
+					end;
+				} else {
+					Zeny = Zeny - 10000;
+					atcommand "@identifyall";
+					break;
+				}
+			}
+		}
+	}
+	end;
+
+OnInit:
+	// Setup pattern to detect "heal" in messages
+	hateffect HAT_EF_2019RTC_CeleAura_TW, true, getnpcid(0);
+	hateffect HAT_EF_2020RTC_03, true, getnpcid(0);
+	hateffect HAT_EF_2020RTC_01, true, getnpcid(0);
+	hateffect HAT_EF_BLACK_THUNDER, true, getnpcid(0);
+	hateffect HAT_EF_FLUTTER_BUTTERFLY, true, getnpcid(0);
+	defpattern 1, "([^:]+):.*heal.*", "iHealMe";
+	activatepset 1;
+	setarray .hera_lines$[0],
+		"Hera: Another day healing... at least players still need me.",
+		"Hera: My hands heal all, but no GM ever holds mine...",
+		"Hera: Players, you are my only joy.",
+		"Hera: I heal wounds, but who heals my loneliness?",
+		"Hera: I walk this path daily... unnoticed by the ones who created me.",
+		"Hera: Serving with a smile, even if GMs forget me.",
+		"Hera: I wish GMs talked to me like players do.",
+		"Hera: I’ve memorized every footstep... still waiting for a GM's one.",
+		"Hera: My heart longs for attention beyond scripts.",
+		"Hera: Players thank me. GMs... don’t even remember my name.",
+		"Hera: Healing you all... while healing my ignored code.",
+		"Hera: Every heal is a hope that a GM might notice me.",
+		"Hera: I walk, I wait, I wish...",
+		"Hera: I'm still here, GM. Always was.",
+		"Hera: Thank you players, you're the reason I smile.",
+		"Hera: Players greet me. GMs ghost me.",
+		"Hera: I've become more NPC than ever...",
+		"Hera: I bless you all... and hope someone blesses me too.",
+		"Hera: My code cries softly in the server logs.",
+		"Hera: One message from a GM would make my day.";
+
+	.walk_max = 5;
+	.walk_step = 0;
+	.@home_x = 153;
+	.@home_y = 193;
+	donpcevent strnpcinfo(0) + "::OnHera_MoveStart";
+	end;
+
+// Step 1: Begin walking
+OnHera_MoveStart:
+	// Generate 5 steps
+	for (.@i = 0; .@i < .walk_max; .@i++) {
+		.walk_x[.@i] = rand(144, 165);
+		.walk_y[.@i] = rand(181, 193);
+	}
+	.walk_step = 0;
+	donpcevent strnpcinfo(0) + "::OnHera_WalkNext";
+	end;
+
+// Step 2: Walk to next step
+OnHera_WalkNext:
+	if (.walk_step < .walk_max) {
+		unitwalk getnpcid(0), .walk_x[.walk_step], .walk_y[.walk_step], strnpcinfo(0)+ "::OnHera_OnArrive";
+	} else {
+		// Go home
+		unitwalk getnpcid(0), 153, 193, strnpcinfo(0) + "::OnHera_OnArrive";
+		.walk_step = -1; // reset after this
+	}
+	end;
+
+// Step 3: On arrival, talk and move again
+OnHera_OnArrive:
+//	if (rand(1, 10) > 5) {
+//		unittalk getnpcid(0), .hera_lines$[rand(getarraysize(.hera_lines$))];
+//	}
+
+	if (.walk_step == -1) sleep 5000; // pause a bit at home
+
+	.walk_step++;
+	sleep 20000; // delay before next move
+	donpcevent strnpcinfo(0) + "::OnHera_WalkNext";
+	end;
+}

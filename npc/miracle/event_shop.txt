@@ -1,0 +1,27 @@
+moc_para01,32,36,3	script	Aston	757,{
+
+mes "Each Shop from the Menu may purchase using ^FF0000Different Currency^000000.";
+mes "^00FF00____________________________^000000";
+mes "So,Which shop you would like to look at it";
+next;
+// Menu Selection
+switch(select("Event Shop:ETC Shop")){
+case 1:
+mes "Okay...wait awhile";
+mes "^00FF00____________________________^000000";
+mes "Currency : ^0000FF#EVENTVARIABLE";
+mes "^00FF00____________________________^000000";
+callshop "event#1",1; 
+end;
+case 2:
+mes "Okay...wait awhile";
+mes "^00FF00____________________________^000000";
+mes "Currency : ^0000FFZeny";
+mes "^00FF00____________________________^000000";
+callshop "event#2",1; 
+end;
+}
+}
+
+-	pointshop	event#1	-1,#EVENTVARIABLE,7621:100,12103:1,6232:5,6228:5,6994:10,6993:10,6239:50,6238:50,30004:1,30007:50,6417:1,25865:2,25866:5,25864:1,25793:50,13710:200,17176:30
+-	shop	event#2	-1,no,9551:1500000

@@ -1,0 +1,16 @@
+ra_pol01,300,109,5	script	Weapon Master	946,{
+	set .@name$,"[Weapon Master]";
+
+	mes .@name$;
+	mes "What can i help you?";
+	switch(select("Weapon Shop:Weapon Enchant")){
+	case 1:
+		close2;
+		callshop "twisted1",1;
+		end;
+	case 2:
+		close2;
+		item_enchant(64);
+		end;
+	}
+}

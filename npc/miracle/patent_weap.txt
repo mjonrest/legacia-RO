@@ -1,0 +1,103 @@
+moc_para01,12,24,6	script	Ancient Weapon Master	10085,{
+mes "[Ancient Weapon Master]";
+mes "I am the keeper of Ancient Weapon";
+mes "^00FF00____________________________^000000";
+mes "What can i help you?";
+next;
+switch(select(">> Purchase with Ancient Token:>> Recycler Ancient Weapon:>> Listed Recycle-able item")){
+case 1:
+// Menu Selection
+mes "[Ancient Weapon Master]";
+switch(select(">> Ancient Weapon Upgrade")){
+case 1:
+mes "Okay...wait awhile";
+mes "^00FF00____________________________^000000";
+mes "Currency : ^FF0000AncientToken";
+mes "^00FF00____________________________^000000";
+callshop "ancient#1",1;
+end;
+}
+
+case 2:
+	mes "[Ancient Weapon Recycler]";
+	mes "Hello! I can recycle specific items into ^0099FFAncient Tokens^000000.";
+	mes "1 item = 1 token.";
+	mes "Your current ^0099FFAncient Tokens^000000 : "+AncientToken+" pts.";
+	next;
+	mes "[Ancient Weapon Recycler]";
+	mes "^FF0000Warning: This npc will search all over your inventory even if the item is equipped, you have to store important item before try to use this npc.^000000";
+	next;
+	switch(select(">> Proceed Recycling:>> Let me Think Again")){
+	case 1:
+	mes "[Ancient Weapon Recycler]";
+	mes "Processing your inventory...";
+	sleep2 5000;
+
+	// List of item IDs to recycle
+	setarray .@ItemIDs,
+		18164,18170,26118,1847,28744,13485,28130,2048,21038,32018,
+		28630,28039,28631,26154,26155,32302,28255,28256,28257,28258,
+		28763,28764,13345,600004,500003,500004,570002,580002,590002,
+		590003,560002,610003,510006,700003,640004,550007,550080,510070;
+
+	set .@total, 0;
+
+	for (set .@i, 0; .@i < getarraysize(.@ItemIDs); set .@i, .@i + 1) {
+		set .@item_id, .@ItemIDs[.@i];
+		set .@count, countitem(.@item_id);
+		if (.@count > 0) {
+			delitem .@item_id, .@count;
+			set .@total, .@total + .@count;
+		}
+	}
+
+	if (.@total > 0) {
+		mes "You recycled ^FF0000" + .@total + "^000000 item(s)!";
+		mes "You've gained ^00FF00" + .@total + " Ancient Tokens^000000.";
+		AncientToken += .@total;
+	} else {
+		mes "You don't have any recyclable items in your inventory.";
+	}
+	close;
+	case 2:
+		mes "[Ancient Weapon Recycler]";
+		mes "Come back when you are ready..";
+		close;
+	}
+case 3:
+    goto L_ShowList;
+}
+
+L_ShowList:
+    mes "[Ancient Weapon Recycler]";
+    mes "Here are the items that can be recycled into ^0099FFAncient Tokens^000000:";
+    next;
+
+    // SAME list as recycling
+    setarray .@ItemIDs,
+        18164,18170,26118,1847,28744,13485,28130,2048,21038,32018,
+        28630,28039,28631,26154,26155,32302,28255,28256,28257,28258,
+        28763,28764,13345,600004,500003,500004,570002,580002,590002,
+        590003,560002,610003,510006,700003,640004,550007,550080,510070;
+
+    for (set .@i, 0; .@i < getarraysize(.@ItemIDs); set .@i, .@i + 1) {
+        set .@id, .@ItemIDs[.@i];
+
+        // Count in inventory
+        set .@cnt, countitem(.@id);
+
+        // Show item link + count
+        if (.@cnt > 0)
+            mes "- " + mesitemlink(.@id) + "  ^00FF00(You have: " + .@cnt + ")^000000";
+        else
+            mes "- " + mesitemlink(.@id);
+    }
+
+    next;
+    mes "[Ancient Weapon Recycler]";
+    mes "Each item = ^0099FF1 Ancient Token^000000.";
+    mes "Store your important equipment before recycling!";
+    close;
+}
+
+-	pointshop	ancient#1	-1,AncientToken,100412:1,100413:1,100273:20,100274:20,100275:20,100276:20,100277:20,100327:20,100328:20,100329:20,100330:20,100331:20,100360:20,100361:20,100362:20,100363:20,100376:20,100377:20,100378:20,100379:20,100388:20,100390:20,100393:20,100394:20,100395:20,100396:20,100397:20,100398:20,100399:20,100400:20,100401:20,100402:20,100403:20,100404:20,100405:20,100406:20,100407:20,100408:20,101482:20,101483:20

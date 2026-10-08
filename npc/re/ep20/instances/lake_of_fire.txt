@@ -1,0 +1,347 @@
+//===== rAthena script ===========================================|
+//= Garden of Time - Lake of Fire                                =|
+//===== By: ======================================================|
+//= crazyarashi                                                  =|
+//===== Current Version: =========================================|
+//= 1.0 Initial Version                                          =|
+//================================================================|
+
+1@f_lake,1,1,0	script	lake_of_fire	-1,{
+	end;
+	
+OnInstanceInit:
+	set_instance_var("map$", instance_mapname("1@f_lake"));
+//	setmapflag get_instance_var("map$"), MF_NOLOOT, true;
+	set_instance_var("control", 0);
+	set_instance_var("event", 0);
+	set_instance_var("gid", 0);
+	set_instance_var("traps", 0);
+	set_instance_var("boss_id", rand(22177, 22180));
+	switch( get_instance_var("boss_id") ) {
+		case 22177: set_instance_var("boss_name$", "Spring Divine Beast"); set_instance_var("qid", 12613); break;
+		case 22178: set_instance_var("boss_name$", "Summer Divine Beast"); set_instance_var("qid", 12614); break;
+		case 22179: set_instance_var("boss_name$", "Autumn Divine Beast"); set_instance_var("qid", 12615); break;
+		case 22180: set_instance_var("boss_name$", "Winter Divine Beast"); set_instance_var("qid", 12616); break;
+	}
+	instance_event("lake_of_fire", "OnEvent", false);
+end;
+
+OnEvent:
+	.@event = inc_instance_var("event");
+	switch ( .@event ) {
+		case 1:
+			inc_instance_var("control");
+			instance_enable("#boss_control_lof", true);
+			instance_enable("#q_control", true);
+			setnpcdisplay(instance_npcname("#boss_control_lof"), "", get_instance_var("boss_id"));
+			break;
+			
+		case 2:
+			inc_instance_var("control");
+			instance_enable("#q_control", false);
+			sleep 2000;
+			instance_announce instance_id(IM_PARTY), get_instance_var("boss_name$") + ": Mortals, are you here to harm her? To think that a mortal would dare challenge her authority!", BC_MAP, 0x33FFCC;
+			sleep 2000;
+			.@npc$ = instance_npcname("#boss_control_lof");
+			specialeffect EF_BEGINSPELL6, AREA, .@npc$;
+			sleep 2000;
+			specialeffect EF_SCREEN_QUAKE, AREA, .@npc$;
+			setnpcdisplay(.@npc$, "", CLEAR_NPC); //Official return it to CLEAR_NPC first before disabling
+			instance_enable("#boss_control_lof", false);
+			monster get_instance_var("map$"), 16, 192, get_instance_var("boss_name$"), get_instance_var("boss_id"), 1, instance_npcname(strnpcinfo(0)) + "::OnBossKill";
+			set_instance_var("gid", $@mobid[0]);
+			set_instance_var("boss_alive", true);
+			getunitdata $@mobid[0], .@data; 
+			setunitdata $@mobid[0], UMOB_DAMAGETAKEN, 0;
+			instance_event(strnpcinfo(0), "OnSummonBombs", false);
+			for ( .@i = 1; .@i <= 7; ++.@i )
+				instance_enable("#lf_trap_" + .@i, true);
+			break;
+		
+		case 3:
+			inc_instance_var("control");
+			.@gid = get_instance_var("gid");
+			initnpctimer instance_npcname("lf_season_skill");
+			sleep 2000;
+			instance_announce instance_id(IM_PARTY), get_instance_var("boss_name$") + ": You are wishing to end this in bloodshed. Very well, I shall grant your wish!", BC_MAP, 0x33FFCC;
+			unitwarp .@gid, get_instance_var("map$"), 176, 163;
+			setunitdata .@gid, UMOB_DAMAGETAKEN, 100;
+			sleep 2000;
+			setmapflag get_instance_var("map$"), MF_NOLOOT, false;
+			instance_warpall get_instance_var("map$"), 176, 163, instance_id(), IWA_NOTDEAD;
+			sleep 2000;
+			instance_announce instance_id(IM_PARTY), "The endless power that once overflowed from the divine beast's body has disappeared.", BC_MAP, 0x33FFCC;
+			break;
+	}
+end;
+
+OnBossKill:
+	set_instance_var("boss_alive", false);
+	if ( get_instance_var("control") < 3 ) { //Shouldn't happen but not impossible
+		inc_instance_var("control");
+	}
+	instance_warpall get_instance_var("map$"), 176, 163, instance_id(), IWA_NOTDEAD;
+	instance_enable("#lf_end_npc", true);
+end;
+
+	
+OnSummonBombs:
+	sleep 1000;
+	.@map$ = get_instance_var("map$");
+	.@gid = get_instance_var("gid");
+	.@mob_id = get_instance_var("boss_id");
+	.@event$ = instance_npcname(strnpcinfo(0)) + "::OnBombDead";
+	while ( get_instance_var("control") < 3 ) {
+		if ( !unitexists(.@gid) ) end;
+		for ( .@i = 0; .@i < 5; ++.@i ) {
+			sleep 350;
+			if ( !unitexists(.@gid) ) end;
+			getunitdata .@gid, .@data;
+			areamonster .@map$, .@data[UMOB_X] - 8, .@data[UMOB_Y] - 8, .@data[UMOB_X] + 8, .@data[UMOB_Y] + 8, "", 2337, 1, .@event$;
+			setunitdata $@mobid[0], UMOB_MAXHP, 5000;
+			setunitdata $@mobid[0], UMOB_HP, 5000;
+			setunitdata $@mobid[0], UMOB_MODE, MD_NOCAST;
+			setunitdata $@mobid[0], UMOB_DMGIMMUNE, true;
+			unitskilluseid $@mobid[0], "NPC_INVISIBLE", 1, $@mobid[0], -10000;
+			unitskilluseid $@mobid[0], "NPC_SELFDESTRUCTION", 1, $@mobid[0], -10000;
+		}
+		sleep 1000;
+	}
+	killmonster .@map$, .@event$;
+OnBombDead:
+end;
+}
+
+1@f_lake,1,1,0	script	lf_season_skill	-1,{
+OnTimer1000:
+	stopnpctimer;
+	function stop_check;
+	stop_check();
+	instance_event(strnpcinfo(0), "OnSkill", false);
+end;
+
+OnSkill:
+	function stop_check;
+	stop_check();
+	.@gid = get_instance_var("gid");
+	.@map$ = get_instance_var("map$");
+	deletearray 'barrier;
+	.@type = 0;
+	switch ( get_instance_var("boss_id") ) {
+		case 22177:
+		case 22178:
+		case 22179:
+			.@c = 11;
+			getunitdata .@gid, .@data;
+			for ( .@i = 0; .@i < .@c; ++.@i ) {
+				stop_check();
+				monster .@map$, .@data[UMOB_X] + rand(-10, 10), .@data[UMOB_Y] + rand(-10, 10), "", 22184, 1, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+				'barrier[.@i] = $@mobid[0];
+				setunitdata $@mobid[0], UMOB_DMGIMMUNE, true;
+			}
+			break;
+		case 22180:
+			.@type = 1;
+			.@c = 25;
+			switch( rand(1,9) ) {
+				case 1: .@tx = 0; .@ty = 0; break;
+				case 2: .@tx = 5; .@ty = 0; break;
+				case 3: .@tx = 5; .@ty = 5; break;
+				case 4: .@tx = 0; .@ty = 5; break;
+				case 5: .@tx = -5; .@ty = 5; break;
+				case 6: .@tx = -5; .@ty = 0; break;
+				case 7: .@tx = -5; .@ty = -5; break;
+				case 8: .@tx = 0; .@ty = -5; break;
+				case 9: .@tx = 5; .@ty = -5; break;
+			}
+			getunitdata get_instance_var("gid"), .@data;
+			.@center_x = .@data[UMOB_X] + .@tx;
+			.@center_y = .@data[UMOB_Y] + .@ty;
+			for (.@dx = -10; .@dx <= 10; .@dx += 5) {
+				for (.@dy = -10; .@dy <= 10; .@dy += 5) {
+					stop_check();
+					monster .@map$, .@center_x + .@dx, .@center_y + .@dy, "", 22184, 1, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+					setunitdata $@mobid[0], UMOB_DMGIMMUNE, true;
+					if (.@dx == 0 && .@dy == 0) {
+						.@center_gid = $@mobid[0];
+					}
+				}
+			}
+			break;
+	}
+	if ( !.@type ) {
+		sleep 3000;
+		stop_check();
+		for ( .@i = 0; .@i < .@c; ++.@i ) {
+			if ( !unitexists('barrier[.@i]) ) continue;
+			specialeffect2 EF_BOTTOM_BASILICA, AREA, 'barrier[.@i];
+		}
+		sleep 1000;
+		stop_check();
+		for ( .@i = 0; .@i < .@c; ++.@i ) {
+			if ( !unitexists('barrier[.@i]) ) continue;
+			unitskilluseid 'barrier[.@i], "NPC_INVISIBLE", 1, $@mobid[0], -10000;
+			unitskilluseid 'barrier[.@i], "NPC_TARGET_MARKER", 2, 'barrier[.@i], -10000, false, false, true;
+			setunitdata 'barrier[.@i], UMOB_CLASS, 2337;
+		}
+		killmonster .@map$, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+	}
+	setarray .@block, 10, 10, 10, -10, -10, 10, -10, -10;
+	switch ( get_instance_var("boss_id") ) {
+		case 22177:
+			.@sl = 2;
+			.@skill$ = "NPC_AIMED_SHOWER";
+			sleep 5000;
+			break;
+		case 22178:
+			sleep 2000;
+			.@sl = 2;
+			for ( .@i = 0; .@i < 8; .@i += 2 ) {
+				stop_check();
+				getunitdata get_instance_var("gid"), .@data;
+				monster .@map$, .@data[UMOB_X] + .@block[.@i], .@data[UMOB_Y] + .@block[.@i+1], "", 2337, 1, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+				setunitdata $@mobid[0], UMOB_DMGIMMUNE, true;
+				setunitdata $@mobid[0], UMOB_STR, 200;
+				setunitdata $@mobid[0], UMOB_DEX, 300;
+				setunitdata $@mobid[0], UMOB_INT, 200;
+				setunitdata $@mobid[0], UMOB_ATKMIN, 5000;
+				setunitdata $@mobid[0], UMOB_ATKMAX, 10000;
+				unitskilluseid $@mobid[0], "NPC_INVISIBLE", 1, $@mobid[0], -10000;
+				unitskilluseid $@mobid[0], "NPC_BLOCK_SEAL", .@sl, $@mobid[0], -10000, false, false, true;
+			}
+			killmonster .@map$, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+			.@skill$ = "NPC_BLOCK_EXPLOSION";
+			sleep 3000;
+			break;
+		case 22179:
+			.@sl = 2;
+			.@skill$ = "NPC_BLAZING_ERUPTION";
+			sleep 5000;
+			break;
+		case 22180:
+			.@sl = 5;
+			.@skill$ = "NPC_FROST_FIELD";
+			sleep 5000;
+			break;
+	}
+	if ( !.@type ) {
+		for ( .@i = 0; .@i < 8; .@i += 2 ) {
+			stop_check();
+			getunitdata get_instance_var("gid"), .@data;
+			monster .@map$, .@data[UMOB_X] + .@block[.@i], .@data[UMOB_Y] + .@block[.@i+1], "", 22184, 1, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+			setunitdata $@mobid[0], UMOB_DMGIMMUNE, true;
+			if ( unitexists($@mobid[0]) ) {
+				unitskilluseid $@mobid[0], "NPC_INVISIBLE", 1, $@mobid[0], -10000;
+				unitskilluseid $@mobid[0], .@skill$, 2;
+			}
+		}
+	}
+	else {
+		if ( unitexists(.@center_gid) ) {
+			unitskilluseid .@center_gid, "NPC_INVISIBLE", 1, .@center_gid, -10000;
+			unitskilluseid .@center_gid, "NPC_FROST_FIELD", 5;
+		}
+	}
+	killmonster .@map$, instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+	initnpctimer;
+end;
+
+function	stop_check	{
+	.@gid = get_instance_var("gid");
+	if ( !unitexists(.@gid) ) {
+		killmonster get_instance_var("map$"), instance_npcname(strnpcinfo(0)) + "::OnSkillDead";
+		end;
+	}
+	return true;
+}
+
+OnSkillDead:
+end;
+}
+
+1@f_lake,23,192,2	script(DISABLED)	#q_control	HIDDEN_WARP_NPC,2,2,{
+	end;
+	
+OnTouch:
+	if ( isbegin_quest( get_instance_var("qid") ) > 0 ) end;
+	setquest get_instance_var("qid");
+end;
+}
+
+1@f_lake,16,192,5	script(DISABLED)	#boss_control_lof	CLEAR_NPC,{
+	if ( !is_party_leader() ) end;
+	if ( get_instance_var("control") > 1 ) end;
+	mes "^0000ff" + get_instance_var("boss_name$") + " took a glance at you and closed its eyes again briefly. It seems to be not interested in you.^000000";
+	next;
+	if ( select("End conversation", "I wish to recieve the Hall of Life key") == 1 ) {
+		end;
+	}
+	instance_event("lake_of_fire", "OnEvent", false);
+	end;
+}
+
+1@f_lake,24,154,5	script(DISABLED)	#lf_trap_1	MD_MANASTORM,1,1,{
+	end;
+	
+OnTouchNPC:
+	if ( getattachedrid() != get_instance_var("gid") ) end;
+	.@current = inc_instance_var("traps");
+	unitskilluseid get_instance_var("gid"), "NPC_GROGGY_ON", 3, get_instance_var("gid"), -10000;
+	specialeffect EF_GUARD2;
+	instance_enable(strnpcinfo(0), false);
+	instance_announce instance_id(IM_PARTY), get_instance_var("boss_name$") + " has lost its defense due to the influence of the Lake of Fire barriers!", BC_MAP, 0x33FFCC;
+	switch( .@current ) {
+		case 1:
+			setunitdata get_instance_var("gid"), UMOB_DAMAGETAKEN, 5;
+			break;
+		case 2:
+			setunitdata get_instance_var("gid"), UMOB_DAMAGETAKEN, 10;
+			break;
+		case 3:
+			setunitdata get_instance_var("gid"), UMOB_DAMAGETAKEN, 20;
+			break;
+		case 4:
+			setunitdata get_instance_var("gid"), UMOB_DAMAGETAKEN, 30;
+			break;
+		case 5:
+			setunitdata get_instance_var("gid"), UMOB_DAMAGETAKEN, 40;
+			break;
+		case 6:
+			setunitdata get_instance_var("gid"), UMOB_DAMAGETAKEN, 50;
+			break;
+	}
+	if ( .@current == 7 ) {
+		instance_event("lake_of_fire", "OnEvent", false);
+	}
+end;
+}
+
+1@f_lake,95,182,5	duplicate(#lf_trap_1)	#lf_trap_2	MD_MANASTORM,1,1
+1@f_lake,51,93,5	duplicate(#lf_trap_1)	#lf_trap_3	MD_MANASTORM,1,1
+1@f_lake,93,58,5	duplicate(#lf_trap_1)	#lf_trap_4	MD_MANASTORM,1,1
+1@f_lake,129,58,5	duplicate(#lf_trap_1)	#lf_trap_5	MD_MANASTORM,1,1
+1@f_lake,94,35,5	duplicate(#lf_trap_1)	#lf_trap_6	MD_MANASTORM,1,1
+1@f_lake,43,35,5	duplicate(#lf_trap_1)	#lf_trap_7	MD_MANASTORM,1,1
+
+1@f_lake,176,166,6	script(DISABLED)	#lf_end_npc	PORTAL,{
+	if ( checkquest( get_instance_var("qid"), HUNTING ) == 2 ) {
+		switch( get_instance_var("boss_id") ) {
+			case 22177: .@item_id = 1001440; break;
+			case 22178:	.@item_id = 1001441; break;	
+			case 22179:	.@item_id = 1001442; break;
+			case 22180:	.@item_id = 1001443; break;
+		}
+		erasequest get_instance_var("qid");
+		getitem .@item_id, 5;
+		getitem 1001414, 10;
+		getitem 1001415, 1;
+	}
+	mes "^0000cdDo you want to leave the prison?^000000";
+	next;
+	if ( select("Cancel", "Leave") == 1 )
+		end;
+	warp "t_garden", 166, 230;
+	end;
+}
+
+1@f_lake	mapflag	MD_SELFDESTRUCTION

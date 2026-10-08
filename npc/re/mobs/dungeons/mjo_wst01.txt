@@ -1,0 +1,5 @@
+mjo_wst01,0,0	monster	Punch Bug	21951,90,5000
+mjo_wst01,0,0	monster	Dispol	21952,90,5000
+mjo_wst01,0,0	monster	Aferde	21953,90,5000
+mjo_wst01,0,0	monster	Timbers	21954,90,5000
+mjo_wst01,0,0	boss_monster	Renire	21955,1,7200000,600000,0

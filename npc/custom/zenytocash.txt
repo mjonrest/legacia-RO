@@ -1,0 +1,53 @@
+//Zeny to Cash Exchanger NPC by teamcars of teamcars1broglobal@blogspot.com
+prontera,156,196,5	script	Penukar Zeny ke Cash 	894,{
+
+	mes "[Penukar Zeny ke Cash]";
+	mes "Rate Penukaran:";
+ 	mes "^0000FF5000^000000 zeny = ^FF00001^000000 cash point";
+	mes "Penukaran ^0000FF10^000000 cash points akan mendapatkan bonus ^FF00001^000000 Kafra point";
+	mes "Pilih layanan yang anda inginkan:";
+	next;
+	menu "^FF0000Tukar",Le0,"^0000FFCek Cash Point",Edis2,"^00FF00Keluar",LeEnd;
+	
+	Le0:
+		set $@bEavail,(Zeny/5000);
+		mes "[Penukar Zeny ke Cash]";
+		mes "^0000FF" + strcharinfo(0) + "^000000";
+		mes "Cash Points yang tersedia untuk ditukar: ^0000FF" + $@bEavail + "^000000";
+		mes "Berapa banyak Cash Point yang ingin anda tukar?";
+		input $@ExchangeEC;
+		set $@ttalEC,($@ExchangeEC*5000);
+		if (Zeny < $@ttalEC) goto ENeedZenys;
+		mes "Semuanya menjadi ^0000FF" + $@ttalEC + "^000000z!";
+		next;
+		mes "Apakah kamu ingin meneruskan menukar Cash Point?";
+		menu "^FF3355Tukar",LEyes,"Saya berubah pikiran^000000",LEno;
+		LEyes:
+		set #CASHPOINTS,#CASHPOINTS+$@ExchangeEC;
+		set #KAFRAPOINTS,#KAFRAPOINTS+($@ExchangeEC/10);
+		set Zeny,Zeny-$@ttalEC;
+		Set $@CEx,#CASHPOINTS;
+		Set $@KEx,#KAFRAPOINTS;
+		set $@totalExchange,$@totalExchange+$@ExchangeEC;
+		goto Edis2;
+		close;
+		LEno:
+		mes "Terimakasih ^0000FF" + strcharinfo(0) + "^000000!";
+		mes "Saya harap anda datang kembali!";
+		close;
+	Edis2:
+		mes "Cash Point anda yang tersedia ^0000FF" + $@CEx + "^000000! ";
+		mes "Kafra Point anda yang tersedia ^0000FF" + $@KEx + "^000000! ";
+		close;
+		ENeedZenys:
+			mes "Maaf, anda tidak memiliki cukup zeny.";
+			close;
+	LeEnd:
+		close;	
+
+
+	OnInit:
+	waitingroom "Penukar Zeny ke Cash",0;
+	end;
+
+}

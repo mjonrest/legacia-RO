@@ -1,0 +1,21 @@
+prontera,150,150,5	script	Mega	100,{
+
+	mes "[Megaphone]";
+	mes "Enter your message:";
+	input .@msg$;
+
+	if (.@msg$ == "") close;
+
+	.@msg$ = replacestr(.@msg$, "\n", " ");
+
+	announce strcharinfo(0) + ": " + .@msg$, bc_all, 0xFF0000;
+
+	// Optional SQL store
+	query_sql(
+		"INSERT INTO megaphone_log (char_name, message, created_at) VALUES ('"
+		+ strcharinfo(0) + "', '"
+		+ .@msg$ + "', NOW())"
+	);
+
+	close;
+}
