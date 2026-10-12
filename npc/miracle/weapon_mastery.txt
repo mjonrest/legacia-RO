@@ -7,8 +7,8 @@
 //
 // Weapon Masteries:
 //
-// Onslaught : 2H Sword, 1H Axe, 2H Axe, 1H Mace,
-//             2H Mace, Knuckle
+// Onslaught : 1H Sword, 2H Sword, 1H Spear, 2H Spear,
+//             1H Axe, 2H Axe, 1H Mace, 2H Mace, Knuckle
 //
 // Swiftness : Dagger, Fuuma Shuriken, Katar, Book
 //
@@ -268,8 +268,10 @@ function	script	F_WM_type	{
 		// ONSLAUGHT
 		//=====================================================
 
-		case 2:		// 2H Sword
-		case 3:		// 1H Sword / configured
+		case 2:		// 1H Sword
+		case 3:		// 2H Sword
+		case 4:		// 1H Spear
+		case 5:		// 2H Spear
 		case 6:		// 1H Axe
 		case 7:		// 2H Axe
 		case 8:		// 1H Mace
@@ -1192,7 +1194,10 @@ prontera,147,170,5	script	Weapon Mastery Guide	4_M_SAGE_C,{
 
 						mes "[Onslaught]";
 						mes "Weapons:";
+						mes "^0000FF1H Sword^000000";
 						mes "^0000FF2H Sword^000000";
+						mes "^0000FF1H Spear^000000";
+						mes "^0000FF2H Spear^000000";
 						mes "^0000FF1H Axe^000000";
 						mes "^0000FF2H Axe^000000";
 						mes "^0000FF1H Mace^000000";
