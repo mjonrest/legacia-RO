@@ -247,6 +247,21 @@ function	script	Mystical_M	{
 
 function	script	F_WM_type	{
 
+	//=====================================================
+	// ITEM ID EXCLUSIONS
+	//
+	// getarg(1) = item ID (optional).
+	// These daggers use Mystical instead of Swiftness.
+	//=====================================================
+
+	switch(getarg(1,0)) {
+		case 1231:	// Bazerald
+		case 13010:	// Asura
+		case 13011:	// Asura
+		case 13023:	// Ashura
+			return "Mystical";
+	}
+
 	switch(getarg(0,0)) {
 
 		//=====================================================
@@ -330,7 +345,8 @@ function	script	WM_Apply	{
 
 	.@right_mastery$ = callfunc(
 		"F_WM_type",
-		.@right_type
+		.@right_type,
+		.@right_id
 	);
 
 
@@ -437,7 +453,8 @@ OnWeaponInfo:
 
 		.@M$ = callfunc(
 			"F_WM_type",
-			.@type
+			.@type,
+			.@right_id
 		);
 	}
 
@@ -867,7 +884,8 @@ OnNPCKillEvent:
 
 	.@M$ = callfunc(
 		"F_WM_type",
-		.@type
+		.@type,
+		.@right_id
 	);
 
 
