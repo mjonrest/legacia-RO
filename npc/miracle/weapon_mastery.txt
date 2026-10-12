@@ -10,12 +10,12 @@
 // Onslaught : 2H Sword, 1H Axe, 2H Axe, 1H Mace,
 //             2H Mace, Knuckle
 //
-// Swiftness : Dagger, Fuuma Shuriken, Katar
+// Swiftness : Dagger, Fuuma Shuriken, Katar, Book
 //
 // Ranged    : Bow, Instrument, Whip, Revolver, Rifle,
 //             Gatling Gun, Shotgun, Grenade Launcher
 //
-// Mystical  : Rod, Book, 2H Staff, Scythe
+// Mystical  : Rod, 2H Staff, Scythe
 //
 // Safeguard has been completely removed.
 //
@@ -283,6 +283,7 @@ function	script	F_WM_type	{
 		//=====================================================
 
 		case 1:		// Dagger
+		case 15:	// Book
 		case 16:	// Katar
 		case 22:	// Fuuma Shuriken
 			return "Swiftness";
@@ -308,7 +309,6 @@ function	script	F_WM_type	{
 		//=====================================================
 
 		case 10:	// Rod
-		case 15:	// Book
 		case 23:	// 2H Staff
 		case 24:	// Scythe
 			return "Mystical";
@@ -1215,6 +1215,7 @@ prontera,147,170,5	script	Weapon Mastery Guide	4_M_SAGE_C,{
 						mes "^0000FFDagger^000000";
 						mes "^0000FFKatar^000000";
 						mes "^0000FFFuuma Shuriken^000000";
+						mes "^0000FFBook^000000";
 						next;
 
 						break;
@@ -1252,7 +1253,6 @@ prontera,147,170,5	script	Weapon Mastery Guide	4_M_SAGE_C,{
 						mes "[Mystical]";
 						mes "Weapons:";
 						mes "^0000FFRod^000000";
-						mes "^0000FFBook^000000";
 						mes "^0000FF2H Staff^000000";
 						mes "^0000FFScythe^000000";
 						next;
