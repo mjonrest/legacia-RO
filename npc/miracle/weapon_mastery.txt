@@ -190,10 +190,13 @@ function	script	Mystical_M	{
 	// INT
 	bonus bInt,1 + getarg(0,0) / 32;
 
-	// MATK
-	bonus bMatk,
-		1 + getarg(0,0)
-		+ ((1 + getarg(0,0)) * readparam(bInt) / 100);
+	// Magic Damage Rate
+	bonus2 bMagicAddClass,Class_All,
+		1 + getarg(0,0) / 7
+		+ ((1 + getarg(0,0) / 7) * readparam(bInt) / 100);
+
+	// MATK (same scaling as physical Base ATK)
+	bonus bMatk,getarg(0,0) * 5;
 
 	// Lv 1
 	if (getarg(0,0) >= 1)
@@ -691,8 +694,10 @@ OnWeaponInfo:
 			dispbottom "Int +"
 				+ (1 + .@X / 32);
 
+			dispbottom "Magic Dmg +" + (1 + .@X / 7) + "%";
+
 			dispbottom "Matk +"
-				+ (1 + .@X);
+				+ (.@X * 5);
 
 			if (.@X >= 1)
 				dispbottom "Natural SP recovery ratio +"
@@ -1434,6 +1439,7 @@ prontera,147,170,5	script	Weapon Mastery Guide	4_M_SAGE_C,{
 				mes "^AA55FFMystical^000000 focuses on magic.";
 				mes " ";
 				mes "INT";
+				mes "Magic Damage";
 				mes "MATK";
 				mes "SP Recovery";
 				mes "Max SP";
