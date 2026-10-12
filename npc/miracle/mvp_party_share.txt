@@ -1,0 +1,61 @@
+//===== Legacia RO Script ====================================
+//= MVP Party Drop Share
+//===== Description: =========================================
+//= When a party member kills an MVP (a monster that gives MVP
+//= exp), every other party member on the same map rolls the
+//= MVP's drop table on their own, with the same chance as the
+//= killer (e.g. a 0.5% card is 0.5% for each member).
+//= The killer keeps the normal drop and gets no extra roll.
+//= Members sharing a Gepard unique ID with the killer or with
+//= a member already rolled are skipped, so alts on the same PC
+//= give nothing.
+//============================================================
+-	script	MVPPartyShare	-1,{
+OnNPCKillEvent:
+	.@pid = getcharid(1);
+	.@mob_id = killedrid;
+	if (!.@pid || getmonsterinfo(.@mob_id, MOB_MVPEXP) <= 0)
+		end;
+
+	.@killer_cid = getcharid(0);
+	.@map$ = strcharinfo(3);
+	.@uids[0] = get_unique_id();
+
+	// Drop rates already include the server drop rate settings
+	getmobdrops(.@mob_id);
+	.@mc = $@MobDrop_count;
+	if (!.@mc)
+		end;
+	copyarray .@mi[0], $@MobDrop_item[0], .@mc;
+	copyarray .@mr[0], $@MobDrop_rate[0], .@mc;
+
+	getpartymember .@pid, 1;
+	getpartymember .@pid, 2;
+	.@cnt = $@partymembercount;
+	copyarray .@aid[0], $@partymemberaid[0], .@cnt;
+	copyarray .@cid[0], $@partymembercid[0], .@cnt;
+
+	for (.@i = 0; .@i < .@cnt; .@i++) {
+		if (.@cid[.@i] == .@killer_cid)
+			continue;
+		if (!isloggedin(.@aid[.@i], .@cid[.@i]))
+			continue;
+		if (!attachrid(.@aid[.@i]))
+			continue;
+		if (strcharinfo(3) != .@map$)
+			continue;
+
+		.@uid = get_unique_id();
+		if (!.@uid || inarray(.@uids, .@uid) != -1)
+			continue;
+		.@uids[getarraysize(.@uids)] = .@uid;
+
+		for (.@j = 0; .@j < .@mc; .@j++) {
+			if (rand(10000) < .@mr[.@j]) {
+				getitem .@mi[.@j], 1;
+				dispbottom "[MVP Share] You received " + getitemname(.@mi[.@j]) + " from " + getmonsterinfo(.@mob_id, MOB_NAME) + ".";
+			}
+		}
+	}
+	end;
+}
