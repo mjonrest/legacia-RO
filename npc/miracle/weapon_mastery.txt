@@ -896,7 +896,7 @@ OnNPCKillEvent:
 
 
 	//=========================================================
-	// GET WEAPON LEVEL AND MASTERY
+	// GET WEAPON LEVEL
 	//=========================================================
 
 	.@wLv = getiteminfo(
@@ -904,53 +904,152 @@ OnNPCKillEvent:
 		13
 	);
 
+
+	//=========================================================
+	// GIVE MASTERY EXP TO KILLER
+	//=========================================================
+
+	set .@bonus,(.@exp) * (.@wLv * .wLvBonus);
+	if ( getstatus(SC_JEXPBOOST,0)){
+	set .@bonus,(.@exp + (.@exp/2)) * (.@wLv * .wLvBonus);
+	}
+
+	callsub L_AddExp, .@M$, .@bonus;
+
+
+	//=========================================================
+	// PARTY SHARE
+	//
+	// Party members on the same map as the killer get
+	// .PartyShare % of the killer's mastery EXP, added to the
+	// mastery of their own right-hand weapon.
+	//
+	// Only one character per device (Gepard unique ID, or IP
+	// when Gepard is not available) gets a share, and never a
+	// character on the killer's own device.
+	//=========================================================
+
+	.@party_id = getcharid(1);
+	.@share = .@bonus * .PartyShare / 100;
+
+	if (.@party_id <= 0 || .@share <= 0)
+		end;
+
+	.@killer_cid = getcharid(0);
+	.@map$ = strcharinfo(3);
+
+	.@used_dev$[0] = callsub(L_DeviceId);
+
+	getpartymember .@party_id, 1, .@member_cid;
+	getpartymember .@party_id, 2, .@member_aid;
+	.@count = $@partymembercount;
+
+	for (.@i = 0; .@i < .@count; .@i++) {
+
+		if (.@member_cid[.@i] == .@killer_cid)
+			continue;
+
+		if (!isloggedin(.@member_aid[.@i], .@member_cid[.@i]))
+			continue;
+
+		if (!attachrid(.@member_aid[.@i]))
+			continue;
+
+		if (strcharinfo(3) != .@map$)
+			continue;
+
+		.@dev$ = callsub(L_DeviceId);
+
+		if (inarray(.@used_dev$, .@dev$) != -1)
+			continue;
+
+		.@used_dev$[getarraysize(.@used_dev$)] = .@dev$;
+
+		.@m_id = getequipid(EQI_HAND_R);
+
+		if (.@m_id <= 0)
+			continue;
+
+		.@m_M$ = callfunc(
+			"F_WM_type",
+			getiteminfo(.@m_id,11),
+			.@m_id
+		);
+
+		if (.@m_M$ == "")
+			continue;
+
+		callsub L_AddExp, .@m_M$, .@share;
+	}
+
+	end;
+
+
+//=============================================================
+// ADD MASTERY EXP TO ATTACHED PLAYER
+//
+// getarg(0) = mastery name
+// getarg(1) = EXP to add
+//=============================================================
+
+L_AddExp:
+
+	.@sub_M$ = getarg(0);
+
 	.@master = getd(
-		.@M$ + "Master"
+		.@sub_M$ + "Master"
 	);
 
-
-	//=========================================================
-	// GIVE MASTERY EXP
-	//=========================================================
-
 	if (.MaxMastery > .@master) {
-		set .@bonus,(.@exp) * (.@wLv * .wLvBonus);
-		if ( getstatus(SC_JEXPBOOST,0)){
-		set .@bonus,(.@exp + (.@exp/2)) * (.@wLv * .wLvBonus);
-		}
 
 		setd
-			.@M$ + "Exp",
-		getd(.@M$ + "Exp") + .@bonus;
-	//	dispbottom "exp :"+.@bonus+" pts.";
+			.@sub_M$ + "Exp",
+		getd(.@sub_M$ + "Exp") + getarg(1);
+	//	dispbottom "exp :"+getarg(1)+" pts.";
 
 
 		//=====================================================
 		// LEVEL UP
 		//=====================================================
 
-		if (getd(.@M$ + "Exp") > .NeededExp[.@master]) {
+		if (getd(.@sub_M$ + "Exp") > .NeededExp[.@master]) {
 
 			setd
-				.@M$ + "Master",
+				.@sub_M$ + "Master",
 				.@master + 1;
 
 			announce
-				.@M$
+				.@sub_M$
 				+ " Mastery has advanced to Lv "
 				+ (.@master + 1)
 				+ "!",
 				bc_blue | bc_self;
 
 			setd
-				.@M$ + "Exp",
+				.@sub_M$ + "Exp",
 				0;
 
 			callfunc("WM_Refresh");
 		}
 	}
 
-	end;
+	return;
+
+
+//=============================================================
+// DEVICE ID OF ATTACHED PLAYER
+//
+// Gepard unique ID, or IP address if Gepard gives none.
+//=============================================================
+
+L_DeviceId:
+
+	.@uid = get_unique_id();
+
+	if (.@uid)
+		return "gepard:" + .@uid;
+
+	return "ip:" + getcharip();
 
 
 //=============================================================
@@ -1013,6 +1112,8 @@ OnInit:
 	.MaxMastery = 128;	// max mastery level
 
 	.wLvBonus = 10;		// multiplier from monster Job EXP
+
+	.PartyShare = 50;	// % of killer's mastery EXP shared with party (0 = off)
 
 
 	//=========================================================
