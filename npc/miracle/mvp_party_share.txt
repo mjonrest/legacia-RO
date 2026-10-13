@@ -9,6 +9,8 @@
 //= Members sharing a Gepard unique ID with the killer or with
 //= a member already rolled are skipped, so alts on the same PC
 //= give nothing.
+//= Shared drops at or below rare_drop_announce (drops.conf,
+//= 100 = 1%) are announced server-wide like official drops.
 //============================================================
 -	script	MVPPartyShare	-1,{
 OnNPCKillEvent:
@@ -20,6 +22,8 @@ OnNPCKillEvent:
 	.@killer_cid = getcharid(0);
 	.@map$ = strcharinfo(3);
 	.@uids[0] = get_unique_id();
+	.@announce_rate = getbattleflag("rare_drop_announce");
+	.@mob_name$ = getmonsterinfo(.@mob_id, MOB_NAME);
 
 	// Drop rates already include the server drop rate settings
 	getmobdrops(.@mob_id);
@@ -52,8 +56,12 @@ OnNPCKillEvent:
 
 		for (.@j = 0; .@j < .@mc; .@j++) {
 			if (rand(10000) < .@mr[.@j]) {
-				getitem .@mi[.@j], 1;
-				dispbottom "[MVP Share] You received " + getitemname(.@mi[.@j]) + " from " + getmonsterinfo(.@mob_id, MOB_NAME) + ".";
+				getitem2 .@mi[.@j], 1,0,0,0,0,0,0,0;
+				dispbottom "[MVP Share] You received " + getitemname(.@mi[.@j]) + " from " + .@mob_name$ + ".";
+				if (.@mr[.@j] <= .@announce_rate) {
+					.@frac = .@mr[.@j] % 100;
+					announce "'" + strcharinfo(0) + "' got " + .@mob_name$ + "'s " + getitemname(.@mi[.@j]) + " (chance: " + (.@mr[.@j] / 100) + "." + (.@frac < 10 ? "0" : "") + .@frac + "%)", bc_all;
+				}
 			}
 		}
 	}
