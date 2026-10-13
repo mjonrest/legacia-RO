@@ -7324,6 +7324,22 @@ static int pc_resolve_random_group(struct item_data* id)
 
 		int level = id->weapon_level; // Weapon Level (1~4)
 
+		// ---- MAGIC (item ID exclusions) ----
+		// These daggers roll from the Magic groups instead of their weapon type.
+		switch (id->nameid) {
+		case 1231:	// Bazerald
+		case 13010:	// Asura
+		case 13011:	// Asura
+		case 13023:	// Ashura
+			switch (level) {
+				case 1: return 5;
+				case 2: return 6;
+				case 3: return 7;
+				case 4: return 8;
+			}
+			break;
+		}
+
 		switch (id->subtype) {
 
 		// ---- RANGE ----
