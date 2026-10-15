@@ -1046,6 +1046,11 @@ public:
 		t_tick last_tick;       ///< Last AI tick, for counting used time
 		t_tick save_tick;       ///< Last time the time balance was sent to the database
 		uint8 walk_dir;         ///< Direction the character keeps walking in while searching
+		uint64 visited;         ///< Map areas already explored (8x8 grid, one bit each)
+		int16 goal_x, goal_y;   ///< Spot in the area being explored
+		int32 goal_dist;        ///< Closest the character got to the goal so far
+		uint8 goal_fails;       ///< Walks in a row that didn't get closer to the goal
+		bool has_goal;
 		int32 time_ms;          ///< Used milliseconds not yet taken from the time balance
 		uint32 device_id;       ///< Gepard unique ID of the player's device (kept while offline)
 		uint32 device_ip;       ///< Player's IP, used for the device limits when there is no Gepard ID
