@@ -72,6 +72,7 @@
 #include "itemdb.hpp" // MAX_ITEMGROUP
 #include "log.hpp"
 #include "map.hpp"
+#include "mapreg.hpp" // free autohunt time per device
 #include "mercenary.hpp"
 #include "mob.hpp"
 #include "npc.hpp"
@@ -16897,6 +16898,7 @@ TIMER_FUNC(pc_autotrade_timer){
  *   AH_HITMVP                 : 1 = attack MVPs (only if the server allows it)
  *   AH_TELE                   : seconds without a monster before teleporting (0 = server default, -1 = never)
  *   AH_FREE_DAY, AH_FREE_LEFT : today's free time (seconds left), see autohunt_free_time
+ *                               (#AH_FREE_* per account, $AH_DEV_* / $AH_IP_* per device, see autohunt_free_share)
  *   AH_PAID_TIME              : bought time in seconds (Autohunt Time tickets)
  *------------------------------------------*/
 static TIMER_FUNC(pc_autohunt_timer);
@@ -17096,13 +17098,128 @@ static bool pc_autohunt_teleport( map_session_data& sd ){
 	return false;
 }
 
-/// Gives the player today's free time when a new day has started
-static void pc_autohunt_refresh_free( map_session_data& sd ){
+/// Where the free time is counted: character, account, device
+enum e_autohunt_pool : uint8 {
+	AH_POOL_CHAR = 0,
+	AH_POOL_ACCOUNT,
+	AH_POOL_DEVICE,
+	AH_POOL_MAX
+};
+
+/**
+ * The device the player plays from: the Gepard unique ID, or the IP when Gepard gives none.
+ * Read from the connection while there is one, else from what was saved when autohunt started.
+ */
+static void pc_autohunt_device( map_session_data& sd, uint32& unique_id, uint32& ip ){
+	if( session_isActive( sd.fd ) && !sd.state.autotrade ){
+		sd.autohunt.device_id = session[sd.fd]->gepard_info.unique_id;
+		sd.autohunt.device_ip = session[sd.fd]->client_addr;
+	}
+
+	unique_id = sd.autohunt.device_id;
+	ip = sd.autohunt.device_ip;
+}
+
+/// Is free time counted in this pool on this server? (autohunt_free_share)
+static bool pc_autohunt_pool_used( e_autohunt_pool pool ){
+	switch( pool ){
+		case AH_POOL_CHAR:    return battle_config.autohunt_free_share == 0;
+		case AH_POOL_ACCOUNT: return battle_config.autohunt_free_share >= 1;
+		case AH_POOL_DEVICE:  return battle_config.autohunt_free_share >= 2;
+		default:              return false;
+	}
+}
+
+/// Variables holding a pool's day and seconds left. Returns false when the pool can't be used.
+static bool pc_autohunt_pool_vars( map_session_data& sd, e_autohunt_pool pool, int64& day_var, int64& left_var ){
+	switch( pool ){
+		case AH_POOL_CHAR:
+			day_var = add_str( "AH_FREE_DAY" );
+			left_var = add_str( "AH_FREE_LEFT" );
+			return true;
+		case AH_POOL_ACCOUNT:
+			day_var = add_str( "#AH_FREE_DAY" );
+			left_var = add_str( "#AH_FREE_LEFT" );
+			return true;
+		case AH_POOL_DEVICE: {
+			uint32 unique_id, ip;
+
+			pc_autohunt_device( sd, unique_id, ip );
+
+			if( unique_id != 0 ){
+				day_var = reference_uid( add_str( "$AH_DEV_DAY" ), unique_id );
+				left_var = reference_uid( add_str( "$AH_DEV_LEFT" ), unique_id );
+			}else if( ip != 0 ){
+				day_var = reference_uid( add_str( "$AH_IP_DAY" ), ip );
+				left_var = reference_uid( add_str( "$AH_IP_LEFT" ), ip );
+			}else
+				return false;
+			return true;
+		}
+		default:
+			return false;
+	}
+}
+
+static int64 pc_autohunt_pool_read( map_session_data& sd, e_autohunt_pool pool, int64 var ){
+	if( pool == AH_POOL_DEVICE )
+		return mapreg_readreg( var );
+	return pc_readregistry( &sd, var );
+}
+
+static void pc_autohunt_pool_write( map_session_data& sd, e_autohunt_pool pool, int64 var, int64 val ){
+	if( pool == AH_POOL_DEVICE )
+		mapreg_setreg( var, val );
+	else
+		pc_setregistry( &sd, var, val );
+}
+
+/// Seconds left in a pool today, giving it a new day's free time when the day has changed
+static int64 pc_autohunt_pool_left( map_session_data& sd, e_autohunt_pool pool ){
+	int64 day_var, left_var;
+
+	if( !pc_autohunt_pool_vars( sd, pool, day_var, left_var ) )
+		return -1;
+
 	int32 today = date_get( DT_YYYYMMDD );
 
-	if( pc_autohunt_var( sd, "AH_FREE_DAY" ) != today ){
-		pc_setglobalreg( &sd, add_str( "AH_FREE_DAY" ), today );
-		pc_setglobalreg( &sd, add_str( "AH_FREE_LEFT" ), static_cast<int64>( battle_config.autohunt_free_time ) * 60 );
+	if( pc_autohunt_pool_read( sd, pool, day_var ) != today ){
+		pc_autohunt_pool_write( sd, pool, day_var, today );
+		pc_autohunt_pool_write( sd, pool, left_var, static_cast<int64>( battle_config.autohunt_free_time ) * 60 );
+	}
+
+	return std::max<int64>( pc_autohunt_pool_read( sd, pool, left_var ), 0 );
+}
+
+/// Today's free seconds left: the smallest of the character / account / device pools in use
+static int64 pc_autohunt_free_left( map_session_data& sd ){
+	int64 left = -1;
+
+	for( uint8 pool = AH_POOL_CHAR; pool < AH_POOL_MAX; pool++ ){
+		if( !pc_autohunt_pool_used( static_cast<e_autohunt_pool>( pool ) ) )
+			continue;
+
+		int64 pool_left = pc_autohunt_pool_left( sd, static_cast<e_autohunt_pool>( pool ) );
+
+		if( pool_left >= 0 && ( left < 0 || pool_left < left ) )
+			left = pool_left;
+	}
+
+	return std::max<int64>( left, 0 );
+}
+
+/// Takes used free seconds from every pool in use
+static void pc_autohunt_free_take( map_session_data& sd, int64 secs ){
+	for( uint8 pool = AH_POOL_CHAR; pool < AH_POOL_MAX; pool++ ){
+		e_autohunt_pool p = static_cast<e_autohunt_pool>( pool );
+		int64 day_var, left_var;
+
+		if( !pc_autohunt_pool_used( p ) || !pc_autohunt_pool_vars( sd, p, day_var, left_var ) )
+			continue;
+
+		int64 left = std::max<int64>( pc_autohunt_pool_read( sd, p, left_var ) - secs, 0 );
+
+		pc_autohunt_pool_write( sd, p, left_var, left );
 	}
 }
 
@@ -17114,23 +17231,19 @@ int64 pc_autohunt_timeleft( map_session_data& sd ){
 	if( !battle_config.autohunt_time_limit )
 		return -1;
 
-	pc_autohunt_refresh_free( sd );
-
-	return std::max<int64>( pc_autohunt_var( sd, "AH_FREE_LEFT" ), 0 ) + std::max<int64>( pc_autohunt_var( sd, "AH_PAID_TIME" ), 0 );
+	return pc_autohunt_free_left( sd ) + std::max<int64>( pc_autohunt_var( sd, "AH_PAID_TIME" ), 0 );
 }
 
 /// Takes used seconds from the free time, then from bought time. Returns false when no time is left.
 static bool pc_autohunt_usetime( map_session_data& sd, int64 secs ){
-	pc_autohunt_refresh_free( sd );
-
-	int64 free_left = std::max<int64>( pc_autohunt_var( sd, "AH_FREE_LEFT" ), 0 );
+	int64 free_left = pc_autohunt_free_left( sd );
 	int64 paid = std::max<int64>( pc_autohunt_var( sd, "AH_PAID_TIME" ), 0 );
 	int64 use = std::min( free_left, secs );
 
 	if( use > 0 ){
 		free_left -= use;
 		secs -= use;
-		pc_setglobalreg( &sd, add_str( "AH_FREE_LEFT" ), free_left );
+		pc_autohunt_free_take( sd, use );
 	}
 
 	use = std::min( paid, secs );
@@ -17359,6 +17472,9 @@ bool pc_autohunt_start( map_session_data& sd ){
 	if( sd.autohunt.active )
 		return true;
 
+	if( !pc_autohunt_device_ok( sd, false ) )
+		return false;
+
 	t_tick tick = gettick();
 
 	sd.autohunt.active = true;
@@ -17378,6 +17494,58 @@ bool pc_autohunt_start( map_session_data& sd ){
 	pc_autohunt_set_autoloot( sd );
 
 	sd.autohunt.tid = add_timer( tick + battle_config.autohunt_interval, pc_autohunt_timer, sd.id, 0 );
+
+	return true;
+}
+
+/**
+ * Checks the per-device limits: autohunt_max_per_device characters autohunting at once,
+ * of which at most autohunt_offline_per_device may be offline (offline ones don't use a login slot).
+ * @param sd: Player starting autohunt, or switching it to offline
+ * @param offline: true when sd is about to go offline
+ * @return true when allowed, otherwise a message was shown
+ */
+bool pc_autohunt_device_ok( map_session_data& sd, bool offline ){
+	uint32 unique_id, ip;
+
+	pc_autohunt_device( sd, unique_id, ip );
+
+	if( unique_id == 0 && ip == 0 )
+		return true;
+
+	int32 total = 0, offline_count = 0;
+	s_mapiterator* iter = mapit_getallusers();
+
+	for( map_session_data* pl = (map_session_data*)mapit_first( iter ); mapit_exists( iter ); pl = (map_session_data*)mapit_next( iter ) ){
+		if( pl == &sd || !pl->autohunt.active )
+			continue;
+		if( unique_id != 0 ? pl->autohunt.device_id != unique_id : ( pl->autohunt.device_id != 0 || pl->autohunt.device_ip != ip ) )
+			continue;
+
+		total++;
+		if( pl->autohunt.offline )
+			offline_count++;
+	}
+	mapit_free( iter );
+
+	if( !sd.autohunt.active && battle_config.autohunt_max_per_device > 0 && total >= battle_config.autohunt_max_per_device ){
+		char output[CHAT_SIZE_MAX];
+
+		safesnprintf( output, sizeof( output ), "Only %d character(s) per device may autohunt at the same time.", battle_config.autohunt_max_per_device );
+		clif_displaymessage( sd.fd, output );
+		return false;
+	}
+
+	if( offline && battle_config.autohunt_offline_per_device >= 0 && offline_count >= battle_config.autohunt_offline_per_device ){
+		char output[CHAT_SIZE_MAX];
+
+		if( battle_config.autohunt_offline_per_device == 0 )
+			safesnprintf( output, sizeof( output ), "Offline autohunt is disabled on this server." );
+		else
+			safesnprintf( output, sizeof( output ), "Only %d character(s) per device may autohunt offline at the same time.", battle_config.autohunt_offline_per_device );
+		clif_displaymessage( sd.fd, output );
+		return false;
+	}
 
 	return true;
 }
