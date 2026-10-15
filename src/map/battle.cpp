@@ -11901,7 +11901,7 @@ static const struct _battle_data {
 	{ "hide_cloaked_units",                 &battle_config.hide_cloaked_units,              0,      0,      BL_ALL,         },
 	{ "feature.autohunt",                   &battle_config.feature_autohunt,                1,      0,      1,              },
 	{ "autohunt_interval",                  &battle_config.autohunt_interval,               300,    100,    5000,           },
-	{ "autohunt_search_range",              &battle_config.autohunt_search_range,           12,     1,      30,             },
+	{ "autohunt_search_range",              &battle_config.autohunt_search_range,           9,      1,      30,             },
 	{ "autohunt_autoloot",                  &battle_config.autohunt_autoloot,               10000,  0,      10000,          },
 	{ "autohunt_allow_offline",             &battle_config.autohunt_allow_offline,          1,      0,      1,              },
 	{ "autohunt_offline_timeout",           &battle_config.autohunt_offline_timeout,        0,      0,      INT_MAX,        },

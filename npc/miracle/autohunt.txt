@@ -12,6 +12,7 @@
 //   AH_IGNORE[0..19]                          : monster IDs to skip
 //   AH_HITMVP   : 1 = attack MVPs
 //   AH_TELE     : seconds without a monster before teleporting (0 = server default, -1 = never)
+//   AH_LOOT     : autoloot rate x100 (10000 = everything, -1 = off, 0 = server default)
 //
 // Autohunt time:
 //   Every player gets autohunt_free_time minutes free per day
@@ -56,6 +57,7 @@ OnMenu:
 			"Auto teleport - " + callfunc("F_AH_TeleText"),
 			"Ignore monsters (" + callfunc("F_AH_IgnoreCount") + ")",
 			"MVP - " + .@mvp$,
+			"Autoloot - " + callfunc("F_AH_LootText"),
 			"Close"
 		)) {
 		case 1:
@@ -120,6 +122,27 @@ OnMenu:
 			}
 			mes "Should autohunt attack MVP monsters?";
 			AH_HITMVP = (select("Avoid MVPs:Attack MVPs") == 2);
+			clear;
+			break;
+		case 10:
+			clear;
+			mes "[Autohunt]";
+			mes "Which items should be picked up automatically while autohunting?";
+			mes "(Items with a drop rate at or below the % you pick.)";
+			switch (select("Everything (100%):Drop rate 50% or less:Drop rate 10% or less:Drop rate 1% or less:Drop rate 0.1% or less:Enter a %:Off (no autoloot):Server default")) {
+				case 1: AH_LOOT = 10000; break;
+				case 2: AH_LOOT = 5000; break;
+				case 3: AH_LOOT = 1000; break;
+				case 4: AH_LOOT = 100; break;
+				case 5: AH_LOOT = 10; break;
+				case 6:
+					mes "Enter a % from 1 to 100.";
+					input .@pct, 1, 100;
+					AH_LOOT = cap_value(.@pct, 1, 100) * 100;
+					break;
+				case 7: AH_LOOT = -1; break;
+				case 8: AH_LOOT = 0; break;
+			}
 			clear;
 			break;
 		default:
@@ -324,6 +347,17 @@ function	script	F_AH_Potions	{
 		setd .@pre$ + "RATE", cap_value(.@rate, 1, 99);
 		clear;
 	}
+}
+
+function	script	F_AH_LootText	{
+	.@r = AH_LOOT ? AH_LOOT : getbattleflag("autohunt_autoloot");
+	if (.@r <= 0)
+		return "Off";
+	if (.@r >= 10000)
+		return "Everything";
+	if (.@r % 100)
+		return "up to " + (.@r / 100) + "." + ((.@r % 100) / 10) + "%";
+	return "up to " + (.@r / 100) + "%";
 }
 
 function	script	F_AH_IgnoreCount	{

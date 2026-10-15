@@ -16902,7 +16902,7 @@ TIMER_FUNC(pc_autotrade_timer){
 static TIMER_FUNC(pc_autohunt_timer);
 
 /// Milliseconds a target may go without losing HP before it is given up on
-#define AUTOHUNT_STUCK_TIME 10000
+#define AUTOHUNT_STUCK_TIME 6000
 /// Fly Wings, used to find new monsters when none are around (infinite one first)
 #define AUTOHUNT_INFINITE_FLYWING 12887
 #define AUTOHUNT_FLYWING 601
@@ -16926,6 +16926,18 @@ static void pc_autohunt_load( map_session_data& sd ){
 		sd.autohunt.ignore[i] = static_cast<uint16>( pc_readglobalreg( &sd, reference_uid( add_str( "AH_IGNORE" ), i ) ) );
 
 	sd.autohunt.hit_mvp = !battle_config.autohunt_ignore_mvp && pc_autohunt_var( sd, "AH_HITMVP" ) > 0;
+}
+
+/// Applies the player's autoloot choice (AH_LOOT: 0 = server default, -1 = off, else rate x100)
+static void pc_autohunt_set_autoloot( map_session_data& sd ){
+	int64 loot = pc_autohunt_var( sd, "AH_LOOT" );
+
+	if( loot == 0 )
+		loot = battle_config.autohunt_autoloot;
+	else if( loot < 0 )
+		loot = 0;
+
+	sd.state.autoloot = static_cast<uint16>( std::min<int64>( loot, 10000 ) );
 }
 
 /// Returns the level the player can use a skill slot at, 0 if not usable
@@ -16994,7 +17006,13 @@ static int32 pc_autohunt_search_sub( block_list* bl, va_list ap ){
 	if( *best != nullptr && dist >= *best_dist )
 		return 0;
 
-	if( !path_search( nullptr, sd->m, sd->x, sd->y, bl->x, bl->y, 0, CELL_CHKNOREACH ) )
+	// Only monsters the character can see (no wall in between) and reach without a long detour
+	if( !path_search_long( nullptr, sd->m, sd->x, sd->y, bl->x, bl->y, CELL_CHKWALL ) )
+		return 0;
+
+	walkpath_data wpd;
+
+	if( !path_search( &wpd, sd->m, sd->x, sd->y, bl->x, bl->y, 0, CELL_CHKNOREACH ) || wpd.path_len > battle_config.autohunt_search_range * 2 )
 		return 0;
 
 	*best = bl;
@@ -17130,17 +17148,47 @@ static void pc_autohunt_randomwalk( map_session_data& sd ){
 	if( sd.ud.walktimer != INVALID_TIMER )
 		return;
 
-	const int32 d = 10;
+	// Keep going straight; when a wall is ahead turn a little first, then more, and turn back last
+	static const int32 turns[] = { 0, 1, 2, 3, 4 };
+	int32 side = ( rnd() % 2 ) ? 1 : -1;
+	int32 start = sd.autohunt.walk_dir;
 
-	for( int32 i = 0; i < 20; i++ ){
-		int16 x = sd.x + rnd() % ( d * 2 + 1 ) - d;
-		int16 y = sd.y + rnd() % ( d * 2 + 1 ) - d;
+	// Drift a little now and then on open ground so the walk doesn't look robotic
+	if( rnd() % 5 == 0 )
+		start += side;
 
-		if( ( x == sd.x && y == sd.y ) || !map_getcell( sd.m, x, y, CELL_CHKPASS ) || npc_check_areanpc( 1, sd.m, x, y, 1 ) )
-			continue;
+	for( int32 turn : turns ){
+		for( int32 sign : { side, -side } ){
+			if( turn == 0 && sign != side )
+				continue;
+			if( turn == 4 && sign != side )
+				continue;
 
-		if( unit_walktoxy( &sd, x, y, 0 ) )
-			return;
+			int32 dir = ( ( start + turn * sign ) % DIR_MAX + DIR_MAX ) % DIR_MAX;
+			int16 x = sd.x, y = sd.y;
+			int32 steps = 0;
+
+			// Walk up to 10 cells, stopping before a wall or a warp portal
+			for( int32 i = 1; i <= 10; i++ ){
+				int16 nx = sd.x + dirx[dir] * i;
+				int16 ny = sd.y + diry[dir] * i;
+
+				if( !map_getcell( sd.m, nx, ny, CELL_CHKPASS ) || npc_check_areanpc( 1, sd.m, nx, ny, 1 ) )
+					break;
+
+				x = nx;
+				y = ny;
+				steps = i;
+			}
+
+			if( steps < 3 )
+				continue;
+
+			if( unit_walktoxy( &sd, x, y, 0 ) ){
+				sd.autohunt.walk_dir = static_cast<uint8>( dir );
+				return;
+			}
+		}
 	}
 }
 
@@ -17245,6 +17293,7 @@ static TIMER_FUNC(pc_autohunt_timer){
 		}
 
 		pc_autohunt_load( *sd );
+		pc_autohunt_set_autoloot( *sd );
 		pc_autohunt_potion( *sd, true );
 		pc_autohunt_potion( *sd, false );
 
@@ -17325,8 +17374,8 @@ bool pc_autohunt_start( map_session_data& sd ){
 	sd.autohunt.time_ms = 0;
 	sd.autohunt.saved_autoloot = sd.state.autoloot;
 
-	if( battle_config.autohunt_autoloot > sd.state.autoloot )
-		sd.state.autoloot = battle_config.autohunt_autoloot;
+	sd.autohunt.walk_dir = static_cast<uint8>( rnd() % DIR_MAX );
+	pc_autohunt_set_autoloot( sd );
 
 	sd.autohunt.tid = add_timer( tick + battle_config.autohunt_interval, pc_autohunt_timer, sd.id, 0 );
 
