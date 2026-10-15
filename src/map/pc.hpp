@@ -1031,6 +1031,21 @@ public:
 	int vend_lvl;
 	int goldpc_tid;	
 
+	/// Autohunt (@autohunt) runtime state
+	struct s_autohunt {
+		int32 tid;              ///< AI timer
+		int32 target_id;        ///< Monster currently being hunted
+		int32 ignore_id;        ///< Monster given up on because it could not be hit
+		int16 start_m;          ///< Map autohunt was started on
+		int64 target_hp;        ///< Target HP when last checked (stuck detection)
+		t_tick target_tick;     ///< Last time the target lost HP
+		t_tick start_tick;      ///< When autohunt was started
+		t_tick last_found_tick; ///< Last time a monster was found (for the Fly Wing option)
+		uint16 saved_autoloot;  ///< Player's own @autoloot rate, restored on stop
+		bool active;
+		bool offline;           ///< Character keeps hunting without a client
+	} autohunt;
+
 
 	void update_look( _look look );
 };
@@ -1817,6 +1832,11 @@ extern struct fame_list taekwon_fame_list[MAX_FAME_LIST];
 
 void pc_readdb(void);
 void do_init_pc(void);
+
+// Autohunt (@autohunt)
+bool pc_autohunt_start(map_session_data& sd);
+void pc_autohunt_stop(map_session_data& sd, const char* reason = nullptr);
+
 void do_final_pc(void);
 
 // timer for night.day

@@ -781,6 +781,19 @@ struct Battle_Config
 	int32 enable_bonus_map_drops;
 	int32 hide_cloaked_units;
 
+	// Autohunt (@autohunt)
+	int32 feature_autohunt;
+	int32 autohunt_interval;
+	int32 autohunt_search_range;
+	int32 autohunt_autoloot;
+	int32 autohunt_allow_offline;
+	int32 autohunt_offline_timeout;
+	int32 autohunt_ignore_mvp;
+	int32 autohunt_ignore_others_mobs;
+	int32 autohunt_flywing_idle;
+	int32 autohunt_hp_rate;
+	int32 autohunt_sp_rate;
+
 #include <custom/battle_config_struct.inc>
 };
 

@@ -2305,6 +2305,10 @@ int32 map_quit(map_session_data *sd) {
 	if (sd->autotrade_tid != INVALID_TIMER)
 		delete_timer(sd->autotrade_tid, pc_autotrade_timer);
 
+	// Stop autohunt without logging out again
+	sd->autohunt.offline = false;
+	pc_autohunt_stop(*sd);
+
 	if (sd->npc_id)
 		npc_event_dequeue(sd);
 

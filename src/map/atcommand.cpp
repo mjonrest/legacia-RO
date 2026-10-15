@@ -7012,6 +7012,184 @@ ACMD_FUNC(partyoption)
 }
 
 /*==========================================
+ * @autohunt - Lets the character hunt monsters on its own
+ *   @autohunt                    : turn on/off
+ *   @autohunt offline            : keep hunting after you log out
+ *   @autohunt skill <skill> <lv> : skill to use on monsters (0 = normal attack only)
+ *   @autohunt hp <item> <%>      : potion used when HP is below % (0 = off)
+ *   @autohunt sp <item> <%>      : potion used when SP is below % (0 = off)
+ *   @autohunt info               : show your settings
+ *------------------------------------------*/
+ACMD_FUNC(autohunt)
+{
+	char sub[32] = "", arg[64] = "";
+	int32 val = 0;
+
+	nullpo_retr(-1, sd);
+
+	if (!battle_config.feature_autohunt) {
+		clif_displaymessage(fd, "Autohunt is disabled on this server.");
+		return -1;
+	}
+
+	if (message && *message)
+		sscanf(message, "%31s %63s %11d", sub, arg, &val);
+
+	if (!strcmpi(sub, "skill")) {
+		uint16 skill_id = (uint16)atoi(arg);
+
+		if (skill_id == 0 && strcmp(arg, "0") != 0 && *arg)
+			skill_id = skill_name2id(arg);
+
+		if (!*arg || (skill_id == 0 && strcmp(arg, "0") != 0)) {
+			clif_displaymessage(fd, "Usage: @autohunt skill <skill id or name> <level> (0 = normal attack only)");
+			return -1;
+		}
+
+		if (skill_id != 0) {
+			if (pc_checkskill(sd, skill_id) <= 0) {
+				clif_displaymessage(fd, "You don't have that skill.");
+				return -1;
+			}
+
+			if (!(skill_get_inf(skill_id) & (INF_ATTACK_SKILL|INF_GROUND_SKILL))) {
+				clif_displaymessage(fd, "Only skills that target a monster or the ground can be used.");
+				return -1;
+			}
+		}
+
+		pc_setglobalreg(sd, add_str("AH_SKILL"), skill_id);
+		pc_setglobalreg(sd, add_str("AH_SKLV"), skill_id ? max(val, 0) : 0);
+
+		if (skill_id)
+			sprintf(atcmd_output, "Autohunt skill: %s Lv %d.", skill_get_desc(skill_id), val > 0 ? min(val, (int32)pc_checkskill(sd, skill_id)) : pc_checkskill(sd, skill_id));
+		else
+			sprintf(atcmd_output, "Autohunt skill: none (normal attack only).");
+		clif_displaymessage(fd, atcmd_output);
+		return 0;
+	}
+
+	if (!strcmpi(sub, "hp") || !strcmpi(sub, "sp")) {
+		bool hp = !strcmpi(sub, "hp");
+		t_itemid nameid = (t_itemid)strtoul(arg, nullptr, 10);
+
+		if (!*arg) {
+			sprintf(atcmd_output, "Usage: @autohunt %s <item id> <%%> (item 0 = off)", hp ? "hp" : "sp");
+			clif_displaymessage(fd, atcmd_output);
+			return -1;
+		}
+
+		if (nameid != 0 && !item_db.exists(nameid)) {
+			clif_displaymessage(fd, msg_txt(sd,19)); // Invalid item ID or name.
+			return -1;
+		}
+
+		if (val <= 0)
+			val = hp ? battle_config.autohunt_hp_rate : battle_config.autohunt_sp_rate;
+		val = min(val, 99);
+
+		pc_setglobalreg(sd, add_str(hp ? "AH_HPITEM" : "AH_SPITEM"), nameid);
+		pc_setglobalreg(sd, add_str(hp ? "AH_HPRATE" : "AH_SPRATE"), val);
+
+		if (nameid)
+			sprintf(atcmd_output, "Autohunt will use %s when %s is below %d%%.", itemdb_ename(nameid), hp ? "HP" : "SP", val);
+		else
+			sprintf(atcmd_output, "Autohunt %s potion: off.", hp ? "HP" : "SP");
+		clif_displaymessage(fd, atcmd_output);
+		return 0;
+	}
+
+	if (!strcmpi(sub, "info")) {
+		uint16 skill_id = (uint16)pc_readglobalreg(sd, add_str("AH_SKILL"));
+		t_itemid hpitem = (t_itemid)pc_readglobalreg(sd, add_str("AH_HPITEM"));
+		t_itemid spitem = (t_itemid)pc_readglobalreg(sd, add_str("AH_SPITEM"));
+
+		sprintf(atcmd_output, "Autohunt is %s.", sd->autohunt.active ? "ON" : "OFF");
+		clif_displaymessage(fd, atcmd_output);
+		sprintf(atcmd_output, "Skill: %s", skill_id ? skill_get_desc(skill_id) : "none (normal attack only)");
+		clif_displaymessage(fd, atcmd_output);
+		if (hpitem)
+			sprintf(atcmd_output, "HP potion: %s below %d%%", itemdb_ename(hpitem), (int32)pc_readglobalreg(sd, add_str("AH_HPRATE")));
+		else
+			sprintf(atcmd_output, "HP potion: off");
+		clif_displaymessage(fd, atcmd_output);
+		if (spitem)
+			sprintf(atcmd_output, "SP potion: %s below %d%%", itemdb_ename(spitem), (int32)pc_readglobalreg(sd, add_str("AH_SPRATE")));
+		else
+			sprintf(atcmd_output, "SP potion: off");
+		clif_displaymessage(fd, atcmd_output);
+		return 0;
+	}
+
+	bool offline = !strcmpi(sub, "offline");
+
+	if (*sub && !offline && strcmpi(sub, "on") && strcmpi(sub, "off")) {
+		clif_displaymessage(fd, "Usage: @autohunt [on|off|offline|info]");
+		clif_displaymessage(fd, "       @autohunt skill <skill> <level>");
+		clif_displaymessage(fd, "       @autohunt hp <item id> <%>  /  @autohunt sp <item id> <%>");
+		return -1;
+	}
+
+	// Turn off (explicit "off", or toggle while running)
+	if (!strcmpi(sub, "off") || (!*sub && sd->autohunt.active)) {
+		if (!sd->autohunt.active) {
+			clif_displaymessage(fd, "Autohunt is not running.");
+			return -1;
+		}
+		pc_autohunt_stop(*sd);
+		clif_displaymessage(fd, "Autohunt is now OFF.");
+		return 0;
+	}
+
+	if (!sd->autohunt.active) {
+		if (pc_isdead(sd)) {
+			clif_displaymessage(fd, "You cannot autohunt while dead.");
+			return -1;
+		}
+
+		if (map_flag_vs(sd->m)) {
+			clif_displaymessage(fd, "Autohunt is not allowed on PvP, GvG or Battleground maps.");
+			return -1;
+		}
+
+		if (sd->state.vending || sd->state.buyingstore || sd->state.autotrade || sd->chatID) {
+			clif_displaymessage(fd, "Close your shop or chat room first.");
+			return -1;
+		}
+
+		if (pc_getpercentweight(*sd) >= 90) {
+			clif_displaymessage(fd, "You are carrying too much to autohunt.");
+			return -1;
+		}
+	}
+
+	if (offline && !battle_config.autohunt_allow_offline) {
+		clif_displaymessage(fd, "Offline autohunt is disabled on this server.");
+		return -1;
+	}
+
+	if (!sd->autohunt.active) {
+		pc_autohunt_start(*sd);
+		clif_displaymessage(fd, "Autohunt is now ON. Type @autohunt again to stop.");
+	} else if (!offline) {
+		clif_displaymessage(fd, "Autohunt is already ON.");
+		return 0;
+	}
+
+	if (offline) {
+		// Same as @autotrade: the character stays in game without a client
+		sd->autohunt.offline = true;
+		sd->autohunt.start_tick = gettick();
+		sd->state.autotrade = 1;
+		channel_pcquit(sd, 0xF); // leave all channels
+		clif_authfail_fd(sd->fd, 15);
+		chrif_save(sd, CSAVE_AUTOTRADE);
+	}
+
+	return 0;
+}
+
+/*==========================================
  * @autoloot by Upa-Kun
  * Turns on/off AutoLoot for a specific player
  *------------------------------------------*/
@@ -12372,6 +12550,7 @@ void atcommand_basecommands(void) {
 		ACMD_DEF(showzeny),
 		ACMD_DEF(showdelay),
 		ACMD_DEF(autotrade),
+		ACMD_DEF(autohunt),
 		ACMD_DEF(changegm),
 		ACMD_DEF(changeleader),
 		ACMD_DEF(partyoption),

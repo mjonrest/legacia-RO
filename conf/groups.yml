@@ -47,6 +47,7 @@ Body:
     Level: 0
     Commands:
       autotrade: true
+      autohunt: true
       go: true
       showexp: true
       #warp: true
