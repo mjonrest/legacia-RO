@@ -7072,7 +7072,7 @@ ACMD_FUNC(autohunt)
 		}
 
 		if (pc_autohunt_timeleft(*sd) == 0) {
-			clif_displaymessage(fd, "You have no autohunt time left. Free time comes back tomorrow, or buy more in the Cash Shop.");
+			clif_displaymessage(fd, "You have no autohunt time left. Free time comes back tomorrow.");
 			return -1;
 		}
 	}

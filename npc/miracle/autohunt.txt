@@ -42,7 +42,7 @@ OnMenu:
 		mes "Your character hunts monsters by itself.";
 		if (autohunttime() >= 0) {
 			mes "Time left: ^0000FF" + callfunc("F_AH_TimeText", autohunttime()) + "^000000";
-			mes "(" + getbattleflag("autohunt_free_time") + " min free every day, buy more in the Cash Shop)";
+			mes "(" + getbattleflag("autohunt_free_time") + " min free every day)";
 		}
 		if (getbattleflag("autohunt_exp_rate") < 100 || getbattleflag("autohunt_drop_rate") < 100)
 			mes "While autohunting you earn ^CC0000" + getbattleflag("autohunt_exp_rate") + "% EXP^000000 and ^CC0000" + getbattleflag("autohunt_drop_rate") + "% drop rate^000000.";
