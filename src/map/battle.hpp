@@ -708,8 +708,6 @@ struct Battle_Config
 	int32 feature_bgqueue;
 	int32 bgqueue_nowarp_mapflag;
 	int32 homunculus_exp_gain;
-	int32 homunculus_growth_rate;
-	int32 homunculus_evo_growth_rate;
 	int32 rental_item_novalue;
 	int32 ping_timer_interval;
 	int32 ping_time;
