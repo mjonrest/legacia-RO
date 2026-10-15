@@ -16996,6 +16996,19 @@ static bool pc_autohunt_valid_target( map_session_data& sd, block_list* bl ){
 	return true;
 }
 
+/// True when a walk path starting at (x, y) steps on a warp portal (including warps to another spot of the same map)
+static bool pc_autohunt_path_warp( int16 m, int16 x, int16 y, const walkpath_data& wpd ){
+	for( int32 i = wpd.path_pos; i < wpd.path_len; i++ ){
+		x += dirx[wpd.path[i]];
+		y += diry[wpd.path[i]];
+
+		if( npc_check_areanpc( 1, m, x, y, 0 ) )
+			return true;
+	}
+
+	return false;
+}
+
 static int32 pc_autohunt_search_sub( block_list* bl, va_list ap ){
 	map_session_data* sd = va_arg( ap, map_session_data* );
 	block_list** best = va_arg( ap, block_list** );
@@ -17016,6 +17029,10 @@ static int32 pc_autohunt_search_sub( block_list* bl, va_list ap ){
 	walkpath_data wpd;
 
 	if( !path_search( &wpd, sd->m, sd->x, sd->y, bl->x, bl->y, 0, CELL_CHKNOREACH ) || wpd.path_len > battle_config.autohunt_search_range * 2 )
+		return 0;
+
+	// Don't go after monsters on the other side of a warp portal
+	if( pc_autohunt_path_warp( sd->m, sd->x, sd->y, wpd ) )
 		return 0;
 
 	*best = bl;
@@ -17314,6 +17331,12 @@ static void pc_autohunt_randomwalk( map_session_data& sd ){
 			if( steps < 3 )
 				continue;
 
+			// The real walk path can bend around corners, so check it for warp portals too
+			walkpath_data wpd;
+
+			if( !path_search( &wpd, sd.m, sd.x, sd.y, x, y, 0, CELL_CHKNOREACH ) || pc_autohunt_path_warp( sd.m, sd.x, sd.y, wpd ) )
+				continue;
+
 			if( unit_walktoxy( &sd, x, y, 0 ) ){
 				sd.autohunt.walk_dir = static_cast<uint8>( dir );
 				return;
@@ -17433,6 +17456,17 @@ static TIMER_FUNC(pc_autohunt_timer){
 		pc_autohunt_set_autoloot( *sd );
 		pc_autohunt_potion( *sd, true );
 		pc_autohunt_potion( *sd, false );
+
+		// Never walk into a warp portal: the path to a moving monster is recalculated while chasing it
+		if( sd->ud.walktimer != INVALID_TIMER && pc_autohunt_path_warp( sd->m, sd->x, sd->y, sd->ud.walkpath ) ){
+			unit_stop_walking( sd, USW_FIXPOS );
+
+			if( sd->autohunt.target_id != 0 ){
+				sd->autohunt.ignore_id = sd->autohunt.target_id;
+				sd->autohunt.target_id = 0;
+				unit_stop_attack( sd );
+			}
+		}
 
 		// Busy: casting, talking to an NPC or sitting
 		if( sd->ud.skilltimer == INVALID_TIMER && sd->npc_id == 0 && !pc_issit( sd ) && !pc_autohunt_buff( *sd, tick ) ){
