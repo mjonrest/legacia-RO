@@ -16897,6 +16897,7 @@ TIMER_FUNC(pc_autotrade_timer){
  *   AH_IGNORE[0..19]          : monster IDs to skip
  *   AH_HITMVP                 : 1 = attack MVPs (only if the server allows it)
  *   AH_TELE                   : seconds without a monster before teleporting (0 = server default, -1 = never)
+ *   AH_TELETYPE               : 0 = auto, 1 = Teleport skill, 2 = Infinite Fly Wing, 3 = Fly Wing
  *   AH_FREE_DAY, AH_FREE_LEFT : today's free time (seconds left), see autohunt_free_time
  *                               (#AH_FREE_* per account, $AH_DEV_* / $AH_IP_* per device, see autohunt_free_share)
  *   AH_PAID_TIME              : bought time in seconds (Autohunt Time tickets)
@@ -17073,29 +17074,45 @@ static bool pc_autohunt_buff( map_session_data& sd, t_tick tick ){
 	return false;
 }
 
-/// Teleports to a random spot on the map with the Teleport skill or a Fly Wing
+/// Teleports to a random spot on the map with the Teleport skill or a Fly Wing.
+/// AH_TELETYPE picks the way: 0 = auto (skill, Infinite Fly Wing, Fly Wing), 1 = skill, 2 = Infinite Fly Wing, 3 = Fly Wing
 static bool pc_autohunt_teleport( map_session_data& sd ){
 	if( map_getmapflag( sd.m, MF_NOTELEPORT ) )
 		return false;
 
-	if( pc_checkskill( &sd, AL_TELEPORT ) > 0 ){
+	int64 type = pc_autohunt_var( sd, "AH_TELETYPE" );
+
+	if( ( type == 0 || type == 1 ) && pc_checkskill( &sd, AL_TELEPORT ) > 0 ){
 		int32 sp = skill_get_sp( AL_TELEPORT, 1 );
 
 		if( sd.battle_status.sp >= static_cast<uint32>( sp ) ){
-			status_zap( &sd, 0, sp );
-			pc_randomwarp( &sd, CLR_TELEPORT );
-			return true;
+			if( pc_randomwarp( &sd, CLR_TELEPORT ) == 0 ){
+				status_zap( &sd, 0, sp );
+				return true;
+			}
 		}
 	}
 
-	for( t_itemid nameid : { AUTOHUNT_INFINITE_FLYWING, AUTOHUNT_FLYWING } ){
-		int16 idx = pc_search_inventory( &sd, nameid );
+	// Fly Wings are used here directly: their item script only asks the client to cast Teleport,
+	// which can take a while (or never happen while walking, or offline without a client)
+	int16 idx = -1;
+	bool consume = false;
 
-		if( idx >= 0 && pc_useitem( &sd, idx ) )
-			return true;
+	if( type == 0 || type == 2 )
+		idx = pc_search_inventory( &sd, AUTOHUNT_INFINITE_FLYWING );
+
+	if( idx < 0 && ( type == 0 || type == 3 ) ){
+		idx = pc_search_inventory( &sd, AUTOHUNT_FLYWING );
+		consume = true;
 	}
 
-	return false;
+	if( idx < 0 || pc_randomwarp( &sd, CLR_TELEPORT ) != 0 )
+		return false;
+
+	if( consume )
+		pc_delitem( &sd, idx, 1, 0, 0, LOG_TYPE_CONSUME );
+
+	return true;
 }
 
 /// Where the free time is counted: character, account, device
@@ -17379,6 +17396,13 @@ static TIMER_FUNC(pc_autohunt_timer){
 		}
 	}
 
+	// Send the time balance to the database every minute instead of waiting for the autosave,
+	// so a server restart or crash loses at most a minute of used time
+	if( DIFF_TICK( tick, sd->autohunt.save_tick ) >= 60000 ){
+		sd->autohunt.save_tick = tick;
+		intif_saveregistry( sd );
+	}
+
 	// Offline characters have no client to finish a warp, so do it for them
 	if( sd->autohunt.offline && sd->prev == nullptr && sd->state.active )
 		clif_parse_LoadEndAck( sd->fd, sd );
@@ -17487,6 +17511,7 @@ bool pc_autohunt_start( map_session_data& sd ){
 	sd.autohunt.target_hp = 0;
 	sd.autohunt.target_tick = tick;
 	sd.autohunt.last_tick = tick;
+	sd.autohunt.save_tick = tick;
 	sd.autohunt.time_ms = 0;
 	sd.autohunt.saved_autoloot = sd.state.autoloot;
 
@@ -17568,6 +17593,7 @@ void pc_autohunt_stop( map_session_data& sd, const char* reason ){
 
 	sd.state.autoloot = sd.autohunt.saved_autoloot;
 	sd.autohunt.target_id = 0;
+	intif_saveregistry( &sd ); // save the time balance now
 
 	if( sd.prev != nullptr ){
 		unit_stop_attack( &sd );
