@@ -11810,8 +11810,6 @@ static const struct _battle_data {
 	{ "feature.bgqueue",                    &battle_config.feature_bgqueue,                 1,      0,      1,              },
 	{ "bgqueue_nowarp_mapflag",             &battle_config.bgqueue_nowarp_mapflag,          0,      0,      1,              },
 	{ "homunculus_exp_gain",                &battle_config.homunculus_exp_gain,             10,     0,      100,            },
-	{ "homunculus_growth_rate",             &battle_config.homunculus_growth_rate,          100,    0,      10000,          },
-	{ "homunculus_evo_growth_rate",         &battle_config.homunculus_evo_growth_rate,      100,    0,      10000,          },
 	{ "rental_item_novalue",                &battle_config.rental_item_novalue,             1,      0,      1,              },
 	{ "ping_timer_inverval",                &battle_config.ping_timer_interval,             30,     0,      99999999,       },
 	{ "ping_time",                          &battle_config.ping_time,                       20,     0,      99999999,       },

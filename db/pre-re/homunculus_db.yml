@@ -63,52 +63,52 @@ Body:
     Status:
       - Type: Hp
         Base: 150
-        GrowthMinimum: 60
-        GrowthMaximum: 100
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 180
+        GrowthMaximum: 300
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Sp
         Base: 40
-        GrowthMinimum: 4
-        GrowthMaximum: 9
-        EvolutionMinimum: 10
-        EvolutionMaximum: 20
+        GrowthMinimum: 12
+        GrowthMaximum: 27
+        EvolutionMinimum: 30
+        EvolutionMaximum: 60
       - Type: Str
         Base: 17
-        GrowthMinimum: 5
-        GrowthMaximum: 19
-        EvolutionMinimum: 1
-        EvolutionMaximum: 5
+        GrowthMinimum: 15
+        GrowthMaximum: 57
+        EvolutionMinimum: 3
+        EvolutionMaximum: 15
       - Type: Agi
         Base: 20
-        GrowthMinimum: 5
-        GrowthMaximum: 19
-        EvolutionMinimum: 1
-        EvolutionMaximum: 4
+        GrowthMinimum: 15
+        GrowthMaximum: 57
+        EvolutionMinimum: 3
+        EvolutionMaximum: 12
       - Type: Vit
         Base: 15
-        GrowthMinimum: 5
-        GrowthMaximum: 19
-        EvolutionMinimum: 1
-        EvolutionMaximum: 5
+        GrowthMinimum: 15
+        GrowthMaximum: 57
+        EvolutionMinimum: 3
+        EvolutionMaximum: 15
       - Type: Int
         Base: 35
-        GrowthMinimum: 4
-        GrowthMaximum: 20
-        EvolutionMinimum: 4
-        EvolutionMaximum: 10
+        GrowthMinimum: 12
+        GrowthMaximum: 60
+        EvolutionMinimum: 12
+        EvolutionMaximum: 30
       - Type: Dex
         Base: 24
-        GrowthMinimum: 6
-        GrowthMaximum: 20
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 18
+        GrowthMaximum: 60
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Luk
         Base: 12
-        GrowthMinimum: 6
-        GrowthMaximum: 20
-        EvolutionMinimum: 1
-        EvolutionMaximum: 3
+        GrowthMinimum: 18
+        GrowthMaximum: 60
+        EvolutionMinimum: 3
+        EvolutionMaximum: 9
     SkillTree:
       - Skill: HLIF_HEAL
         MaxLevel: 5
@@ -134,52 +134,52 @@ Body:
     Status:
       - Type: Hp
         Base: 320
-        GrowthMinimum: 80
-        GrowthMaximum: 130
-        EvolutionMinimum: 10
-        EvolutionMaximum: 20
+        GrowthMinimum: 240
+        GrowthMaximum: 390
+        EvolutionMinimum: 30
+        EvolutionMaximum: 60
       - Type: Sp
         Base: 10
-        GrowthMinimum: 1
-        GrowthMaximum: 4
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 3
+        GrowthMaximum: 12
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Str
         Base: 20
-        GrowthMinimum: 8
-        GrowthMaximum: 20
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 24
+        GrowthMaximum: 60
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Agi
         Base: 17
-        GrowthMinimum: 4
-        GrowthMaximum: 20
-        EvolutionMinimum: 1
-        EvolutionMaximum: 5
+        GrowthMinimum: 12
+        GrowthMaximum: 60
+        EvolutionMinimum: 3
+        EvolutionMaximum: 15
       - Type: Vit
         Base: 35
-        GrowthMinimum: 4
-        GrowthMaximum: 20
-        EvolutionMinimum: 4
-        EvolutionMaximum: 10
+        GrowthMinimum: 12
+        GrowthMaximum: 60
+        EvolutionMinimum: 12
+        EvolutionMaximum: 30
       - Type: Int
         Base: 11
-        GrowthMinimum: 1
-        GrowthMaximum: 10
-        EvolutionMinimum: 1
-        EvolutionMaximum: 3
+        GrowthMinimum: 3
+        GrowthMaximum: 30
+        EvolutionMinimum: 3
+        EvolutionMaximum: 9
       - Type: Dex
         Base: 24
-        GrowthMinimum: 3
-        GrowthMaximum: 19
-        EvolutionMinimum: 1
-        EvolutionMaximum: 4
+        GrowthMinimum: 9
+        GrowthMaximum: 57
+        EvolutionMinimum: 3
+        EvolutionMaximum: 12
       - Type: Luk
         Base: 12
-        GrowthMinimum: 3
-        GrowthMaximum: 19
-        EvolutionMinimum: 1
-        EvolutionMaximum: 5
+        GrowthMinimum: 9
+        GrowthMaximum: 57
+        EvolutionMinimum: 3
+        EvolutionMaximum: 15
     SkillTree:
       - Skill: HAMI_CASTLE
         MaxLevel: 5
@@ -205,52 +205,52 @@ Body:
     Status:
       - Type: Hp
         Base: 90
-        GrowthMinimum: 45
-        GrowthMaximum: 75
-        EvolutionMinimum: 5
-        EvolutionMaximum: 15
+        GrowthMinimum: 135
+        GrowthMaximum: 225
+        EvolutionMinimum: 15
+        EvolutionMaximum: 45
       - Type: Sp
         Base: 25
-        GrowthMinimum: 3
-        GrowthMaximum: 6
-        EvolutionMinimum: 5
-        EvolutionMaximum: 15
+        GrowthMinimum: 9
+        GrowthMaximum: 18
+        EvolutionMinimum: 15
+        EvolutionMaximum: 45
       - Type: Str
         Base: 29
-        GrowthMinimum: 4
-        GrowthMaximum: 20
-        EvolutionMinimum: 4
-        EvolutionMaximum: 10
+        GrowthMinimum: 12
+        GrowthMaximum: 60
+        EvolutionMinimum: 12
+        EvolutionMaximum: 30
       - Type: Agi
         Base: 35
-        GrowthMinimum: 8
-        GrowthMaximum: 20
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 24
+        GrowthMaximum: 60
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Vit
         Base: 9
-        GrowthMinimum: 1
-        GrowthMaximum: 10
-        EvolutionMinimum: 1
-        EvolutionMaximum: 3
+        GrowthMinimum: 3
+        GrowthMaximum: 30
+        EvolutionMinimum: 3
+        EvolutionMaximum: 9
       - Type: Int
         Base: 8
-        GrowthMinimum: 3
-        GrowthMaximum: 19
-        EvolutionMinimum: 1
-        EvolutionMaximum: 4
+        GrowthMinimum: 9
+        GrowthMaximum: 57
+        EvolutionMinimum: 3
+        EvolutionMaximum: 12
       - Type: Dex
         Base: 30
-        GrowthMinimum: 4
-        GrowthMaximum: 20
-        EvolutionMinimum: 1
-        EvolutionMaximum: 5
+        GrowthMinimum: 12
+        GrowthMaximum: 60
+        EvolutionMinimum: 3
+        EvolutionMaximum: 15
       - Type: Luk
         Base: 9
-        GrowthMinimum: 3
-        GrowthMaximum: 19
-        EvolutionMinimum: 1
-        EvolutionMaximum: 5
+        GrowthMinimum: 9
+        GrowthMaximum: 57
+        EvolutionMinimum: 3
+        EvolutionMaximum: 15
     SkillTree:
       - Skill: HFLI_MOON
         MaxLevel: 5
@@ -276,52 +276,52 @@ Body:
     Status:
       - Type: Hp
         Base: 80
-        GrowthMinimum: 30
-        GrowthMaximum: 150
-        EvolutionMinimum: 1
-        EvolutionMaximum: 30
+        GrowthMinimum: 90
+        GrowthMaximum: 450
+        EvolutionMinimum: 3
+        EvolutionMaximum: 90
       - Type: Sp
         Base: 11
         GrowthMinimum: 0
-        GrowthMaximum: 7
-        EvolutionMinimum: 1
-        EvolutionMaximum: 30
+        GrowthMaximum: 21
+        EvolutionMinimum: 3
+        EvolutionMaximum: 90
       - Type: Str
         Base: 11
-        GrowthMinimum: 1
-        GrowthMaximum: 30
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 3
+        GrowthMaximum: 90
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Agi
         Base: 11
-        GrowthMinimum: 1
-        GrowthMaximum: 30
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 3
+        GrowthMaximum: 90
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Vit
         Base: 11
-        GrowthMinimum: 1
-        GrowthMaximum: 30
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 3
+        GrowthMaximum: 90
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Int
         Base: 11
-        GrowthMinimum: 1
-        GrowthMaximum: 30
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 3
+        GrowthMaximum: 90
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Dex
         Base: 11
-        GrowthMinimum: 1
-        GrowthMaximum: 30
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 3
+        GrowthMaximum: 90
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Luk
         Base: 11
-        GrowthMinimum: 1
-        GrowthMaximum: 30
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 3
+        GrowthMaximum: 90
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
     SkillTree:
       - Skill: HVAN_CAPRICE
         MaxLevel: 5
@@ -345,52 +345,52 @@ Body:
     Status:
       - Type: Hp
         Base: 150
-        GrowthMinimum: 60
-        GrowthMaximum: 100
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 180
+        GrowthMaximum: 300
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Sp
         Base: 40
-        GrowthMinimum: 4
-        GrowthMaximum: 9
-        EvolutionMinimum: 10
-        EvolutionMaximum: 20
+        GrowthMinimum: 12
+        GrowthMaximum: 27
+        EvolutionMinimum: 30
+        EvolutionMaximum: 60
       - Type: Str
         Base: 17
-        GrowthMinimum: 5
-        GrowthMaximum: 19
-        EvolutionMinimum: 1
-        EvolutionMaximum: 5
+        GrowthMinimum: 15
+        GrowthMaximum: 57
+        EvolutionMinimum: 3
+        EvolutionMaximum: 15
       - Type: Agi
         Base: 20
-        GrowthMinimum: 5
-        GrowthMaximum: 19
-        EvolutionMinimum: 1
-        EvolutionMaximum: 4
+        GrowthMinimum: 15
+        GrowthMaximum: 57
+        EvolutionMinimum: 3
+        EvolutionMaximum: 12
       - Type: Vit
         Base: 15
-        GrowthMinimum: 5
-        GrowthMaximum: 19
-        EvolutionMinimum: 1
-        EvolutionMaximum: 5
+        GrowthMinimum: 15
+        GrowthMaximum: 57
+        EvolutionMinimum: 3
+        EvolutionMaximum: 15
       - Type: Int
         Base: 35
-        GrowthMinimum: 4
-        GrowthMaximum: 20
-        EvolutionMinimum: 4
-        EvolutionMaximum: 10
+        GrowthMinimum: 12
+        GrowthMaximum: 60
+        EvolutionMinimum: 12
+        EvolutionMaximum: 30
       - Type: Dex
         Base: 24
-        GrowthMinimum: 6
-        GrowthMaximum: 20
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 18
+        GrowthMaximum: 60
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Luk
         Base: 12
-        GrowthMinimum: 6
-        GrowthMaximum: 20
-        EvolutionMinimum: 1
-        EvolutionMaximum: 3
+        GrowthMinimum: 18
+        GrowthMaximum: 60
+        EvolutionMinimum: 3
+        EvolutionMaximum: 9
     SkillTree:
       - Skill: HLIF_HEAL
         MaxLevel: 5
@@ -416,52 +416,52 @@ Body:
     Status:
       - Type: Hp
         Base: 320
-        GrowthMinimum: 80
-        GrowthMaximum: 130
-        EvolutionMinimum: 10
-        EvolutionMaximum: 20
+        GrowthMinimum: 240
+        GrowthMaximum: 390
+        EvolutionMinimum: 30
+        EvolutionMaximum: 60
       - Type: Sp
         Base: 10
-        GrowthMinimum: 1
-        GrowthMaximum: 4
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 3
+        GrowthMaximum: 12
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Str
         Base: 20
-        GrowthMinimum: 8
-        GrowthMaximum: 20
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 24
+        GrowthMaximum: 60
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Agi
         Base: 17
-        GrowthMinimum: 4
-        GrowthMaximum: 20
-        EvolutionMinimum: 1
-        EvolutionMaximum: 5
+        GrowthMinimum: 12
+        GrowthMaximum: 60
+        EvolutionMinimum: 3
+        EvolutionMaximum: 15
       - Type: Vit
         Base: 35
-        GrowthMinimum: 4
-        GrowthMaximum: 20
-        EvolutionMinimum: 4
-        EvolutionMaximum: 10
+        GrowthMinimum: 12
+        GrowthMaximum: 60
+        EvolutionMinimum: 12
+        EvolutionMaximum: 30
       - Type: Int
         Base: 11
-        GrowthMinimum: 1
-        GrowthMaximum: 10
-        EvolutionMinimum: 1
-        EvolutionMaximum: 3
+        GrowthMinimum: 3
+        GrowthMaximum: 30
+        EvolutionMinimum: 3
+        EvolutionMaximum: 9
       - Type: Dex
         Base: 24
-        GrowthMinimum: 3
-        GrowthMaximum: 19
-        EvolutionMinimum: 1
-        EvolutionMaximum: 4
+        GrowthMinimum: 9
+        GrowthMaximum: 57
+        EvolutionMinimum: 3
+        EvolutionMaximum: 12
       - Type: Luk
         Base: 12
-        GrowthMinimum: 3
-        GrowthMaximum: 19
-        EvolutionMinimum: 1
-        EvolutionMaximum: 5
+        GrowthMinimum: 9
+        GrowthMaximum: 57
+        EvolutionMinimum: 3
+        EvolutionMaximum: 15
     SkillTree:
       - Skill: HAMI_CASTLE
         MaxLevel: 5
@@ -487,52 +487,52 @@ Body:
     Status:
       - Type: Hp
         Base: 90
-        GrowthMinimum: 45
-        GrowthMaximum: 75
-        EvolutionMinimum: 5
-        EvolutionMaximum: 15
+        GrowthMinimum: 135
+        GrowthMaximum: 225
+        EvolutionMinimum: 15
+        EvolutionMaximum: 45
       - Type: Sp
         Base: 25
-        GrowthMinimum: 3
-        GrowthMaximum: 6
-        EvolutionMinimum: 5
-        EvolutionMaximum: 15
+        GrowthMinimum: 9
+        GrowthMaximum: 18
+        EvolutionMinimum: 15
+        EvolutionMaximum: 45
       - Type: Str
         Base: 29
-        GrowthMinimum: 4
-        GrowthMaximum: 20
-        EvolutionMinimum: 4
-        EvolutionMaximum: 10
+        GrowthMinimum: 12
+        GrowthMaximum: 60
+        EvolutionMinimum: 12
+        EvolutionMaximum: 30
       - Type: Agi
         Base: 35
-        GrowthMinimum: 8
-        GrowthMaximum: 20
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 24
+        GrowthMaximum: 60
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Vit
         Base: 9
-        GrowthMinimum: 1
-        GrowthMaximum: 10
-        EvolutionMinimum: 1
-        EvolutionMaximum: 3
+        GrowthMinimum: 3
+        GrowthMaximum: 30
+        EvolutionMinimum: 3
+        EvolutionMaximum: 9
       - Type: Int
         Base: 8
-        GrowthMinimum: 3
-        GrowthMaximum: 19
-        EvolutionMinimum: 1
-        EvolutionMaximum: 4
+        GrowthMinimum: 9
+        GrowthMaximum: 57
+        EvolutionMinimum: 3
+        EvolutionMaximum: 12
       - Type: Dex
         Base: 30
-        GrowthMinimum: 4
-        GrowthMaximum: 20
-        EvolutionMinimum: 1
-        EvolutionMaximum: 5
+        GrowthMinimum: 12
+        GrowthMaximum: 60
+        EvolutionMinimum: 3
+        EvolutionMaximum: 15
       - Type: Luk
         Base: 9
-        GrowthMinimum: 3
-        GrowthMaximum: 19
-        EvolutionMinimum: 1
-        EvolutionMaximum: 5
+        GrowthMinimum: 9
+        GrowthMaximum: 57
+        EvolutionMinimum: 3
+        EvolutionMaximum: 15
     SkillTree:
       - Skill: HFLI_MOON
         MaxLevel: 5
@@ -558,52 +558,52 @@ Body:
     Status:
       - Type: Hp
         Base: 80
-        GrowthMinimum: 30
-        GrowthMaximum: 150
-        EvolutionMinimum: 1
-        EvolutionMaximum: 30
+        GrowthMinimum: 90
+        GrowthMaximum: 450
+        EvolutionMinimum: 3
+        EvolutionMaximum: 90
       - Type: Sp
         Base: 11
         GrowthMinimum: 0
-        GrowthMaximum: 7
-        EvolutionMinimum: 1
-        EvolutionMaximum: 30
+        GrowthMaximum: 21
+        EvolutionMinimum: 3
+        EvolutionMaximum: 90
       - Type: Str
         Base: 11
-        GrowthMinimum: 1
-        GrowthMaximum: 30
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 3
+        GrowthMaximum: 90
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Agi
         Base: 11
-        GrowthMinimum: 1
-        GrowthMaximum: 30
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 3
+        GrowthMaximum: 90
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Vit
         Base: 11
-        GrowthMinimum: 1
-        GrowthMaximum: 30
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 3
+        GrowthMaximum: 90
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Int
         Base: 11
-        GrowthMinimum: 1
-        GrowthMaximum: 30
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 3
+        GrowthMaximum: 90
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Dex
         Base: 11
-        GrowthMinimum: 1
-        GrowthMaximum: 30
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 3
+        GrowthMaximum: 90
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
       - Type: Luk
         Base: 11
-        GrowthMinimum: 1
-        GrowthMaximum: 30
-        EvolutionMinimum: 1
-        EvolutionMaximum: 10
+        GrowthMinimum: 3
+        GrowthMaximum: 90
+        EvolutionMinimum: 3
+        EvolutionMaximum: 30
     SkillTree:
       - Skill: HVAN_CAPRICE
         MaxLevel: 5

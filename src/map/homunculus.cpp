@@ -476,39 +476,6 @@ void hom_skillup(homun_data *hd, uint16 skill_id)
 	}
 }
 
-
-/**
- * Roll one stat growth value, scaled by a percentage rate
- * @param min: Minimum growth
- * @param max: Maximum growth
- * @param rate: Growth rate in percent (100 = official)
- * @return Scaled growth value
- */
-static int32 hom_growth_value(int32 min, int32 max, int32 rate)
-{
-	return static_cast<int32>(static_cast<int64>(rnd_value(min, max)) * rate / 100);
-}
-
-/**
- * Apply evolution stat bonuses, scaled by homunculus_evo_growth_rate
- * @param hom: Homunculus
- * @param min: Minimum evolution bonus
- * @param max: Maximum evolution bonus
- */
-static void hom_evolution_bonus(s_homunculus *hom, s_hom_stats *min, s_hom_stats *max)
-{
-	int32 rate = battle_config.homunculus_evo_growth_rate;
-
-	hom->max_hp += hom_growth_value(min->HP, max->HP, rate);
-	hom->max_sp += hom_growth_value(min->SP, max->SP, rate);
-	hom->str += 10*hom_growth_value(min->str, max->str, rate);
-	hom->agi += 10*hom_growth_value(min->agi, max->agi, rate);
-	hom->vit += 10*hom_growth_value(min->vit, max->vit, rate);
-	hom->int_+= 10*hom_growth_value(min->int_, max->int_, rate);
-	hom->dex += 10*hom_growth_value(min->dex, max->dex, rate);
-	hom->luk += 10*hom_growth_value(min->luk, max->luk, rate);
-}
-
 /**
 * Homunculus leveled up
 * @param hd
@@ -556,15 +523,14 @@ int32 hom_levelup(homun_data *hd)
 		min  = &hd->homunculusDB->gmin;
 	}
 
-	int32 rate = battle_config.homunculus_growth_rate;
-	int32 growth_max_hp = hom_growth_value(min->HP, max->HP, rate);
-	int32 growth_max_sp = hom_growth_value(min->SP, max->SP, rate);
-	int32 growth_str = hom_growth_value(min->str, max->str, rate);
-	int32 growth_agi = hom_growth_value(min->agi, max->agi, rate);
-	int32 growth_vit = hom_growth_value(min->vit, max->vit, rate);
-	int32 growth_dex = hom_growth_value(min->dex, max->dex, rate);
-	int32 growth_int = hom_growth_value(min->int_,max->int_, rate);
-	int32 growth_luk = hom_growth_value(min->luk, max->luk, rate);
+	int32 growth_max_hp = rnd_value(min->HP, max->HP);
+	int32 growth_max_sp = rnd_value(min->SP, max->SP);
+	int32 growth_str = rnd_value(min->str, max->str);
+	int32 growth_agi = rnd_value(min->agi, max->agi);
+	int32 growth_vit = rnd_value(min->vit, max->vit);
+	int32 growth_dex = rnd_value(min->dex, max->dex);
+	int32 growth_int = rnd_value(min->int_,max->int_);
+	int32 growth_luk = rnd_value(min->luk, max->luk);
 
 	//Aegis discards the decimals in the stat growth values!
 	growth_str-=growth_str%10;
@@ -650,7 +616,14 @@ int32 hom_evolution(homun_data *hd)
 	s_hom_stats *max = &hd->homunculusDB->emax;
 	s_hom_stats *min = &hd->homunculusDB->emin;
 
-	hom_evolution_bonus(hom, min, max);
+	hom->max_hp += rnd_value(min->HP, max->HP);
+	hom->max_sp += rnd_value(min->SP, max->SP);
+	hom->str += 10*rnd_value(min->str, max->str);
+	hom->agi += 10*rnd_value(min->agi, max->agi);
+	hom->vit += 10*rnd_value(min->vit, max->vit);
+	hom->int_+= 10*rnd_value(min->int_,max->int_);
+	hom->dex += 10*rnd_value(min->dex, max->dex);
+	hom->luk += 10*rnd_value(min->luk, max->luk);
 	hom->intimacy = battle_config.homunculus_evo_intimacy_reset;
 
 	clif_class_change( *hd, hd->homunculusDB->evo_class );
@@ -1441,7 +1414,14 @@ int32 hom_shuffle(homun_data *hd)
 		struct s_homunculus *hom = &hd->homunculus;
 		struct s_hom_stats *max = &hd->homunculusDB->emax, *min = &hd->homunculusDB->emin;
 
-		hom_evolution_bonus(hom, min, max);
+		hom->max_hp += rnd_value(min->HP, max->HP);
+		hom->max_sp += rnd_value(min->SP, max->SP);
+		hom->str += 10*rnd_value(min->str, max->str);
+		hom->agi += 10*rnd_value(min->agi, max->agi);
+		hom->vit += 10*rnd_value(min->vit, max->vit);
+		hom->int_+= 10*rnd_value(min->int_,max->int_);
+		hom->dex += 10*rnd_value(min->dex, max->dex);
+		hom->luk += 10*rnd_value(min->luk, max->luk);
 	}
 
 	hd->homunculus.exp = exp;
