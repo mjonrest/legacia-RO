@@ -16897,6 +16897,7 @@ TIMER_FUNC(pc_autotrade_timer){
  *   AH_IGNORE[0..19]          : monster IDs to skip
  *   AH_HITMVP                 : 1 = attack MVPs (only if the server allows it)
  *   AH_TELE                   : seconds without a monster before teleporting (0 = server default, -1 = never)
+ *   AH_TELETYPE               : 0 = auto, 1 = Teleport skill, 2 = Infinite Fly Wing, 3 = Fly Wing
  *   AH_FREE_DAY, AH_FREE_LEFT : today's free time (seconds left), see autohunt_free_time
  *                               (#AH_FREE_* per account, $AH_DEV_* / $AH_IP_* per device, see autohunt_free_share)
  *   AH_PAID_TIME              : bought time in seconds (Autohunt Time tickets)
@@ -17073,12 +17074,15 @@ static bool pc_autohunt_buff( map_session_data& sd, t_tick tick ){
 	return false;
 }
 
-/// Teleports to a random spot on the map with the Teleport skill or a Fly Wing
+/// Teleports to a random spot on the map with the Teleport skill or a Fly Wing.
+/// AH_TELETYPE picks the way: 0 = auto (skill, Infinite Fly Wing, Fly Wing), 1 = skill, 2 = Infinite Fly Wing, 3 = Fly Wing
 static bool pc_autohunt_teleport( map_session_data& sd ){
 	if( map_getmapflag( sd.m, MF_NOTELEPORT ) )
 		return false;
 
-	if( pc_checkskill( &sd, AL_TELEPORT ) > 0 ){
+	int64 type = pc_autohunt_var( sd, "AH_TELETYPE" );
+
+	if( ( type == 0 || type == 1 ) && pc_checkskill( &sd, AL_TELEPORT ) > 0 ){
 		int32 sp = skill_get_sp( AL_TELEPORT, 1 );
 
 		if( sd.battle_status.sp >= static_cast<uint32>( sp ) ){
@@ -17091,10 +17095,13 @@ static bool pc_autohunt_teleport( map_session_data& sd ){
 
 	// Fly Wings are used here directly: their item script only asks the client to cast Teleport,
 	// which can take a while (or never happen while walking, or offline without a client)
+	int16 idx = -1;
 	bool consume = false;
-	int16 idx = pc_search_inventory( &sd, AUTOHUNT_INFINITE_FLYWING );
 
-	if( idx < 0 ){
+	if( type == 0 || type == 2 )
+		idx = pc_search_inventory( &sd, AUTOHUNT_INFINITE_FLYWING );
+
+	if( idx < 0 && ( type == 0 || type == 3 ) ){
 		idx = pc_search_inventory( &sd, AUTOHUNT_FLYWING );
 		consume = true;
 	}
