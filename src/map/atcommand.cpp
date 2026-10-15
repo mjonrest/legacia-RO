@@ -7012,6 +7012,104 @@ ACMD_FUNC(partyoption)
 }
 
 /*==========================================
+ * @autohunt - Lets the character hunt monsters on its own
+ *   @autohunt          : turn on/off
+ *   @autohunt offline  : keep hunting after you log out
+ * Skills, buffs, potions, ignored monsters and the rest are set
+ * through the Autohunt NPC (npc/miracle/autohunt.txt, opened with @ah).
+ *------------------------------------------*/
+ACMD_FUNC(autohunt)
+{
+	char sub[32] = "";
+
+	nullpo_retr(-1, sd);
+
+	if (!battle_config.feature_autohunt) {
+		clif_displaymessage(fd, "Autohunt is disabled on this server.");
+		return -1;
+	}
+
+	if (message && *message)
+		sscanf(message, "%31s", sub);
+
+	bool offline = !strcmpi(sub, "offline");
+
+	if (*sub && !offline && strcmpi(sub, "on") && strcmpi(sub, "off")) {
+		clif_displaymessage(fd, "Usage: @autohunt [on|off|offline]. Type @ah to change your autohunt settings.");
+		return -1;
+	}
+
+	// Turn off (explicit "off", or toggle while running)
+	if (!strcmpi(sub, "off") || (!*sub && sd->autohunt.active)) {
+		if (!sd->autohunt.active) {
+			clif_displaymessage(fd, "Autohunt is not running.");
+			return -1;
+		}
+		pc_autohunt_stop(*sd);
+		clif_displaymessage(fd, "Autohunt is now OFF.");
+		return 0;
+	}
+
+	if (!sd->autohunt.active) {
+		if (pc_isdead(sd)) {
+			clif_displaymessage(fd, "You cannot autohunt while dead.");
+			return -1;
+		}
+
+		if (map_flag_vs(sd->m)) {
+			clif_displaymessage(fd, "Autohunt is not allowed on PvP, GvG or Battleground maps.");
+			return -1;
+		}
+
+		if (sd->state.vending || sd->state.buyingstore || sd->state.autotrade || sd->chatID) {
+			clif_displaymessage(fd, "Close your shop or chat room first.");
+			return -1;
+		}
+
+		if (pc_getpercentweight(*sd) >= 90) {
+			clif_displaymessage(fd, "You are carrying too much to autohunt.");
+			return -1;
+		}
+
+		if (pc_autohunt_timeleft(*sd) == 0) {
+			clif_displaymessage(fd, "You have no autohunt time left. Free time comes back tomorrow, or buy more in the Cash Shop.");
+			return -1;
+		}
+	}
+
+	if (offline && !battle_config.autohunt_allow_offline) {
+		clif_displaymessage(fd, "Offline autohunt is disabled on this server.");
+		return -1;
+	}
+
+	if (!sd->autohunt.active) {
+		int64 left = pc_autohunt_timeleft(*sd);
+
+		pc_autohunt_start(*sd);
+		if (left > 0)
+			sprintf(atcmd_output, "Autohunt is now ON (%d h %02d min left). Type @autohunt again to stop.", (int32)(left / 3600), (int32)(left % 3600 / 60));
+		else
+			sprintf(atcmd_output, "Autohunt is now ON. Type @autohunt again to stop.");
+		clif_displaymessage(fd, atcmd_output);
+	} else if (!offline) {
+		clif_displaymessage(fd, "Autohunt is already ON.");
+		return 0;
+	}
+
+	if (offline) {
+		// Same as @autotrade: the character stays in game without a client
+		sd->autohunt.offline = true;
+		sd->autohunt.start_tick = gettick();
+		sd->state.autotrade = 1;
+		channel_pcquit(sd, 0xF); // leave all channels
+		clif_authfail_fd(sd->fd, 15);
+		chrif_save(sd, CSAVE_AUTOTRADE);
+	}
+
+	return 0;
+}
+
+/*==========================================
  * @autoloot by Upa-Kun
  * Turns on/off AutoLoot for a specific player
  *------------------------------------------*/
@@ -12372,6 +12470,7 @@ void atcommand_basecommands(void) {
 		ACMD_DEF(showzeny),
 		ACMD_DEF(showdelay),
 		ACMD_DEF(autotrade),
+		ACMD_DEF(autohunt),
 		ACMD_DEF(changegm),
 		ACMD_DEF(changeleader),
 		ACMD_DEF(partyoption),

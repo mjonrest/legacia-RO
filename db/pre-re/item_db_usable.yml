@@ -22103,3 +22103,51 @@ Body:
       Third_Upper: true
       Third_Baby: true
     EquipLevelMin: 1
+  - Id: 300022
+    AegisName: Autohunt_Time_1H
+    Name: Autohunt Time 1 Hour
+    Type: Usable
+    Weight: 1
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoStorage: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      callfunc "F_AH_AddTime", 60;
+  - Id: 300023
+    AegisName: Autohunt_Time_5H
+    Name: Autohunt Time 5 Hours
+    Type: Usable
+    Weight: 1
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoStorage: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      callfunc "F_AH_AddTime", 300;
+  - Id: 300024
+    AegisName: Autohunt_Time_24H
+    Name: Autohunt Time 24 Hours
+    Type: Usable
+    Weight: 1
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoStorage: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      callfunc "F_AH_AddTime", 1440;

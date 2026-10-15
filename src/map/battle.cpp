@@ -11899,6 +11899,22 @@ static const struct _battle_data {
 	{ "trade_count_stackable",              &battle_config.trade_count_stackable,           1,      0,      1,              },
 	{ "enable_bonus_map_drops",             &battle_config.enable_bonus_map_drops,          1,      0,      1,              },
 	{ "hide_cloaked_units",                 &battle_config.hide_cloaked_units,              0,      0,      BL_ALL,         },
+	{ "feature.autohunt",                   &battle_config.feature_autohunt,                1,      0,      1,              },
+	{ "autohunt_interval",                  &battle_config.autohunt_interval,               300,    100,    5000,           },
+	{ "autohunt_search_range",              &battle_config.autohunt_search_range,           12,     1,      30,             },
+	{ "autohunt_autoloot",                  &battle_config.autohunt_autoloot,               10000,  0,      10000,          },
+	{ "autohunt_allow_offline",             &battle_config.autohunt_allow_offline,          1,      0,      1,              },
+	{ "autohunt_offline_timeout",           &battle_config.autohunt_offline_timeout,        0,      0,      INT_MAX,        },
+	{ "autohunt_ignore_mvp",                &battle_config.autohunt_ignore_mvp,             0,      0,      1,              },
+	{ "autohunt_ignore_others_mobs",        &battle_config.autohunt_ignore_others_mobs,     1,      0,      1,              },
+	{ "autohunt_flywing_idle",              &battle_config.autohunt_flywing_idle,           10,     0,      INT_MAX,        },
+	{ "autohunt_hp_rate",                   &battle_config.autohunt_hp_rate,                50,     0,      99,             },
+	{ "autohunt_sp_rate",                   &battle_config.autohunt_sp_rate,                20,     0,      99,             },
+	{ "autohunt_time_limit",                &battle_config.autohunt_time_limit,             1,      0,      1,              },
+	{ "autohunt_free_time",                 &battle_config.autohunt_free_time,              60,     0,      1440,           },
+	{ "autohunt_exp_rate",                  &battle_config.autohunt_exp_rate,               50,     0,      100,            },
+	{ "autohunt_drop_rate",                 &battle_config.autohunt_drop_rate,              50,     0,      100,            },
+	{ "autohunt_mastery_rate",              &battle_config.autohunt_mastery_rate,           50,     0,      100,            },
 
 #include <custom/battle_config_init.inc>
 };

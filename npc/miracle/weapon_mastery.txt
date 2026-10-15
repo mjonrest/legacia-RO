@@ -750,6 +750,10 @@ OnWeaponInfo:
 			break;
 	}
 
+	// Penalty while using @autohunt (autohunt_*_rate in conf/battle/feature.conf)
+	if (getbattleflag("feature.autohunt"))
+		dispbottom "Autohunt penalty: you earn " + getbattleflag("autohunt_exp_rate") + "% EXP, " + getbattleflag("autohunt_drop_rate") + "% drop rate and " + getbattleflag("autohunt_mastery_rate") + "% Mastery EXP while autohunting" + (isautohunting() ? " (autohunt is ON)." : ".");
+
 	end;
 
 
@@ -1006,6 +1010,10 @@ L_AddExp:
 	);
 
 	if (.MaxMastery > .@master) {
+
+		// Mastery EXP rate while using @autohunt
+		if (isautohunting())
+			.@bonus = .@bonus * getbattleflag("autohunt_mastery_rate") / 100;
 
 		setd
 			.@sub_M$ + "Exp",

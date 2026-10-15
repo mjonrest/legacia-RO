@@ -3414,6 +3414,8 @@ bool pc_authok(map_session_data *sd, uint32 login_id2, time_t expiration_time, i
 	sd->expiration_tid = INVALID_TIMER;
 	sd->autotrade_tid = INVALID_TIMER;
 	sd->respawn_tid = INVALID_TIMER;
+	sd->autohunt = {};
+	sd->autohunt.tid = INVALID_TIMER;
 	sd->tid_queue_active = INVALID_TIMER;
 	sd->macro_detect.timer = INVALID_TIMER;
 
@@ -9953,6 +9955,12 @@ static void pc_calcexp(map_session_data *sd, t_exp *base_exp, t_exp *job_exp, bl
 	if (*job_exp) {
 		t_exp exp = (t_exp)(*job_exp + ((double)*job_exp * ((bonus + vip_bonus_job) / 100.)));
 		*job_exp = cap_value(exp, 1, MAX_EXP);
+	}
+
+	// EXP rate while using @autohunt
+	if (sd->autohunt.active && src != nullptr && src->type == BL_MOB && battle_config.autohunt_exp_rate != 100) {
+		*base_exp = cap_value((t_exp)((double)*base_exp * battle_config.autohunt_exp_rate / 100.), 0, MAX_EXP);
+		*job_exp = cap_value((t_exp)((double)*job_exp * battle_config.autohunt_exp_rate / 100.), 0, MAX_EXP);
 	}
 
 	return;
@@ -16875,6 +16883,572 @@ TIMER_FUNC(pc_autotrade_timer){
 	return 0;
 }
 
+/*==========================================
+ * Autohunt (@autohunt)
+ * Server-side AI that lets a character hunt monsters on its own.
+ * Server settings are in conf/battle/feature.conf (autohunt_*).
+ * Each player's own choices are kept in permanent character variables,
+ * normally set through the Autohunt NPC (npc/miracle/autohunt.txt, @ah):
+ *   AH_SKILL1..3, AH_SKLV1..3 : attack skills, tried in order (0 = none)
+ *   AH_BUFF1..3, AH_BUFFLV1..3: self buffs, recast when they run out
+ *   AH_HPITEM, AH_HPRATE      : item used when HP falls below AH_HPRATE %
+ *   AH_SPITEM, AH_SPRATE      : item used when SP falls below AH_SPRATE %
+ *   AH_IGNORE[0..19]          : monster IDs to skip
+ *   AH_HITMVP                 : 1 = attack MVPs (only if the server allows it)
+ *   AH_TELE                   : seconds without a monster before teleporting (0 = server default, -1 = never)
+ *   AH_FREE_DAY, AH_FREE_LEFT : today's free time (seconds left), see autohunt_free_time
+ *   AH_PAID_TIME              : bought time in seconds (Autohunt Time tickets)
+ *------------------------------------------*/
+static TIMER_FUNC(pc_autohunt_timer);
+
+/// Milliseconds a target may go without losing HP before it is given up on
+#define AUTOHUNT_STUCK_TIME 10000
+/// Fly Wings, used to find new monsters when none are around (infinite one first)
+#define AUTOHUNT_INFINITE_FLYWING 12887
+#define AUTOHUNT_FLYWING 601
+/// Number of attack skill and buff slots
+#define AUTOHUNT_SKILL_SLOTS 3
+
+static int64 pc_autohunt_var( map_session_data& sd, const char* name ){
+	return pc_readglobalreg( &sd, add_str( name ) );
+}
+
+static int64 pc_autohunt_var( map_session_data& sd, const char* name, int32 slot ){
+	char var[32];
+
+	safesnprintf( var, sizeof( var ), "%s%d", name, slot );
+	return pc_readglobalreg( &sd, add_str( var ) );
+}
+
+/// Reloads settings that are checked for every monster
+static void pc_autohunt_load( map_session_data& sd ){
+	for( int32 i = 0; i < ARRAYLENGTH( sd.autohunt.ignore ); i++ )
+		sd.autohunt.ignore[i] = static_cast<uint16>( pc_readglobalreg( &sd, reference_uid( add_str( "AH_IGNORE" ), i ) ) );
+
+	sd.autohunt.hit_mvp = !battle_config.autohunt_ignore_mvp && pc_autohunt_var( sd, "AH_HITMVP" ) > 0;
+}
+
+/// Returns the level the player can use a skill slot at, 0 if not usable
+static uint16 pc_autohunt_skill_lv( map_session_data& sd, uint16 skill_id, int64 wanted ){
+	if( skill_id == 0 )
+		return 0;
+
+	uint16 learned = pc_checkskill( &sd, skill_id );
+
+	if( wanted <= 0 || wanted > learned )
+		return learned;
+
+	return static_cast<uint16>( wanted );
+}
+
+static bool pc_autohunt_valid_target( map_session_data& sd, block_list* bl ){
+	if( bl == nullptr || bl->type != BL_MOB || bl->m != sd.m || bl->prev == nullptr || bl->id == sd.autohunt.ignore_id )
+		return false;
+
+	mob_data* md = reinterpret_cast<mob_data*>( bl );
+
+	if( status_isdead( *bl ) || battle_check_target( &sd, bl, BCT_ENEMY ) <= 0 || !status_check_skilluse( &sd, bl, 0, 0 ) )
+		return false;
+
+	if( !sd.autohunt.hit_mvp && md->get_bosstype() == BOSSTYPE_MVP )
+		return false;
+
+	for( uint16 mob_id : sd.autohunt.ignore ){
+		if( mob_id != 0 && mob_id == md->mob_id )
+			return false;
+	}
+
+	if( battle_config.autohunt_ignore_others_mobs ){
+		// Leave monsters alone that someone outside the party is already fighting
+		if( md->target_id != 0 && md->target_id != sd.id ){
+			map_session_data* tsd = map_id2sd( md->target_id );
+
+			if( tsd != nullptr && ( sd.status.party_id == 0 || tsd->status.party_id != sd.status.party_id ) )
+				return false;
+		}
+
+		for( const s_dmglog& log : md->dmglog ){
+			if( log.id == sd.status.char_id )
+				continue;
+
+			map_session_data* tsd = map_charid2sd( log.id );
+
+			if( tsd == nullptr || sd.status.party_id == 0 || tsd->status.party_id != sd.status.party_id )
+				return false;
+		}
+	}
+
+	return true;
+}
+
+static int32 pc_autohunt_search_sub( block_list* bl, va_list ap ){
+	map_session_data* sd = va_arg( ap, map_session_data* );
+	block_list** best = va_arg( ap, block_list** );
+	int32* best_dist = va_arg( ap, int32* );
+
+	if( !pc_autohunt_valid_target( *sd, bl ) )
+		return 0;
+
+	int32 dist = distance_bl( sd, bl );
+
+	if( *best != nullptr && dist >= *best_dist )
+		return 0;
+
+	if( !path_search( nullptr, sd->m, sd->x, sd->y, bl->x, bl->y, 0, CELL_CHKNOREACH ) )
+		return 0;
+
+	*best = bl;
+	*best_dist = dist;
+	return 1;
+}
+
+/// Uses the configured potion when HP or SP is below the configured rate
+static void pc_autohunt_potion( map_session_data& sd, bool hp ){
+	t_itemid nameid = static_cast<t_itemid>( pc_autohunt_var( sd, hp ? "AH_HPITEM" : "AH_SPITEM" ) );
+
+	if( nameid == 0 )
+		return;
+
+	int64 rate = pc_autohunt_var( sd, hp ? "AH_HPRATE" : "AH_SPRATE" );
+
+	if( rate <= 0 )
+		rate = hp ? battle_config.autohunt_hp_rate : battle_config.autohunt_sp_rate;
+
+	int64 cur = hp ? sd.battle_status.hp : sd.battle_status.sp;
+	int64 max = hp ? sd.battle_status.max_hp : sd.battle_status.max_sp;
+
+	if( max <= 0 || cur * 100 >= max * rate )
+		return;
+
+	int16 idx = pc_search_inventory( &sd, nameid );
+
+	if( idx >= 0 )
+		pc_useitem( &sd, idx );
+}
+
+/// Recasts a missing self buff. Returns true when a cast was started.
+static bool pc_autohunt_buff( map_session_data& sd, t_tick tick ){
+	if( DIFF_TICK( tick, sd.ud.canact_tick ) < 0 )
+		return false;
+
+	for( int32 i = 1; i <= AUTOHUNT_SKILL_SLOTS; i++ ){
+		uint16 skill_id = static_cast<uint16>( pc_autohunt_var( sd, "AH_BUFF", i ) );
+		uint16 skill_lv = pc_autohunt_skill_lv( sd, skill_id, pc_autohunt_var( sd, "AH_BUFFLV", i ) );
+
+		if( skill_lv == 0 || sd.scd.count( skill_id ) )
+			continue;
+
+		sc_type type = skill_get_sc( skill_id );
+
+		if( type == SC_NONE || sd.sc.getSCE( type ) != nullptr )
+			continue;
+
+		if( sd.battle_status.sp < static_cast<uint32>( skill_get_sp( skill_id, skill_lv ) ) )
+			continue;
+
+		if( unit_skilluse_id( &sd, sd.id, skill_id, skill_lv ) )
+			return true;
+	}
+
+	return false;
+}
+
+/// Teleports to a random spot on the map with the Teleport skill or a Fly Wing
+static bool pc_autohunt_teleport( map_session_data& sd ){
+	if( map_getmapflag( sd.m, MF_NOTELEPORT ) )
+		return false;
+
+	if( pc_checkskill( &sd, AL_TELEPORT ) > 0 ){
+		int32 sp = skill_get_sp( AL_TELEPORT, 1 );
+
+		if( sd.battle_status.sp >= static_cast<uint32>( sp ) ){
+			status_zap( &sd, 0, sp );
+			pc_randomwarp( &sd, CLR_TELEPORT );
+			return true;
+		}
+	}
+
+	for( t_itemid nameid : { AUTOHUNT_INFINITE_FLYWING, AUTOHUNT_FLYWING } ){
+		int16 idx = pc_search_inventory( &sd, nameid );
+
+		if( idx >= 0 && pc_useitem( &sd, idx ) )
+			return true;
+	}
+
+	return false;
+}
+
+/// Gives the player today's free time when a new day has started
+static void pc_autohunt_refresh_free( map_session_data& sd ){
+	int32 today = date_get( DT_YYYYMMDD );
+
+	if( pc_autohunt_var( sd, "AH_FREE_DAY" ) != today ){
+		pc_setglobalreg( &sd, add_str( "AH_FREE_DAY" ), today );
+		pc_setglobalreg( &sd, add_str( "AH_FREE_LEFT" ), static_cast<int64>( battle_config.autohunt_free_time ) * 60 );
+	}
+}
+
+/**
+ * Seconds of autohunt time the player has left (free time first, then bought time)
+ * @return seconds, or -1 when the server has no time limit
+ */
+int64 pc_autohunt_timeleft( map_session_data& sd ){
+	if( !battle_config.autohunt_time_limit )
+		return -1;
+
+	pc_autohunt_refresh_free( sd );
+
+	return std::max<int64>( pc_autohunt_var( sd, "AH_FREE_LEFT" ), 0 ) + std::max<int64>( pc_autohunt_var( sd, "AH_PAID_TIME" ), 0 );
+}
+
+/// Takes used seconds from the free time, then from bought time. Returns false when no time is left.
+static bool pc_autohunt_usetime( map_session_data& sd, int64 secs ){
+	pc_autohunt_refresh_free( sd );
+
+	int64 free_left = std::max<int64>( pc_autohunt_var( sd, "AH_FREE_LEFT" ), 0 );
+	int64 paid = std::max<int64>( pc_autohunt_var( sd, "AH_PAID_TIME" ), 0 );
+	int64 use = std::min( free_left, secs );
+
+	if( use > 0 ){
+		free_left -= use;
+		secs -= use;
+		pc_setglobalreg( &sd, add_str( "AH_FREE_LEFT" ), free_left );
+	}
+
+	use = std::min( paid, secs );
+
+	if( use > 0 ){
+		paid -= use;
+		pc_setglobalreg( &sd, add_str( "AH_PAID_TIME" ), paid );
+	}
+
+	return free_left + paid > 0;
+}
+
+/// Walks to a random spot nearby when no monster is in sight
+static void pc_autohunt_randomwalk( map_session_data& sd ){
+	if( sd.ud.walktimer != INVALID_TIMER )
+		return;
+
+	const int32 d = 10;
+
+	for( int32 i = 0; i < 20; i++ ){
+		int16 x = sd.x + rnd() % ( d * 2 + 1 ) - d;
+		int16 y = sd.y + rnd() % ( d * 2 + 1 ) - d;
+
+		if( ( x == sd.x && y == sd.y ) || !map_getcell( sd.m, x, y, CELL_CHKPASS ) || npc_check_areanpc( 1, sd.m, x, y, 1 ) )
+			continue;
+
+		if( unit_walktoxy( &sd, x, y, 0 ) )
+			return;
+	}
+}
+
+/// Uses the first ready attack skill on the target, or attacks it normally
+static void pc_autohunt_attack( map_session_data& sd, block_list& target, t_tick tick ){
+	if( DIFF_TICK( tick, sd.ud.canact_tick ) >= 0 ){
+		for( int32 i = 1; i <= AUTOHUNT_SKILL_SLOTS; i++ ){
+			uint16 skill_id = static_cast<uint16>( pc_autohunt_var( sd, "AH_SKILL", i ) );
+			uint16 skill_lv = pc_autohunt_skill_lv( sd, skill_id, pc_autohunt_var( sd, "AH_SKLV", i ) );
+
+			if( skill_lv == 0 || sd.scd.count( skill_id ) )
+				continue;
+
+			if( !( skill_get_inf( skill_id ) & ( INF_ATTACK_SKILL | INF_GROUND_SKILL ) ) )
+				continue;
+
+			if( sd.battle_status.sp < static_cast<uint32>( skill_get_sp( skill_id, skill_lv ) ) )
+				continue;
+
+			int32 range = skill_get_range2( &sd, skill_id, skill_lv, true );
+
+			if( !battle_check_range( &sd, &target, range ) ){
+				if( sd.ud.walktimer == INVALID_TIMER || sd.ud.target_to != target.id )
+					unit_walktobl( &sd, &target, range, 0 );
+				return;
+			}
+
+			int32 ok;
+
+			if( skill_get_inf( skill_id ) & INF_GROUND_SKILL )
+				ok = unit_skilluse_pos( &sd, target.x, target.y, skill_id, skill_lv );
+			else
+				ok = unit_skilluse_id( &sd, target.id, skill_id, skill_lv );
+
+			if( ok )
+				return;
+			// Skill could not be used (missing items...), try the next one
+		}
+	}
+
+	if( sd.ud.target == target.id && sd.ud.attacktimer != INVALID_TIMER )
+		return; // Already attacking it
+
+	int32 range = status_get_range( &sd );
+
+	if( battle_check_range( &sd, &target, range ) )
+		unit_attack( &sd, target.id, 1 );
+	else if( sd.ud.walktimer == INVALID_TIMER || sd.ud.target_to != target.id )
+		unit_walktobl( &sd, &target, range, 2 );
+}
+
+static TIMER_FUNC(pc_autohunt_timer){
+	map_session_data* sd = map_id2sd( id );
+
+	if( sd == nullptr || sd->autohunt.tid != tid )
+		return 0;
+
+	sd->autohunt.tid = INVALID_TIMER;
+
+	if( !sd->autohunt.active )
+		return 0;
+
+	// Take the used time from the player's autohunt time
+	sd->autohunt.time_ms += static_cast<int32>( DIFF_TICK( tick, sd->autohunt.last_tick ) );
+	sd->autohunt.last_tick = tick;
+
+	if( battle_config.autohunt_time_limit && sd->autohunt.time_ms >= 1000 ){
+		int64 secs = sd->autohunt.time_ms / 1000;
+
+		sd->autohunt.time_ms %= 1000;
+
+		if( !pc_autohunt_usetime( *sd, secs ) ){
+			pc_autohunt_stop( *sd, "Autohunt stopped: your autohunt time is used up." );
+			return 0;
+		}
+	}
+
+	// Offline characters have no client to finish a warp, so do it for them
+	if( sd->autohunt.offline && sd->prev == nullptr && sd->state.active )
+		clif_parse_LoadEndAck( sd->fd, sd );
+
+	if( sd->prev != nullptr && !sd->state.warping ){
+		if( pc_isdead( sd ) ){
+			pc_autohunt_stop( *sd, "Autohunt stopped: you died." );
+			return 0;
+		}
+
+		if( sd->m != sd->autohunt.start_m ){
+			pc_autohunt_stop( *sd, "Autohunt stopped: you left the map." );
+			return 0;
+		}
+
+		if( pc_getpercentweight( *sd ) >= 90 ){
+			pc_autohunt_stop( *sd, "Autohunt stopped: you are carrying too much." );
+			return 0;
+		}
+
+		if( sd->autohunt.offline && battle_config.autohunt_offline_timeout > 0 &&
+			DIFF_TICK( tick, sd->autohunt.start_tick ) >= static_cast<t_tick>( battle_config.autohunt_offline_timeout ) * 60000 ){
+			pc_autohunt_stop( *sd, "Autohunt stopped: offline time limit reached." );
+			return 0;
+		}
+
+		pc_autohunt_load( *sd );
+		pc_autohunt_potion( *sd, true );
+		pc_autohunt_potion( *sd, false );
+
+		// Busy: casting, talking to an NPC or sitting
+		if( sd->ud.skilltimer == INVALID_TIMER && sd->npc_id == 0 && !pc_issit( sd ) && !pc_autohunt_buff( *sd, tick ) ){
+			block_list* target = map_id2bl( sd->autohunt.target_id );
+
+			if( !pc_autohunt_valid_target( *sd, target ) || !check_distance_bl( sd, target, battle_config.autohunt_search_range * 2 ) ){
+				target = nullptr;
+				int32 dist = 0;
+
+				map_foreachinallrange( pc_autohunt_search_sub, sd, battle_config.autohunt_search_range, BL_MOB, sd, &target, &dist );
+
+				sd->autohunt.target_id = target ? target->id : 0;
+				sd->autohunt.target_hp = target ? status_get_hp( target ) : 0;
+				sd->autohunt.target_tick = tick;
+			}
+
+			if( target != nullptr ){
+				sd->autohunt.last_found_tick = tick;
+
+				int64 hp = status_get_hp( target );
+
+				if( hp < sd->autohunt.target_hp ){
+					sd->autohunt.target_hp = hp;
+					sd->autohunt.target_tick = tick;
+				}
+
+				if( DIFF_TICK( tick, sd->autohunt.target_tick ) >= AUTOHUNT_STUCK_TIME ){
+					// Could not hurt it for a while (blocked path, out of reach...), pick another one
+					sd->autohunt.ignore_id = target->id;
+					sd->autohunt.target_id = 0;
+					unit_stop_attack( sd );
+				}else{
+					pc_autohunt_attack( *sd, *target, tick );
+				}
+			}else{
+				int64 tele = pc_autohunt_var( *sd, "AH_TELE" );
+
+				if( tele == 0 )
+					tele = battle_config.autohunt_flywing_idle;
+
+				if( tele > 0 && DIFF_TICK( tick, sd->autohunt.last_found_tick ) >= static_cast<t_tick>( tele ) * 1000 && pc_autohunt_teleport( *sd ) )
+					sd->autohunt.last_found_tick = tick;
+				else
+					pc_autohunt_randomwalk( *sd );
+			}
+		}
+	}
+
+	if( sd->autohunt.active )
+		sd->autohunt.tid = add_timer( tick + battle_config.autohunt_interval, pc_autohunt_timer, sd->id, 0 );
+
+	return 0;
+}
+
+/**
+ * Starts autohunt for a player
+ * @param sd: Player
+ * @return true when started
+ */
+bool pc_autohunt_start( map_session_data& sd ){
+	if( sd.autohunt.active )
+		return true;
+
+	t_tick tick = gettick();
+
+	sd.autohunt.active = true;
+	sd.autohunt.offline = false;
+	sd.autohunt.target_id = 0;
+	sd.autohunt.ignore_id = 0;
+	sd.autohunt.start_m = sd.m;
+	sd.autohunt.start_tick = tick;
+	sd.autohunt.last_found_tick = tick;
+	sd.autohunt.target_hp = 0;
+	sd.autohunt.target_tick = tick;
+	sd.autohunt.last_tick = tick;
+	sd.autohunt.time_ms = 0;
+	sd.autohunt.saved_autoloot = sd.state.autoloot;
+
+	if( battle_config.autohunt_autoloot > sd.state.autoloot )
+		sd.state.autoloot = battle_config.autohunt_autoloot;
+
+	sd.autohunt.tid = add_timer( tick + battle_config.autohunt_interval, pc_autohunt_timer, sd.id, 0 );
+
+	return true;
+}
+
+/**
+ * Stops autohunt for a player. An offline character is logged out.
+ * @param sd: Player
+ * @param reason: Message shown to the player (optional)
+ */
+void pc_autohunt_stop( map_session_data& sd, const char* reason ){
+	if( !sd.autohunt.active )
+		return;
+
+	sd.autohunt.active = false;
+
+	if( sd.autohunt.tid != INVALID_TIMER ){
+		delete_timer( sd.autohunt.tid, pc_autohunt_timer );
+		sd.autohunt.tid = INVALID_TIMER;
+	}
+
+	sd.state.autoloot = sd.autohunt.saved_autoloot;
+	sd.autohunt.target_id = 0;
+
+	if( sd.prev != nullptr ){
+		unit_stop_attack( &sd );
+		unit_stop_walking( &sd, USW_FIXPOS );
+	}
+
+	if( sd.autohunt.offline ){
+		sd.autohunt.offline = false;
+		map_quit( &sd ); // sd is freed here
+		return;
+	}
+
+	if( reason != nullptr )
+		clif_displaymessage( sd.fd, reason );
+}
+
+/**
+ * Fills @ah_skill_id[], @ah_skill_lv[], @ah_skill_name$[] and @ah_skill_count
+ * with the player's skills that autohunt can use.
+ * @param sd: Player
+ * @param buffs: true for self buffs, false for attack skills
+ */
+void pc_autohunt_skilllist( map_session_data& sd, bool buffs ){
+	int32 count = 0;
+
+	for( int32 i = 0; i < MAX_SKILL; i++ ){
+		uint16 skill_id = sd.status.skill[i].id;
+
+		if( skill_id == 0 || sd.status.skill[i].lv == 0 )
+			continue;
+
+		int32 inf = skill_get_inf( skill_id );
+		bool ok;
+
+		if( buffs )
+			ok = ( inf & ( INF_SELF_SKILL | INF_SUPPORT_SKILL ) ) && skill_get_sc( skill_id ) != SC_NONE;
+		else
+			ok = ( inf & ( INF_ATTACK_SKILL | INF_GROUND_SKILL ) ) != 0;
+
+		if( !ok )
+			continue;
+
+		pc_setreg( &sd, reference_uid( add_str( "@ah_skill_id" ), count ), skill_id );
+		pc_setreg( &sd, reference_uid( add_str( "@ah_skill_lv" ), count ), sd.status.skill[i].lv );
+		pc_setregstr( &sd, reference_uid( add_str( "@ah_skill_name$" ), count ), skill_get_desc( skill_id ) );
+		count++;
+	}
+
+	pc_setreg( &sd, add_str( "@ah_skill_count" ), count );
+}
+
+/**
+ * Fills @ah_mob_id[], @ah_mob_name$[], @ah_mob_ignored[] and @ah_mob_count
+ * with the monsters that spawn on the player's map.
+ * @param sd: Player
+ */
+void pc_autohunt_moblist( map_session_data& sd ){
+	struct map_data* mapdata = map_getmapdata( sd.m );
+	std::vector<int16> mobs;
+
+	if( mapdata != nullptr ){
+		for( int32 i = 0; i < MAX_MOB_LIST_PER_MAP; i++ ){
+			struct spawn_data* spawn = mapdata->moblist[i];
+
+			if( spawn == nullptr || spawn->id <= 0 || !mobdb_checkid( spawn->id ) )
+				continue;
+
+			if( std::find( mobs.begin(), mobs.end(), spawn->id ) == mobs.end() )
+				mobs.push_back( spawn->id );
+		}
+	}
+
+	pc_autohunt_load( sd );
+
+	int32 count = 0;
+
+	for( int16 mob_id : mobs ){
+		std::shared_ptr<s_mob_db> mob = mob_db.find( mob_id );
+
+		if( mob == nullptr )
+			continue;
+
+		bool ignored = false;
+
+		for( uint16 id : sd.autohunt.ignore ){
+			if( id == mob_id )
+				ignored = true;
+		}
+
+		pc_setreg( &sd, reference_uid( add_str( "@ah_mob_id" ), count ), mob_id );
+		pc_setregstr( &sd, reference_uid( add_str( "@ah_mob_name$" ), count ), mob->jname.c_str() );
+		pc_setreg( &sd, reference_uid( add_str( "@ah_mob_ignored" ), count ), ignored );
+		count++;
+	}
+
+	pc_setreg( &sd, add_str( "@ah_mob_count" ), count );
+}
+
 /* this timer exists only when a character with a expire timer > 24h is online */
 /* it loops thru online players once an hour to check whether a new < 24h is available */
 TIMER_FUNC(pc_global_expiration_timer){
@@ -18284,6 +18858,7 @@ void do_init_pc(void) {
 	add_timer_func_list(pc_global_expiration_timer, "pc_global_expiration_timer");
 	add_timer_func_list(pc_expiration_timer, "pc_expiration_timer");
 	add_timer_func_list(pc_autotrade_timer, "pc_autotrade_timer");
+	add_timer_func_list(pc_autohunt_timer, "pc_autohunt_timer");
 	add_timer_func_list(pc_on_expire_active, "pc_on_expire_active");
 	add_timer_func_list(pc_macro_detector_timeout, "pc_macro_detector_timeout");
 	add_timer_func_list( pc_goldpc_update, "pc_goldpc_update" );

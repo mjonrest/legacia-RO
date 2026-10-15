@@ -1,0 +1,421 @@
+//==============================================================
+// LegaciaRO - Autohunt Settings
+//==============================================================
+// Players type @ah to open this menu.
+// It starts/stops @autohunt and stores the player's settings in
+// permanent character variables that the source AI reads
+// (see pc_autohunt_* in src/map/pc.cpp):
+//
+//   AH_SKILL1..3, AH_SKLV1..3, AH_SKNAME1..3$ : attack skills, tried in order
+//   AH_BUFF1..3, AH_BUFFLV1..3, AH_BFNAME1..3$: self buffs, recast when gone
+//   AH_HPITEM, AH_HPRATE, AH_SPITEM, AH_SPRATE : potions
+//   AH_IGNORE[0..19]                          : monster IDs to skip
+//   AH_HITMVP   : 1 = attack MVPs
+//   AH_TELE     : seconds without a monster before teleporting (0 = server default, -1 = never)
+//
+// Autohunt time:
+//   Every player gets autohunt_free_time minutes free per day
+//   (conf/battle/feature.conf, change it and @reloadbattleconf).
+//   Extra time is bought with the Autohunt Time tickets in the
+//   Cash Shop (items 300022-300024), stored in AH_PAID_TIME (seconds).
+//   GMs can give time with:  @ahtime <char name> <minutes>
+//   (negative minutes take time away, no minutes shows the balance)
+//
+// Server settings: autohunt_* in conf/battle/feature.conf
+//==============================================================
+-	script	Autohunt	-1,{
+	end;
+
+OnInit:
+	bindatcmd "ah", strnpcinfo(3) + "::OnMenu", 0, 99;
+	bindatcmd "ahtime", strnpcinfo(3) + "::OnGMTime", 60, 99;
+	end;
+
+OnMenu:
+	if (!getbattleflag("feature.autohunt")) {
+		message strcharinfo(0), "Autohunt is disabled on this server.";
+		end;
+	}
+	while (1) {
+		mes "[Autohunt]";
+		mes "Your character hunts monsters by itself.";
+		if (autohunttime() >= 0) {
+			mes "Time left: ^0000FF" + callfunc("F_AH_TimeText", autohunttime()) + "^000000";
+			mes "(" + getbattleflag("autohunt_free_time") + " min free every day, buy more in the Cash Shop)";
+		}
+		if (getbattleflag("autohunt_exp_rate") < 100 || getbattleflag("autohunt_drop_rate") < 100)
+			mes "While autohunting you earn ^CC0000" + getbattleflag("autohunt_exp_rate") + "% EXP^000000 and ^CC0000" + getbattleflag("autohunt_drop_rate") + "% drop rate^000000.";
+		.@mvp$ = (AH_HITMVP && !getbattleflag("autohunt_ignore_mvp")) ? "Attack" : "Avoid";
+		switch (select(
+			(isautohunting() ? "" : "^008800Start autohunt^000000"),
+			(isautohunting() ? "^CC0000Stop autohunt^000000" : ""),
+			(getbattleflag("autohunt_allow_offline") ? "^0000FFStart offline (log out and keep hunting)^000000" : ""),
+			"Attack skills",
+			"Buff skills",
+			"Auto potion",
+			"Auto teleport - " + callfunc("F_AH_TeleText"),
+			"Ignore monsters (" + callfunc("F_AH_IgnoreCount") + ")",
+			"MVP - " + .@mvp$,
+			"Close"
+		)) {
+		case 1:
+			close2;
+			atcommand "@autohunt on";
+			end;
+		case 2:
+			close2;
+			atcommand "@autohunt off";
+			end;
+		case 3:
+			clear;
+			mes "[Autohunt]";
+			mes "You will be logged out and your character keeps hunting.";
+			mes "Log in again to stop it.";
+			if (select("Go offline:Cancel") == 2) {
+				clear;
+				break;
+			}
+			close2;
+			atcommand "@autohunt offline";
+			end;
+		case 4:
+			clear;
+			callfunc "F_AH_Skills", 0;
+			break;
+		case 5:
+			clear;
+			callfunc "F_AH_Skills", 1;
+			break;
+		case 6:
+			clear;
+			callfunc "F_AH_Potions";
+			break;
+		case 7:
+			clear;
+			mes "[Autohunt]";
+			mes "When no monster is found for a while, teleport to a new spot.";
+			mes "Uses your Teleport skill if you have it, otherwise an Infinite Fly Wing or a Fly Wing.";
+			switch (select("After 5 seconds:After 10 seconds:After 20 seconds:After 30 seconds:After 60 seconds:Never:Server default")) {
+				case 1: AH_TELE = 5; break;
+				case 2: AH_TELE = 10; break;
+				case 3: AH_TELE = 20; break;
+				case 4: AH_TELE = 30; break;
+				case 5: AH_TELE = 60; break;
+				case 6: AH_TELE = -1; break;
+				case 7: AH_TELE = 0; break;
+			}
+			clear;
+			break;
+		case 8:
+			clear;
+			callfunc "F_AH_Ignore";
+			break;
+		case 9:
+			clear;
+			mes "[Autohunt]";
+			if (getbattleflag("autohunt_ignore_mvp")) {
+				mes "MVPs are always avoided on this server.";
+				next;
+				break;
+			}
+			mes "Should autohunt attack MVP monsters?";
+			AH_HITMVP = (select("Avoid MVPs:Attack MVPs") == 2);
+			clear;
+			break;
+		default:
+			close;
+		}
+	}
+
+// @ahtime <char name> <minutes>
+OnGMTime:
+	.@n = getarraysize(.@atcmd_parameters$);
+	if (.@n < 1) {
+		message strcharinfo(0), "Usage: @ahtime <char name> <minutes>  (negative minutes take time away, no minutes shows the balance)";
+		end;
+	}
+	.@min$ = .@atcmd_parameters$[.@n - 1];
+	.@has_min = (.@n >= 2 && (atoi(.@min$) != 0 || .@min$ == "0"));
+	.@last = .@has_min ? .@n - 1 : .@n;
+	.@name$ = .@atcmd_parameters$[0];
+	for (.@i = 1; .@i < .@last; .@i++)
+		.@name$ += " " + .@atcmd_parameters$[.@i];
+	.@aid = getcharid(3, .@name$);
+	if (!.@aid) {
+		message strcharinfo(0), .@name$ + " is not online.";
+		end;
+	}
+	.@gm$ = strcharinfo(0);
+	.@gm_aid = getcharid(3);
+	.@add = .@has_min ? atoi(.@min$) * 60 : 0;
+	attachrid .@aid;
+	if (.@add) {
+		AH_PAID_TIME = max(AH_PAID_TIME + .@add, 0);
+		dispbottom "A GM " + (.@add > 0 ? "gave you " : "removed ") + callfunc("F_AH_TimeText", (.@add > 0 ? .@add : -.@add)) + " of autohunt time.";
+	}
+	.@left = autohunttime();
+	attachrid .@gm_aid;
+	message .@gm$, .@name$ + " now has " + (.@left < 0 ? "unlimited" : callfunc("F_AH_TimeText", .@left)) + " of autohunt time.";
+	end;
+}
+
+// Turns seconds into "2 h 05 min"
+function	script	F_AH_TimeText	{
+	.@s = getarg(0);
+	.@h = .@s / 3600;
+	.@m = (.@s % 3600) / 60;
+	if (.@h > 0)
+		return .@h + " h " + (.@m < 10 ? "0" : "") + .@m + " min";
+	if (.@m > 0)
+		return .@m + " min";
+	return .@s + " sec";
+}
+
+// Used by the Autohunt Time tickets: callfunc "F_AH_AddTime", <minutes>;
+function	script	F_AH_AddTime	{
+	AH_PAID_TIME += getarg(0) * 60;
+	dispbottom "Added " + callfunc("F_AH_TimeText", getarg(0) * 60) + " of autohunt time. You now have " + callfunc("F_AH_TimeText", autohunttime()) + ".";
+	return;
+}
+
+function	script	F_AH_TeleText	{
+	if (AH_TELE < 0)
+		return "Never";
+	if (AH_TELE > 0)
+		return "after " + AH_TELE + "s";
+	if (getbattleflag("autohunt_flywing_idle") <= 0)
+		return "Never";
+	return "after " + getbattleflag("autohunt_flywing_idle") + "s";
+}
+
+// getarg(0): 0 = attack skills, 1 = buff skills
+function	script	F_AH_Skills	{
+	.@buff = getarg(0);
+	.@id$ = .@buff ? "AH_BUFF" : "AH_SKILL";
+	.@lv$ = .@buff ? "AH_BUFFLV" : "AH_SKLV";
+	.@nm$ = .@buff ? "AH_BFNAME" : "AH_SKNAME";
+
+	while (1) {
+		mes "[Autohunt]";
+		if (.@buff) {
+			mes "Buffs are recast on yourself whenever they run out.";
+		} else {
+			mes "Skills are tried in order (slot 1 first).";
+			mes "When none can be used, you attack normally.";
+		}
+		.@menu$ = "";
+		for (.@s = 1; .@s <= 3; .@s++) {
+			if (getd(.@id$ + .@s))
+				.@menu$ += "Slot " + .@s + " - " + getd(.@nm$ + .@s + "$") + " Lv " + getd(.@lv$ + .@s) + ":";
+			else
+				.@menu$ += "Slot " + .@s + " - (empty):";
+		}
+		.@slot = select(.@menu$ + "Back");
+		if (.@slot == 4)
+			return;
+		clear;
+
+		getautohuntskills .@buff;
+		mes "[Autohunt]";
+		if (@ah_skill_count == 0) {
+			mes "You have no skills that can be used here.";
+			if (select("Clear slot " + .@slot + ":Back") == 1) {
+				setd .@id$ + .@slot, 0;
+				setd .@lv$ + .@slot, 0;
+				setd .@nm$ + .@slot + "$", "";
+			}
+			clear;
+			continue;
+		}
+		mes "Choose a skill for slot " + .@slot + ".";
+		.@menu$ = "";
+		for (.@i = 0; .@i < @ah_skill_count; .@i++)
+			.@menu$ += @ah_skill_name$[.@i] + " (Lv " + @ah_skill_lv[.@i] + "):";
+		.@pick = select(.@menu$ + "Clear slot:Back") - 1;
+		if (.@pick == @ah_skill_count + 1) {
+			clear;
+			continue;
+		}
+		if (.@pick == @ah_skill_count) {
+			setd .@id$ + .@slot, 0;
+			setd .@lv$ + .@slot, 0;
+			setd .@nm$ + .@slot + "$", "";
+			clear;
+			continue;
+		}
+		.@skill = @ah_skill_id[.@pick];
+		.@max = @ah_skill_lv[.@pick];
+		.@level = .@max;
+		if (.@max > 1) {
+			clear;
+			mes "[Autohunt]";
+			mes "Which level of " + @ah_skill_name$[.@pick] + "?";
+			if (select("Max level (" + .@max + "):Choose level") == 2) {
+				input .@level, 1, .@max;
+				.@level = cap_value(.@level, 1, .@max);
+			}
+		}
+		setd .@id$ + .@slot, .@skill;
+		setd .@lv$ + .@slot, .@level;
+		setd .@nm$ + .@slot + "$", @ah_skill_name$[.@pick];
+		clear;
+	}
+}
+
+function	script	F_AH_Potions	{
+	while (1) {
+		mes "[Autohunt]";
+		mes "Potions are used when HP or SP drops below the % you set.";
+		.@hp$ = AH_HPITEM ? getitemname(AH_HPITEM) + " below " + (AH_HPRATE ? AH_HPRATE : getbattleflag("autohunt_hp_rate")) + "%" : "Off";
+		.@sp$ = AH_SPITEM ? getitemname(AH_SPITEM) + " below " + (AH_SPRATE ? AH_SPRATE : getbattleflag("autohunt_sp_rate")) + "%" : "Off";
+		.@type = select("HP potion - " + .@hp$ + ":SP potion - " + .@sp$ + ":Back");
+		if (.@type == 3)
+			return;
+		.@pre$ = (.@type == 1) ? "AH_HP" : "AH_SP";
+		clear;
+
+		// Healing items in the inventory
+		deletearray .@items;
+		.@count = 0;
+		getinventorylist;
+		for (.@i = 0; .@i < @inventorylist_count; .@i++) {
+			.@item = @inventorylist_id[.@i];
+			if (getiteminfo(.@item, ITEMINFO_TYPE) != IT_HEALING)
+				continue;
+			for (.@j = 0; .@j < .@count; .@j++)
+				if (.@items[.@j] == .@item)
+					break;
+			if (.@j < .@count)
+				continue;
+			.@items[.@count] = .@item;
+			.@count++;
+		}
+
+		mes "[Autohunt]";
+		mes "Choose the " + ((.@type == 1) ? "HP" : "SP") + " potion.";
+		.@menu$ = "";
+		for (.@i = 0; .@i < .@count; .@i++)
+			.@menu$ += getitemname(.@items[.@i]) + ":";
+		.@pick = select(.@menu$ + "Enter item ID:Turn off:Back") - 1;
+		if (.@pick == .@count + 2) {
+			clear;
+			continue;
+		}
+		if (.@pick == .@count + 1) {
+			setd .@pre$ + "ITEM", 0;
+			clear;
+			continue;
+		}
+		if (.@pick == .@count) {
+			input .@item;
+			if (getitemname(.@item) == "null") {
+				mes "That item does not exist.";
+				next;
+				continue;
+			}
+		} else {
+			.@item = .@items[.@pick];
+		}
+		clear;
+		mes "[Autohunt]";
+		mes "Use " + getitemname(.@item) + " when " + ((.@type == 1) ? "HP" : "SP") + " is below what %? (1-99)";
+		input .@rate, 1, 99;
+		setd .@pre$ + "ITEM", .@item;
+		setd .@pre$ + "RATE", cap_value(.@rate, 1, 99);
+		clear;
+	}
+}
+
+function	script	F_AH_IgnoreCount	{
+	.@n = 0;
+	for (.@i = 0; .@i < 20; .@i++)
+		if (AH_IGNORE[.@i])
+			.@n++;
+	return .@n;
+}
+
+// Monsters of the current map, each one can be toggled
+function	script	F_AH_Ignore	{
+	while (1) {
+		getautohuntmobs;
+		mes "[Autohunt]";
+		mes "Monsters on this map. Tap one to switch it:";
+		mes "^008800[Hunt]^000000 = autohunt attacks it";
+		mes "^CC0000[Ignore]^000000 = autohunt skips it";
+		.@menu$ = "";
+		for (.@i = 0; .@i < @ah_mob_count; .@i++)
+			.@menu$ += (@ah_mob_ignored[.@i] ? "^CC0000[Ignore]^000000 " : "^008800[Hunt]^000000 ") + @ah_mob_name$[.@i] + ":";
+		if (!@ah_mob_count)
+			mes "(No monsters spawn on this map.)";
+		.@others = callfunc("F_AH_IgnoreCount");
+		for (.@i = 0; .@i < @ah_mob_count; .@i++)
+			if (@ah_mob_ignored[.@i])
+				.@others--;
+		.@pick = select(.@menu$ + "Add a monster by ID:Ignored on other maps (" + .@others + "):Hunt everything (clear list):Back") - 1;
+
+		if (.@pick < @ah_mob_count) {
+			callfunc "F_AH_ToggleIgnore", @ah_mob_id[.@pick];
+			clear;
+			continue;
+		}
+		switch (.@pick - @ah_mob_count) {
+		case 0:
+			clear;
+			mes "[Autohunt]";
+			mes "Enter the monster ID to ignore.";
+			input .@mid;
+			if (strmobinfo(1, .@mid) == "") {
+				mes "That monster ID does not exist.";
+				next;
+				break;
+			}
+			for (.@i = 0; .@i < 20; .@i++)
+				if (AH_IGNORE[.@i] == .@mid)
+					break;
+			if (.@i == 20)
+				callfunc "F_AH_ToggleIgnore", .@mid;
+			clear;
+			break;
+		case 1:
+			clear;
+			mes "[Autohunt]";
+			mes "Tap a monster to hunt it again.";
+			.@menu$ = "";
+			for (.@i = 0; .@i < 20; .@i++)
+				.@menu$ += (AH_IGNORE[.@i] ? strmobinfo(1, AH_IGNORE[.@i]) + " (" + AH_IGNORE[.@i] + ")" : "") + ":";
+			.@p = select(.@menu$ + "Back") - 1;
+			if (.@p < 20)
+				AH_IGNORE[.@p] = 0;
+			clear;
+			break;
+		case 2:
+			for (.@i = 0; .@i < 20; .@i++)
+				AH_IGNORE[.@i] = 0;
+			clear;
+			break;
+		default:
+			clear;
+			return;
+		}
+	}
+}
+
+// Adds a monster to the ignore list, or removes it if it is already there
+function	script	F_AH_ToggleIgnore	{
+	.@mid = getarg(0);
+	for (.@i = 0; .@i < 20; .@i++) {
+		if (AH_IGNORE[.@i] == .@mid) {
+			AH_IGNORE[.@i] = 0;
+			return;
+		}
+	}
+	for (.@i = 0; .@i < 20; .@i++) {
+		if (!AH_IGNORE[.@i]) {
+			AH_IGNORE[.@i] = .@mid;
+			return;
+		}
+	}
+	mes "The ignore list is full (20 monsters).";
+	next;
+	return;
+}

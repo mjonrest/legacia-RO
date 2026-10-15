@@ -27838,6 +27838,64 @@ BUILDIN_FUNC( getupgrade_rune ){
 #endif
 }
 
+/**
+ * Lists the player's skills that @autohunt can use.
+ * getautohuntskills <type>;  (0 = attack skills, 1 = self buffs)
+ * Fills @ah_skill_id[], @ah_skill_lv[], @ah_skill_name$[] and @ah_skill_count.
+ */
+BUILDIN_FUNC(getautohuntskills)
+{
+	map_session_data* sd;
+
+	if( !script_rid2sd( sd ) )
+		return SCRIPT_CMD_FAILURE;
+
+	pc_autohunt_skilllist( *sd, script_getnum( st, 2 ) != 0 );
+	return SCRIPT_CMD_SUCCESS;
+}
+
+/**
+ * Lists the monsters that spawn on the player's map, for the autohunt ignore list.
+ * getautohuntmobs;
+ * Fills @ah_mob_id[], @ah_mob_name$[], @ah_mob_ignored[] and @ah_mob_count.
+ */
+BUILDIN_FUNC(getautohuntmobs)
+{
+	map_session_data* sd;
+
+	if( !script_rid2sd( sd ) )
+		return SCRIPT_CMD_FAILURE;
+
+	pc_autohunt_moblist( *sd );
+	return SCRIPT_CMD_SUCCESS;
+}
+
+/**
+ * autohunttime()   : seconds of autohunt time left (-1 = no time limit on this server)
+ * isautohunting()  : 1 if the player is autohunting right now
+ */
+BUILDIN_FUNC(autohunttime)
+{
+	map_session_data* sd;
+
+	if( !script_rid2sd( sd ) )
+		return SCRIPT_CMD_FAILURE;
+
+	script_pushint( st, pc_autohunt_timeleft( *sd ) );
+	return SCRIPT_CMD_SUCCESS;
+}
+
+BUILDIN_FUNC(isautohunting)
+{
+	map_session_data* sd;
+
+	if( !script_rid2sd( sd ) )
+		return SCRIPT_CMD_FAILURE;
+
+	script_pushint( st, sd->autohunt.active ? 1 : 0 );
+	return SCRIPT_CMD_SUCCESS;
+}
+
 #include <custom/script.inc>
 
 // declarations that were supposed to be exported from npc_chat.cpp
@@ -28844,6 +28902,11 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF2(permission_add, "permission_remove", "i?"),
 
 	BUILDIN_DEF( mesitemicon, "v??" ),
+
+	BUILDIN_DEF(getautohuntskills, "i"),
+	BUILDIN_DEF(getautohuntmobs, ""),
+	BUILDIN_DEF(autohunttime, ""),
+	BUILDIN_DEF(isautohunting, ""),
 
 #include <custom/script_def.inc>
 

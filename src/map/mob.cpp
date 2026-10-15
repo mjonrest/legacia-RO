@@ -3036,6 +3036,10 @@ int32 mob_getdroprate(block_list *src, std::shared_ptr<s_mob_db> mob, int32 base
 
 			drop_rate = (int32)( 0.5 + drop_rate * drop_rate_bonus / 100. );
 
+			// Drop rate while using @autohunt
+			if( sd->autohunt.active )
+				drop_rate = (int32)( 0.5 + drop_rate * battle_config.autohunt_drop_rate / 100. );
+
 			// Now limit the drop rate to never be exceed the cap (default: 90%), unless it is originally above it already.
 			if( drop_rate > cap && base_rate < cap ){
 				drop_rate = cap;
