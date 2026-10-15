@@ -7070,6 +7070,11 @@ ACMD_FUNC(autohunt)
 			clif_displaymessage(fd, "You are carrying too much to autohunt.");
 			return -1;
 		}
+
+		if (pc_autohunt_timeleft(*sd) == 0) {
+			clif_displaymessage(fd, "You have no autohunt time left. Free time comes back tomorrow, or buy more in the Cash Shop.");
+			return -1;
+		}
 	}
 
 	if (offline && !battle_config.autohunt_allow_offline) {
@@ -7078,8 +7083,14 @@ ACMD_FUNC(autohunt)
 	}
 
 	if (!sd->autohunt.active) {
+		int64 left = pc_autohunt_timeleft(*sd);
+
 		pc_autohunt_start(*sd);
-		clif_displaymessage(fd, "Autohunt is now ON. Type @autohunt again to stop.");
+		if (left > 0)
+			sprintf(atcmd_output, "Autohunt is now ON (%d h %02d min left). Type @autohunt again to stop.", (int32)(left / 3600), (int32)(left % 3600 / 60));
+		else
+			sprintf(atcmd_output, "Autohunt is now ON. Type @autohunt again to stop.");
+		clif_displaymessage(fd, atcmd_output);
 	} else if (!offline) {
 		clif_displaymessage(fd, "Autohunt is already ON.");
 		return 0;

@@ -793,6 +793,11 @@ struct Battle_Config
 	int32 autohunt_flywing_idle;
 	int32 autohunt_hp_rate;
 	int32 autohunt_sp_rate;
+	int32 autohunt_time_limit;
+	int32 autohunt_free_time;
+	int32 autohunt_exp_rate;
+	int32 autohunt_drop_rate;
+	int32 autohunt_mastery_rate;
 
 #include <custom/battle_config_struct.inc>
 };

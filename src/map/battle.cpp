@@ -11908,6 +11908,11 @@ static const struct _battle_data {
 	{ "autohunt_flywing_idle",              &battle_config.autohunt_flywing_idle,           10,     0,      INT_MAX,        },
 	{ "autohunt_hp_rate",                   &battle_config.autohunt_hp_rate,                50,     0,      99,             },
 	{ "autohunt_sp_rate",                   &battle_config.autohunt_sp_rate,                20,     0,      99,             },
+	{ "autohunt_time_limit",                &battle_config.autohunt_time_limit,             1,      0,      1,              },
+	{ "autohunt_free_time",                 &battle_config.autohunt_free_time,              60,     0,      1440,           },
+	{ "autohunt_exp_rate",                  &battle_config.autohunt_exp_rate,               50,     0,      100,            },
+	{ "autohunt_drop_rate",                 &battle_config.autohunt_drop_rate,              50,     0,      100,            },
+	{ "autohunt_mastery_rate",              &battle_config.autohunt_mastery_rate,           50,     0,      100,            },
 
 #include <custom/battle_config_init.inc>
 };

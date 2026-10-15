@@ -32,6 +32,17 @@ Header:
   Type: ITEM_CASH_DB
   Version: 1
 
+# Autohunt Time tickets (npc/miracle/autohunt.txt). Change prices here.
+Body:
+  - Tab: Consumables
+    Items:
+      - Item: Autohunt_Time_1H
+        Price: 50
+      - Item: Autohunt_Time_5H
+        Price: 200
+      - Item: Autohunt_Time_24H
+        Price: 800
+
 Footer:
   Imports:
     - Path: db/import/item_cash.yml
