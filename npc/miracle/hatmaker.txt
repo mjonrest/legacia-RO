@@ -681,4 +681,4 @@ OnGoldPcClick:
 callshop "Hourly",1;
 end;
 }
--	pointshop	Hourly	-1,#Goldpc_Points,30002:2,30003:150,13534:2,13810:2,12208:10,12210:30,23304:20,7776:10
+-	pointshop	Hourly	-1,#Goldpc_Points,30002:2,30003:150,13534:2,13810:2,12208:10,12210:30,23304:20,7776:10,13989:4,14005:6

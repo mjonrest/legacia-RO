@@ -9,7 +9,10 @@
 #include <cstdlib>
 #include <ctime>
 #include <deque>
+#include <fstream>
 #include <map>
+#include <sstream>
+#include <string>
 #include <vector>
 
 #ifdef _WIN32
@@ -7308,6 +7311,51 @@ int16 pc_search_inventory( const map_session_data* sd, t_itemid nameid) {
  */
 
 // =============================================
+// Item IDs that use the Magic random option groups, read from conf/random_option_magic.conf
+// =============================================
+static std::vector<t_itemid> random_option_magic_ids;
+
+static void pc_read_random_option_magic(void)
+{
+	const char* path = "conf/random_option_magic.conf";
+	std::ifstream file(path);
+
+	random_option_magic_ids.clear();
+
+	if (!file.is_open()) {
+		ShowWarning("pc_read_random_option_magic: Cannot open '%s', no item ID exclusions loaded.\n", path);
+		return;
+	}
+
+	std::string line;
+	while (std::getline(file, line)) {
+		// Strip comments
+		size_t pos = line.find("//");
+		if (pos != std::string::npos)
+			line.erase(pos);
+
+		// Accept IDs separated by commas, spaces or tabs
+		for (char& c : line) {
+			if (c == ',' || c == '\t' || c == '\r')
+				c = ' ';
+		}
+
+		std::istringstream ss(line);
+		std::string token;
+		while (ss >> token) {
+			t_itemid nameid = (t_itemid)strtoul(token.c_str(), nullptr, 10);
+			if (nameid == 0) {
+				ShowWarning("pc_read_random_option_magic: Invalid item ID '%s' in '%s', skipping.\n", token.c_str(), path);
+				continue;
+			}
+			random_option_magic_ids.push_back(nameid);
+		}
+	}
+
+	ShowStatus("Done reading '" CL_WHITE "%zu" CL_RESET "' entries in '" CL_WHITE "%s" CL_RESET "'.\n", random_option_magic_ids.size(), path);
+}
+
+// =============================================
 // Resolve Random Option Group by Equipment Type - by Hyllok
 // You can change the group id returned by this function to apply different random options to the same item type, or return 0 to not apply any random option to that item type.
 // =============================================
@@ -7325,6 +7373,18 @@ static int pc_resolve_random_group(struct item_data* id)
 	if (id->type == IT_WEAPON) {
 
 		int level = id->weapon_level; // Weapon Level (1~4)
+
+		// ---- MAGIC (item ID exclusions) ----
+		// Items listed in conf/random_option_magic.conf roll from the Magic groups
+		// instead of their weapon type. Reload with @reloadpcdb.
+		if (std::find(random_option_magic_ids.begin(), random_option_magic_ids.end(), id->nameid) != random_option_magic_ids.end()) {
+			switch (level) {
+				case 1: return 5;
+				case 2: return 6;
+				case 3: return 7;
+				case 4: return 8;
+			}
+		}
 
 		switch (id->subtype) {
 
@@ -7349,6 +7409,7 @@ static int pc_resolve_random_group(struct item_data* id)
 		case W_KATAR:
 		case W_1HSPEAR:
 		case W_2HSPEAR:
+		case W_BOOK:
 		switch (level) {
 			case 1: return 1;
 			case 2: return 2;
@@ -7359,7 +7420,6 @@ static int pc_resolve_random_group(struct item_data* id)
 		// ---- MAGIC ----
 		case W_STAFF:
 		case W_2HSTAFF:
-		case W_BOOK:
 		switch (level) {
 			case 1: return 5;
 			case 2: return 6;
@@ -16554,6 +16614,8 @@ void pc_readdb(void) {
 
 	statpoint_db.clear();
 	job_db.load();
+
+	pc_read_random_option_magic();
 
 	for(i=0; i<ARRAYLENGTH(dbsubpath); i++){
 		uint8 n1 = (uint8)(strlen(db_path)+strlen(dbsubpath[i])+1);

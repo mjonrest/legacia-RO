@@ -7,15 +7,15 @@
 //
 // Weapon Masteries:
 //
-// Onslaught : 2H Sword, 1H Axe, 2H Axe, 1H Mace,
-//             2H Mace, Knuckle
+// Onslaught : 1H Sword, 2H Sword, 1H Spear, 2H Spear,
+//             1H Axe, 2H Axe, 1H Mace, 2H Mace, Knuckle
 //
-// Swiftness : Dagger, Fuuma Shuriken, Katar
+// Swiftness : Dagger, Fuuma Shuriken, Katar, Book
 //
 // Ranged    : Bow, Instrument, Whip, Revolver, Rifle,
 //             Gatling Gun, Shotgun, Grenade Launcher
 //
-// Mystical  : Rod, Book, 2H Staff, Scythe
+// Mystical  : Rod, 2H Staff, Scythe
 //
 // Safeguard has been completely removed.
 //
@@ -190,10 +190,13 @@ function	script	Mystical_M	{
 	// INT
 	bonus bInt,1 + getarg(0,0) / 32;
 
-	// MATK
-	bonus bMatk,
-		1 + getarg(0,0)
-		+ ((1 + getarg(0,0)) * readparam(bInt) / 100);
+	// Magic Damage Rate
+	bonus2 bMagicAddClass,Class_All,
+		1 + getarg(0,0) / 7
+		+ ((1 + getarg(0,0) / 7) * readparam(bInt) / 100);
+
+	// MATK (same scaling as physical Base ATK)
+	bonus bMatk,getarg(0,0) * 5;
 
 	// Lv 1
 	if (getarg(0,0) >= 1)
@@ -247,14 +250,31 @@ function	script	Mystical_M	{
 
 function	script	F_WM_type	{
 
+	//=====================================================
+	// ITEM ID EXCLUSIONS
+	//
+	// getarg(1) = item ID (optional).
+	// These daggers use Mystical instead of Swiftness.
+	//=====================================================
+
+	switch(getarg(1,0)) {
+		case 1231:	// Bazerald
+		case 13010:	// Asura
+		case 13011:	// Asura
+		case 13023:	// Ashura
+			return "Mystical";
+	}
+
 	switch(getarg(0,0)) {
 
 		//=====================================================
 		// ONSLAUGHT
 		//=====================================================
 
-		case 2:		// 2H Sword
-		case 3:		// 1H Sword / configured
+		case 2:		// 1H Sword
+		case 3:		// 2H Sword
+		case 4:		// 1H Spear
+		case 5:		// 2H Spear
 		case 6:		// 1H Axe
 		case 7:		// 2H Axe
 		case 8:		// 1H Mace
@@ -268,6 +288,7 @@ function	script	F_WM_type	{
 		//=====================================================
 
 		case 1:		// Dagger
+		case 15:	// Book
 		case 16:	// Katar
 		case 22:	// Fuuma Shuriken
 			return "Swiftness";
@@ -293,7 +314,6 @@ function	script	F_WM_type	{
 		//=====================================================
 
 		case 10:	// Rod
-		case 15:	// Book
 		case 23:	// 2H Staff
 		case 24:	// Scythe
 			return "Mystical";
@@ -330,7 +350,8 @@ function	script	WM_Apply	{
 
 	.@right_mastery$ = callfunc(
 		"F_WM_type",
-		.@right_type
+		.@right_type,
+		.@right_id
 	);
 
 
@@ -437,7 +458,8 @@ OnWeaponInfo:
 
 		.@M$ = callfunc(
 			"F_WM_type",
-			.@type
+			.@type,
+			.@right_id
 		);
 	}
 
@@ -672,8 +694,10 @@ OnWeaponInfo:
 			dispbottom "Int +"
 				+ (1 + .@X / 32);
 
+			dispbottom "Magic Dmg +" + (1 + .@X / 7) + "%";
+
 			dispbottom "Matk +"
-				+ (1 + .@X);
+				+ (.@X * 5);
 
 			if (.@X >= 1)
 				dispbottom "Natural SP recovery ratio +"
@@ -871,7 +895,8 @@ OnNPCKillEvent:
 
 	.@M$ = callfunc(
 		"F_WM_type",
-		.@type
+		.@type,
+		.@right_id
 	);
 
 
@@ -880,7 +905,7 @@ OnNPCKillEvent:
 
 
 	//=========================================================
-	// GET WEAPON LEVEL AND MASTERY
+	// GET WEAPON LEVEL
 	//=========================================================
 
 	.@wLv = getiteminfo(
@@ -888,57 +913,156 @@ OnNPCKillEvent:
 		13
 	);
 
+
+	//=========================================================
+	// GIVE MASTERY EXP TO KILLER
+	//=========================================================
+
+	set .@bonus,(.@exp) * (.@wLv * .wLvBonus);
+	if ( getstatus(SC_JEXPBOOST,0)){
+	set .@bonus,(.@exp + (.@exp/2)) * (.@wLv * .wLvBonus);
+	}
+
+	callsub L_AddExp, .@M$, .@bonus;
+
+
+	//=========================================================
+	// PARTY SHARE
+	//
+	// Party members on the same map as the killer get
+	// .PartyShare % of the killer's mastery EXP, added to the
+	// mastery of their own right-hand weapon.
+	//
+	// Only one character per device (Gepard unique ID, or IP
+	// when Gepard is not available) gets a share, and never a
+	// character on the killer's own device.
+	//=========================================================
+
+	.@party_id = getcharid(1);
+	.@share = .@bonus * .PartyShare / 100;
+
+	if (.@party_id <= 0 || .@share <= 0)
+		end;
+
+	.@killer_cid = getcharid(0);
+	.@map$ = strcharinfo(3);
+
+	.@used_dev$[0] = callsub(L_DeviceId);
+
+	getpartymember .@party_id, 1, .@member_cid;
+	getpartymember .@party_id, 2, .@member_aid;
+	.@count = $@partymembercount;
+
+	for (.@i = 0; .@i < .@count; .@i++) {
+
+		if (.@member_cid[.@i] == .@killer_cid)
+			continue;
+
+		if (!isloggedin(.@member_aid[.@i], .@member_cid[.@i]))
+			continue;
+
+		if (!attachrid(.@member_aid[.@i]))
+			continue;
+
+		if (strcharinfo(3) != .@map$)
+			continue;
+
+		.@dev$ = callsub(L_DeviceId);
+
+		if (inarray(.@used_dev$, .@dev$) != -1)
+			continue;
+
+		.@used_dev$[getarraysize(.@used_dev$)] = .@dev$;
+
+		.@m_id = getequipid(EQI_HAND_R);
+
+		if (.@m_id <= 0)
+			continue;
+
+		.@m_M$ = callfunc(
+			"F_WM_type",
+			getiteminfo(.@m_id,11),
+			.@m_id
+		);
+
+		if (.@m_M$ == "")
+			continue;
+
+		callsub L_AddExp, .@m_M$, .@share;
+	}
+
+	end;
+
+
+//=============================================================
+// ADD MASTERY EXP TO ATTACHED PLAYER
+//
+// getarg(0) = mastery name
+// getarg(1) = EXP to add
+//=============================================================
+
+L_AddExp:
+
+	.@sub_M$ = getarg(0);
+
 	.@master = getd(
-		.@M$ + "Master"
+		.@sub_M$ + "Master"
 	);
 
-
-	//=========================================================
-	// GIVE MASTERY EXP
-	//=========================================================
-
 	if (.MaxMastery > .@master) {
-		set .@bonus,(.@exp) * (.@wLv * .wLvBonus);
-		if ( getstatus(SC_JEXPBOOST,0)){
-		set .@bonus,(.@exp + (.@exp/2)) * (.@wLv * .wLvBonus);
-		}
 
 		// Mastery EXP rate while using @autohunt
 		if (isautohunting())
 			.@bonus = .@bonus * getbattleflag("autohunt_mastery_rate") / 100;
 
 		setd
-			.@M$ + "Exp",
-		getd(.@M$ + "Exp") + .@bonus;
-	//	dispbottom "exp :"+.@bonus+" pts.";
+			.@sub_M$ + "Exp",
+		getd(.@sub_M$ + "Exp") + getarg(1);
+	//	dispbottom "exp :"+getarg(1)+" pts.";
 
 
 		//=====================================================
 		// LEVEL UP
 		//=====================================================
 
-		if (getd(.@M$ + "Exp") > .NeededExp[.@master]) {
+		if (getd(.@sub_M$ + "Exp") > .NeededExp[.@master]) {
 
 			setd
-				.@M$ + "Master",
+				.@sub_M$ + "Master",
 				.@master + 1;
 
 			announce
-				.@M$
+				.@sub_M$
 				+ " Mastery has advanced to Lv "
 				+ (.@master + 1)
 				+ "!",
 				bc_blue | bc_self;
 
 			setd
-				.@M$ + "Exp",
+				.@sub_M$ + "Exp",
 				0;
 
 			callfunc("WM_Refresh");
 		}
 	}
 
-	end;
+	return;
+
+
+//=============================================================
+// DEVICE ID OF ATTACHED PLAYER
+//
+// Gepard unique ID, or IP address if Gepard gives none.
+//=============================================================
+
+L_DeviceId:
+
+	.@uid = get_unique_id();
+
+	if (.@uid)
+		return "gepard:" + .@uid;
+
+	return "ip:" + getcharip();
 
 
 //=============================================================
@@ -1001,6 +1125,8 @@ OnInit:
 	.MaxMastery = 128;	// max mastery level
 
 	.wLvBonus = 10;		// multiplier from monster Job EXP
+
+	.PartyShare = 50;	// % of killer's mastery EXP shared with party (0 = off)
 
 
 	//=========================================================
@@ -1182,7 +1308,10 @@ prontera,147,170,5	script	Weapon Mastery Guide	4_M_SAGE_C,{
 
 						mes "[Onslaught]";
 						mes "Weapons:";
+						mes "^0000FF1H Sword^000000";
 						mes "^0000FF2H Sword^000000";
+						mes "^0000FF1H Spear^000000";
+						mes "^0000FF2H Spear^000000";
 						mes "^0000FF1H Axe^000000";
 						mes "^0000FF2H Axe^000000";
 						mes "^0000FF1H Mace^000000";
@@ -1205,6 +1334,7 @@ prontera,147,170,5	script	Weapon Mastery Guide	4_M_SAGE_C,{
 						mes "^0000FFDagger^000000";
 						mes "^0000FFKatar^000000";
 						mes "^0000FFFuuma Shuriken^000000";
+						mes "^0000FFBook^000000";
 						next;
 
 						break;
@@ -1242,7 +1372,6 @@ prontera,147,170,5	script	Weapon Mastery Guide	4_M_SAGE_C,{
 						mes "[Mystical]";
 						mes "Weapons:";
 						mes "^0000FFRod^000000";
-						mes "^0000FFBook^000000";
 						mes "^0000FF2H Staff^000000";
 						mes "^0000FFScythe^000000";
 						next;
@@ -1318,6 +1447,7 @@ prontera,147,170,5	script	Weapon Mastery Guide	4_M_SAGE_C,{
 				mes "^AA55FFMystical^000000 focuses on magic.";
 				mes " ";
 				mes "INT";
+				mes "Magic Damage";
 				mes "MATK";
 				mes "SP Recovery";
 				mes "Max SP";
