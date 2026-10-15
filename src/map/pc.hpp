@@ -1044,6 +1044,7 @@ public:
 		uint16 saved_autoloot;  ///< Player's own @autoloot rate, restored on stop
 		uint16 ignore[20];      ///< Monster IDs the player chose to skip (from AH_IGNORE)
 		t_tick last_tick;       ///< Last AI tick, for counting used time
+		uint8 walk_dir;         ///< Direction the character keeps walking in while searching
 		int32 time_ms;          ///< Used milliseconds not yet taken from the time balance
 		bool hit_mvp;           ///< Player chose to attack MVPs (AH_HITMVP)
 		bool active;
