@@ -797,6 +797,9 @@ struct Battle_Config
 	int32 autohunt_sp_rate;
 	int32 autohunt_time_limit;
 	int32 autohunt_free_time;
+	int32 autohunt_free_share;
+	int32 autohunt_max_per_device;
+	int32 autohunt_offline_per_device;
 	int32 autohunt_exp_rate;
 	int32 autohunt_drop_rate;
 	int32 autohunt_mastery_rate;

@@ -7082,10 +7082,15 @@ ACMD_FUNC(autohunt)
 		return -1;
 	}
 
+	// Per-device limits (online and offline characters from the same PC)
+	if (!pc_autohunt_device_ok(*sd, offline))
+		return -1;
+
 	if (!sd->autohunt.active) {
 		int64 left = pc_autohunt_timeleft(*sd);
 
-		pc_autohunt_start(*sd);
+		if (!pc_autohunt_start(*sd))
+			return -1;
 		if (left > 0)
 			sprintf(atcmd_output, "Autohunt is now ON (%d h %02d min left). Type @autohunt again to stop.", (int32)(left / 3600), (int32)(left % 3600 / 60));
 		else

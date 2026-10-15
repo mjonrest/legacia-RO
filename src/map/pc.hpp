@@ -1046,6 +1046,8 @@ public:
 		t_tick last_tick;       ///< Last AI tick, for counting used time
 		uint8 walk_dir;         ///< Direction the character keeps walking in while searching
 		int32 time_ms;          ///< Used milliseconds not yet taken from the time balance
+		uint32 device_id;       ///< Gepard unique ID of the player's device (kept while offline)
+		uint32 device_ip;       ///< Player's IP, used for the device limits when there is no Gepard ID
 		bool hit_mvp;           ///< Player chose to attack MVPs (AH_HITMVP)
 		bool active;
 		bool offline;           ///< Character keeps hunting without a client
@@ -1844,6 +1846,7 @@ void pc_autohunt_stop(map_session_data& sd, const char* reason = nullptr);
 void pc_autohunt_skilllist(map_session_data& sd, bool buffs);
 void pc_autohunt_moblist(map_session_data& sd);
 int64 pc_autohunt_timeleft(map_session_data& sd);
+bool pc_autohunt_device_ok(map_session_data& sd, bool offline);
 
 void do_final_pc(void);
 
