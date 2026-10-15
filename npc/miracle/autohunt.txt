@@ -17,7 +17,7 @@
 //   Every player gets autohunt_free_time minutes free per day
 //   (conf/battle/feature.conf, change it and @reloadbattleconf).
 //   Extra time is bought with the Autohunt Time tickets in the
-//   Cash Shop (items 61500-61502), stored in AH_PAID_TIME (seconds).
+//   Cash Shop (items 300022-300024), stored in AH_PAID_TIME (seconds).
 //   GMs can give time with:  @ahtime <char name> <minutes>
 //   (negative minutes take time away, no minutes shows the balance)
 //

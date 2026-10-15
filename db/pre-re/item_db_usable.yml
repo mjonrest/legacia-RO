@@ -22103,7 +22103,7 @@ Body:
       Third_Upper: true
       Third_Baby: true
     EquipLevelMin: 1
-  - Id: 61500
+  - Id: 300022
     AegisName: Autohunt_Time_1H
     Name: Autohunt Time 1 Hour
     Type: Usable
@@ -22119,7 +22119,7 @@ Body:
       NoAuction: true
     Script: |
       callfunc "F_AH_AddTime", 60;
-  - Id: 61501
+  - Id: 300023
     AegisName: Autohunt_Time_5H
     Name: Autohunt Time 5 Hours
     Type: Usable
@@ -22135,7 +22135,7 @@ Body:
       NoAuction: true
     Script: |
       callfunc "F_AH_AddTime", 300;
-  - Id: 61502
+  - Id: 300024
     AegisName: Autohunt_Time_24H
     Name: Autohunt Time 24 Hours
     Type: Usable
