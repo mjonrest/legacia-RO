@@ -404,11 +404,17 @@ function	script	Func_Socket2	{
 	}
 
 	// Requirement check
-	if (Zeny < .@zeny_req
-	 || countitem(.@item_req[0]) < .@req_amount[0]
-	 || (.@item_req[1] && .@req_amount[1] && countitem(.@item_req[1]) < .@req_amount[1])
-	 || (.@auger && countitem(.@auger_id) < 1)
-	 || getequipid(.@item_loc) != .@item_id) {
+	// Script && / || do not short-circuit, so only call countitem on real item IDs.
+	.@missing = (Zeny < .@zeny_req || countitem(.@item_req[0]) < .@req_amount[0] || getequipid(.@item_loc) != .@item_id);
+	if (.@item_req[1] && .@req_amount[1]) {
+		if (countitem(.@item_req[1]) < .@req_amount[1])
+			.@missing = 1;
+	}
+	if (.@auger) {
+		if (countitem(.@auger_id) < 1)
+			.@missing = 1;
+	}
+	if (.@missing) {
 		mes "[Leablem]";
 		mes "Are you stupid or what? You didn't bring all of the required items!";
 		mes "Go bring them quick!";
