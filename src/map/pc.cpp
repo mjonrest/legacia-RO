@@ -17082,20 +17082,30 @@ static bool pc_autohunt_teleport( map_session_data& sd ){
 		int32 sp = skill_get_sp( AL_TELEPORT, 1 );
 
 		if( sd.battle_status.sp >= static_cast<uint32>( sp ) ){
-			status_zap( &sd, 0, sp );
-			pc_randomwarp( &sd, CLR_TELEPORT );
-			return true;
+			if( pc_randomwarp( &sd, CLR_TELEPORT ) == 0 ){
+				status_zap( &sd, 0, sp );
+				return true;
+			}
 		}
 	}
 
-	for( t_itemid nameid : { AUTOHUNT_INFINITE_FLYWING, AUTOHUNT_FLYWING } ){
-		int16 idx = pc_search_inventory( &sd, nameid );
+	// Fly Wings are used here directly: their item script only asks the client to cast Teleport,
+	// which can take a while (or never happen while walking, or offline without a client)
+	bool consume = false;
+	int16 idx = pc_search_inventory( &sd, AUTOHUNT_INFINITE_FLYWING );
 
-		if( idx >= 0 && pc_useitem( &sd, idx ) )
-			return true;
+	if( idx < 0 ){
+		idx = pc_search_inventory( &sd, AUTOHUNT_FLYWING );
+		consume = true;
 	}
 
-	return false;
+	if( idx < 0 || pc_randomwarp( &sd, CLR_TELEPORT ) != 0 )
+		return false;
+
+	if( consume )
+		pc_delitem( &sd, idx, 1, 0, 0, LOG_TYPE_CONSUME );
+
+	return true;
 }
 
 /// Where the free time is counted: character, account, device
