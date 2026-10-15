@@ -16996,6 +16996,19 @@ static bool pc_autohunt_valid_target( map_session_data& sd, block_list* bl ){
 	return true;
 }
 
+/// True when a walk path starting at (x, y) steps on a warp portal (including warps to another spot of the same map)
+static bool pc_autohunt_path_warp( int16 m, int16 x, int16 y, const walkpath_data& wpd ){
+	for( int32 i = wpd.path_pos; i < wpd.path_len; i++ ){
+		x += dirx[wpd.path[i]];
+		y += diry[wpd.path[i]];
+
+		if( npc_check_areanpc( 1, m, x, y, 0 ) )
+			return true;
+	}
+
+	return false;
+}
+
 static int32 pc_autohunt_search_sub( block_list* bl, va_list ap ){
 	map_session_data* sd = va_arg( ap, map_session_data* );
 	block_list** best = va_arg( ap, block_list** );
@@ -17016,6 +17029,10 @@ static int32 pc_autohunt_search_sub( block_list* bl, va_list ap ){
 	walkpath_data wpd;
 
 	if( !path_search( &wpd, sd->m, sd->x, sd->y, bl->x, bl->y, 0, CELL_CHKNOREACH ) || wpd.path_len > battle_config.autohunt_search_range * 2 )
+		return 0;
+
+	// Don't go after monsters on the other side of a warp portal
+	if( pc_autohunt_path_warp( sd->m, sd->x, sd->y, wpd ) )
 		return 0;
 
 	*best = bl;
@@ -17314,12 +17331,186 @@ static void pc_autohunt_randomwalk( map_session_data& sd ){
 			if( steps < 3 )
 				continue;
 
+			// The real walk path can bend around corners, so check it for warp portals too
+			walkpath_data wpd;
+
+			if( !path_search( &wpd, sd.m, sd.x, sd.y, x, y, 0, CELL_CHKNOREACH ) || pc_autohunt_path_warp( sd.m, sd.x, sd.y, wpd ) )
+				continue;
+
 			if( unit_walktoxy( &sd, x, y, 0 ) ){
 				sd.autohunt.walk_dir = static_cast<uint8>( dir );
 				return;
 			}
 		}
 	}
+}
+
+/// The map is split into AUTOHUNT_SECTORS x AUTOHUNT_SECTORS areas; exploring visits them one by one
+#define AUTOHUNT_SECTORS 8
+/// Longest walk towards the current goal before looking again (cells)
+#define AUTOHUNT_LEG 12
+
+static int32 pc_autohunt_sector( const map_data& md, int16 x, int16 y ){
+	int32 sx = std::min( x * AUTOHUNT_SECTORS / std::max<int32>( md.xs, 1 ), AUTOHUNT_SECTORS - 1 );
+	int32 sy = std::min( y * AUTOHUNT_SECTORS / std::max<int32>( md.ys, 1 ), AUTOHUNT_SECTORS - 1 );
+
+	return sx + sy * AUTOHUNT_SECTORS;
+}
+
+/// Picks the next area to explore: one of the closest areas not visited yet, like a player sweeping the map
+static bool pc_autohunt_pick_goal( map_session_data& sd ){
+	map_data* md = map_getmapdata( sd.m );
+
+	if( md == nullptr || md->xs <= 0 || md->ys <= 0 )
+		return false;
+
+	const uint64 all = ~static_cast<uint64>( 0 );
+
+	sd.autohunt.visited |= static_cast<uint64>( 1 ) << pc_autohunt_sector( *md, sd.x, sd.y );
+
+	for( int32 round = 0; round < 2; round++ ){
+		if( sd.autohunt.visited == all ) // whole map done, start a new sweep
+			sd.autohunt.visited = static_cast<uint64>( 1 ) << pc_autohunt_sector( *md, sd.x, sd.y );
+
+		// Unvisited areas, closest first
+		std::vector<std::pair<int32, int32>> areas;
+
+		for( int32 i = 0; i < AUTOHUNT_SECTORS * AUTOHUNT_SECTORS; i++ ){
+			if( sd.autohunt.visited & ( static_cast<uint64>( 1 ) << i ) )
+				continue;
+
+			int32 cx = ( i % AUTOHUNT_SECTORS * 2 + 1 ) * md->xs / ( AUTOHUNT_SECTORS * 2 );
+			int32 cy = ( i / AUTOHUNT_SECTORS * 2 + 1 ) * md->ys / ( AUTOHUNT_SECTORS * 2 );
+
+			areas.push_back( { distance( cx - sd.x, cy - sd.y ), i } );
+		}
+
+		std::sort( areas.begin(), areas.end() );
+
+		for( size_t n = 0; n < areas.size(); n++ ){
+			// Mostly the closest area, sometimes the second closest, so the route isn't always the same
+			size_t pick = n;
+
+			if( n == 0 && areas.size() > 1 && rnd() % 3 == 0 )
+				std::swap( areas[0], areas[1] );
+
+			int32 i = areas[pick].second;
+			int32 x0 = i % AUTOHUNT_SECTORS * md->xs / AUTOHUNT_SECTORS;
+			int32 y0 = i / AUTOHUNT_SECTORS * md->ys / AUTOHUNT_SECTORS;
+			int32 w = std::max<int32>( md->xs / AUTOHUNT_SECTORS, 1 );
+			int32 h = std::max<int32>( md->ys / AUTOHUNT_SECTORS, 1 );
+
+			for( int32 tries = 0; tries < 20; tries++ ){
+				int16 x = static_cast<int16>( x0 + rnd() % w );
+				int16 y = static_cast<int16>( y0 + rnd() % h );
+
+				if( !map_getcell( sd.m, x, y, CELL_CHKPASS ) || npc_check_areanpc( 1, sd.m, x, y, 1 ) )
+					continue;
+
+				sd.autohunt.goal_x = x;
+				sd.autohunt.goal_y = y;
+				sd.autohunt.goal_dist = distance( x - sd.x, y - sd.y );
+				sd.autohunt.goal_fails = 0;
+				sd.autohunt.has_goal = true;
+				return true;
+			}
+
+			// No walkable ground there (wall or water), skip that area
+			sd.autohunt.visited |= static_cast<uint64>( 1 ) << i;
+		}
+
+		sd.autohunt.visited = all;
+	}
+
+	return false;
+}
+
+/// Tries to walk up to 'len' cells in direction (fx, fy). Stops short of walls and never crosses a warp portal.
+static bool pc_autohunt_walk_dir( map_session_data& sd, double fx, double fy, int32 len ){
+	double norm = std::max( std::fabs( fx ), std::fabs( fy ) );
+
+	if( norm <= 0 )
+		return false;
+
+	for( int32 l = len; l >= 3; l -= 3 ){
+		int16 x = static_cast<int16>( sd.x + std::lround( fx / norm * l ) );
+		int16 y = static_cast<int16>( sd.y + std::lround( fy / norm * l ) );
+
+		if( !map_getcell( sd.m, x, y, CELL_CHKPASS ) )
+			continue;
+
+		walkpath_data wpd;
+
+		// Skip spots that need a long way around (behind a wall)
+		if( !path_search( &wpd, sd.m, sd.x, sd.y, x, y, 0, CELL_CHKNOREACH ) || wpd.path_len > l * 2 )
+			continue;
+		if( pc_autohunt_path_warp( sd.m, sd.x, sd.y, wpd ) )
+			continue;
+
+		if( unit_walktoxy( &sd, x, y, 0 ) )
+			return true;
+	}
+
+	return false;
+}
+
+/**
+ * Explores the map when no monster is in sight: heads for an area not visited yet,
+ * walking in long straight legs and going around walls, then moves on to the next area.
+ */
+static void pc_autohunt_explore( map_session_data& sd ){
+	if( sd.ud.walktimer != INVALID_TIMER )
+		return;
+
+	map_data* md = map_getmapdata( sd.m );
+
+	if( md == nullptr )
+		return;
+
+	sd.autohunt.visited |= static_cast<uint64>( 1 ) << pc_autohunt_sector( *md, sd.x, sd.y );
+
+	if( sd.autohunt.has_goal ){
+		int32 dist = distance( sd.autohunt.goal_x - sd.x, sd.autohunt.goal_y - sd.y );
+
+		if( dist <= 3 ){
+			// Arrived: that area is done
+			sd.autohunt.visited |= static_cast<uint64>( 1 ) << pc_autohunt_sector( *md, sd.autohunt.goal_x, sd.autohunt.goal_y );
+			sd.autohunt.has_goal = false;
+		}else if( dist < sd.autohunt.goal_dist ){
+			sd.autohunt.goal_dist = dist;
+			sd.autohunt.goal_fails = 0;
+		}else if( ++sd.autohunt.goal_fails >= 6 ){
+			// Can't get closer (blocked off, island...), give up on that area
+			sd.autohunt.visited |= static_cast<uint64>( 1 ) << pc_autohunt_sector( *md, sd.autohunt.goal_x, sd.autohunt.goal_y );
+			sd.autohunt.has_goal = false;
+		}
+	}
+
+	if( !sd.autohunt.has_goal && !pc_autohunt_pick_goal( sd ) ){
+		pc_autohunt_randomwalk( sd );
+		return;
+	}
+
+	double dx = sd.autohunt.goal_x - sd.x;
+	double dy = sd.autohunt.goal_y - sd.y;
+	int32 len = std::min<int32>( AUTOHUNT_LEG, distance( static_cast<int32>( dx ), static_cast<int32>( dy ) ) );
+
+	// Straight at the goal first; around a wall, try turning a bit, then more.
+	// The side tried first stays the same while the goal is the same, so it follows the wall instead of zigzagging.
+	int32 side = ( sd.autohunt.goal_x + sd.autohunt.goal_y ) % 2 ? 1 : -1;
+
+	for( int32 turn : { 0, 1, -1, 2, -2, 3, -3 } ){
+		double a = turn * side * 0.78539816339744831; // 45 degrees per turn
+		double fx = dx * std::cos( a ) - dy * std::sin( a );
+		double fy = dx * std::sin( a ) + dy * std::cos( a );
+
+		if( pc_autohunt_walk_dir( sd, fx, fy, turn == 0 ? len : AUTOHUNT_LEG / 2 ) )
+			return;
+	}
+
+	// Boxed in: count it as no progress and fall back to the plain search walk
+	sd.autohunt.goal_fails++;
+	pc_autohunt_randomwalk( sd );
 }
 
 /// Uses the first ready attack skill on the target, or attacks it normally
@@ -17434,6 +17625,17 @@ static TIMER_FUNC(pc_autohunt_timer){
 		pc_autohunt_potion( *sd, true );
 		pc_autohunt_potion( *sd, false );
 
+		// Never walk into a warp portal: the path to a moving monster is recalculated while chasing it
+		if( sd->ud.walktimer != INVALID_TIMER && pc_autohunt_path_warp( sd->m, sd->x, sd->y, sd->ud.walkpath ) ){
+			unit_stop_walking( sd, USW_FIXPOS );
+
+			if( sd->autohunt.target_id != 0 ){
+				sd->autohunt.ignore_id = sd->autohunt.target_id;
+				sd->autohunt.target_id = 0;
+				unit_stop_attack( sd );
+			}
+		}
+
 		// Busy: casting, talking to an NPC or sitting
 		if( sd->ud.skilltimer == INVALID_TIMER && sd->npc_id == 0 && !pc_issit( sd ) && !pc_autohunt_buff( *sd, tick ) ){
 			block_list* target = map_id2bl( sd->autohunt.target_id );
@@ -17473,10 +17675,11 @@ static TIMER_FUNC(pc_autohunt_timer){
 				if( tele == 0 )
 					tele = battle_config.autohunt_flywing_idle;
 
-				if( tele > 0 && DIFF_TICK( tick, sd->autohunt.last_found_tick ) >= static_cast<t_tick>( tele ) * 1000 && pc_autohunt_teleport( *sd ) )
+				if( tele > 0 && DIFF_TICK( tick, sd->autohunt.last_found_tick ) >= static_cast<t_tick>( tele ) * 1000 && pc_autohunt_teleport( *sd ) ){
 					sd->autohunt.last_found_tick = tick;
-				else
-					pc_autohunt_randomwalk( *sd );
+					sd->autohunt.has_goal = false; // new spot, choose a new area to explore from here
+				}else
+					pc_autohunt_explore( *sd );
 			}
 		}
 	}
@@ -17516,6 +17719,8 @@ bool pc_autohunt_start( map_session_data& sd ){
 	sd.autohunt.saved_autoloot = sd.state.autoloot;
 
 	sd.autohunt.walk_dir = static_cast<uint8>( rnd() % DIR_MAX );
+	sd.autohunt.has_goal = false;
+	sd.autohunt.visited = 0;
 	pc_autohunt_set_autoloot( sd );
 
 	sd.autohunt.tid = add_timer( tick + battle_config.autohunt_interval, pc_autohunt_timer, sd.id, 0 );
