@@ -317,11 +317,17 @@ function	script	Func_Socket	{
 	}
 
 	// Requirement check
-	if (Zeny < .@zeny_req
-	 || countitem(.@item_req[0]) < .@req_amount[0]
-	 || (.@item_req[1] && .@req_amount[1] && countitem(.@item_req[1]) < .@req_amount[1])
-	 || (.@auger && countitem(.@auger_id) < 1)
-	 || getequipid(.@item_loc) != .@item_id) {
+	// Script && / || do not short-circuit, so only call countitem on real item IDs.
+	.@missing = (Zeny < .@zeny_req || countitem(.@item_req[0]) < .@req_amount[0] || getequipid(.@item_loc) != .@item_id);
+	if (.@item_req[1] && .@req_amount[1]) {
+		if (countitem(.@item_req[1]) < .@req_amount[1])
+			.@missing = 1;
+	}
+	if (.@auger) {
+		if (countitem(.@auger_id) < 1)
+			.@missing = 1;
+	}
+	if (.@missing) {
 		mes "[Seiyablem]";
 		mes "I'd like to go ahead with this Slot Addition attempt, but you're missing a few things.";
 		mes "You sure that you have the equipment, required materials and the zeny?";
