@@ -17396,6 +17396,13 @@ static TIMER_FUNC(pc_autohunt_timer){
 		}
 	}
 
+	// Send the time balance to the database every minute instead of waiting for the autosave,
+	// so a server restart or crash loses at most a minute of used time
+	if( DIFF_TICK( tick, sd->autohunt.save_tick ) >= 60000 ){
+		sd->autohunt.save_tick = tick;
+		intif_saveregistry( sd );
+	}
+
 	// Offline characters have no client to finish a warp, so do it for them
 	if( sd->autohunt.offline && sd->prev == nullptr && sd->state.active )
 		clif_parse_LoadEndAck( sd->fd, sd );
@@ -17504,6 +17511,7 @@ bool pc_autohunt_start( map_session_data& sd ){
 	sd.autohunt.target_hp = 0;
 	sd.autohunt.target_tick = tick;
 	sd.autohunt.last_tick = tick;
+	sd.autohunt.save_tick = tick;
 	sd.autohunt.time_ms = 0;
 	sd.autohunt.saved_autoloot = sd.state.autoloot;
 
@@ -17585,6 +17593,7 @@ void pc_autohunt_stop( map_session_data& sd, const char* reason ){
 
 	sd.state.autoloot = sd.autohunt.saved_autoloot;
 	sd.autohunt.target_id = 0;
+	intif_saveregistry( &sd ); // save the time balance now
 
 	if( sd.prev != nullptr ){
 		unit_stop_attack( &sd );

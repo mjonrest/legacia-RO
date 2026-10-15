@@ -1044,6 +1044,7 @@ public:
 		uint16 saved_autoloot;  ///< Player's own @autoloot rate, restored on stop
 		uint16 ignore[20];      ///< Monster IDs the player chose to skip (from AH_IGNORE)
 		t_tick last_tick;       ///< Last AI tick, for counting used time
+		t_tick save_tick;       ///< Last time the time balance was sent to the database
 		uint8 walk_dir;         ///< Direction the character keeps walking in while searching
 		int32 time_ms;          ///< Used milliseconds not yet taken from the time balance
 		uint32 device_id;       ///< Gepard unique ID of the player's device (kept while offline)
