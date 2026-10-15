@@ -638,15 +638,14 @@ all items are sold, or the mapserver closes.
 
 ---------------------------------------
 
-@autohunt {on|off|offline|info}
-@autohunt skill <skill id or name> {<level>}
-@autohunt hp <item id> {<percent>}
-@autohunt sp <item id> {<percent>}
+@autohunt {on|off|offline}
 
 Lets your character hunt monsters on its own: it walks to the nearest
-monster, attacks it (or uses the chosen skill), drinks the chosen potions
-and loots. "offline" keeps hunting after you log out, like @autotrade;
-log in again to stop it. Settings are in conf/battle/feature.conf.
+monster, attacks it (or uses the chosen skills), keeps buffs up, drinks
+the chosen potions and loots. "offline" keeps hunting after you log out,
+like @autotrade; log in again to stop it.
+Players change their settings with @ah (npc/miracle/autohunt.txt).
+Server settings are in conf/battle/feature.conf.
 
 ---------------------------------------
 

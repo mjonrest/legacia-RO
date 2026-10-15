@@ -27838,6 +27838,22 @@ BUILDIN_FUNC( getupgrade_rune ){
 #endif
 }
 
+/**
+ * Lists the player's skills that @autohunt can use.
+ * getautohuntskills <type>;  (0 = attack skills, 1 = self buffs)
+ * Fills @ah_skill_id[], @ah_skill_lv[], @ah_skill_name$[] and @ah_skill_count.
+ */
+BUILDIN_FUNC(getautohuntskills)
+{
+	map_session_data* sd;
+
+	if( !script_rid2sd( sd ) )
+		return SCRIPT_CMD_FAILURE;
+
+	pc_autohunt_skilllist( *sd, script_getnum( st, 2 ) != 0 );
+	return SCRIPT_CMD_SUCCESS;
+}
+
 #include <custom/script.inc>
 
 // declarations that were supposed to be exported from npc_chat.cpp
@@ -28844,6 +28860,8 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF2(permission_add, "permission_remove", "i?"),
 
 	BUILDIN_DEF( mesitemicon, "v??" ),
+
+	BUILDIN_DEF(getautohuntskills, "i"),
 
 #include <custom/script_def.inc>
 

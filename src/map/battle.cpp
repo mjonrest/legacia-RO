@@ -11903,7 +11903,7 @@ static const struct _battle_data {
 	{ "autohunt_autoloot",                  &battle_config.autohunt_autoloot,               10000,  0,      10000,          },
 	{ "autohunt_allow_offline",             &battle_config.autohunt_allow_offline,          1,      0,      1,              },
 	{ "autohunt_offline_timeout",           &battle_config.autohunt_offline_timeout,        0,      0,      INT_MAX,        },
-	{ "autohunt_ignore_mvp",                &battle_config.autohunt_ignore_mvp,             1,      0,      1,              },
+	{ "autohunt_ignore_mvp",                &battle_config.autohunt_ignore_mvp,             0,      0,      1,              },
 	{ "autohunt_ignore_others_mobs",        &battle_config.autohunt_ignore_others_mobs,     1,      0,      1,              },
 	{ "autohunt_flywing_idle",              &battle_config.autohunt_flywing_idle,           10,     0,      INT_MAX,        },
 	{ "autohunt_hp_rate",                   &battle_config.autohunt_hp_rate,                50,     0,      99,             },

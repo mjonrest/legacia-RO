@@ -7013,17 +7013,14 @@ ACMD_FUNC(partyoption)
 
 /*==========================================
  * @autohunt - Lets the character hunt monsters on its own
- *   @autohunt                    : turn on/off
- *   @autohunt offline            : keep hunting after you log out
- *   @autohunt skill <skill> <lv> : skill to use on monsters (0 = normal attack only)
- *   @autohunt hp <item> <%>      : potion used when HP is below % (0 = off)
- *   @autohunt sp <item> <%>      : potion used when SP is below % (0 = off)
- *   @autohunt info               : show your settings
+ *   @autohunt          : turn on/off
+ *   @autohunt offline  : keep hunting after you log out
+ * Skills, buffs, potions, ignored monsters and the rest are set
+ * through the Autohunt NPC (npc/miracle/autohunt.txt, opened with @ah).
  *------------------------------------------*/
 ACMD_FUNC(autohunt)
 {
-	char sub[32] = "", arg[64] = "";
-	int32 val = 0;
+	char sub[32] = "";
 
 	nullpo_retr(-1, sd);
 
@@ -7033,100 +7030,12 @@ ACMD_FUNC(autohunt)
 	}
 
 	if (message && *message)
-		sscanf(message, "%31s %63s %11d", sub, arg, &val);
-
-	if (!strcmpi(sub, "skill")) {
-		uint16 skill_id = (uint16)atoi(arg);
-
-		if (skill_id == 0 && strcmp(arg, "0") != 0 && *arg)
-			skill_id = skill_name2id(arg);
-
-		if (!*arg || (skill_id == 0 && strcmp(arg, "0") != 0)) {
-			clif_displaymessage(fd, "Usage: @autohunt skill <skill id or name> <level> (0 = normal attack only)");
-			return -1;
-		}
-
-		if (skill_id != 0) {
-			if (pc_checkskill(sd, skill_id) <= 0) {
-				clif_displaymessage(fd, "You don't have that skill.");
-				return -1;
-			}
-
-			if (!(skill_get_inf(skill_id) & (INF_ATTACK_SKILL|INF_GROUND_SKILL))) {
-				clif_displaymessage(fd, "Only skills that target a monster or the ground can be used.");
-				return -1;
-			}
-		}
-
-		pc_setglobalreg(sd, add_str("AH_SKILL"), skill_id);
-		pc_setglobalreg(sd, add_str("AH_SKLV"), skill_id ? max(val, 0) : 0);
-
-		if (skill_id)
-			sprintf(atcmd_output, "Autohunt skill: %s Lv %d.", skill_get_desc(skill_id), val > 0 ? min(val, (int32)pc_checkskill(sd, skill_id)) : pc_checkskill(sd, skill_id));
-		else
-			sprintf(atcmd_output, "Autohunt skill: none (normal attack only).");
-		clif_displaymessage(fd, atcmd_output);
-		return 0;
-	}
-
-	if (!strcmpi(sub, "hp") || !strcmpi(sub, "sp")) {
-		bool hp = !strcmpi(sub, "hp");
-		t_itemid nameid = (t_itemid)strtoul(arg, nullptr, 10);
-
-		if (!*arg) {
-			sprintf(atcmd_output, "Usage: @autohunt %s <item id> <%%> (item 0 = off)", hp ? "hp" : "sp");
-			clif_displaymessage(fd, atcmd_output);
-			return -1;
-		}
-
-		if (nameid != 0 && !item_db.exists(nameid)) {
-			clif_displaymessage(fd, msg_txt(sd,19)); // Invalid item ID or name.
-			return -1;
-		}
-
-		if (val <= 0)
-			val = hp ? battle_config.autohunt_hp_rate : battle_config.autohunt_sp_rate;
-		val = min(val, 99);
-
-		pc_setglobalreg(sd, add_str(hp ? "AH_HPITEM" : "AH_SPITEM"), nameid);
-		pc_setglobalreg(sd, add_str(hp ? "AH_HPRATE" : "AH_SPRATE"), val);
-
-		if (nameid)
-			sprintf(atcmd_output, "Autohunt will use %s when %s is below %d%%.", itemdb_ename(nameid), hp ? "HP" : "SP", val);
-		else
-			sprintf(atcmd_output, "Autohunt %s potion: off.", hp ? "HP" : "SP");
-		clif_displaymessage(fd, atcmd_output);
-		return 0;
-	}
-
-	if (!strcmpi(sub, "info")) {
-		uint16 skill_id = (uint16)pc_readglobalreg(sd, add_str("AH_SKILL"));
-		t_itemid hpitem = (t_itemid)pc_readglobalreg(sd, add_str("AH_HPITEM"));
-		t_itemid spitem = (t_itemid)pc_readglobalreg(sd, add_str("AH_SPITEM"));
-
-		sprintf(atcmd_output, "Autohunt is %s.", sd->autohunt.active ? "ON" : "OFF");
-		clif_displaymessage(fd, atcmd_output);
-		sprintf(atcmd_output, "Skill: %s", skill_id ? skill_get_desc(skill_id) : "none (normal attack only)");
-		clif_displaymessage(fd, atcmd_output);
-		if (hpitem)
-			sprintf(atcmd_output, "HP potion: %s below %d%%", itemdb_ename(hpitem), (int32)pc_readglobalreg(sd, add_str("AH_HPRATE")));
-		else
-			sprintf(atcmd_output, "HP potion: off");
-		clif_displaymessage(fd, atcmd_output);
-		if (spitem)
-			sprintf(atcmd_output, "SP potion: %s below %d%%", itemdb_ename(spitem), (int32)pc_readglobalreg(sd, add_str("AH_SPRATE")));
-		else
-			sprintf(atcmd_output, "SP potion: off");
-		clif_displaymessage(fd, atcmd_output);
-		return 0;
-	}
+		sscanf(message, "%31s", sub);
 
 	bool offline = !strcmpi(sub, "offline");
 
 	if (*sub && !offline && strcmpi(sub, "on") && strcmpi(sub, "off")) {
-		clif_displaymessage(fd, "Usage: @autohunt [on|off|offline|info]");
-		clif_displaymessage(fd, "       @autohunt skill <skill> <level>");
-		clif_displaymessage(fd, "       @autohunt hp <item id> <%>  /  @autohunt sp <item id> <%>");
+		clif_displaymessage(fd, "Usage: @autohunt [on|off|offline]. Type @ah to change your autohunt settings.");
 		return -1;
 	}
 

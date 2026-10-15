@@ -1042,6 +1042,8 @@ public:
 		t_tick start_tick;      ///< When autohunt was started
 		t_tick last_found_tick; ///< Last time a monster was found (for the Fly Wing option)
 		uint16 saved_autoloot;  ///< Player's own @autoloot rate, restored on stop
+		uint16 ignore[10];      ///< Monster IDs the player chose to skip (from AH_IGNORE)
+		bool hit_mvp;           ///< Player chose to attack MVPs (AH_HITMVP)
 		bool active;
 		bool offline;           ///< Character keeps hunting without a client
 	} autohunt;
@@ -1836,6 +1838,7 @@ void do_init_pc(void);
 // Autohunt (@autohunt)
 bool pc_autohunt_start(map_session_data& sd);
 void pc_autohunt_stop(map_session_data& sd, const char* reason = nullptr);
+void pc_autohunt_skilllist(map_session_data& sd, bool buffs);
 
 void do_final_pc(void);
 
