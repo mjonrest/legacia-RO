@@ -364,7 +364,7 @@ function	script	F_AH_Ignore	{
 			mes "[Autohunt]";
 			mes "Enter the monster ID to ignore.";
 			input .@mid;
-			if (strmobinfo(1, .@mid) == "") {
+			if (getmonsterinfo(.@mid, MOB_NAME) == "null") {
 				mes "That monster ID does not exist.";
 				next;
 				break;
@@ -382,7 +382,7 @@ function	script	F_AH_Ignore	{
 			mes "Tap a monster to hunt it again.";
 			.@menu$ = "";
 			for (.@i = 0; .@i < 20; .@i++)
-				.@menu$ += (AH_IGNORE[.@i] ? strmobinfo(1, AH_IGNORE[.@i]) + " (" + AH_IGNORE[.@i] + ")" : "") + ":";
+				.@menu$ += (AH_IGNORE[.@i] ? getmonsterinfo(AH_IGNORE[.@i], MOB_NAME) + " (" + AH_IGNORE[.@i] + ")" : "") + ":";
 			.@p = select(.@menu$ + "Back") - 1;
 			if (.@p < 20)
 				AH_IGNORE[.@p] = 0;
