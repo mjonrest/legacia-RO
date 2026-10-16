@@ -1051,6 +1051,8 @@ public:
 		int32 goal_dist;        ///< Closest the character got to the goal so far
 		uint8 goal_fails;       ///< Walks in a row that didn't get closer to the goal
 		bool has_goal;
+		char tag_name[NAME_LENGTH]; ///< Name shown to others while autohunting ("[AutoHunt] name")
+		t_tick effect_tick;     ///< Last time the autohunt effect was shown
 		int32 time_ms;          ///< Used milliseconds not yet taken from the time balance
 		uint32 device_id;       ///< Gepard unique ID of the player's device (kept while offline)
 		uint32 device_ip;       ///< Player's IP, used for the device limits when there is no Gepard ID

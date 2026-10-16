@@ -17625,6 +17625,12 @@ static TIMER_FUNC(pc_autohunt_timer){
 		pc_autohunt_potion( *sd, true );
 		pc_autohunt_potion( *sd, false );
 
+		// Effect around autohunting characters so other players can tell (autohunt_effect)
+		if( battle_config.autohunt_effect > 0 && DIFF_TICK( tick, sd->autohunt.effect_tick ) >= 3000 ){
+			sd->autohunt.effect_tick = tick;
+			clif_specialeffect( sd, battle_config.autohunt_effect, AREA );
+		}
+
 		// Never walk into a warp portal: the path to a moving monster is recalculated while chasing it
 		if( sd->ud.walktimer != INVALID_TIMER && pc_autohunt_path_warp( sd->m, sd->x, sd->y, sd->ud.walkpath ) ){
 			unit_stop_walking( sd, USW_FIXPOS );
@@ -17721,6 +17727,14 @@ bool pc_autohunt_start( map_session_data& sd ){
 	sd.autohunt.walk_dir = static_cast<uint8>( rnd() % DIR_MAX );
 	sd.autohunt.has_goal = false;
 	sd.autohunt.visited = 0;
+	sd.autohunt.effect_tick = 0;
+
+	// Let other players see who is autohunting
+	sd.autohunt.tag_name[0] = '\0';
+	if( battle_config.autohunt_name_tag ){
+		safesnprintf( sd.autohunt.tag_name, sizeof( sd.autohunt.tag_name ), "[AutoHunt] %s", sd.status.name );
+		clif_name_area( &sd );
+	}
 	pc_autohunt_set_autoloot( sd );
 
 	sd.autohunt.tid = add_timer( tick + battle_config.autohunt_interval, pc_autohunt_timer, sd.id, 0 );
@@ -17798,6 +17812,12 @@ void pc_autohunt_stop( map_session_data& sd, const char* reason ){
 
 	sd.state.autoloot = sd.autohunt.saved_autoloot;
 	sd.autohunt.target_id = 0;
+
+	if( sd.autohunt.tag_name[0] != '\0' ){
+		sd.autohunt.tag_name[0] = '\0';
+		if( sd.prev != nullptr )
+			clif_name_area( &sd ); // back to the real name
+	}
 	intif_saveregistry( &sd ); // save the time balance now
 
 	if( sd.prev != nullptr ){

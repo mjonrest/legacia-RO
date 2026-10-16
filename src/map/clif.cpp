@@ -1225,6 +1225,18 @@ static int32 clif_setlevel(const block_list* bl) {
 /*==========================================
  * Prepares 'unit standing/spawning' packet
  *------------------------------------------*/
+/// Name shown above a unit: autohunting players get the [AutoHunt] tag (see pc_autohunt_start)
+static const char* clif_unit_name( const block_list& bl ){
+	if( bl.type == BL_PC ){
+		const map_session_data& sd = static_cast<const map_session_data&>( bl );
+
+		if( sd.fakename[0] == '\0' && sd.autohunt.active && sd.autohunt.tag_name[0] != '\0' )
+			return sd.autohunt.tag_name;
+	}
+
+	return status_get_name( bl );
+}
+
 static void clif_set_unit_idle( const block_list* bl, bool walking, send_target target, const block_list* tbl ){
 	nullpo_retv( bl );
 
@@ -1377,7 +1389,7 @@ static void clif_set_unit_idle( const block_list* bl, bool walking, send_target 
 #endif
 /* Might be earlier, this is when the named item bug began */
 #if PACKETVER >= 20131223
-	safestrncpy(p.name, status_get_name( *bl ), NAME_LENGTH);
+	safestrncpy(p.name, clif_unit_name( *bl ), NAME_LENGTH);
 #endif
 
 	clif_send( &p, sizeof( p ), tbl, target );
@@ -1524,7 +1536,7 @@ static void clif_spawn_unit( const block_list* bl, enum send_target target ){
 #endif
 /* Might be earlier, this is when the named item bug began */
 #if PACKETVER >= 20131223
-	safestrncpy( p.name, status_get_name( *bl ), NAME_LENGTH );
+	safestrncpy( p.name, clif_unit_name( *bl ), NAME_LENGTH );
 #endif
 
 	if( disguised( bl ) ){
@@ -1632,7 +1644,7 @@ static void clif_set_unit_walking( const block_list& bl, const map_session_data*
 #endif
 /* Might be earlier, this is when the named item bug began */
 #if PACKETVER >= 20131223
-	safestrncpy(p.name, status_get_name( bl ), NAME_LENGTH);
+	safestrncpy(p.name, clif_unit_name( bl ), NAME_LENGTH);
 #endif
 
 	clif_send( &p, sizeof(p), tsd ? tsd : &bl, target );
@@ -10222,7 +10234,7 @@ void clif_name( const block_list* src, const block_list* bl, send_target target 
 				return;
 			}
 
-			safestrncpy( packet.name, sd->status.name, NAME_LENGTH );
+			safestrncpy( packet.name, clif_unit_name( *sd ), NAME_LENGTH );
 
 			party_data *p = nullptr;
 
