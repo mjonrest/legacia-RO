@@ -8,7 +8,8 @@
 			"[System]: Don't forget to review us on Ratemyserver.net",
 			"[System]: Don't force yourself to donate. This game is free to Play.",
 			"[System]: You can get Random Option from every equipment drop by Monster",
-			"[System]: Costumes obtain from Gacha and Monster is not tradeable.";
+			"[System]: Costumes obtain from Gacha and Monster is not tradeable.",
+			"[System]: You can use autohunt by using command @ah, 1 hr free everyday";
 		.news_list_size = getarraysize(.news_list$);
 		initnpctimer;
 		
