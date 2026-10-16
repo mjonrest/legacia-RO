@@ -1048,8 +1048,7 @@ public:
 		uint8 walk_dir;         ///< Direction the character keeps walking in while searching
 		uint64 visited;         ///< Map areas already explored (8x8 grid, one bit each)
 		int16 goal_x, goal_y;   ///< Spot in the area being explored
-		int32 goal_dist;        ///< Closest the character got to the goal so far
-		uint8 goal_fails;       ///< Walks in a row that didn't get closer to the goal
+		uint8 goal_fails;       ///< Times in a row the route to the goal was lost
 		bool has_goal;
 		char tag_name[NAME_LENGTH]; ///< Name shown to others while autohunting ("[AutoHunt] name")
 		t_tick effect_tick;     ///< Last time the autohunt effect was shown
