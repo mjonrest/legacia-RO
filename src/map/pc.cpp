@@ -17609,6 +17609,10 @@ static void pc_autohunt_explore( map_session_data& sd ){
 
 /// Uses the first ready attack skill on the target, or attacks it normally
 static void pc_autohunt_attack( map_session_data& sd, block_list& target, t_tick tick ){
+	// Attacking ends the protection after a map change or teleport, like it does for a player.
+	// Otherwise the monster can't hit back, counts it as a "rude attack" and teleports away.
+	pc_delinvincibletimer( &sd );
+
 	if( DIFF_TICK( tick, sd.ud.canact_tick ) >= 0 ){
 		for( int32 i = 1; i <= AUTOHUNT_SKILL_SLOTS; i++ ){
 			uint16 skill_id = static_cast<uint16>( pc_autohunt_var( sd, "AH_SKILL", i ) );
