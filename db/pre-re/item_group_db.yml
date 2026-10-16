@@ -5984,6 +5984,9 @@ Body:
           - Index: 263
             Item: Egg_Shell
             Rate: 2
+          - Index: 264
+            Item: Scorpion_King_Card
+            Rate: 1
   - Group: GIFTBOX_1
     SubGroups:
       - SubGroup: 1
