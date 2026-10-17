@@ -10170,6 +10170,7 @@ Body:
     Type: Weapon
     TargetType: Attack
     DamageFlags:
+      Critical: true
       IgnoreAtkCard: true
     Range: 9
     Hit: Single
@@ -13091,6 +13092,7 @@ Body:
     Type: Weapon
     TargetType: Attack
     DamageFlags:
+      Critical: true
       IgnoreAtkCard: true
     Flags:
       AllowOnMado: true

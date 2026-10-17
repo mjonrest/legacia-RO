@@ -190,13 +190,13 @@ function	script	Mystical_M	{
 	// INT
 	bonus bInt,1 + getarg(0,0) / 32;
 
-	// Magic Damage Rate
+	// Magic Damage Rate (doubled)
 	bonus2 bMagicAddClass,Class_All,
-		1 + getarg(0,0) / 7
-		+ ((1 + getarg(0,0) / 7) * readparam(bInt) / 100);
+		2 * (1 + getarg(0,0) / 7)
+		+ (2 * (1 + getarg(0,0) / 7) * readparam(bInt) / 100);
 
-	// MATK (same scaling as physical Base ATK)
-	bonus bMatk,getarg(0,0) * 5;
+	// MATK (doubled, 2x physical Base ATK scaling)
+	bonus bMatk,getarg(0,0) * 10;
 
 	// Lv 1
 	if (getarg(0,0) >= 1)
@@ -694,10 +694,10 @@ OnWeaponInfo:
 			dispbottom "Int +"
 				+ (1 + .@X / 32);
 
-			dispbottom "Magic Dmg +" + (1 + .@X / 7) + "%";
+			dispbottom "Magic Dmg +" + (2 * (1 + .@X / 7)) + "%";
 
 			dispbottom "Matk +"
-				+ (.@X * 5);
+				+ (.@X * 10);
 
 			if (.@X >= 1)
 				dispbottom "Natural SP recovery ratio +"
