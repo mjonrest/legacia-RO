@@ -11911,7 +11911,7 @@ static const struct _battle_data {
 	{ "autohunt_hp_rate",                   &battle_config.autohunt_hp_rate,                50,     0,      99,             },
 	{ "autohunt_sp_rate",                   &battle_config.autohunt_sp_rate,                20,     0,      99,             },
 	{ "autohunt_time_limit",                &battle_config.autohunt_time_limit,             1,      0,      1,              },
-	{ "autohunt_free_time",                 &battle_config.autohunt_free_time,              60,     0,      1440,           },
+	{ "autohunt_free_time",                 &battle_config.autohunt_free_time,              180,    0,      1440,           },
 	{ "autohunt_free_share",                &battle_config.autohunt_free_share,             2,      0,      2,              },
 	{ "autohunt_max_per_device",            &battle_config.autohunt_max_per_device,         2,      0,      100,            },
 	{ "autohunt_offline_per_device",        &battle_config.autohunt_offline_per_device,     1,      -1,     100,            },
