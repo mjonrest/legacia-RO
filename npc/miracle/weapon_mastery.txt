@@ -190,10 +190,10 @@ function	script	Mystical_M	{
 	// INT
 	bonus bInt,1 + getarg(0,0) / 32;
 
-	// Magic Damage Rate (doubled)
+	// Magic Damage Rate
 	bonus2 bMagicAddClass,Class_All,
-		2 * (1 + getarg(0,0) / 7)
-		+ (2 * (1 + getarg(0,0) / 7) * readparam(bInt) / 100);
+		1 + getarg(0,0) / 7
+		+ ((1 + getarg(0,0) / 7) * readparam(bInt) / 100);
 
 	// MATK (doubled, 2x physical Base ATK scaling)
 	bonus bMatk,getarg(0,0) * 10;
@@ -222,9 +222,9 @@ function	script	Mystical_M	{
 	if (getarg(0,0) >= 32)
 		bonus bHealPower,1 + getarg(0,0) / 2;
 
-	// Lv 64
+	// Lv 64 (MATK rate, doubled)
 	if (getarg(0,0) >= 64)
-		bonus bMAtkrate,1 + getarg(0,0) / 7;
+		bonus bMAtkrate,2 * (1 + getarg(0,0) / 7);
 
 	// Lv 128
 	if (getarg(0,0) >= 128)
@@ -694,7 +694,7 @@ OnWeaponInfo:
 			dispbottom "Int +"
 				+ (1 + .@X / 32);
 
-			dispbottom "Magic Dmg +" + (2 * (1 + .@X / 7)) + "%";
+			dispbottom "Magic Dmg +" + (1 + .@X / 7) + "%";
 
 			dispbottom "Matk +"
 				+ (.@X * 10);
@@ -730,7 +730,8 @@ OnWeaponInfo:
 
 			if (.@X >= 64)
 				dispbottom "Weapon magical attack power +"
-					+ (.@X / 7 + 1);
+					+ (2 * (.@X / 7 + 1))
+					+ "%";
 
 			if (.@X >= 128)
 				dispbottom "Prevents casting from being interrupted when hit";
