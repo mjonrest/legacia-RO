@@ -56,7 +56,7 @@ setarray .message$[0], "Kafra Legacia","Reset Stats&Skill","Rent Mount","Platinu
 	end;
 OnReset:
 	//	 		Skills,	Stats,	Both,	Limit
-	setarray .@Reset,	5000,	5000,	9000,	0;
+	setarray .@Reset,	5000000,	5000000,	5000000,	0;
 	mes "[Reset Girl]";
 	if(.@Reset[3] && reset_limit > .@Reset[3]) {
 		mes "Sorry you can only reset "+callfunc("F_InsertPlural",.@Reset[3],"time")+" in your life.";
