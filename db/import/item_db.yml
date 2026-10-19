@@ -1,0 +1,3108 @@
+# This file is a part of rAthena.
+#   Copyright(C) 2021 rAthena Development Team
+#   https://rathena.org - https://github.com/rathena
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+###########################################################################
+# Item Database
+###########################################################################
+#
+# Item Settings
+#
+###########################################################################
+# - Id                      Item ID.
+#   AegisName               Server name to reference the item in scripts and lookups, should use no spaces.
+#   Name                    Name in English for displaying as output.
+#   Type                    Item type. (Default: Etc)
+#   SubType                 Weapon, Ammo or Card type. (Default: 0)
+#   Buy                     Buying price. When not specified, becomes double the sell price. (Default: 0)
+#   Sell                    Selling price. When not specified, becomes half the buy price. (Default: 0)
+#   Weight                  Item weight. Each 10 is 1 weight. (Default: 0)
+#   Attack                  Weapon's attack. (Default: 0)
+#   MagicAttack             Weapon's magic attack. (Default: 0)
+#   Defense                 Armor's defense. (Default: 0)
+#   Range                   Weapon's attack range. (Default: 0)
+#   Slots                   Available slots in item. (Default: 0)
+#   Jobs                    Jobs that can equip the item. (Map default is 'All: true')
+#   Classes                 Upper class types that can equip the item. (Map default is 'All: true')
+#   Gender                  Gender that can equip the item. (Default: Both)
+#   Locations               Equipment's placement. (Default: None)
+#   WeaponLevel             Weapon level. (Default: 1 for Weapons)
+#   ArmorLevel              Armor level. (Default: 1 for Armors)
+#   EquipLevelMin           Minimum required level to equip. (Default: 0)
+#   EquipLevelMax           Maximum level that can equip. (Default: 0)
+#   Refineable              If the item can be refined. (Default: false)
+#   Gradable                If the item can be graded. (Default: false)
+#   View                    View sprite of an item. (Default: 0)
+#   AliasName               Another item's AegisName that will be sent to the client instead of this item's AegisName. (Default: null)
+#   Flags:                  Item flags. (Default: null)
+#     BuyingStore           If the item is available for Buyingstores. (Default: false)
+#     DeadBranch            If the item is a Dead Branch. (Default: false)
+#     Container             If the item is part of a container. (Default: false)
+#     UniqueId              If the item is a unique stack. (Default: false)
+#     BindOnEquip           If the item is bound to the character upon equipping. (Default: false)
+#     DropAnnounce          If the item has a special announcement to self on drop. (Default: false)
+#     NoConsume             If the item is consumed on use. (Default: false)
+#     DropEffect            If the item has a special effect on the ground when dropped by a monster. (Default: None)
+#   Delay:                  Item use delay. (Default: null)
+#     Duration              Duration of delay in seconds.
+#     Status                Status Change used to track delay. (Default: None)
+#   Stack:                  Item stack amount. (Default: null)
+#     Amount                Maximum amount that can be stacked.
+#     Inventory             If the stack is applied to player's inventory. (Default: true)
+#     Cart                  If the stack is applied to the player's cart. (Default: false)
+#     Storage               If the stack is applied to the player's storage. (Default: false)
+#     GuildStorage          If the stack is applied to the player's guild storage. (Default: false)
+#   NoUse:                  Conditions when the item is unusable. (Default: null)
+#     Override              Group level to override these conditions. (Default: 100)
+#     Sitting               If the item can not be used while sitting. (Default: false)
+#   Trade:                  Trade restrictions. (Default: null)
+#     Override              Group level to override these conditions. (Default: 100)
+#     NoDrop                If the item can not be dropped. (Default: false)
+#     NoTrade               If the item can not be traded. (Default: false)
+#     TradePartner          If the item can not be traded to the player's partner. (Default: false)
+#     NoSell                If the item can not be sold. (Default: false)
+#     NoCart                If the item can not be put in a cart. (Default: false)
+#     NoStorage             If the item can not be put in a storage. (Default: false)
+#     NoGuildStorage        If the item can not be put in a guild storage. (Default: false)
+#     NoMail                If the item can not be put in a mail. (Default: false)
+#     NoAuction             If the item can not be put in an auction. (Default: false)
+#   Script                  Script to execute when the item is used/equipped. (Default: null)
+#   EquipScript             Script to execute when the item is equipped. (Default: null)
+#   UnEquipScript           Script to execute when the item is unequipped or when a rental item expires. (Default: null)
+###########################################################################
+
+Header:
+  Type: ITEM_DB
+  Version: 3
+
+Body:
+# THQ Quest Items
+#=============================================================
+#  - Id: 1998
+#    AegisName: Jeramiah's_Jur
+#    Name: Jeramiah's Jur
+#    Type: Etc
+#    Sell: 10
+#    Weight: 10
+#    AliasName: Jur
+#  - Id: 1999
+#    AegisName: Zed's_Staff
+#    Name: Zed's Staff
+#    Type: Etc
+#    Sell: 10
+#    Weight: 10
+#    AliasName: Staff_Of_Soul
+#  - Id: 7950
+#    AegisName: THG_Membership
+#    Name: THG Membership
+#    Type: Etc
+#    Sell: 10
+#    Weight: 10
+#    AliasName: Foolishness_Of_Blind
+#  - Id: 7951
+#    AegisName: Gold_Tulip
+#    Name: Token Bag
+#    Type: Etc
+#    Sell: 10
+#    Weight: 10
+#    AliasName: Leather_Bag_Of_Infinity
+
+# Official Event Items that had their Effects removed after the event was completed
+#=============================================================
+#  - Id: 585
+#    AegisName: Wurst
+#    Name: Brusti
+#    Type: Delayconsume
+#    Buy: 2
+#    Weight: 40
+#    Script: |
+#      itemheal rand(15,20),0; itemskill "PR_MAGNIFICAT",3;
+#  - Id: 679
+#    AegisName: Gold_Pill
+#    Name: Pilule
+#    Type: Healing
+#    Buy: 5000
+#    Weight: 300
+#    Script: |
+#      percentheal 50,50;
+#  - Id: 2681
+#    AegisName: Republic_Ring
+#    Name: Republic Anniversary Ring
+#    Type: Armor
+#    Buy: 20
+#    Weight: 100
+#    Locations:
+#      Right_Accessory: true
+#      Left_Accessory: true
+#    Script: |
+#      bonus bAllStats,3;
+#  - Id: 5134
+#    AegisName: Pumpkin_Hat
+#    Name: Pumpkin-Head
+#    Type: Armor
+#    Buy: 20
+#    Weight: 200
+#    Defense: 2
+#    Locations:
+#      Head_Top: true
+#    Refineable: true
+#    View: 206
+#    Script: |
+#      bonus2 bSubRace,RC_Demon,5;
+#  - Id: 5136
+#    AegisName: Santa's_Hat_
+#    Name: Louise's Santa Hat
+#    Type: Armor
+#    Buy: 20
+#    Weight: 100
+#    Defense: 3
+#    Locations:
+#      Head_Top: true
+#    Refineable: true
+#    View: 20
+#    Script: |
+#      bonus bMdef,1; bonus bLuk,1; bonus3 bAutoSpellWhenHit,"AL_HEAL",3,50; bonus3 bAutoSpellWhenHit,"AL_BLESSING",10,50;
+#  - Id: 5145
+#    AegisName: Carnival_Joker_Jester
+#    Name: Carnival Jester
+#    Type: Armor
+#    Buy: 10
+#    Weight: 100
+#    Locations:
+#      Head_Top: true
+#    Refineable: true
+#    View: 89
+#    Script: |
+#      bonus bAllStats,3;
+#  - Id: 5147
+#    AegisName: Baseball_Cap
+#    Name: Baseball Cap
+#    Type: Armor
+#    Weight: 200
+#    Defense: 3
+#    Locations:
+#      Head_Top: true
+#    Refineable: true
+#    View: 216
+#    Script: |
+#      bonus2 bExpAddRace,RC_Boss,50; bonus2 bExpAddRace,RC_NonBoss,50;
+#  - Id: 5201
+#    AegisName: Party_Hat_B
+#    Name: 2nd Anniversary Party Hat
+#    Type: Armor
+#    Buy: 20
+#    Weight: 300
+#    Defense: 3
+#    Locations:
+#      Head_Top: true
+#    Refineable: true
+#    View: 144
+#    Script: |
+#      bonus bAllStats,3;
+#  - Id: 5202
+#    AegisName: Pumpkin_Hat_
+#    Name: Pumpkin Hat
+#    Type: Armor
+#    Buy: 20
+#    Weight: 200
+#    Defense: 2
+#    Locations:
+#      Head_Top: true
+#    Refineable: true
+#    View: 206
+#    Script: |
+#      bonus bAllStats,2; bonus2 bSubRace,RC_Demon,5; bonus3 bAddMonsterDropItem,529,RC_DemiHuman,1500;
+#  - Id: 5204
+#    AegisName: Event_Pierrot_Nose
+#    Name: Rudolf's Red Nose
+#    Type: Armor
+#    Buy: 20
+#    Weight: 100
+#    Locations:
+#      Head_Low: true
+#    View: 49
+#    Script: |
+#      bonus2 bResEff,Eff_Blind,3000; bonus2 bAddMonsterDropItem,12130,30;
+#  - Id: 5264
+#    AegisName: Aussie_Flag_Hat
+#    Name: Australian Flag Hat
+#    Type: Armor
+#    Buy: 20
+#    Weight: 500
+#    Defense: 4
+#    Locations:
+#      Head_Top: true
+#    Refineable: true
+#    View: 304
+#    Script: |
+#      bonus bAllStats,2;
+#  - Id: 5356
+#    AegisName: Pumpkin_Hat_H
+#    Name: Pumpkin Hat
+#    Type: Armor
+#    Buy: 20
+#    Weight: 200
+#    Defense: 2
+#    Locations:
+#      Head_Top: true
+#    Refineable: true
+#    View: 206
+#    Script: |
+#      bonus bAllStats,2; bonus2 bSubRace,RC_Demon,5; bonus2 bMagicAddRace,RC_Demon,5;
+#  - Id: 5384
+#    AegisName: Santa_Hat_1
+#    Name: Twin Pompom By JB
+#    Type: Armor
+#    Buy: 20
+#    Weight: 200
+#    Defense: 2
+#    Slots: 1
+#    Locations:
+#      Head_Top: true
+#    EquipLevelMin: 20
+#    Refineable: true
+#    View: 390
+#    Script: |
+#      bonus bLuk,3; bonus2 bResEff,Eff_Curse,2000; bonus bVariableCastrate,-2; bonus bAspdRate,4; bonus2 bAddMonsterDropItem,539,100; bonus2 bAddMonsterDropItem,529,200; bonus2 bAddMonsterDropItem,530,200; autobonus "{ bonus bCritical,10; }",10,5000;
+#  - Id: 5811
+#    AegisName: Santa_Beard
+#    Name: Santa Beard
+#    Type: Armor
+#    Buy: 20
+#    Weight: 100
+#    Defense: 5
+#    Locations:
+#      Head_Low: true
+#    View: 25
+#    Script: |
+#      bonus2 bSubRace,RC_Brute,5; bonus2 bSubRace,RC_Player_Doram,5;
+#  - Id: 11702
+#    AegisName: Moon_Cookie
+#    Name: Moon Cookie
+#    Type: Delayconsume
+#    Weight: 10
+#    Script: |
+#      sc_end SC_POISON; sc_end SC_SILENCE; sc_end SC_BLIND; sc_end SC_CONFUSION; sc_end SC_CURSE; sc_end SC_HALLUCINATION; itemskill "AL_BLESSING",7;
+#  - Id: 12131
+#    AegisName: Lucky_Potion
+#    Name: Lucky Potion
+#    Type: Healing
+#    Buy: 2
+#    Weight: 100
+#    Script: |
+#      sc_start SC_LUKFOOD,180000,15;
+#  - Id: 12143
+#    AegisName: Red_Can
+#    Name: Red Can
+#    Type: Usable
+#    Buy: 50000
+#    Weight: 300
+#    Script: |
+#      percentheal 25,25;
+
+# Event effect: Summon monster? Probably Rice_Cake. x_x
+#=============================================================
+#  - Id: 12199
+#    AegisName: Rice_Scroll
+#    Name: Rice Scroll
+#    Type: Usable
+#  - Id: 12200
+#    AegisName: Event_Cake
+#    Name: Event Cake
+#    Type: Usable
+#    Buy: 20
+#    Weight: 50
+#    Script: |
+#      itemskill "PR_MAGNIFICAT",3;
+#  - Id: 12238
+#    AegisName: New_Year_Rice_Cake_1
+#    Name: New Year Rice Cake
+#    Type: Healing
+#    Buy: 20
+#    Weight: 100
+#    Script: |
+#      percentheal 20,15; sc_start SC_STRFOOD,1200000,3; sc_start SC_INTFOOD,1200000,3; sc_start SC_LUKFOOD,1200000,3; sc_start SC_SPEEDUP1,5000,0;
+#  - Id: 12239
+#    AegisName: New_Year_Rice_Cake_2
+#    Name: New Year Rice Cake
+#    Type: Healing
+#    Buy: 20
+#    Weight: 100
+#    Script: |
+#      percentheal 20,15; sc_start SC_DEXFOOD,1200000,3; sc_start SC_AGIFOOD,1200000,3; sc_start SC_VITFOOD,1200000,3; sc_start SC_SPEEDUP1,5000,0;
+
+# iRO St. Patrick's Day Event 2008
+#=============================================================
+#  - Id: 7915
+#    AegisName: Copper_Coin_
+#    Name: Bronze Coin
+#    Type: Etc
+#    Weight: 10
+#    AliasName: Copper_Coin
+#  - Id: 7916
+#    AegisName: Silver_Coin_
+#    Name: Silver Coin
+#    Type: Etc
+#    Weight: 10
+#    AliasName: Silver_Coin
+#  - Id: 12715
+#    AegisName: Black_Treasure_Box
+#    Name: Black Treasure Chest
+#    Type: Usable
+#    Weight: 200
+#    AliasName: Treasure_Box_
+#    Script: |
+#      callfunc "F_08stpattyseventbox";
+
+# iRO Valentine's Day Event 2009
+#=============================================================
+#  - Id: 5817
+#    AegisName: Valentine_Pledge
+#    Name: Valentine's Emblem
+#    Type: Armor
+#    Buy: 10
+#    Defense: 3
+#    Locations:
+#      Right_Accessory: true
+#      Left_Accessory: true
+#    Script: |
+#      bonus bAtkRate,3; bonus bMatkRate,3; bonus bAllStats,2; bonus bFlee,10; bonus bAspd,1; bonus bMdef,3; bonus2 bSkillAtk,"AL_HEAL",10; bonus2 bSkillHeal,"AL_HEAL",10; bonus2 bSkillHeal,"AM_POTIONPITCHER",10; bonus2 bAddItemGroupHealRate,IG_Potion,10;
+#  - Id: 7946
+#    AegisName: Gold_Ring_Of_Valentine
+#    Name: Gold Ring Of Valentine
+#    Type: Etc
+#    Buy: 10
+#  - Id: 7947
+#    AegisName: Silver_Ring_Of_Valentine
+#    Name: Silver Ring Of Valentine
+#    Type: Etc
+#    Buy: 10
+#  - Id: 7948
+#    AegisName: Box
+#    Name: Box
+#    Type: Etc
+#    Buy: 10
+#    Weight: 10
+#  - Id: 12742
+#    AegisName: Valentine_Gift_Box_M
+#    Name: Valentine Gift Box
+#    Type: Usable
+#    Buy: 10
+#    Script: |
+#      getitem 7946,1;
+#  - Id: 12743
+#    AegisName: Valentine_Gift_Box_F
+#    Name: Valentine Gift Box
+#    Type: Usable
+#    Buy: 10
+#    Script: |
+#      getitem 7947,1;
+#  - Id: 12744
+#    AegisName: Chocolate_Box
+#    Name: Chocolate Box
+#    Type: Usable
+#    Buy: 10
+#    Script: |
+#      getitem 558,1;
+#  - Id: 14466
+#    AegisName: Valentine's_Emblem_Box
+#    Name: Valentine's Emblem Box
+#    Type: Usable
+#    Buy: 10
+#    Script: |
+#      getitem 5817,1;
+
+# iRO Halloween Event 2009
+#=============================================================
+#  - Id: 5668
+#    AegisName: Weird_Pumpkin_Hat
+#    Name: Weird Pumpkin Hat
+#    Type: Armor
+#    Buy: 20
+#    Defense: 5
+#    Locations:
+#      Head_Top: true
+#    Refineable: true
+#    View: 206
+#    Script: |
+#      bonus bMdef,5; bonus2 bAddMonsterDropItem,12192,2500;
+#  - Id: 6298
+#    AegisName: Pumpkin_Head_Crushed
+#    Name: Crushed Pumpkin
+#    Type: Etc
+#  - Id: 6299
+#    AegisName: Worn_Cloth_Piece
+#    Name: Worn Fabric
+#    Type: Etc
+
+# Old Tuxedo and Wedding Dress, will display the outfit when worn.
+#==================================================================
+#  - Id: 2338
+#    AegisName: Wedding_Dress
+#    Name: Wedding Dress
+#    Type: Armor
+#    Buy: 43000
+#    Weight: 500
+#    Jobs:
+#      All: true
+#      Novice: false
+#    Gender: Female
+#    Locations:
+#      Armor: true
+#    Refineable: true
+#    EquipScript: |
+#      sc_start SC_WEDDING,INFINITE_TICK,0;
+#    UnEquipScript: |
+#      sc_end SC_WEDDING;
+#  - Id: 7170
+#    AegisName: Tuxedo
+#    Name: Tuxedo
+#    Type: Armor
+#    Buy: 43000
+#    Weight: 10
+#    Jobs:
+#      All: true
+#      Novice: false
+#    Gender: Male
+#    Locations:
+#      Armor: true
+#    ArmorLevel: 1
+#    Refineable: true
+#    EquipScript: |
+#      sc_start SC_WEDDING,INFINITE_TICK,0;
+#    UnEquipScript: |
+#      sc_end SC_WEDDING;
+
+# Non-kRO Eden Group Mark effect
+#=============================================================
+#  - Id: 22508
+#    AegisName: Para_Team_Mark_
+#    Name: Eden Group Mark
+#    Type: Delayconsume
+#    Script: |
+#      unitskilluseid getcharid(3),"AL_TELEPORT",3;
+
+# Gender restrictions that were removed on official servers
+#=============================================================
+#  - Id: 2206
+#    Gender: Female
+#  - Id: 2208
+#    Gender: Female
+#  - Id: 2209
+#    Gender: Female
+#  - Id: 2234
+#    Gender: Female
+#  - Id: 2235
+#    Gender: Male
+#  - Id: 2407
+#    Gender: Female
+#  - Id: 2415
+#    Gender: Female
+#  - Id: 2494
+#    Gender: Female
+#  - Id: 5143
+#    Gender: Male
+#  - Id: 5164
+#    Gender: Female
+#  - Id: 5165
+#    Gender: Male
+#  - Id: 5191
+#    Gender: Female
+#  - Id: 5192
+#    Gender: Female
+#  - Id: 5193
+#    Gender: Female
+#  - Id: 5194
+#    Gender: Female
+#  - Id: 5195
+#    Gender: Female
+#  - Id: 5196
+#    Gender: Female
+#  - Id: 5197
+#    Gender: Female
+#  - Id: 5221
+#    Gender: Female
+#  - Id: 5354
+#    Gender: Male
+#  - Id: 5355
+#    Gender: Female
+#  - Id: 5400
+#    Gender: Female
+#  - Id: 5681
+#    Gender: Female
+#  - Id: 5735
+#    Gender: Female
+  - Id: 23304
+    AegisName: C_Wing_Of_Fly_1Day_Para
+    Name: Infinite Fly Wing Box (1 Day)
+    Type: Cash
+    Weight: 10
+    Flags:
+      Container: true
+    Script: |
+      getgroupitem(IG_C_WING_OF_FLY_1DAY_PARA);
+  - Id: 23323
+    AegisName: C_Wing_Of_Fly_3Day_Box_
+    Name: Unlimited Wing Of Fly 3D Box
+    Type: Cash
+    Weight: 10
+    Flags:
+      Container: true
+    Script: |
+      getgroupitem(IG_C_WING_OF_FLY_3DAY_BOX_);
+  - Id: 23331
+    AegisName: C_Wing_Of_Fly_Box_
+    Name: Infinite Fly Wing Box (1 Week)
+    Type: Cash
+    Weight: 10
+    Flags:
+      Container: true
+    Script: |
+      getgroupitem(IG_C_WING_OF_FLY_BOX_);
+  - Id: 12887
+    AegisName: C_Wing_Of_Fly
+    Name: Infinite Flywing
+    Type: Usable
+    Flags:
+      NoConsume: true
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoStorage: false
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      itemskill "AL_TELEPORT",1;
+  - Id: 12622
+    AegisName: Boarding_Halter
+    Name: Reins Of Mount
+    Type: Usable
+    Flags:
+      NoConsume: true
+    Delay:
+      Duration: 3000
+      Status: All_Riding_Reuse_Limit
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoStorage: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      setmounting();
+    UnEquipScript: |
+      if (ismounting())
+         setmounting();
+  - Id: 17176
+    AegisName: Boarding_Halter_Box3
+    Name: Boarding Halter Box 3days
+    Type: Cash
+    Buy: 20
+    Weight: 10
+    Flags:
+      Container: true
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      getgroupitem(IG_BOARDING_HALTER_BOX3);
+  - Id: 16682
+    AegisName: Boarding_Halter_Box
+    Name: Boarding Halter Box
+    Type: Cash
+    Buy: 20
+    Weight: 10
+    Flags:
+      Container: true
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      getgroupitem(IG_Boarding_Halter_Box);
+  - Id: 2888
+    AegisName: School_Bag
+    Name: School Bag
+    Type: Armor
+    Buy: 20
+    Weight: 1000
+    Slots: 1
+    Locations:
+      Both_Accessory: true
+    ArmorLevel: 1
+    Script: |
+      bonus bAspdRate,3;
+      bonus bVariableCastrate,-3;
+      if (BaseLevel<80) {
+         bonus bMaxHP,200;
+         bonus bMaxSP,100;
+      }
+  - Id: 28351
+    AegisName: Whike_Black_Tail_S
+    Name: Whike Black Tail
+    Type: Armor
+    Weight: 100
+    Slots: 1
+    Locations:
+      Both_Accessory: true
+    ArmorLevel: 1
+    EquipLevelMin: 45
+    Script: |
+      bonus bCritical,7;
+      bonus bAspdRate,3;
+  - Id: 2589
+    AegisName: Fallen_Angel_Wing
+    Name: Fallen Angel Wing
+    Type: Armor
+    Weight: 200
+    Defense: 18
+    Slots: 1
+    Locations:
+      Garment: true
+    ArmorLevel: 1
+    Refineable: true
+    View: 3
+    Trade:
+      NoDrop: true
+    Script: |
+      bonus bAllStats,1;
+      bonus bBaseAtk,readparam(bStr)/20;
+      bonus bMatk,readparam(bInt)/20;
+      bonus2 bSubEle,Ele_Neutral,readparam(bVit)/20;
+      bonus bAspdRate,(readparam(bAgi)/20);
+      bonus bLongAtkRate,readparam(bDex)/20;
+      bonus bCritAtkRate,readparam(bLuk)/20;
+  - Id: 2855
+    AegisName: Whike_Black_Tail
+    Name: Whike Black Tail
+    Type: Armor
+    Buy: 20
+    Weight: 100
+    Locations:
+      Both_Accessory: true
+    ArmorLevel: 1
+    EquipLevelMin: 45
+    Script: |
+      bonus bCritical,7;
+      bonus bAspdRate,3;
+  - Id: 4786
+    AegisName: Mdef2
+    Name: MDEF+2
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMdef,2;
+  - Id: 4787
+    AegisName: Mdef4
+    Name: MDEF+4
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMdef,4;
+  - Id: 4788
+    AegisName: Mdef6
+    Name: MDEF+6
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMdef,6;
+  - Id: 4789
+    AegisName: Mdef8
+    Name: MDEF+8
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMdef,8;
+  - Id: 4790
+    AegisName: Mdef10
+    Name: MDEF+10
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMdef,10;
+  - Id: 4791
+    AegisName: Def3
+    Name: DEF+3
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bDef,3;
+  - Id: 4792
+    AegisName: Def6
+    Name: DEF+6
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bDef,6;
+  - Id: 4793
+    AegisName: Def9
+    Name: DEF+9
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bDef,9;
+  - Id: 4794
+    AegisName: Def12
+    Name: DEF+12
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bDef,12;
+  - Id: 4795
+    AegisName: HP100
+    Name: HP+100
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMaxHP,100;
+  - Id: 4796
+    AegisName: HP200
+    Name: HP+200
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMaxHP,200;
+  - Id: 4797
+    AegisName: HP300
+    Name: HP+300
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMaxHP,300;
+  - Id: 4798
+    AegisName: HP400
+    Name: HP+400
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMaxHP,400;
+  - Id: 4799
+    AegisName: HP500
+    Name: HP+500
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMaxHP,500;
+  - Id: 4800
+    AegisName: SP50
+    Name: SP+50
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMaxSP,50;
+  - Id: 4801
+    AegisName: SP100
+    Name: SP+100
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMaxSP,100;
+  - Id: 4802
+    AegisName: SP150
+    Name: SP+150
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMaxSP,150;
+  - Id: 4803
+    AegisName: Highness_Heal_3sec
+    Name: Cure1Lv.
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus2 bSkillCooldown,"AB_HIGHNESSHEAL",-3000;
+  - Id: 4804
+    AegisName: Coluceo_Heal30
+    Name: Catholic1Lv.
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus2 bSkillUseSP,"AB_CHEAL",30;
+  - Id: 4805
+    AegisName: Heal_Amount2
+    Name: Archbishop1Lv
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bHealPower,3;
+  - Id: 4806
+    AegisName: Matk3
+    Name: MATK+3%
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMatkRate,3;
+      bonus bFixedCastrate,-1;
+  - Id: 4807
+    AegisName: Atk_Speed1
+    Name: Atk Speed1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bAspd,1;
+  - Id: 4808
+    AegisName: Fighting_Spirit4
+    Name: Fighting Spirit4
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bBaseAtk,15;
+      bonus bHit,5;
+  - Id: 4809
+    AegisName: Fighting_Spirit3
+    Name: Fighting Spirit3
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bBaseAtk,12;
+      bonus bHit,4;
+  - Id: 4810
+    AegisName: Fighting_Spirit2
+    Name: Fighting Spirit2
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bBaseAtk,9;
+      bonus bHit,3;
+  - Id: 4811
+    AegisName: Fighting_Spirit1
+    Name: Fighting Spirit1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bBaseAtk,6;
+      bonus bHit,2;
+  - Id: 4812
+    AegisName: Spell4
+    Name: Spell4
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMatk,15;
+      bonus bVariableCastrate,-10;
+  - Id: 4813
+    AegisName: Spell3
+    Name: Spell3
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMatk,12;
+      bonus bVariableCastrate,-8;
+  - Id: 4814
+    AegisName: Spell2
+    Name: Spell2
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMatk,9;
+      bonus bVariableCastrate,-6;
+  - Id: 4815
+    AegisName: Spell1
+    Name: Spell1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMatk,6;
+      bonus bVariableCastrate,-4;
+  - Id: 4816
+    AegisName: Sharp3
+    Name: Sharp3
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bCritical,12;
+      bonus bHit,4;
+  - Id: 4817
+    AegisName: Sharp2
+    Name: Sharp2
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bCritical,9;
+      bonus bHit,3;
+  - Id: 4818
+    AegisName: Sharp1
+    Name: Sharp1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bCritical,6;
+      bonus bHit,2;
+  - Id: 4819
+    AegisName: Atk1
+    Name: Atk1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bAtkRate,1;
+  - Id: 4820
+    AegisName: Fighting_Spirit5
+    Name: Fighting Spirit5
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bBaseAtk,18;
+      bonus bHit,5;
+  - Id: 4821
+    AegisName: Fighting_Spirit6
+    Name: Fighting Spirit6
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bBaseAtk,21;
+      bonus bHit,5;
+  - Id: 4822
+    AegisName: Fighting_Spirit7
+    Name: Fighting Spirit7
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bBaseAtk,24;
+      bonus bHit,5;
+  - Id: 4823
+    AegisName: Fighting_Spirit8
+    Name: Fighting Spirit8
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bBaseAtk,27;
+      bonus bHit,5;
+  - Id: 4824
+    AegisName: Fighting_Spirit9
+    Name: Fighting Spirit9
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bBaseAtk,30;
+      bonus bHit,5;
+  - Id: 4825
+    AegisName: Fighting_Spirit10
+    Name: Fighting Spirit10
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bBaseAtk,50;
+      bonus bHit,15;
+  - Id: 4826
+    AegisName: Spell5
+    Name: Spell5
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMatk,18;
+      bonus bVariableCastrate,-10;
+  - Id: 4827
+    AegisName: Spell6
+    Name: Spell6
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMatk,21;
+      bonus bVariableCastrate,-10;
+  - Id: 4828
+    AegisName: Spell7
+    Name: Spell7
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMatk,24;
+      bonus bVariableCastrate,-10;
+  - Id: 4829
+    AegisName: Spell8
+    Name: Spell8
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMatk,27;
+      bonus bVariableCastrate,-10;
+  - Id: 4830
+    AegisName: Spell9
+    Name: Spell9
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMatk,30;
+      bonus bVariableCastrate,-10;
+  - Id: 4831
+    AegisName: Spell10
+    Name: Spell10
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMatk,50;
+      bonus bVariableCastrate,-20;
+  - Id: 4832
+    AegisName: Expert_Archer1
+    Name: Expert Archer1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bLongAtkRate,2;
+  - Id: 4833
+    AegisName: Expert_Archer2
+    Name: Expert Archer2
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bLongAtkRate,4;
+  - Id: 4834
+    AegisName: Expert_Archer3
+    Name: Expert Archer3
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bLongAtkRate,6;
+  - Id: 4835
+    AegisName: Expert_Archer4
+    Name: Expert Archer4
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bLongAtkRate,8;
+  - Id: 4836
+    AegisName: Expert_Archer5
+    Name: Expert Archer5
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bLongAtkRate,10;
+  - Id: 4837
+    AegisName: Expert_Archer6
+    Name: Expert Archer6
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bLongAtkRate,12;
+  - Id: 4838
+    AegisName: Expert_Archer7
+    Name: Expert Archer7
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bLongAtkRate,14;
+  - Id: 4839
+    AegisName: Expert_Archer8
+    Name: Expert Archer8
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bLongAtkRate,16;
+  - Id: 4840
+    AegisName: Expert_Archer9
+    Name: Expert Archer9
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bLongAtkRate,18;
+  - Id: 4841
+    AegisName: Expert_Archer10
+    Name: Expert Archer10
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bLongAtkRate,20;
+      bonus bAspd,1;
+  - Id: 4842
+    AegisName: Atk_Speed2
+    Name: Atk Speed2
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bAspd,2;
+  - Id: 4843
+    AegisName: Sharp4
+    Name: Sharp4
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bCritical,14;
+      bonus bHit,5;
+  - Id: 4844
+    AegisName: Sharp5
+    Name: Sharp5
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bCritical,15;
+      bonus bHit,6;
+  - Id: 4845
+    AegisName: Sea_Energy
+    Name: Strength Of Ocean
+    Type: Card
+    SubType: Enchant
+  - Id: 4846
+    AegisName: 2011Valentin_Angel
+    Name: Fully Loved Stone
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bBaseAtk,10;
+      bonus bMatk,10;
+  - Id: 4847
+    AegisName: 2011Valentin_Devil
+    Name: Spelled Stone
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bBaseAtk,10;
+      bonus bMatk,10;
+  - Id: 4848
+    AegisName: Immuned1
+    Name: Immune Level 1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus2 bSubEle,Ele_Neutral,5;
+  - Id: 4849
+    AegisName: Cranial1
+    Name: Cranial Level 1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus2 bSubRace,RC_DemiHuman,5;
+      bonus2 bSubRace,RC_Player_Human,5;
+  - Id: 4850
+    AegisName: Heal_Amount3
+    Name: Archbishop2Lv
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bHealPower,6;
+      bonus bUseSPrate,5;
+  - Id: 4851
+    AegisName: Heal_Amount4
+    Name: Archbishop3Lv
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bHealPower,12;
+      bonus bUseSPrate,10;
+  - Id: 4852
+    AegisName: Heal_Amount5
+    Name: Archbishop4Lv
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bHealPower,20;
+      bonus bUseSPrate,15;
+  - Id: 4853
+    AegisName: S_Str
+    Name: Special Str
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      .@r = getrefine();
+      bonus bStr,1;
+      if (.@r>=8) {
+         bonus bStr,3;
+         if (.@r>=9) {
+            bonus2 bAddClass,Class_All,1;
+            if (.@r>=12) {
+               bonus bFixedCastrate,-7;
+               bonus bAspd,1;
+            }
+         }
+      }
+  - Id: 4854
+    AegisName: S_Agi
+    Name: Special Agi
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      .@r = getrefine();
+      bonus bAgi,1;
+      if (.@r>=8) {
+         bonus bAgi,3;
+         if (.@r>=9) {
+            bonus2 bAddClass,Class_All,1;
+            if (.@r>=12) {
+               bonus bFixedCastrate,-7;
+               bonus bAspd,1;
+            }
+         }
+      }
+  - Id: 4855
+    AegisName: S_Vital
+    Name: Special Vit
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      .@r = getrefine();
+      bonus bVit,1;
+      if (.@r>=8) {
+         bonus bVit,3;
+         if (.@r>=9) {
+            bonus bMaxSPrate,1;
+            if (.@r>=12) {
+               bonus bFixedCastrate,-7;
+               bonus bAspd,1;
+            }
+         }
+      }
+  - Id: 4856
+    AegisName: S_Int
+    Name: Special Int
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      .@r = getrefine();
+      bonus bInt,1;
+      if (.@r>=8) {
+         bonus bInt,3;
+         if (.@r>=9) {
+            bonus bMatkRate,1;
+            if (.@r>=12) {
+               bonus bFixedCastrate,-7;
+               bonus bAspd,1;
+            }
+         }
+      }
+  - Id: 4857
+    AegisName: S_Dex
+    Name: Special Dex
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      .@r = getrefine();
+      bonus bDex,1;
+      if (.@r>=8) {
+         bonus bDex,3;
+         if (.@r>=9) {
+            bonus bMatkRate,1;
+            if (.@r>=12) {
+               bonus bFixedCastrate,-7;
+               bonus bAspd,1;
+            }
+         }
+      }
+  - Id: 4858
+    AegisName: S_Luck
+    Name: Special Luk
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      .@r = getrefine();
+      bonus bLuk,1;
+      if (.@r>=8) {
+         bonus bLuk,3;
+         if (.@r>=9) {
+            bonus bMaxHPrate,1;
+            if (.@r>=12) {
+               bonus bFixedCastrate,-7;
+               bonus bAspd,1;
+            }
+         }
+      }
+  - Id: 4859
+    AegisName: Evasion1
+    Name: Evasion1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bFlee,1;
+  - Id: 4860
+    AegisName: Evasion3
+    Name: Evasion3
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bFlee,3;
+  - Id: 4861
+    AegisName: MHP1
+    Name: MHP+1%
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMaxHPrate,1;
+  - Id: 4862
+    AegisName: MHP2
+    Name: MHP+2%
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMaxHPrate,2;
+  - Id: 4863
+    AegisName: Fatal1
+    Name: Fatal1Lv
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bCritAtkRate,4;
+      bonus bCritical,1;
+  - Id: 4864
+    AegisName: Fatal2
+    Name: Fatal2Lv
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bCritAtkRate,6;
+      bonus bCritical,2;
+  - Id: 4865
+    AegisName: Fatal3
+    Name: Fatal3Lv
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bCritAtkRate,8;
+      bonus bCritical,3;
+  - Id: 4866
+    AegisName: Fatal4
+    Name: Fatal4Lv
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bCritAtkRate,10;
+      bonus bCritical,4;
+  - Id: 4867
+    AegisName: MHP3
+    Name: MHP+3%
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMaxHPrate,3;
+  - Id: 4868
+    AegisName: MHP4
+    Name: MHP+4%
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMaxHPrate,4;
+  - Id: 4869
+    AegisName: Attack_Delay_1
+    Name: DelayafterAttack1Lv
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bAspdRate,4;
+  - Id: 4870
+    AegisName: SP25
+    Name: SP+25
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMaxSP,25;
+  - Id: 4871
+    AegisName: SP75
+    Name: SP+75
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus bMaxSP,75;
+  - Id: 4872
+    AegisName: Attack_Delay_2
+    Name: DelayafterAttack2Lv
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bAspdRate,6;
+  - Id: 4873
+    AegisName: Attack_Delay_3
+    Name: DelayafterAttack3Lv
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bAspdRate,8;
+  - Id: 4874
+    AegisName: Beryl_of_Spring
+    Name: Beryl Spring
+    Type: Card
+    SubType: Enchant
+  - Id: 4875
+    AegisName: Bear's_Power
+    Name: Bear's Power
+    Type: Card
+    SubType: Enchant
+    Script: |
+      autobonus2 "{ bonus bStr,200; bonus2 bHPLossRate,500,1000; }",20,5000,BF_WEAPON,"{ specialeffect2 EF_POTION_BERSERK; }";
+    UnEquipScript: |
+      heal 0,-300;
+  - Id: 4876
+    AegisName: Runaway_Magic
+    Name: Runaway Magic
+    Type: Card
+    SubType: Enchant
+    Script: |
+      autobonus "{ bonus bInt,200; bonus2 bSPLossRate,200,1000; }",15,10000,BF_MAGIC,"{ specialeffect2 EF_LAMADAN; }";
+    UnEquipScript: |
+      heal 0,-2000;
+  - Id: 4877
+    AegisName: Speed_Of_Light
+    Name: Speed of Light
+    Type: Card
+    SubType: Enchant
+    Script: |
+      autobonus "{ bonus bAspdRate,100; bonus bFlee,100; bonus2 bSPLossRate,50,1000; }",10,5000,BF_WEAPON,"{ specialeffect2 EF_FLASHER; }";
+    UnEquipScript: |
+      heal 0,-300;
+  - Id: 4878
+    AegisName: Muscle_Fool
+    Name: Muscle Fool
+    Type: Card
+    SubType: Enchant
+    Script: |
+      autobonus2 "{ bonus bDef,1000; bonus2 bSPLossRate,50,1000; }",20,5000,BF_WEAPON,"{ specialeffect2 EF_MAGNUMBREAK; }";
+    UnEquipScript: |
+      heal 0,-300;
+  - Id: 4879
+    AegisName: Hawkeye
+    Name: Hawkeye
+    Type: Card
+    SubType: Enchant
+    Script: |
+      autobonus "{ bonus bDex,200; bonus2 bSPLossRate,50,1000; }",30,5000,BF_WEAPON,"{ specialeffect2 EF_FLASHER; }";
+    UnEquipScript: |
+      heal 0,-300;
+  - Id: 4880
+    AegisName: Lucky_Day
+    Name: Lucky Day
+    Type: Card
+    SubType: Enchant
+    Script: |
+      autobonus "{ bonus bLuk,200; bonus2 bAddMonsterDropItem,7444,10; }",15,5000,BF_WEAPON|BF_MAGIC,"{ specialeffect2 EF_MVP; showscript \"LUCKY MAX !!\"; }";
+      autobonus2 "{ bonus bLuk,200; bonus2 bAddMonsterDropItem,7444,1; }",1,5000,BF_WEAPON|BF_MAGIC,"{ specialeffect2 EF_MVP; showscript \"LUCKY MAX !!\"; }";
+    UnEquipScript: |
+      heal 0,-300;
+  - Id: 4881
+    AegisName: Attack_Delay_4
+    Name: Attack Delay 4
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bAspdRate,10;
+  - Id: 4882
+    AegisName: Atk1p
+    Name: ATK + 1%
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bAtkRate,1;
+  - Id: 4883
+    AegisName: Matk1p
+    Name: MATK + 1%
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMatkRate,1;
+  - Id: 4884
+    AegisName: HIT1
+    Name: HIT + 1
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bHit,1;
+  - Id: 4885
+    AegisName: Conjure1
+    Name: Spell 1
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMatk,5;
+      bonus bVariableCastrate,-3;
+  - Id: 4886
+    AegisName: Conjure2
+    Name: Spell 2
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMatk,10;
+      bonus bVariableCastrate,-3;
+  - Id: 4887
+    AegisName: Conjure3
+    Name: Spell 3
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMatk,15;
+      bonus bVariableCastrate,-3;
+  - Id: 4888
+    AegisName: Conjure4
+    Name: Spell 4
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMatk,20;
+      bonus bVariableCastrate,-3;
+  - Id: 4889
+    AegisName: Conjure5
+    Name: Spell 5
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMatk,30;
+      bonus bVariableCastrate,-5;
+  - Id: 4890
+    AegisName: Mdef1
+    Name: MDEF+1
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMdef,1;
+  - Id: 4891
+    AegisName: Mdef3
+    Name: MDEF+3
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMdef,3;
+  - Id: 4892
+    AegisName: Mdef5
+    Name: MDEF+5
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMdef,5;
+  - Id: 4893
+    AegisName: Def15
+    Name: DEF+15
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bDef,15;
+  - Id: 4894
+    AegisName: Atk4p
+    Name: ATK + 4%
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus2 bAddClass,Class_All,4;
+  - Id: 4895
+    AegisName: Atk5p
+    Name: ATK + 5%
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus2 bAddClass,Class_All,5;
+  - Id: 4896
+    AegisName: Matk2p
+    Name: MATK + 2%
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMatkRate,2;
+  - Id: 4897
+    AegisName: Matk3p
+    Name: MATK + 3%
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMatkRate,3;
+  - Id: 4898
+    AegisName: Matk4p
+    Name: MATK + 4%
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMatkRate,4;
+  - Id: 4899
+    AegisName: Matk5p
+    Name: MATK + 5%
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMatkRate,5;
+  - Id: 4900
+    AegisName: MHP5
+    Name: MHP+5%
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMaxHPrate,5;
+  - Id: 4902
+    AegisName: Def18
+    Name: DEF+18
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bDef,18;
+  - Id: 4903
+    AegisName: Def21
+    Name: DEF+21
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bDef,21;
+  - Id: 4904
+    AegisName: Atk6p
+    Name: ATK + 6%
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus2 bAddClass,Class_All,6;
+  - Id: 4905
+    AegisName: Atk7p
+    Name: ATK + 7%
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus2 bAddClass,Class_All,7;
+  - Id: 4906
+    AegisName: Matk6p
+    Name: MATK + 6
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMatkRate,6;
+  - Id: 4907
+    AegisName: Matk7p
+    Name: MATK + 7%
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMatkRate,7;
+  - Id: 4908
+    AegisName: Force1
+    Name: Darklord Essence Force1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bStr,1;
+      bonus bBaseAtk,3;
+      bonus bInt,-1;
+  - Id: 4909
+    AegisName: Force2
+    Name: Darklord Essence Force2
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bStr,2;
+      bonus bBaseAtk,6;
+      bonus bInt,-2;
+  - Id: 4910
+    AegisName: Force3
+    Name: Darklord Essence Force3
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bStr,4;
+      bonus bBaseAtk,12;
+      bonus bInt,-4;
+  - Id: 4911
+    AegisName: Intellect1
+    Name: Darklord Essence Intelligence1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bInt,1;
+      bonus bMatk,3;
+      bonus bStr,-1;
+  - Id: 4912
+    AegisName: Intellect2
+    Name: Darklord Essence Intelligence2
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bInt,2;
+      bonus bMatk,6;
+      bonus bStr,-2;
+  - Id: 4913
+    AegisName: Intellect3
+    Name: Darklord Essence Intelligence3
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bInt,4;
+      bonus bMatk,12;
+      bonus bStr,-4;
+  - Id: 4914
+    AegisName: Swiftness1
+    Name: Darklord Essence Speed1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bAgi,1;
+      bonus bFlee,2;
+      bonus bVit,-1;
+  - Id: 4915
+    AegisName: Swiftness2
+    Name: Darklord Essence Speed2
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bAgi,2;
+      bonus bFlee,4;
+      bonus bVit,-2;
+  - Id: 4916
+    AegisName: Swiftness3
+    Name: Darklord Essence Speed3
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bAgi,4;
+      bonus bFlee,8;
+      bonus bVit,-4;
+  - Id: 4917
+    AegisName: Tough1
+    Name: Darklord Essence Vitality1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bVit,1;
+      bonus bDef,3;
+      bonus bMdef,2;
+      bonus bAgi,-1;
+  - Id: 4918
+    AegisName: Tough2
+    Name: Darklord Essence Vitality2
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bVit,2;
+      bonus bDef,6;
+      bonus bMdef,4;
+      bonus bAgi,-2;
+  - Id: 4919
+    AegisName: Tough3
+    Name: Darklord Essence Vitality3
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bVit,4;
+      bonus bDef,12;
+      bonus bMdef,8;
+      bonus bAgi,-4;
+  - Id: 4920
+    AegisName: Artful1
+    Name: Darklord Essence Concentration1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bDex,1;
+      bonus bHit,2;
+      bonus bLuk,-1;
+  - Id: 4921
+    AegisName: Artful2
+    Name: Darklord Essence Concentration2
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bDex,2;
+      bonus bHit,4;
+      bonus bLuk,-2;
+  - Id: 4922
+    AegisName: Artful3
+    Name: Darklord Essence Concentration3
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bDex,4;
+      bonus bHit,8;
+      bonus bLuk,-4;
+  - Id: 4923
+    AegisName: Fortune1
+    Name: Darklord Essence Luck1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bLuk,1;
+      bonus bCritical,1;
+      bonus bDex,-1;
+  - Id: 4924
+    AegisName: Fortune2
+    Name: Darklord Essence Luck2
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bLuk,2;
+      bonus bCritical,2;
+      bonus bDex,-2;
+  - Id: 4925
+    AegisName: Fortune3
+    Name: Darklord Essence Luck3
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Weight: 10
+    Locations:
+      Head_Low: true
+      Head_Mid: true
+      Head_Top: true
+      Shoes: true
+      Both_Hand: true
+      Armor: true
+      Garment: true
+      Both_Accessory: true
+    Script: |
+      bonus bLuk,4;
+      bonus bCritical,4;
+      bonus bDex,-4;
+  - Id: 4926
+    AegisName: Critical1
+    Name: Cri 1Lv
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bCritical,1;
+  - Id: 4927
+    AegisName: HP50
+    Name: MaxHP50
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMaxHP,50;
+  - Id: 4928
+    AegisName: SP10
+    Name: MaxSP+10
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMaxSP,10;
+  - Id: 4929
+    AegisName: MSP1
+    Name: MSP+1%
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bMaxSPrate,1;
+  - Id: 4930
+    AegisName: HEAL2
+    Name: Recovery UP
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bHealPower2,2;
+  - Id: 4931
+    AegisName: HEALHP1
+    Name: Heal 10
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus2 bHPRegenRate,10,10000;
+  - Id: 4932
+    AegisName: HEALSP1
+    Name: SP recovery1
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bSPGainValue,1;
+      bonus bLongSPGainValue,1;
+      bonus bMagicSPGainValue,1;
+  - Id: 4933
+    AegisName: Tolerance_Not1
+    Name: Neutral Resistance Lv1
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus2 bSubEle,Ele_Neutral,1;
+  - Id: 4934
+    AegisName: Tolerance_Not2
+    Name: Neutral Resistance Lv2
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus2 bSubEle,Ele_Neutral,2;
+  - Id: 4935
+    AegisName: Tolerance_Not3
+    Name: Neutral Resistance Lv3
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus2 bSubEle,Ele_Neutral,3;
+  - Id: 4936
+    AegisName: ATK_BIG1
+    Name: Attack big1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus2 bAddSize,Size_Large,1;
+  - Id: 4937
+    AegisName: ATK_MEDIUM1
+    Name: Attack mid1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus2 bAddSize,Size_Medium,1;
+  - Id: 4938
+    AegisName: ATK_SMALL1
+    Name: Attack small1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      bonus2 bAddSize,Size_Small,1;
+  - Id: 4939
+    AegisName: Critical2
+    Name: CRI Lv2
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bCritical,2;
+  - Id: 4940
+    AegisName: Critical3
+    Name: CRI Lv3
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bCritical,4;
+  - Id: 4941
+    AegisName: Critical4
+    Name: CRI Lv4
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bCritical,6;
+  - Id: 4942
+    AegisName: Dodge1
+    Name: Parrying Lv1
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bFlee2,3;
+  - Id: 4943
+    AegisName: Dodge2
+    Name: Parrying Lv2
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bFlee2,4;
+  - Id: 4944
+    AegisName: Dodge3
+    Name: Parrying Lv3
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bFlee2,5;
+  - Id: 4945
+    AegisName: Thrift1
+    Name: Economy Lv1
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bUseSPrate,-2;
+  - Id: 4946
+    AegisName: Thrift2
+    Name: Economy Lv2
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bUseSPrate,-4;
+  - Id: 4947
+    AegisName: Thrift3
+    Name: Economy Lv3
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bUseSPrate,-6;
+  - Id: 4948
+    AegisName: Skill_Delay1
+    Name: After Skill Delay Lv1
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bDelayrate,-2;
+  - Id: 4949
+    AegisName: Skill_Delay2
+    Name: After Skill Delay Lv2
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bDelayrate,-4;
+  - Id: 4950
+    AegisName: Skill_Delay3
+    Name: After Skill Delay Lv3
+    Type: Card
+    SubType: Enchant
+    Buy: 10
+    Script: |
+      bonus bDelayrate,-6;
+  - Id: 4951
+    AegisName: A_Drop_Of_Dark_
+    Name: Darkness Drop
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus2 bAddEle,Ele_Dark,2;
+      bonus2 bMagicAtkEle,Ele_Dark,2;
+      bonus2 bSubEle,Ele_Dark,1;
+  - Id: 4952
+    AegisName: A_Drop_Of_Fire_
+    Name: Fire Drop
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus2 bAddEle,Ele_Fire,2;
+      bonus2 bMagicAtkEle,Ele_Fire,2;
+      bonus2 bSubEle,Ele_Fire,1;
+  - Id: 4953
+    AegisName: A_Drop_Of_Water_
+    Name: Water Drop
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus2 bAddEle,Ele_Water,2;
+      bonus2 bMagicAtkEle,Ele_Water,2;
+      bonus2 bSubEle,Ele_Water,1;
+  - Id: 4954
+    AegisName: A_Drop_Of_Tree_
+    Name: Earth Drop
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus2 bAddEle,Ele_Earth,2;
+      bonus2 bMagicAtkEle,Ele_Earth,2;
+      bonus2 bSubEle,Ele_Earth,1;
+  - Id: 4955
+    AegisName: A_Drop_Of_Light_
+    Name: Holy Drop
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus2 bAddEle,Ele_Holy,2;
+      bonus2 bMagicAtkEle,Ele_Holy,2;
+      bonus2 bSubEle,Ele_Holy,1;
+  - Id: 4956
+    AegisName: A_Drop_Of_Heal_
+    Name: Recovery Drop
+    Type: Card
+    SubType: Enchant
+    Script: |
+      setarray .@skills$, "AL_HEAL", "PR_SANCTUARY", "AM_POTIONPITCHER", "AB_HIGHNESSHEAL", "AB_CHEAL";
+      for( .@i = 0; .@i < getarraysize(.@skills$); .@i++ ) {
+         bonus2 bSkillHeal,.@skills$[.@i],2;
+         bonus2 bSkillHeal2,.@skills$[.@i],2;
+      }
+      /* TODO: Depending on some recovery items HP recovery amount + 2% */
+  - Id: 4957
+    AegisName: CollaboPower
+    Name: Famitsu's Power
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bMaxHP,832;
+  - Id: 4958
+    AegisName: Z_Stone_1
+    Name: Gemini
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bDelayrate,-1;
+  - Id: 4959
+    AegisName: Z_Stone_2
+    Name: Sagittarius
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bLongAtkRate,1;
+  - Id: 4960
+    AegisName: Z_Stone_3
+    Name: Aquarius
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bUseSPrate,-2;
+  - Id: 4961
+    AegisName: Z_Stone_4
+    Name: Aries
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bMatk,10;
+  - Id: 4962
+    AegisName: Z_Stone_5
+    Name: Cancer
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bBaseAtk,3;
+  - Id: 4963
+    AegisName: Z_Stone_6
+    Name: Taurus
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bBaseAtk,4;
+      bonus bHit,1;
+  - Id: 4964
+    AegisName: Z_Stone_7
+    Name: Capricorn
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus2 bMagicAddRace,RC_All,3;
+  - Id: 4965
+    AegisName: Z_Stone_8
+    Name: Pisces
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bVariableCastrate,-2;
+  - Id: 4966
+    AegisName: Z_Stone_9
+    Name: Scorpio
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus2 bAddRace,RC_All,1;
+  - Id: 4967
+    AegisName: Z_Stone_10
+    Name: Leo
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bAspdRate,3;
+  - Id: 4968
+    AegisName: Z_Stone_11
+    Name: Virgo
+    Type: Card
+    SubType: Enchant
+    Script: |
+      setarray .@skills$, "AL_HEAL", "PR_SANCTUARY", "AM_POTIONPITCHER", "AB_HIGHNESSHEAL", "AB_CHEAL";
+      for( .@i = 0; .@i < getarraysize(.@skills$); .@i++ ) {
+         bonus2 bSkillHeal,.@skills$[.@i],1;
+      }
+  - Id: 4969
+    AegisName: Z_Stone_12
+    Name: Libra
+    Type: Card
+    SubType: Enchant
+    Script: |
+      setarray .@skills$, "AL_HEAL", "PR_SANCTUARY", "AM_POTIONPITCHER", "AB_HIGHNESSHEAL", "AB_CHEAL";
+      for( .@i = 0; .@i < getarraysize(.@skills$); .@i++ ) {
+         bonus2 bSkillHeal2,.@skills$[.@i],1;
+      }
+      /* TODO: Depending on some recovery items HP recovery amount + 1% */
+  - Id: 4970
+    AegisName: Reactor_P_FIRE
+    Name: Fire Property Reactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bDefEle,Ele_Fire;
+  - Id: 4971
+    AegisName: Reactor_P_WATER
+    Name: Water Property Reactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bDefEle,Ele_Water;
+  - Id: 4972
+    AegisName: Reactor_P_GROUND
+    Name: Earth Property Reactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bDefEle,Ele_Earth;
+  - Id: 4973
+    AegisName: Reactor_P_WIND
+    Name: Wind Property Reactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bDefEle,Ele_Wind;
+  - Id: 4974
+    AegisName: Reactor_T_FIRE
+    Name: Fire Resistance Reactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus2 bSubEle,Ele_Fire,25;
+      bonus2 bSubEle,Ele_Water,-25;
+  - Id: 4975
+    AegisName: Reactor_T_WATER
+    Name: Water Resistance Reactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus2 bSubEle,Ele_Water,25;
+      bonus2 bSubEle,Ele_Wind,-25;
+  - Id: 4976
+    AegisName: Reactor_T_GROUND
+    Name: Earth Resistance Reactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus2 bSubEle,Ele_Earth,25;
+      bonus2 bSubEle,Ele_Fire,-25;
+  - Id: 4977
+    AegisName: Reactor_T_WIND
+    Name: Wind Resistance Reactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus2 bSubEle,Ele_Wind,25;
+      bonus2 bSubEle,Ele_Earth,-25;
+  - Id: 4978
+    AegisName: Reactor_Cure_101
+    Name: Recovery Reactor 101
+    Type: Card
+    SubType: Enchant
+    Script: |
+      if (getrefine()>=7)
+         bonus2 bHPRegenRate,100,5000;
+      else
+         bonus2 bHPRegenRate,50,5000;
+  - Id: 4979
+    AegisName: Reactor_Cure_102
+    Name: Recovery Reactor 102
+    Type: Card
+    SubType: Enchant
+    Script: |
+      if (getrefine()>=7)
+         bonus2 bSPRegenRate,5,5000;
+      else
+         bonus2 bSPRegenRate,3,5000;
+  - Id: 4980
+    AegisName: Reactor_Cure_201
+    Name: Recovery Reactor 201
+    Type: Card
+    SubType: Enchant
+    Script: |
+      if (getrefine()>=7)
+         bonus bHPrecovRate,100;
+      else
+         bonus bHPrecovRate,50;
+  - Id: 4981
+    AegisName: Reactor_Cure_202
+    Name: Recovery Reactor 202
+    Type: Card
+    SubType: Enchant
+    Script: |
+      if (getrefine()>=7)
+         bonus bSPrecovRate,100;
+      else
+         bonus bSPrecovRate,50;
+  - Id: 4982
+    AegisName: Reactor_A_STR
+    Name: STR Supplement Reactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      if (getrefine()>=7) {
+         .@bonus = 10;
+      }
+      bonus bBaseAtk,.@bonus + 5*(readparam(bStr)/10);
+  - Id: 4983
+    AegisName: Reactor_A_INT
+    Name: INT Supplement Reactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      if (getrefine()>=7) {
+         .@bonus = 10;
+      }
+      bonus bMatk,.@bonus + 5*(readparam(bInt)/10);
+  - Id: 4984
+    AegisName: Reactor_A_DEF
+    Name: DEF SupplementReactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bDef,100;
+  - Id: 4985
+    AegisName: Reactor_A_AVOI
+    Name: PD Supplement Reactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bFlee2,3;
+  - Id: 4986
+    AegisName: Reactor_A_ATK
+    Name: Attack Supplement Reactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bBaseAtk,20;
+  - Id: 4987
+    AegisName: Reactor_A_MATK
+    Name: Magic Supplement Reactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bMatk,20;
+  - Id: 4988
+    AegisName: Reactor_A_MHP
+    Name: HP Supplement Reactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bMaxHPrate,5;
+  - Id: 4989
+    AegisName: Reactor_A_MSP
+    Name: SP Supplement Reactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bMaxSPrate,3;
+  - Id: 4990
+    AegisName: Reactor_A_FROZ
+    Name: Frozen Supplement Reactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus2 bResEff,Eff_Freeze,10000;
+  - Id: 4991
+    AegisName: Reactor_A_ASPD
+    Name: ASPD Supplement Reactor
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus bAspd,1;
+  - Id: 4992
+    AegisName: HPdrain1
+    Name: HP Absorb 1
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus2 bHPDrainRate,10,1;
+  - Id: 4993
+    AegisName: SPdrain1
+    Name: SP Absorb 1
+    Type: Card
+    SubType: Enchant
+    Script: |
+      bonus2 bSPDrainRate,10,1;
+  - Id: 4994
+    AegisName: Neev_STR_1
+    Name: Rune of Strength Lv 1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      .@r = getrefine();
+      if (.@r>=7) {
+         bonus bStr,5;
+      }
+      if (.@r>9) {
+         bonus2 bAddRace,RC_All,5;
+      }
+  - Id: 4995
+    AegisName: Neev_STR_2
+    Name: Rune of Strength Lv 2
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      .@r = getrefine();
+      if (.@r>=7) {
+         bonus bStr,6;
+         if (.@r>=11) {
+            bonus2 bAddRace,RC_All,7;
+            bonus bStr,1;
+         }
+      }
+  - Id: 4996
+    AegisName: Neev_STR_3
+    Name: Rune of Strength_Lv 3
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      .@r = getrefine();
+      if (.@r>=7) {
+         bonus bStr,7;
+         if (.@r>=12) {
+            bonus2 bAddRace,RC_All,8;
+            bonus bStr,1;
+            if (.@r>=13) {
+               bonus2 bAddRace,RC_All,2;
+               bonus bStr,1;
+            }
+         }
+      }
+  - Id: 4997
+    AegisName: Neev_AGI_1
+    Name: Rune of Agility Lv 1
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      .@r = getrefine();
+      if (.@r>=7) {
+         bonus bAgi,5;
+         if (.@r>=10) {
+            bonus bFlee2,5;
+         }
+      }
+  - Id: 4998
+    AegisName: Neev_AGI_2
+    Name: Rune of Agility Lv 2
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      .@r = getrefine();
+      if (.@r>=7) {
+         bonus bAgi,6;
+         if (.@r>=11) {
+            bonus bFlee2,7;
+            bonus bAgi,1;
+         }
+      }
+  - Id: 4999
+    AegisName: Neev_AGI_3
+    Name: Rune of Agility Lv 3
+    Type: Card
+    SubType: Enchant
+    Buy: 20
+    Script: |
+      .@r = getrefine();
+      if (.@r>=7) {
+         bonus bAgi,7;
+      }
+      if (.@r>=12) {
+         bonus bAgi,1;
+         bonus bFlee2,5;
+      }
+      if (.@r>=13) {
+         bonus bAgi,1;
+         bonus bFlee2,5;
+      }
+  - Id: 28321
+    AegisName: Falconer_Claw
+    Name: Falconer Claw
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 1
+    Jobs:
+      Hunter: true
+    Locations:
+      Both_Accessory: true
+    ArmorLevel: 1
+    EquipLevelMin: 80
+    Script: |
+      bonus bDex,1;
+      bonus2 bSkillAtk,"HT_BLITZBEAT",getskilllv("HT_STEELCROW")*10;
+  - Id: 18985
+    AegisName: Falconer_Flute
+    Name: Falconer Flute
+    Type: Armor
+    Weight: 100
+    Jobs:
+      Hunter: true
+    Locations:
+      Head_Low: true
+    ArmorLevel: 1
+    EquipLevelMin: 75
+    View: 1143
+    Script: |
+      set .@bblvl,max(getskilllv("HT_BLITZBEAT"),1);
+      set .@luk,min(readparam(bLuk),120);
+      bonus3 bAutoSpell,"HT_BLITZBEAT",.@i,((.@bblvl / 3) * 10) + (.@luk * 10) + (((.@bblvl / 5) * .@bblvl) * 2);
+  - Id: 28322
+    AegisName: Falconer_Glove
+    Name: Falconer Glove
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 1
+    Jobs:
+      Hunter: true
+    Locations:
+      Both_Accessory: true
+    ArmorLevel: 1
+    EquipLevelMin: 80
+    Script: |
+      bonus bDex,1;
+      bonus bUseSPrate,-5;
+  - Id: 2869
+    AegisName: Colorful_Ketupat
+    Name: Colorful Ketupat
+    Type: Armor
+    Buy: 20
+    Weight: 100
+    Jobs:
+      All: true
+      Novice: false
+      SuperNovice: false
+    Locations:
+      Both_Accessory: true
+    ArmorLevel: 1
+    EquipLevelMin: 45
+    Script: |
+      bonus bStr,1;
+      bonus bInt,1;
+      bonus bDex,1;
+  - Id: 22850
+    AegisName: JanuaryGiftBox
+    Name: January Gift Box
+    Type: Usable
+    Flags:
+      Container: true
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      getgroupitem(IG_JANUARYGIFTBOX);
+  - Id: 22851
+    AegisName: FebruaryGiftBox
+    Name: February Gift Box
+    Type: Usable
+    Flags:
+      Container: true
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      getgroupitem(IG_FEBRUARYGIFTBOX);
+  - Id: 22852
+    AegisName: MarchGiftBox
+    Name: March Gift Box
+    Type: Usable
+    Flags:
+      Container: true
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      callfunc "F_MarchReward";
+  - Id: 22853
+    AegisName: AprilGiftBox
+    Name: April Gift Box
+    Type: Usable
+    Weight: 100
+    Flags:
+      Container: true
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      getgroupitem(IG_APRILGIFTBOX);
+  - Id: 22854
+    AegisName: MayGiftBox
+    Name: May Gift Box
+    Type: Usable
+    Flags:
+      Container: true
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      getgroupitem(IG_MAYGIFTBOX);
+  - Id: 22855
+    AegisName: JuneGiftBox
+    Name: June Gift Box
+    Type: Usable
+    Flags:
+      Container: true
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      getgroupitem(IG_JUNEGIFTBOX);
+  - Id: 22856
+    AegisName: JulyGiftBox
+    Name: July Gift Box
+    Type: Usable
+    Flags:
+      Container: true
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      getgroupitem(IG_JULYGIFTBOX);
+  - Id: 22857
+    AegisName: AugustGiftBox
+    Name: August Gift Box
+    Type: Usable
+    Flags:
+      Container: true
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      getgroupitem(IG_AUGUSTGIFTBOX);
+  - Id: 22858
+    AegisName: SeptemberGiftBox
+    Name: September Gift Box
+    Type: Cash
+    Weight: 100
+    Flags:
+      Container: true
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      getgroupitem(IG_SEPTEMBERGIFTBOX);
+  - Id: 22859
+    AegisName: OctoberGiftBox
+    Name: October Gift Box
+    Type: Usable
+    Flags:
+      Container: true
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      getgroupitem(IG_OCTOBERGIFTBOX);
+  - Id: 22860
+    AegisName: NovemberGiftBox
+    Name: November Gift Box
+    Type: Usable
+    Weight: 100
+    Flags:
+      Container: true
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      getgroupitem(IG_NOVEMBERGIFTBOX);
+  - Id: 22861
+    AegisName: DecemberGiftBox
+    Name: December Gift Box
+    Type: Usable
+    Flags:
+      Container: true
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+    Script: |
+      getgroupitem(IG_DECEMBERGIFTBOX);
+  - Id: 30040
+    AegisName: BP_R1
+    Name: Battle Pass Reward
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       getitem callfunc("F_Rand",50014,50015,50016,50017,50018,50019,50020),1;
+  - Id: 30041
+    AegisName: BP_R2
+    Name: Battle Pass Reward
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       getitem callfunc("F_Rand",50338,50339,50340,50341,50342,50323,50324,50325,50326,50327,50328,50329,50330),1;
+  - Id: 30042
+    AegisName: BP_R3
+    Name: Battle Pass Reward
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       getitem callfunc("F_Rand",50251,50252,50253,50254,50255,50256,50257,50258,50259,50260,50261),1;
+  - Id: 30043
+    AegisName: BP_R4
+    Name: Battle Pass Reward
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       getitem 504,1;
+  - Id: 30044
+    AegisName: BP_R5
+    Name: Battle Pass Reward
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       getitem 505,1;
+  - Id: 30045
+    AegisName: BP_R6
+    Name: Battle Pass Reward
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       getitem 506,1;

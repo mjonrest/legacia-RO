@@ -1,0 +1,331 @@
+# Easycore's Works
+#   - - -
+###########################################################################
+# Item Vending Database
+###########################################################################
+# - Item              Item Aegis Name.
+###########################################################################
+
+Header:
+  Type: ITEM_DB
+  Version: 3
+
+Body:
+  - Id: 30000
+    AegisName: Zeny
+    Name: Zeny
+    Type: Etc
+    Weight: 1
+  - Id: 30001
+    AegisName: Cash
+    Name: Cash
+    Type: Etc
+    Weight: 1
+  - Id: 30002
+    AegisName: H_level
+    Name: Homunculus Level Ticket
+    Type: Cash
+    Weight: 1
+    Script: |
+       atcommand "@homlvl 1";
+  - Id: 30003
+    AegisName: H_shuffle
+    Name: Homunculus Reshuffle Ticket
+    Type: Cash
+    Weight: 1
+    Script: |
+       atcommand "@homshuffle";
+  - Id: 30004
+    AegisName: C_Gold_Coin
+    Name: Gold Coin
+    Type: Etc
+    Weight: 1
+  - Id: 30005
+    AegisName: C_Platinum_Coin
+    Name: Platinum Coin
+    Type: Etc
+    Weight: 1
+  - Id: 30006
+    AegisName: C_Mithril_Coin
+    Name: Mithril Coin
+    Type: Etc
+    Weight: 1
+  - Id: 30007
+    AegisName: MVP_Soul
+    Name: MVP Soul
+    Type: Etc
+    Weight: 1
+  - Id: 30008
+    AegisName: Vip_1D
+    Name: Vip 1 Day
+    Type: Cash
+    Buy: 20
+    Weight: 10
+    Script: |
+       vip_time(1 * 1440);
+  - Id: 30009
+    AegisName: Vip_3D
+    Name: Vip 3 Days
+    Type: Cash
+    Buy: 20
+    Weight: 10
+    Script: |
+       vip_time(3 * 1440);
+  - Id: 30010
+    AegisName: Vip_7D
+    Name: Vip 7 Days
+    Type: Cash
+    Buy: 20
+    Weight: 10
+    Script: |
+       vip_time(7 * 1440);
+  - Id: 30011
+    AegisName: Vip_30D
+    Name: Vip 30 Days
+    Type: Cash
+    Buy: 20
+    Weight: 10
+    Script: |
+       vip_time(30 * 1440);
+  - Id: 30012
+    AegisName: 10cash
+    Name: Cash Point[10]
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       set #CASHPOINTS, #CASHPOINTS+10; dispbottom "You gained [10 Cash Points]. Enjoy";
+  - Id: 30013
+    AegisName: 100cash
+    Name: Cash Point[100]
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       set #CASHPOINTS, #CASHPOINTS+100; dispbottom "You gained [100 Cash Points]. Enjoy";
+  - Id: 30014
+    AegisName: 1000cash
+    Name: Cash Point[1000]
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       set #CASHPOINTS, #CASHPOINTS+1000; dispbottom "You gained [1000 Cash Points]. Enjoy";
+  - Id: 30015
+    AegisName: 10000cash
+    Name: Cash Point[10000]
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       set #CASHPOINTS, #CASHPOINTS+10000; dispbottom "You gained [10000 Cash Points]. Enjoy";
+  - Id: 30016
+    AegisName: Grace_Coin_C
+    Name: Grace Coin
+    Type: Etc
+    Weight: 1
+  - Id: 30017
+    AegisName: Event_Coin_C
+    Name: Event Coin
+    Type: Etc
+    Weight: 1
+  - Id: 30018
+    AegisName: Instance_Coin_C
+    Name: Instance Coin
+    Type: Etc
+    Weight: 1
+  - Id: 30100
+    AegisName: Kyuubi_Mystic
+    Name: Kyuubi Mystic
+    Type: Armor
+    Locations:
+      Costume_Head_Low: true
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    View: 8384
+  - Id: 30019
+    AegisName: Piece_of_Shit
+    Name: Piece of Shit
+    Type: Etc
+    Weight: 1
+  - Id: 30025
+    AegisName: Pandora_Box
+    Name: Pandora Box
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       getitembound 501,1,Bound_Account;
+  - Id: 30026
+    AegisName: Xmas_Box
+    Name: Xmas Box
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       callfunc "F_ChristmasBox";
+  - Id: 30034
+    AegisName: Charm_of_brightness
+    Name: Charm Of Brightness
+    Type: Etc
+    Weight: 1000
+    Trade:
+      NoDrop: true
+      NoTrade: true
+      NoSell: true
+      NoCart: true
+      NoStorage: true
+      NoGuildStorage: true
+      NoMail: true
+      NoAuction: true
+  - Id: 30035
+    AegisName: Rental_Charm_brightness_1
+    Name: Charm of brightness (1 hour)
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       rentitem 30034,3600*1;
+  - Id: 30036
+    AegisName: Rental_Charm_brightness_2
+    Name: Charm of brightness (2 hour)
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       rentitem 30034,3600*2;
+  - Id: 30037
+    AegisName: Rental_Charm_brightness_3
+    Name: Charm of brightness (3 hour)
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       rentitem 30034,3600*3;
+  - Id: 30038
+    AegisName: Rental_Charm_brightness_4
+    Name: Charm of brightness (4 hour)
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       rentitem 30034,3600*4;
+  - Id: 30039
+    AegisName: Rental_Charm_brightness_5
+    Name: Charm of brightness (5 hour)
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       rentitem 30034,3600*5;
+  - Id: 30047
+    AegisName: MVP_Soul_Fragment
+    Name: MVP Soul Fragment
+    Type: Etc
+    Weight: 10
+  - Id: 30048
+    AegisName: POD_Custom
+    Name: Proof of Donation
+    Type: Etc
+    Weight: 10
+  - Id: 30049
+    AegisName: Instance_Box_1500
+    Name: Instance Box 1500
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       getitem 30018,1500;
+  - Id: 30050
+    AegisName: MVP_Box_100
+    Name: Mvp Soul 100
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       getitem 30007,100;
+  - Id: 30051
+    AegisName: Etel_Box_1000
+    Name: Etel Box 500
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       getitem 1000322,1000;
+  - Id: 30052
+    AegisName: Skip_Ticket_Box
+    Name: Skip Ticket Pack
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       getitem 1000282,1;
+       getitem 1000287,1;
+       getitem 1000288,1;
+       getitem 1001263,1;
+  - Id: 30053
+    AegisName: Card_Album_Box
+    Name: Card Album Pack
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       getitem 616,100;
+       getitem 12246,50;
+  - Id: 30054
+    AegisName: Blessing_Box_500
+    Name: Blessing Box 500
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       getitem 6635,500;
+  - Id: 30055
+    AegisName: Grading_Ticket
+    Name: Grading Ticket
+    Type: Etc
+    Weight: 10
+  - Id: 30056
+    AegisName: Hell_Scroll
+    Name: Hell Scroll
+    Type: Cash
+    Buy: 20
+    Weight: 10
+    Script: |
+       callfunc("F_GachaReward");
+  - Id: 30057
+    AegisName: Poenitentia_Ring_Box
+    Name: Poenitentia Ring Box
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       getitem callfunc("F_Rand",490768,490748,490754,490744,490770,490750,490752,490774,490742,490772),1;
+  - Id: 30058
+    AegisName: Aura_Changer_Ticket1
+    Name: Aura Changer Ticket 1
+    Type: Etc
+    Weight: 1
+  - Id: 30059
+    AegisName: Aura_Changer_Ticket2
+    Name: Aura Changer Ticket 2
+    Type: Etc
+    Weight: 1
+  - Id: 30060
+    AegisName: Aura_Changer_Ticket3
+    Name: Aura Changer Ticket 3
+    Type: Etc
+    Weight: 1
+  - Id: 30061
+    AegisName: Name_Color_Changer
+    Name: Name Color Changer
+    Type: Etc
+    Weight: 1
+  - Id: 30062
+    AegisName: Ex_Acc_Box
+    Name: Exclusive Accessory Box
+    Type: Usable
+    Buy: 20
+    Weight: 10
+    Script: |
+       callfunc("ex_acc");

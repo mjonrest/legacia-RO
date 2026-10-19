@@ -1,0 +1,5674 @@
+Header:
+  Type: ITEM_DB
+  Version: 3
+
+Body:
+  - Id: 30429
+    AegisName: Evostone
+    Name: Evo Stone
+    Type: Etc
+    Buy: 20
+    Weight: 10
+  - Id: 30430
+    AegisName: Megastone
+    Name: Mega Stone
+    Type: Etc
+    Buy: 20
+    Weight: 10
+  - Id: 30431
+    AegisName: Pokeball
+    Name: Poke Ball
+    Type: Etc
+    Buy: 20
+    Weight: 10
+  - Id: 30432
+    AegisName: Greatball
+    Name: Great Ball
+    Type: Etc
+    Buy: 20
+    Weight: 10
+  - Id: 30433
+    AegisName: Ultraball
+    Name: Ultra Ball
+    Type: Etc
+    Buy: 20
+    Weight: 10
+  - Id: 30434
+    AegisName: Masterball
+    Name: Master Ball
+    Type: Etc
+    Buy: 20
+    Weight: 10
+########## POKEMON IVS ##################
+  - Id: 30435
+    AegisName: poke_Religio
+    Name: Religio
+    Type: Etc
+    Weight: 1
+    EquipScript: |
+      set poke_skill,5281;
+      dispbottom "Your Pokemon Skills : "+getskillname(5281)+".";
+  - Id: 30436
+    AegisName: poke_Presens_Acies
+    Name: Presens Acies
+    Type: Etc
+    Weight: 1
+    EquipScript: |
+      set poke_skill,5275;
+      dispbottom "Your Pokemon Skills : "+getskillname(5275)+".";
+  - Id: 30437
+    AegisName: poke_Benedictum
+    Name: Benedictum
+    Type: Etc
+    Weight: 1
+    EquipScript: |
+      set poke_skill,5282;
+      dispbottom "Your Pokemon Skills : "+getskillname(5282)+".";
+  - Id: 30438
+    AegisName: poke_Vita
+    Name: Argutus Vita
+    Type: Etc
+    Weight: 1
+    EquipScript: |
+      set poke_skill,5271;
+      dispbottom "Your Pokemon Skills : "+getskillname(5271)+".";
+  - Id: 30439
+    AegisName: poke_Telum
+    Name: Argutus Telum
+    Type: Etc
+    Weight: 1
+    EquipScript: |
+      set poke_skill,5272;
+      dispbottom "Your Pokemon Skills : "+getskillname(5272)+".";
+########## POKEMON SUPPORT SKILL ##################
+  - Id: 30440
+    AegisName: IV1
+    Name: IV 1
+    Type: Etc
+    Weight: 1
+    EquipScript: |
+      set ivs,1;
+      dispbottom "Your Pokemon Individual Value : "+ivs+".";
+  - Id: 30441
+    AegisName: IV2
+    Name: IV 2
+    Type: Etc
+    Weight: 1
+    EquipScript: |
+      set ivs,2;
+      dispbottom "Your Pokemon Individual Value : "+ivs+".";
+  - Id: 30442
+    AegisName: IV3
+    Name: IV 3
+    Type: Etc
+    Weight: 1
+    EquipScript: |
+      set ivs,3;
+      dispbottom "Your Pokemon Individual Value : "+ivs+".";
+  - Id: 30443
+    AegisName: IV4
+    Name: IV 4
+    Type: Etc
+    Weight: 1
+    EquipScript: |
+      set ivs,4;
+      dispbottom "Your Pokemon Individual Value : "+ivs+".";
+  - Id: 30444
+    AegisName: IV5
+    Name: IV 5
+    Type: Etc
+    Weight: 1
+    EquipScript: |
+      set ivs,5;
+      dispbottom "Your Pokemon Individual Value : "+ivs+".";
+########## POKEMON ##################
+  - Id: 30445
+    AegisName: bulbasaur
+    Name: bulbasaur
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31444;
+  - Id: 30446
+    AegisName: ivysaur
+    Name: ivysaur
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31445;
+  - Id: 30447
+    AegisName: venusaur
+    Name: venusaur
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31446;
+  - Id: 30448
+    AegisName: charmander
+    Name: charmander
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31447;
+  - Id: 30449
+    AegisName: charmeleon
+    Name: charmeleon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31448;
+  - Id: 30450
+    AegisName: charizard
+    Name: charizard
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31449;
+  - Id: 30451
+    AegisName: squirtle
+    Name: squirtle
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31450;
+  - Id: 30452
+    AegisName: wortortle
+    Name: wortortle
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31451;
+  - Id: 30453
+    AegisName: blastoise
+    Name: blastoise
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31452;
+  - Id: 30454
+    AegisName: mega charizard X
+    Name: mega charizard X
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31453;
+  - Id: 30455
+    AegisName: mega charizard Y
+    Name: mega charizard Y
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31454;
+  - Id: 30456
+    AegisName: mega blastoise
+    Name: mega blastoise
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31455;
+  - Id: 30457
+    AegisName: mega venusaur
+    Name: mega venusaur
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31456;
+  - Id: 30458
+    AegisName: caterpie
+    Name: caterpie
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31457;
+  - Id: 30459
+    AegisName: metapod
+    Name: metapod
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31458;
+  - Id: 30460
+    AegisName: butterfree
+    Name: butterfree
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31459;
+  - Id: 30461
+    AegisName: weedle
+    Name: weedle
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31460;
+  - Id: 30462
+    AegisName: kakuna
+    Name: kakuna
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31461;
+  - Id: 30463
+    AegisName: beedrill
+    Name: beedrill
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31462;
+  - Id: 30464
+    AegisName: mega beedrill
+    Name: mega beedrill
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31463;
+  - Id: 30465
+    AegisName: pidgey
+    Name: pidgey
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31464;
+  - Id: 30466
+    AegisName: pidgeotto
+    Name: pidgeotto
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31465;
+  - Id: 30467
+    AegisName: pidgeot
+    Name: pidgeot
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31466;
+  - Id: 30468
+    AegisName: rattata
+    Name: rattata
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31467;
+  - Id: 30469
+    AegisName: raticate
+    Name: raticate
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31468;
+  - Id: 30470
+    AegisName: pikachu
+    Name: pikachu
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31469;
+  - Id: 30471
+    AegisName: sandshrew
+    Name: sandshrew
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31470;
+  - Id: 30472
+    AegisName: sandslash
+    Name: sandslash
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31471;
+  - Id: 30473
+    AegisName: spearow
+    Name: spearow
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31472;
+  - Id: 30474
+    AegisName: nidoranF
+    Name: nidoranF
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31473;
+  - Id: 30475
+    AegisName: nidorina
+    Name: nidorina
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31474;
+  - Id: 30476
+    AegisName: nidoqueen
+    Name: nidoqueen
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31475;
+  - Id: 30477
+    AegisName: nidoranM
+    Name: nidoranM
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31476;
+  - Id: 30478
+    AegisName: nidorino
+    Name: nidorino
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31477;
+  - Id: 30479
+    AegisName: nidoKing
+    Name: nidoKing
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31478;
+  - Id: 30480
+    AegisName: vulpix
+    Name: vulpix
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31479;
+  - Id: 30481
+    AegisName: ninetales
+    Name: ninetales
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31480;
+  - Id: 30482
+    AegisName: abra
+    Name: abra
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31481;
+  - Id: 30483
+    AegisName: kadabra
+    Name: kadabra
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31482;
+  - Id: 30484
+    AegisName: alakazam
+    Name: alakazam
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31483;
+  - Id: 30485
+    AegisName: mega alakazam
+    Name: mega alakazam
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31484;
+  - Id: 30486
+    AegisName: gastly
+    Name: gastly
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31485;
+  - Id: 30487
+    AegisName: haunter
+    Name: haunter
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31486;
+  - Id: 30488
+    AegisName: gengar
+    Name: gengar
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31487;
+  - Id: 30489
+    AegisName: mega gengar
+    Name: mega gengar
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31488;
+  - Id: 30490
+    AegisName: dratini
+    Name: dratini
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31489;
+  - Id: 30491
+    AegisName: dragonair
+    Name: dragonair
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31490;
+  - Id: 30492
+    AegisName: dragonite
+    Name: dragonite
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31491;
+  - Id: 30493
+    AegisName: machop
+    Name: machop
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31492;
+  - Id: 30494
+    AegisName: machoke
+    Name: machoke
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31493;
+  - Id: 30495
+    AegisName: machamp
+    Name: machamp
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31494;
+  - Id: 30496
+    AegisName: magikarp
+    Name: magikarp
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31495;
+  - Id: 30497
+    AegisName: gyarados
+    Name: gyarados
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31496;
+  - Id: 30498
+    AegisName: mega gyarados
+    Name: mega gyarados
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31497;
+  - Id: 30499
+    AegisName: alolan raichu
+    Name: alolan raichu
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31498;
+  - Id: 30500
+    AegisName: cubone
+    Name: cubone
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31499;
+  - Id: 30501
+    AegisName: marowak
+    Name: marowak
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31500;
+  - Id: 30502
+    AegisName: alolan marowak
+    Name: alolan marowak
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31501;
+  - Id: 30503
+    AegisName: onix
+    Name: onix
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31502;
+  - Id: 30504
+    AegisName: mega pidgeot
+    Name: mega pidgeot
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31503;
+  - Id: 30505
+    AegisName: scyther
+    Name: scyther
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31504;
+  - Id: 30506
+    AegisName: lapras
+    Name: lapras
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31505;
+  - Id: 30507
+    AegisName: eevee
+    Name: eevee
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31506;
+  - Id: 30508
+    AegisName: mrmime
+    Name: mrmime
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31507;
+  - Id: 30509
+    AegisName: aerodactyl
+    Name: aerodactyl
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31508;
+  - Id: 30510
+    AegisName: mega aerodactyl
+    Name: mega aerodactyl
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31509;
+  - Id: 30511
+    AegisName: articuno
+    Name: articuno
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31510;
+  - Id: 30512
+    AegisName: moltress
+    Name: moltress
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31511;
+  - Id: 30513
+    AegisName: zapdos
+    Name: zapdos
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31512;
+  - Id: 30514
+    AegisName: mewtwo
+    Name: mewtwo
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31513;
+  - Id: 30515
+    AegisName: mew
+    Name: mew
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31514;
+  - Id: 30516
+    AegisName: mewtwo X
+    Name: mewtwo X
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31515;
+  - Id: 30517
+    AegisName: mewtwo Y
+    Name: mewtwo Y
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31516;
+  - Id: 30518
+    AegisName: chikorita
+    Name: chikorita
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31517;
+  - Id: 30519
+    AegisName: bayleaf
+    Name: bayleaf
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31518;
+  - Id: 30520
+    AegisName: meganium
+    Name: meganium
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31519;
+  - Id: 30521
+    AegisName: cyndaquil
+    Name: cyndaquil
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31520;
+  - Id: 30522
+    AegisName: quilava
+    Name: quilava
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31521;
+  - Id: 30523
+    AegisName: typhlosion
+    Name: typhlosion
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31522;
+  - Id: 30524
+    AegisName: totodile
+    Name: totodile
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31523;
+  - Id: 30525
+    AegisName: croconaw
+    Name: croconaw
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31524;
+  - Id: 30526
+    AegisName: feraligatr
+    Name: feraligatr
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31525;
+  - Id: 30527
+    AegisName: steelix
+    Name: steelix
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31526;
+  - Id: 30528
+    AegisName: mega steelix
+    Name: mega steelix
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31527;
+  - Id: 30529
+    AegisName: ampharos
+    Name: ampharos
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31528;
+  - Id: 30530
+    AegisName: mega ampharos
+    Name: mega ampharos
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31529;
+  - Id: 30531
+    AegisName: scizor
+    Name: scizor
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31530;
+  - Id: 30532
+    AegisName: mega scizor
+    Name: mega scizor
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31531;
+  - Id: 30533
+    AegisName: heracross
+    Name: heracross
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31532;
+  - Id: 30534
+    AegisName: mega heracross
+    Name: mega heracross
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31533;
+  - Id: 30535
+    AegisName: mantine
+    Name: mantine
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31534;
+  - Id: 30536
+    AegisName: skarmory
+    Name: skarmory
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31535;
+  - Id: 30537
+    AegisName: houndour
+    Name: houndour
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31536;
+  - Id: 30538
+    AegisName: houndoom
+    Name: houndoom
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31537;
+  - Id: 30539
+    AegisName: mega houndoom
+    Name: mega houndoom
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31538;
+  - Id: 30540
+    AegisName: horsea
+    Name: horsea
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31539;
+  - Id: 30541
+    AegisName: seadra
+    Name: seadra
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31540;
+  - Id: 30542
+    AegisName: kingdra
+    Name: kingdra
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31541;
+  - Id: 30543
+    AegisName: porygon
+    Name: porygon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31542;
+  - Id: 30544
+    AegisName: porygon2
+    Name: porygon2
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31543;
+  - Id: 30545
+    AegisName: porygonZ
+    Name: porygonZ
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31544;
+  - Id: 30546
+    AegisName: elekid
+    Name: elekid
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31545;
+  - Id: 30547
+    AegisName: electabuzz
+    Name: electabuzz
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31546;
+  - Id: 30548
+    AegisName: electivire
+    Name: electivire
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31547;
+  - Id: 30549
+    AegisName: magby
+    Name: magby
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31548;
+  - Id: 30550
+    AegisName: magmar
+    Name: magmar
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31549;
+  - Id: 30551
+    AegisName: magmortar
+    Name: magmortar
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31550;
+  - Id: 30552
+    AegisName: happiny
+    Name: happiny
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31551;
+  - Id: 30553
+    AegisName: chansey
+    Name: chansey
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31552;
+  - Id: 30554
+    AegisName: blissey
+    Name: blissey
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31553;
+  - Id: 30555
+    AegisName: raikou
+    Name: raikou
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31554;
+  - Id: 30556
+    AegisName: entei
+    Name: entei
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31555;
+  - Id: 30557
+    AegisName: suicine
+    Name: suicine
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31556;
+  - Id: 30558
+    AegisName: larvitar
+    Name: larvitar
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31557;
+  - Id: 30559
+    AegisName: pupitar
+    Name: pupitar
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31558;
+  - Id: 30560
+    AegisName: tyranitar
+    Name: tyranitar
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31559;
+  - Id: 30561
+    AegisName: mega tyranitar
+    Name: mega tyranitar
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31560;
+  - Id: 30562
+    AegisName: lugia
+    Name: lugia
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31561;
+  - Id: 30563
+    AegisName: ho-oh
+    Name: ho-oh
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31562;
+  - Id: 30564
+    AegisName: celebi
+    Name: celebi
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31563;
+  - Id: 30565
+    AegisName: treecko
+    Name: treecko
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31564;
+  - Id: 30566
+    AegisName: grovyle
+    Name: grovyle
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31565;
+  - Id: 30567
+    AegisName: sceptile
+    Name: sceptile
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31566;
+  - Id: 30568
+    AegisName: mega sceptile
+    Name: mega sceptile
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31567;
+  - Id: 30569
+    AegisName: torchic
+    Name: torchic
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31568;
+  - Id: 30570
+    AegisName: combusken
+    Name: combusken
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31569;
+  - Id: 30571
+    AegisName: blaziken
+    Name: blaziken
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31570;
+  - Id: 30572
+    AegisName: mega blaziken
+    Name: mega blaziken
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31571;
+  - Id: 30573
+    AegisName: mudkip
+    Name: mudkip
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31572;
+  - Id: 30574
+    AegisName: marshtomp
+    Name: marshtomp
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31573;
+  - Id: 30575
+    AegisName: swampert
+    Name: swampert
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31574;
+  - Id: 30576
+    AegisName: mega swampert
+    Name: mega swampert
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31575;
+  - Id: 30577
+    AegisName: zigzagoon
+    Name: zigzagoon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31576;
+  - Id: 30578
+    AegisName: linoone
+    Name: linoone
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31577;
+  - Id: 30579
+    AegisName: galarian zigzagoon
+    Name: galarian zigzagoon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31578;
+  - Id: 30580
+    AegisName: galarian linoone
+    Name: galarian linoone
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31579;
+  - Id: 30581
+    AegisName: obstagoon
+    Name: obstagoon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31580;
+  - Id: 30582
+    AegisName: wurmple
+    Name: wurmple
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31581;
+  - Id: 30583
+    AegisName: silcoon
+    Name: silcoon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31582;
+  - Id: 30584
+    AegisName: beautifly
+    Name: beautifly
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31583;
+  - Id: 30585
+    AegisName: cascoon
+    Name: cascoon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31584;
+  - Id: 30586
+    AegisName: dustox
+    Name: dustox
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31585;
+  - Id: 30587
+    AegisName: lotad
+    Name: lotad
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31586;
+  - Id: 30588
+    AegisName: lombre
+    Name: lombre
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31587;
+  - Id: 30589
+    AegisName: ludicolo
+    Name: ludicolo
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31588;
+  - Id: 30590
+    AegisName: seedot
+    Name: seedot
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31589;
+  - Id: 30591
+    AegisName: nuzleaf
+    Name: nuzleaf
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31590;
+  - Id: 30592
+    AegisName: shiftry
+    Name: shiftry
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31591;
+  - Id: 30593
+    AegisName: ralts
+    Name: ralts
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31592;
+  - Id: 30594
+    AegisName: kirlia
+    Name: kirlia
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31593;
+  - Id: 30595
+    AegisName: gardevoir
+    Name: gardevoir
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31594;
+  - Id: 30596
+    AegisName: mega gardevoir
+    Name: mega gardevoir
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31595;
+  - Id: 30597
+    AegisName: gallade
+    Name: gallade
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31596;
+  - Id: 30598
+    AegisName: sableye
+    Name: sableye
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31597;
+  - Id: 30599
+    AegisName: mega sableye
+    Name: mega sableye
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31598;
+  - Id: 30600
+    AegisName: mawile
+    Name: mawile
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31599;
+  - Id: 30601
+    AegisName: mega mawile
+    Name: mega mawile
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31600;
+  - Id: 30602
+    AegisName: aron
+    Name: aron
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31601;
+  - Id: 30603
+    AegisName: lairon
+    Name: lairon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31602;
+  - Id: 30604
+    AegisName: aggron
+    Name: aggron
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31603;
+  - Id: 30605
+    AegisName: mega aggron
+    Name: mega aggron
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31604;
+  - Id: 30606
+    AegisName: meditite
+    Name: meditite
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31605;
+  - Id: 30607
+    AegisName: medichamp
+    Name: medichamp
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31606;
+  - Id: 30608
+    AegisName: mega medichamp
+    Name: mega medichamp
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31607;
+  - Id: 30609
+    AegisName: electrike
+    Name: electrike
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31608;
+  - Id: 30610
+    AegisName: manectric
+    Name: manectric
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31609;
+  - Id: 30611
+    AegisName: mega manectric
+    Name: mega manectric
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31610;
+  - Id: 30612
+    AegisName: budew
+    Name: budew
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31611;
+  - Id: 30613
+    AegisName: roselia
+    Name: roselia
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31612;
+  - Id: 30614
+    AegisName: roserade
+    Name: roserade
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31613;
+  - Id: 30615
+    AegisName: carvanha
+    Name: carvanha
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31614;
+  - Id: 30616
+    AegisName: sharpedo
+    Name: sharpedo
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31615;
+  - Id: 30617
+    AegisName: mega sharpedo
+    Name: mega sharpedo
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31616;
+  - Id: 30618
+    AegisName: trapinch
+    Name: trapinch
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31617;
+  - Id: 30619
+    AegisName: vibrava
+    Name: vibrava
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31618;
+  - Id: 30620
+    AegisName: flygon
+    Name: flygon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31619;
+  - Id: 30621
+    AegisName: numel
+    Name: numel
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31620;
+  - Id: 30622
+    AegisName: camerupt
+    Name: camerupt
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31621;
+  - Id: 30623
+    AegisName: Mega camerupt
+    Name: Mega camerupt
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31622;
+  - Id: 30624
+    AegisName: swablu
+    Name: swablu
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31623;
+  - Id: 30625
+    AegisName: altaria
+    Name: altaria
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31624;
+  - Id: 30626
+    AegisName: mega altaria
+    Name: mega altaria
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31625;
+  - Id: 30627
+    AegisName: absol
+    Name: absol
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31626;
+  - Id: 30628
+    AegisName: mega absol
+    Name: mega absol
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31627;
+  - Id: 30629
+    AegisName: snorunt
+    Name: snorunt
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31628;
+  - Id: 30630
+    AegisName: glalie
+    Name: glalie
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31629;
+  - Id: 30631
+    AegisName: mega glalie
+    Name: mega glalie
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31630;
+  - Id: 30632
+    AegisName: froslass
+    Name: froslass
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31631;
+  - Id: 30633
+    AegisName: beldum
+    Name: beldum
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31632;
+  - Id: 30634
+    AegisName: metang
+    Name: metang
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31633;
+  - Id: 30635
+    AegisName: metagross
+    Name: metagross
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31634;
+  - Id: 30636
+    AegisName: Mega metagross
+    Name: Mega metagross
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31635;
+  - Id: 30637
+    AegisName: bagon
+    Name: bagon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31636;
+  - Id: 30638
+    AegisName: shelgon
+    Name: shelgon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31637;
+  - Id: 30639
+    AegisName: salamence
+    Name: salamence
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31638;
+  - Id: 30640
+    AegisName: mega salamence
+    Name: mega salamence
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31639;
+  - Id: 30641
+    AegisName: regirock
+    Name: regirock
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31640;
+  - Id: 30642
+    AegisName: regice
+    Name: regice
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31641;
+  - Id: 30643
+    AegisName: registeel
+    Name: registeel
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31642;
+  - Id: 30644
+    AegisName: latias
+    Name: latias
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31643;
+  - Id: 30645
+    AegisName: mega latios
+    Name: mega latios
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31644;
+  - Id: 30646
+    AegisName: latios
+    Name: latios
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31645;
+  - Id: 30647
+    AegisName: kyogre
+    Name: kyogre
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31646;
+  - Id: 30648
+    AegisName: primal kyogre
+    Name: primal kyogre
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31647;
+  - Id: 30649
+    AegisName: groudon
+    Name: groudon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31648;
+  - Id: 30650
+    AegisName: primal groudon
+    Name: primal groudon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31649;
+  - Id: 30651
+    AegisName: rayquaza
+    Name: rayquaza
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31650;
+  - Id: 30652
+    AegisName: mega rayquaza
+    Name: mega rayquaza
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31651;
+  - Id: 30653
+    AegisName: jirachi
+    Name: jirachi
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31652;
+  - Id: 30654
+    AegisName: deoxys
+    Name: deoxys
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31653;
+  - Id: 30655
+    AegisName: turtwig
+    Name: turtwig
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31654;
+  - Id: 30656
+    AegisName: grotle
+    Name: grotle
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31655;
+  - Id: 30657
+    AegisName: torterra
+    Name: torterra
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31656;
+  - Id: 30658
+    AegisName: chimchar
+    Name: chimchar
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31657;
+  - Id: 30659
+    AegisName: monferno
+    Name: monferno
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31658;
+  - Id: 30660
+    AegisName: infernape
+    Name: infernape
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31659;
+  - Id: 30661
+    AegisName: piplup
+    Name: piplup
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31660;
+  - Id: 30662
+    AegisName: prinlup
+    Name: prinlup
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31661;
+  - Id: 30663
+    AegisName: empoleon
+    Name: empoleon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31662;
+  - Id: 30664
+    AegisName: starly
+    Name: starly
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31663;
+  - Id: 30665
+    AegisName: staravia
+    Name: staravia
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31664;
+  - Id: 30666
+    AegisName: staraptor
+    Name: staraptor
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31665;
+  - Id: 30667
+    AegisName: shinx
+    Name: shinx
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31666;
+  - Id: 30668
+    AegisName: luxio
+    Name: luxio
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31667;
+  - Id: 30669
+    AegisName: luxray
+    Name: luxray
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31668;
+  - Id: 30670
+    AegisName: gible
+    Name: gible
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31669;
+  - Id: 30671
+    AegisName: gabite
+    Name: gabite
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31670;
+  - Id: 30672
+    AegisName: garchomp
+    Name: garchomp
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31671;
+  - Id: 30673
+    AegisName: mega garchomp
+    Name: mega garchomp
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31672;
+  - Id: 30674
+    AegisName: riolu
+    Name: riolu
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31673;
+  - Id: 30675
+    AegisName: lucario
+    Name: lucario
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31674;
+  - Id: 30676
+    AegisName: mega lucario
+    Name: mega lucario
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31675;
+  - Id: 30677
+    AegisName: snover
+    Name: snover
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31676;
+  - Id: 30678
+    AegisName: abomasnow
+    Name: abomasnow
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31677;
+  - Id: 30679
+    AegisName: mega abomasnow
+    Name: mega abomasnow
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31678;
+  - Id: 30680
+    AegisName: rhyhorn
+    Name: rhyhorn
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31679;
+  - Id: 30681
+    AegisName: rhydon
+    Name: rhydon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31680;
+  - Id: 30682
+    AegisName: rhyperior
+    Name: rhyperior
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31681;
+  - Id: 30683
+    AegisName: lickitung
+    Name: lickitung
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31682;
+  - Id: 30684
+    AegisName: lickilicky
+    Name: lickilicky
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31683;
+  - Id: 30685
+    AegisName: togepi
+    Name: togepi
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31684;
+  - Id: 30686
+    AegisName: togetic
+    Name: togetic
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31685;
+  - Id: 30687
+    AegisName: togekiss
+    Name: togekiss
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31686;
+  - Id: 30688
+    AegisName: fearow
+    Name: fearow
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31687;
+  - Id: 30689
+    AegisName: leafeon
+    Name: leafeon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31688;
+  - Id: 30690
+    AegisName: glaceon
+    Name: glaceon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31689;
+  - Id: 30691
+    AegisName: vaporeon
+    Name: vaporeon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31690;
+  - Id: 30692
+    AegisName: jolteon
+    Name: jolteon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31691;
+  - Id: 30693
+    AegisName: flareon
+    Name: flareon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31692;
+  - Id: 30694
+    AegisName: espeon
+    Name: espeon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31693;
+  - Id: 30695
+    AegisName: umbreon
+    Name: umbreon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31694;
+  - Id: 30696
+    AegisName: sylveon
+    Name: sylveon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31695;
+  - Id: 30697
+    AegisName: mega gallade
+    Name: mega gallade
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31696;
+  - Id: 30698
+    AegisName: swinub
+    Name: swinub
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31697;
+  - Id: 30699
+    AegisName: piloswine
+    Name: piloswine
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31698;
+  - Id: 30700
+    AegisName: mamoswine
+    Name: mamoswine
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31699;
+  - Id: 30701
+    AegisName: munchlax
+    Name: munchlax
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31700;
+  - Id: 30702
+    AegisName: snorlax
+    Name: snorlax
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31701;
+  - Id: 30703
+    AegisName: igglybuff
+    Name: igglybuff
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31702;
+  - Id: 30704
+    AegisName: jigglypuff
+    Name: jigglypuff
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31703;
+  - Id: 30705
+    AegisName: wigglytuff
+    Name: wigglytuff
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31704;
+  - Id: 30706
+    AegisName: slowpoke
+    Name: slowpoke
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31705;
+  - Id: 30707
+    AegisName: slowbro
+    Name: slowbro
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31706;
+  - Id: 30708
+    AegisName: mega slowbro
+    Name: mega slowbro
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31707;
+  - Id: 30709
+    AegisName: pinsir
+    Name: pinsir
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31708;
+  - Id: 30710
+    AegisName: mega pinsir
+    Name: mega pinsir
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31709;
+  - Id: 30711
+    AegisName: rotom
+    Name: rotom
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31710;
+  - Id: 30712
+    AegisName: uxie
+    Name: uxie
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31711;
+  - Id: 30713
+    AegisName: mesprit
+    Name: mesprit
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31712;
+  - Id: 30714
+    AegisName: azelf
+    Name: azelf
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31713;
+  - Id: 30715
+    AegisName: dialga
+    Name: dialga
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31714;
+  - Id: 30716
+    AegisName: palkia
+    Name: palkia
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31715;
+  - Id: 30717
+    AegisName: heatran
+    Name: heatran
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31716;
+  - Id: 30718
+    AegisName: regigigas
+    Name: regigigas
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31717;
+  - Id: 30719
+    AegisName: giratina
+    Name: giratina
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31718;
+  - Id: 30720
+    AegisName: giratina origin form
+    Name: giratina origin form
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31719;
+  - Id: 30721
+    AegisName: cresselia
+    Name: cresselia
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31720;
+  - Id: 30722
+    AegisName: phione
+    Name: phione
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31721;
+  - Id: 30723
+    AegisName: manaphy
+    Name: manaphy
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31722;
+  - Id: 30724
+    AegisName: darkrai
+    Name: darkrai
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31723;
+  - Id: 30725
+    AegisName: shaymin
+    Name: shaymin
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31724;
+  - Id: 30726
+    AegisName: shaymin sky form
+    Name: shaymin sky form
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31725;
+  - Id: 30727
+    AegisName: arceus
+    Name: arceus
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31726;
+  - Id: 30728
+    AegisName: victini
+    Name: victini
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31727;
+  - Id: 30729
+    AegisName: snivy
+    Name: snivy
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31728;
+  - Id: 30730
+    AegisName: servine
+    Name: servine
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31729;
+  - Id: 30731
+    AegisName: serperior
+    Name: serperior
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31730;
+  - Id: 30732
+    AegisName: tepig
+    Name: tepig
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31731;
+  - Id: 30733
+    AegisName: pignite
+    Name: pignite
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31732;
+  - Id: 30734
+    AegisName: emboar
+    Name: emboar
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31733;
+  - Id: 30735
+    AegisName: oshawott
+    Name: oshawott
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31734;
+  - Id: 30736
+    AegisName: dewott
+    Name: dewott
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31735;
+  - Id: 30737
+    AegisName: samurott
+    Name: samurott
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31736;
+  - Id: 30738
+    AegisName: audino
+    Name: audino
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31737;
+  - Id: 30739
+    AegisName: mega audino
+    Name: mega audino
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31738;
+  - Id: 30740
+    AegisName: lillipup
+    Name: lillipup
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31739;
+  - Id: 30741
+    AegisName: herdier
+    Name: herdier
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31740;
+  - Id: 30742
+    AegisName: stoutland
+    Name: stoutland
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31741;
+  - Id: 30743
+    AegisName: timburr
+    Name: timburr
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31742;
+  - Id: 30744
+    AegisName: gurdurr
+    Name: gurdurr
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31743;
+  - Id: 30745
+    AegisName: conkeldurr
+    Name: conkeldurr
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31744;
+  - Id: 30746
+    AegisName: tympole
+    Name: tympole
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31745;
+  - Id: 30747
+    AegisName: palpitoad
+    Name: palpitoad
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31746;
+  - Id: 30748
+    AegisName: seismitoad
+    Name: seismitoad
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31747;
+  - Id: 30749
+    AegisName: sandile
+    Name: sandile
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31748;
+  - Id: 30750
+    AegisName: krokorok
+    Name: krokorok
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31749;
+  - Id: 30751
+    AegisName: krookodile
+    Name: krookodile
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31750;
+  - Id: 30752
+    AegisName: zorua
+    Name: zorua
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31751;
+  - Id: 30753
+    AegisName: zoroark
+    Name: zoroark
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31752;
+  - Id: 30754
+    AegisName: minccino
+    Name: minccino
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31753;
+  - Id: 30755
+    AegisName: cinccino
+    Name: cinccino
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31754;
+  - Id: 30756
+    AegisName: gothita
+    Name: gothita
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31755;
+  - Id: 30757
+    AegisName: gothorita
+    Name: gothorita
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31756;
+  - Id: 30758
+    AegisName: gothitelle
+    Name: gothitelle
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31757;
+  - Id: 30759
+    AegisName: litwick
+    Name: litwick
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31758;
+  - Id: 30760
+    AegisName: lampent
+    Name: lampent
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31759;
+  - Id: 30761
+    AegisName: chandelure
+    Name: chandelure
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31760;
+  - Id: 30762
+    AegisName: axew
+    Name: axew
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31761;
+  - Id: 30763
+    AegisName: fraxure
+    Name: fraxure
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31762;
+  - Id: 30764
+    AegisName: haxorus
+    Name: haxorus
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31763;
+  - Id: 30765
+    AegisName: shelmet
+    Name: shelmet
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31764;
+  - Id: 30766
+    AegisName: accelgor
+    Name: accelgor
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31765;
+  - Id: 30767
+    AegisName: mienfoo
+    Name: mienfoo
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31766;
+  - Id: 30768
+    AegisName: mienshao
+    Name: mienshao
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31767;
+  - Id: 30769
+    AegisName: druddigon
+    Name: druddigon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31768;
+  - Id: 30770
+    AegisName: pawniard
+    Name: pawniard
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31769;
+  - Id: 30771
+    AegisName: bisharp
+    Name: bisharp
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31770;
+  - Id: 30772
+    AegisName: rufflet
+    Name: rufflet
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31771;
+  - Id: 30773
+    AegisName: braviary
+    Name: braviary
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31772;
+  - Id: 30774
+    AegisName: deino
+    Name: deino
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31773;
+  - Id: 30775
+    AegisName: zweilous
+    Name: zweilous
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31774;
+  - Id: 30776
+    AegisName: hydreigon
+    Name: hydreigon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31775;
+  - Id: 30777
+    AegisName: larvesta
+    Name: larvesta
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31776;
+  - Id: 30778
+    AegisName: volcarona
+    Name: volcarona
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31777;
+  - Id: 30779
+    AegisName: cobalion
+    Name: cobalion
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31778;
+  - Id: 30780
+    AegisName: terrakion
+    Name: terrakion
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31779;
+  - Id: 30781
+    AegisName: virizion
+    Name: virizion
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31780;
+  - Id: 30782
+    AegisName: tornadus
+    Name: tornadus
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31781;
+  - Id: 30783
+    AegisName: thundurus
+    Name: thundurus
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31782;
+  - Id: 30784
+    AegisName: landorus
+    Name: landorus
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31783;
+  - Id: 30785
+    AegisName: reshiram
+    Name: reshiram
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31784;
+  - Id: 30786
+    AegisName: zekrom
+    Name: zekrom
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31785;
+  - Id: 30787
+    AegisName: kyurem
+    Name: kyurem
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31786;
+  - Id: 30788
+    AegisName: white kyurem
+    Name: white kyurem
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31787;
+  - Id: 30789
+    AegisName: black kyurem
+    Name: black kyurem
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31788;
+  - Id: 30790
+    AegisName: meloetta
+    Name: meloetta
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31789;
+  - Id: 30791
+    AegisName: piroutte
+    Name: piroutte
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31790;
+  - Id: 30792
+    AegisName: genesect
+    Name: genesect
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31791;
+  - Id: 30793
+    AegisName: keldeo
+    Name: keldeo
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31792;
+  - Id: 30794
+    AegisName: keldeo resolute form
+    Name: keldeo resolute form
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31793;
+  - Id: 30795
+    AegisName: pidove
+    Name: pidove
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31794;
+  - Id: 30796
+    AegisName: tranquill
+    Name: tranquill
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31795;
+  - Id: 30797
+    AegisName: unfezant
+    Name: unfezant
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31796;
+  - Id: 30798
+    AegisName: roggenrola
+    Name: roggenrola
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31797;
+  - Id: 30799
+    AegisName: boldore
+    Name: boldore
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31798;
+  - Id: 30800
+    AegisName: gigalith
+    Name: gigalith
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31799;
+  - Id: 30801
+    AegisName: tynamo
+    Name: tynamo
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31800;
+  - Id: 30802
+    AegisName: eelektrik
+    Name: eelektrik
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31801;
+  - Id: 30803
+    AegisName: eelektross
+    Name: eelektross
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31802;
+  - Id: 30804
+    AegisName: chespin
+    Name: chespin
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31803;
+  - Id: 30805
+    AegisName: quilladin
+    Name: quilladin
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31804;
+  - Id: 30806
+    AegisName: chesnaught
+    Name: chesnaught
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31805;
+  - Id: 30807
+    AegisName: fannekin
+    Name: fannekin
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31806;
+  - Id: 30808
+    AegisName: braixen
+    Name: braixen
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31807;
+  - Id: 30809
+    AegisName: delphox
+    Name: delphox
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31808;
+  - Id: 30810
+    AegisName: froakie
+    Name: froakie
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31809;
+  - Id: 30811
+    AegisName: frogadier
+    Name: frogadier
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31810;
+  - Id: 30812
+    AegisName: greninja
+    Name: greninja
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31811;
+  - Id: 30813
+    AegisName: ash greninja
+    Name: ash greninja
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31812;
+  - Id: 30814
+    AegisName: fletching
+    Name: fletching
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31813;
+  - Id: 30815
+    AegisName: fletchinder
+    Name: fletchinder
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31814;
+  - Id: 30816
+    AegisName: talonflame
+    Name: talonflame
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31815;
+  - Id: 30817
+    AegisName: scatterbug
+    Name: scatterbug
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31816;
+  - Id: 30818
+    AegisName: spewpa
+    Name: spewpa
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31817;
+  - Id: 30819
+    AegisName: vivillon
+    Name: vivillon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31818;
+  - Id: 30820
+    AegisName: flabebe
+    Name: flabebe
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31819;
+  - Id: 30821
+    AegisName: floette
+    Name: floette
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31820;
+  - Id: 30822
+    AegisName: florges
+    Name: florges
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31821;
+  - Id: 30823
+    AegisName: litleo
+    Name: litleo
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31822;
+  - Id: 30824
+    AegisName: pyroar
+    Name: pyroar
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31823;
+  - Id: 30825
+    AegisName: pancham
+    Name: pancham
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31824;
+  - Id: 30826
+    AegisName: pangoro
+    Name: pangoro
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31825;
+  - Id: 30827
+    AegisName: honedge
+    Name: honedge
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31826;
+  - Id: 30828
+    AegisName: duoblade
+    Name: duoblade
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31827;
+  - Id: 30829
+    AegisName: aegislash
+    Name: aegislash
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31828;
+  - Id: 30830
+    AegisName: aegislash blade
+    Name: aegislash blade
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31829;
+  - Id: 30831
+    AegisName: dedenne
+    Name: dedenne
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31830;
+  - Id: 30832
+    AegisName: goomy
+    Name: goomy
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31831;
+  - Id: 30833
+    AegisName: sliggoo
+    Name: sliggoo
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31832;
+  - Id: 30834
+    AegisName: goodra
+    Name: goodra
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31833;
+  - Id: 30835
+    AegisName: noibat
+    Name: noibat
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31834;
+  - Id: 30836
+    AegisName: noivern
+    Name: noivern
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31835;
+  - Id: 30837
+    AegisName: xerneas neutral form
+    Name: xerneas neutral form
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31836;
+  - Id: 30838
+    AegisName: xerneas
+    Name: xerneas
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31837;
+  - Id: 30839
+    AegisName: yveltal
+    Name: yveltal
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31838;
+  - Id: 30840
+    AegisName: zygarde 10%
+    Name: zygarde 10%
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31839;
+  - Id: 30841
+    AegisName: zygarde 50%
+    Name: zygarde 50%
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31840;
+  - Id: 30842
+    AegisName: zygarde complete form
+    Name: zygarde complete form
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31841;
+  - Id: 30843
+    AegisName: diance
+    Name: diance
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31842;
+  - Id: 30844
+    AegisName: mega diance
+    Name: mega diance
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31843;
+  - Id: 30845
+    AegisName: hoopa
+    Name: hoopa
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31844;
+  - Id: 30846
+    AegisName: hoopa unbound
+    Name: hoopa unbound
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31845;
+  - Id: 30847
+    AegisName: volcanion
+    Name: volcanion
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31846;
+  - Id: 30848
+    AegisName: pichu
+    Name: pichu
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31847;
+  - Id: 30849
+    AegisName: raichu
+    Name: raichu
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31848;
+  - Id: 30850
+    AegisName: rowlet
+    Name: rowlet
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31849;
+  - Id: 30851
+    AegisName: dartrix
+    Name: dartrix
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31850;
+  - Id: 30852
+    AegisName: decidueye
+    Name: decidueye
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31851;
+  - Id: 30853
+    AegisName: litten
+    Name: litten
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31852;
+  - Id: 30854
+    AegisName: torracat
+    Name: torracat
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31853;
+  - Id: 30855
+    AegisName: incineroar
+    Name: incineroar
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31854;
+  - Id: 30856
+    AegisName: popplio
+    Name: popplio
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31855;
+  - Id: 30857
+    AegisName: brionne
+    Name: brionne
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31856;
+  - Id: 30858
+    AegisName: primarina
+    Name: primarina
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31857;
+  - Id: 30859
+    AegisName: rockruff
+    Name: rockruff
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31858;
+  - Id: 30860
+    AegisName: lycanroc midday
+    Name: lycanroc midday
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31859;
+  - Id: 30861
+    AegisName: lycanroc midnight
+    Name: lycanroc midnight
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31860;
+  - Id: 30862
+    AegisName: lycanroc dusk
+    Name: lycanroc dusk
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31861;
+  - Id: 30863
+    AegisName: wishiwashi
+    Name: wishiwashi
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31862;
+  - Id: 30864
+    AegisName: wishiwashi school form
+    Name: wishiwashi school form
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31863;
+  - Id: 30865
+    AegisName: salandit
+    Name: salandit
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31864;
+  - Id: 30866
+    AegisName: salazzle
+    Name: salazzle
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31865;
+  - Id: 30867
+    AegisName: stufful
+    Name: stufful
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31866;
+  - Id: 30868
+    AegisName: bewear
+    Name: bewear
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31867;
+  - Id: 30869
+    AegisName: bounsweet
+    Name: bounsweet
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31868;
+  - Id: 30870
+    AegisName: steenee
+    Name: steenee
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31869;
+  - Id: 30871
+    AegisName: tsareena
+    Name: tsareena
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31870;
+  - Id: 30872
+    AegisName: wimpod
+    Name: wimpod
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31871;
+  - Id: 30873
+    AegisName: golisopod
+    Name: golisopod
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31872;
+  - Id: 30874
+    AegisName: type null
+    Name: type null
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31873;
+  - Id: 30875
+    AegisName: silvally
+    Name: silvally
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31874;
+  - Id: 30876
+    AegisName: komala
+    Name: komala
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31875;
+  - Id: 30877
+    AegisName: turtonator
+    Name: turtonator
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31876;
+  - Id: 30878
+    AegisName: togedemaru
+    Name: togedemaru
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31877;
+  - Id: 30879
+    AegisName: mimikyu
+    Name: mimikyu
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31878;
+  - Id: 30880
+    AegisName: bruxish
+    Name: bruxish
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31879;
+  - Id: 30881
+    AegisName: drampa
+    Name: drampa
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31880;
+  - Id: 30882
+    AegisName: jangmo-o
+    Name: jangmo-o
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31881;
+  - Id: 30883
+    AegisName: hakamo-o
+    Name: hakamo-o
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31882;
+  - Id: 30884
+    AegisName: kommo-o
+    Name: kommo-o
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31883;
+  - Id: 30885
+    AegisName: tapu koko
+    Name: tapu koko
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31884;
+  - Id: 30886
+    AegisName: tapu lele
+    Name: tapu lele
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31885;
+  - Id: 30887
+    AegisName: tapu bulu
+    Name: tapu bulu
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31886;
+  - Id: 30888
+    AegisName: tapu fini
+    Name: tapu fini
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31887;
+  - Id: 30889
+    AegisName: cosmog
+    Name: cosmog
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31888;
+  - Id: 30890
+    AegisName: comoem
+    Name: comoem
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31889;
+  - Id: 30891
+    AegisName: solgaleo
+    Name: solgaleo
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31890;
+  - Id: 30892
+    AegisName: dusk mane necrozma
+    Name: dusk mane necrozma
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31891;
+  - Id: 30893
+    AegisName: lunala
+    Name: lunala
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31892;
+  - Id: 30894
+    AegisName: dawn wings necrozma
+    Name: dawn wings necrozma
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31893;
+  - Id: 30895
+    AegisName: ultra necrozma
+    Name: ultra necrozma
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31894;
+  - Id: 30896
+    AegisName: magearna
+    Name: magearna
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31895;
+  - Id: 30897
+    AegisName: magearna original
+    Name: magearna original
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31896;
+  - Id: 30898
+    AegisName: nihilego
+    Name: nihilego
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31897;
+  - Id: 30899
+    AegisName: guzzlord
+    Name: guzzlord
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31898;
+  - Id: 30900
+    AegisName: necrozma
+    Name: necrozma
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31899;
+  - Id: 30901
+    AegisName: marshadow
+    Name: marshadow
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31900;
+  - Id: 30902
+    AegisName: poipole
+    Name: poipole
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31901;
+  - Id: 30903
+    AegisName: naganadel
+    Name: naganadel
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31902;
+  - Id: 30904
+    AegisName: zeraora
+    Name: zeraora
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31903;
+  - Id: 30905
+    AegisName: grookey
+    Name: grookey
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31904;
+  - Id: 30906
+    AegisName: thwackey
+    Name: thwackey
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31905;
+  - Id: 30907
+    AegisName: rillaboom
+    Name: rillaboom
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31906;
+  - Id: 30908
+    AegisName: scorbunny
+    Name: scorbunny
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31907;
+  - Id: 30909
+    AegisName: raboot
+    Name: raboot
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31908;
+  - Id: 30910
+    AegisName: cinderace
+    Name: cinderace
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31909;
+  - Id: 30911
+    AegisName: sobble
+    Name: sobble
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31910;
+  - Id: 30912
+    AegisName: drizzile
+    Name: drizzile
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31911;
+  - Id: 30913
+    AegisName: inteleon
+    Name: inteleon
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31912;
+  - Id: 30914
+    AegisName: skwovet
+    Name: skwovet
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31913;
+  - Id: 30915
+    AegisName: greedent
+    Name: greedent
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31914;
+  - Id: 30916
+    AegisName: rookidee
+    Name: rookidee
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31915;
+  - Id: 30917
+    AegisName: corvisquire
+    Name: corvisquire
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31916;
+  - Id: 30918
+    AegisName: corviknight
+    Name: corviknight
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31917;
+  - Id: 30919
+    AegisName: gossifleur
+    Name: gossifleur
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31918;
+  - Id: 30920
+    AegisName: eldegoss
+    Name: eldegoss
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31919;
+  - Id: 30921
+    AegisName: yamper
+    Name: yamper
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31920;
+  - Id: 30922
+    AegisName: boltund
+    Name: boltund
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31921;
+  - Id: 30923
+    AegisName: blipbug
+    Name: blipbug
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31922;
+  - Id: 30924
+    AegisName: dottler
+    Name: dottler
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31923;
+  - Id: 30925
+    AegisName: orbeetle
+    Name: orbeetle
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31924;
+  - Id: 30926
+    AegisName: rolycoly
+    Name: rolycoly
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31925;
+  - Id: 30927
+    AegisName: carkol
+    Name: carkol
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31926;
+  - Id: 30928
+    AegisName: coalossal
+    Name: coalossal
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31927;
+  - Id: 30929
+    AegisName: dreepy
+    Name: dreepy
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31928;
+  - Id: 30930
+    AegisName: drakloak
+    Name: drakloak
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31929;
+  - Id: 30931
+    AegisName: dragapult
+    Name: dragapult
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31930;
+  - Id: 30932
+    AegisName: applin
+    Name: applin
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31931;
+  - Id: 30933
+    AegisName: flapple
+    Name: flapple
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31932;
+  - Id: 30934
+    AegisName: appletun
+    Name: appletun
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31933;
+  - Id: 30935
+    AegisName: cramorant
+    Name: cramorant
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31934;
+  - Id: 30936
+    AegisName: camorant gorging form
+    Name: camorant gorging form
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31935;
+  - Id: 30937
+    AegisName: hatenna
+    Name: hatenna
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31936;
+  - Id: 30938
+    AegisName: hattrem
+    Name: hattrem
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31937;
+  - Id: 30939
+    AegisName: hatterene
+    Name: hatterene
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31938;
+  - Id: 30940
+    AegisName: toxel
+    Name: toxel
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31939;
+  - Id: 30941
+    AegisName: toxtricity amped form
+    Name: toxtricity amped form
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31940;
+  - Id: 30942
+    AegisName: toxtricity low key form
+    Name: toxtricity low key form
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31941;
+  - Id: 30943
+    AegisName: morpeko
+    Name: morpeko
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31942;
+  - Id: 30944
+    AegisName: morpeko hangry mode
+    Name: morpeko hangry mode
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31943;
+  - Id: 30945
+    AegisName: milcery
+    Name: milcery
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31944;
+  - Id: 30946
+    AegisName: alcremie
+    Name: alcremie
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31945;
+  - Id: 30947
+    AegisName: impidimp
+    Name: impidimp
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31946;
+  - Id: 30948
+    AegisName: morgrem
+    Name: morgrem
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31947;
+  - Id: 30949
+    AegisName: grimmsnarl
+    Name: grimmsnarl
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31948;
+  - Id: 30950
+    AegisName: cufant
+    Name: cufant
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31949;
+  - Id: 30951
+    AegisName: copperajah
+    Name: copperajah
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31950;
+  - Id: 30952
+    AegisName: mr mime galarian
+    Name: mr mime galarian
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31951;
+  - Id: 30953
+    AegisName: mr rime
+    Name: mr rime
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31952;
+  - Id: 30954
+    AegisName: chewtle
+    Name: chewtle
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31953;
+  - Id: 30955
+    AegisName: drednaw
+    Name: drednaw
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31954;
+  - Id: 30956
+    AegisName: mime jr
+    Name: mime jr
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31955;
+  - Id: 30957
+    AegisName: zacian
+    Name: zacian
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31956;
+  - Id: 30958
+    AegisName: zacian crowned sword
+    Name: zacian crowned sword
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31957;
+  - Id: 30959
+    AegisName: zamazenta
+    Name: zamazenta
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31958;
+  - Id: 30960
+    AegisName: zamazenta crowned shield
+    Name: zamazenta crowned shield
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31959;
+  - Id: 30961
+    AegisName: kubfu
+    Name: kubfu
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31960;
+  - Id: 30962
+    AegisName: urshifu SS style
+    Name: urshifu SS style
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31961;
+  - Id: 30963
+    AegisName: urshifu RS style
+    Name: urshifu RS style
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31962;
+  - Id: 30964
+    AegisName: articuno galarian
+    Name: articuno galarian
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31963;
+  - Id: 30965
+    AegisName: articuno galarian normal
+    Name: articuno galarian normal
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31964;
+  - Id: 30966
+    AegisName: zapdos galarian
+    Name: zapdos galarian
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31965;
+  - Id: 30967
+    AegisName: zapdos galarian normal
+    Name: zapdos galarian normal
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31966;
+  - Id: 30968
+    AegisName: moltres galarian
+    Name: moltres galarian
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31967;
+  - Id: 30969
+    AegisName: moltres galarian normal
+    Name: moltres galarian normal
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31968;
+  - Id: 30970
+    AegisName: eternatus
+    Name: eternatus
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31969;
+  - Id: 30971
+    AegisName: zarude
+    Name: zarude
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31970;
+  - Id: 30972
+    AegisName: calyrex
+    Name: calyrex
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31971;
+  - Id: 30973
+    AegisName: calyrex ice rider
+    Name: calyrex ice rider
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31972;
+  - Id: 30974
+    AegisName: calyrex shadow rider
+    Name: calyrex shadow rider
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31973;
+  - Id: 30975
+    AegisName: arbok
+    Name: arbok
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31974;
+  - Id: 30976
+    AegisName: sandslash alolan
+    Name: sandslash alolan
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31975;
+  - Id: 30977
+    AegisName: ninetales alolan
+    Name: ninetales alolan
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31976;
+  - Id: 30978
+    AegisName: crobat
+    Name: crobat
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31977;
+  - Id: 30979
+    AegisName: dugtrio
+    Name: dugtrio
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31978;
+  - Id: 30980
+    AegisName: golduck
+    Name: golduck
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31979;
+  - Id: 30981
+    AegisName: primeape
+    Name: primeape
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31980;
+  - Id: 30982
+    AegisName: arcanine
+    Name: arcanine
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31981;
+  - Id: 30983
+    AegisName: tentacruel
+    Name: tentacruel
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31982;
+  - Id: 30984
+    AegisName: golemP
+    Name: golemP
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31983;
+  - Id: 30985
+    AegisName: rapidash
+    Name: rapidash
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31984;
+  - Id: 30986
+    AegisName: magneton
+    Name: magneton
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31985;
+  - Id: 30987
+    AegisName: dewgong
+    Name: dewgong
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31986;
+  - Id: 30988
+    AegisName: dodrio
+    Name: dodrio
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31987;
+  - Id: 30989
+    AegisName: muk
+    Name: muk
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31988;
+  - Id: 30990
+    AegisName: weezing
+    Name: weezing
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31989;
+  - Id: 30991
+    AegisName: seaking
+    Name: seaking
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31990;
+  - Id: 30992
+    AegisName: starmie
+    Name: starmie
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31991;
+  - Id: 30993
+    AegisName: kabutops
+    Name: kabutops
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31992;
+  - Id: 30994
+    AegisName: bibarel
+    Name: bibarel
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31993;
+  - Id: 30995
+    AegisName: whimsicott
+    Name: whimsicott
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31994;
+  - Id: 30996
+    AegisName: ambipom
+    Name: ambipom
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31995;
+  - Id: 30997
+    AegisName: weavile
+    Name: weavile
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31996;
+  - Id: 30998
+    AegisName: gliscor
+    Name: gliscor
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31997;
+  - Id: 30999
+    AegisName: emolga
+    Name: emolga
+    Type: Armor
+    Locations:
+      Armor: true
+    ArmorLevel: 1 
+    Refineable: false 
+    Script: |
+      callfunc "bulba",31998;

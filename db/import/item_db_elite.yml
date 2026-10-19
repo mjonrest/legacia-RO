@@ -1,0 +1,1434 @@
+Header:
+  Type: ITEM_DB
+  Version: 3
+
+Body:
+##### UPPER HEAD
+  - Id: 37147
+    AegisName: White_Lord_Kaho_Horn
+    Name: White Lord Kaho Horn
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5150
+    Script: |
+      bonus bStr,250; bonus bIntravision;
+  - Id: 37155
+    AegisName: New_White_Valkyrie_Helm
+    Name: New White Valkyrie Helm
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: false
+    View: 5158
+    Script: |
+      bonus bAgi,250; bonus bIntravision;
+  - Id: 37168
+    AegisName: White_Valkyrie_of_Destiny
+    Name: White Valkyrie of Destiny
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5171
+    Script: |
+      bonus bVit,250; bonus bIntravision;
+  - Id: 37173
+    AegisName: White_Crown_Of_Deceit
+    Name: White Crown Of Deceit
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5176
+    Script: |
+      bonus bInt,250; bonus bIntravision;
+  - Id: 37181
+    AegisName: White_Sakkat_Bamboo
+    Name: White Sakkat Bamboo
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5184
+    Script: |
+      bonus bDex,250; bonus bIntravision;
+  - Id: 37189
+    AegisName: White_Crown
+    Name: White Crown
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5192
+    Script: |
+      bonus bLuk,250; bonus bIntravision;
+  - Id: 37210
+    AegisName: White_Marduk_Hat
+    Name: White Marduk Hat
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5213
+    Script: |
+      bonus bStr,200; bonus bAgi,200; bonus bIntravision;
+  - Id: 37211
+    AegisName: Grassy_Afrowig
+    Name: Grassy Afrowig
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5214
+    Script: |
+      bonus bStr,200; bonus bVit,200; bonus bIntravision;
+  - Id: 37217
+    AegisName: White_Piamette_Hairband
+    Name: White Piamette Hairband
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5220
+    Script: |
+      bonus bStr,200; bonus bInt,200; bonus bIntravision;
+  - Id: 37227
+    AegisName: White_Warpra_Hat
+    Name: White Warpra Hat
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5230
+    Script: |
+      bonus bStr,200; bonus bDex,200; bonus bIntravision;
+  - Id: 37236
+    AegisName: White_Greater_Dracul_Horn
+    Name: White Greater Dracul Horn
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5239
+    Script: |
+      bonus bStr,200; bonus bLuk,200; bonus bIntravision;
+  - Id: 37252
+    AegisName: White_Coppola
+    Name: White Coppola
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5255
+    Script: |
+      bonus bDex,200; bonus bAgi,200; bonus bIntravision;
+  - Id: 37257
+    AegisName: White_Evolved_Majestic_Goat
+    Name: White Evolved Majestic Goat
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5260
+    Script: |
+      bonus bDex,200; bonus bVit,200; bonus bIntravision;
+  - Id: 37263
+    AegisName: White_Note_Headphones
+    Name: White Note Headphones
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5266
+    Script: |
+      bonus bDex,200; bonus bInt,200; bonus bIntravision;
+  - Id: 37271
+    AegisName: White_Traveler_Hat
+    Name: White Traveler Hat
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5274
+    Script: |
+      bonus bDex,200; bonus bLuk,200; bonus bIntravision;
+  - Id: 37284
+    AegisName: _White_Dragon_Helm
+    Name: White Dragon Helm
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5287
+    Script: |
+      bonus bInt,200; bonus bAgi,200; bonus bIntravision;
+  - Id: 37293
+    AegisName: White_Hunter_Cap
+    Name: White Hunter Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5296
+    Script: |
+      bonus bInt,200; bonus bVit,200; bonus bIntravision;
+  - Id: 37295
+    AegisName: New_White_Baseball_Cap
+    Name: New White Baseball Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5298
+    Script: |
+      bonus bInt,200; bonus bLuk,200; bonus bIntravision;
+  - Id: 37304
+    AegisName: Reverse_White_Boys_Cap
+    Name: Reverse White Boys Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5307
+    Script: |
+      bonus bAllstats,150; bonus bIntravision;
+  - Id: 37351
+    AegisName: White_Beret
+    Name: White Beret
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 5354
+    Script: |
+      bonus bAllstats,150; bonus bVit,-150; bonus bIntravision;
+  - Id: 37357
+    AegisName: White_Cute_Ribbon
+    Name: White Cute Ribbon
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 5360
+    Script: |
+      bonus bAllstats,150; bonus bLuk,-150; bonus bIntravision;
+  - Id: 37364
+    AegisName: White_Garm_Doll
+    Name: White Garm Doll
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 5367
+    Script: |
+      bonus bAllstats,150; bonus bLuk,-150; bonus bVit,-150; bonus bIntravision;
+##### MIDDLE HEAD
+  - Id: 37537
+    AegisName: Black_Vesper_Mask
+    Name: Black Vesper Mask
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5540
+    Script: |
+      bonus bAllstats,150; bonus bMagicDamageReturn,5;
+  - Id: 37563
+    AegisName: Black_Heartsunglasses
+    Name: Black Heartsunglasses
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5566
+    Script: |
+      bonus bAllstats,150; bonus bVit,-150; bonus bMagicDamageReturn,5;
+  - Id: 37578
+    AegisName: Black_Elven_Ears_Earrings
+    Name: Black Elven Ears Earrings
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5581
+    Script: |
+      bonus bAllstats,150; bonus bLuk,-150; bonus bMagicDamageReturn,5;
+  - Id: 37587
+    AegisName: Black_Blinker
+    Name: Black Blinker
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5590
+    Script: |
+      bonus bAllstats,150; bonus bLuk,-150; bonus bVit,-150; bonus bMagicDamageReturn,5;
+  - Id: 37595
+    AegisName: Black_Cyclop_Eye
+    Name: Black Cyclop Eye
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5598
+    Script: |
+      bonus bAllstats,150; bonus bAtkRate,5; bonus bMatkRate,5;
+  - Id: 37604
+    AegisName: Black_Dre_Headphones
+    Name: Black Dre Headphones
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5607
+    Script: |
+      bonus bAllstats,150; bonus bVit,-150; bonus bAtkRate,5; bonus bMatkRate,5;
+  - Id: 37611
+    AegisName: Black_Blindfold
+    Name: Black Blindfold
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5614
+    Script: |
+      bonus bAllstats,150; bonus bLuk,-150; bonus bAtkRate,5; bonus bMatkRate,5;
+  - Id: 37614
+    AegisName: Black_Sigrun_Ears
+    Name: Black Sigrun Ears
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5617
+    Script: |
+      bonus bAllstats,150; bonus bLuk,-150; bonus bVit,-150; bonus bAtkRate,5; bonus bMatkRate,5;
+#### LOWER HEAD
+  - Id: 37750
+    AegisName: Black_Flu_Mask
+    Name: Black Flu Mask
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5753
+    Script: |
+      bonus bVit,250; bonus2 bSubRace,RC_DemiHuman,5; bonus2 bSubRace,RC_Player_Human,5; bonus bMagicDamageReturn,5; bonus2 bSubEle,Ele_Dark,5; bonus2 bSubEle,Ele_Undead,5;
+  - Id: 37757
+    AegisName: Black_Romantic_Leaf
+    Name: Black Romantic Leaf
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5760
+    Script: |
+      bonus bStr,250; bonus2 bHpDrainRate,50,20;
+  - Id: 37764
+    AegisName: Black_Bag
+    Name: Black Bag
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5767
+    Script: |
+      bonus bStr,200; bonus bVit,200; bonus bInt,200; bonus2 bHpDrainRate,50,20;
+  - Id: 37776
+    AegisName: Black_Tie
+    Name: Black Tie
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5779
+    Script: |
+      bonus bDex,200; bonus2 bHpDrainRate,150,20;
+  - Id: 37789
+    AegisName: Black_Winter_Scarf
+    Name: Black Winter Scarf
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5792
+    Script: |
+      bonus bDex,250; bonus2 bHpDrainRate,50,20; bonus bLongAtkRate,5;
+  - Id: 37810
+    AegisName: Black_Protect_Cloth
+    Name: Black Protect Cloth
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5813
+    Script: |
+      bonus bDex,200; bonus bVit,200; bonus bLuk,200; bonus2 bHpDrainRate,50,20;
+  - Id: 37827
+    AegisName: Black_Cigarette
+    Name: Black Cigarette
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5830
+    Script: |
+      bonus bAgi,200; bonus bVit,200; bonus bInt,200; bonus bReduceDamageReturn,5;
+  - Id: 37881
+    AegisName: Cyan_Skateboard
+    Name: Cyan Skateboard
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5884
+    Script: |
+      bonus bStr,250; bonus bbMaxHPrate,10; bonus bAtkRate,5; bonus bMatkRate,5;
+  - Id: 37928
+    AegisName: Black_Elite_Insect_Wings
+    Name: Black Elite Insect Wings
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5931
+    Script: |
+      bonus bInt,250; bonus bReduceDamageReturn,20;
+  - Id: 37942
+    AegisName: Black_Butterfly_Wings
+    Name: Black Butterfly Wings
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5945
+    Script: |
+      bonus bAllstats,150; bonus2 bHpDrainRate,50,20; bonus2 bSubRace,RC_DemiHuman,3; bonus2 bSubRace,RC_Player_Human,3;
+  - Id: 37961
+    AegisName: Black_Deviling_Wings
+    Name: Black Deviling Wings
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5964
+    Script: |
+      bonus bAllstats,150; bonus bVit,-150; bonus2 bHpDrainRate,50,20; bonus2 bSubRace,RC_DemiHuman,3; bonus2 bSubRace,RC_Player_Human,3;
+  - Id: 38129
+    AegisName: Black_Airdra_Wings
+    Name: Black Airdra Wings
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6132
+    Script: |
+      bonus bAllstats,150; bonus bLuk,-150; bonus2 bAddSize,Size_Small,5; bonus2 bAddRace,RC_DemiHuman,5; bonus2 bAddRace,RC_Player_Human,5; bonus2 bMagicAddRace,RC_DemiHuman,5; bonus2 bMagicAddRace,RC_Player_Human,5;
+#### ARMOR_EQUIP
+  - Id: 34076
+    AegisName: Black_Diablo_Armor
+    Name: Black Diablo Armor
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Armor: true 
+    ArmorLevel: 1
+    Refineable: true
+    Script: |
+      bonus bAllstats,130; bonus bLongAtkDef,3; bonus2 bResEff,Eff_Freeze,10000;
+  - Id: 34080
+    AegisName: Blue_Diablo_Armor
+    Name: Blue Diablo Armor
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Armor: true 
+    ArmorLevel: 1
+    Refineable: true
+    Script: |
+      bonus bAllstats,130; bonus bVit,-130; bonus bLongAtkDef,3; bonus2 bResEff,Eff_Freeze,10000;
+  - Id: 34084
+    AegisName: Green_Diablo_Armor
+    Name: Green Diablo Armor
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Armor: true 
+    ArmorLevel: 1
+    Refineable: true
+    Script: |
+      bonus bAllstats,130; bonus bLuk,-130; bonus bLongAtkDef,3; bonus2 bResEff,Eff_Freeze,10000;
+  - Id: 34088
+    AegisName: Purple_Diablo_Armor
+    Name: Purple Diablo Armor
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Armor: true 
+    ArmorLevel: 1
+    Refineable: true
+    Script: |
+      bonus bAllstats,130; bonus bLuk,-130; bonus bVit,-130; bonus bLongAtkDef,3; bonus2 bResEff,Eff_Freeze,10000;
+#### SHOES
+  - Id: 34078
+    AegisName: Black_Diablo_Shoes
+    Name: Black Diablo Shoes
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Shoes: true 
+    ArmorLevel: 1
+    Refineable: true
+    Script: |
+      bonus bMaxHPrate,20; bonus bMaxSPrate,20; bonus bSpeedRate,20; bonus bHit,25; bonus bFlee,25;
+  - Id: 34082
+    AegisName: Blue_Diablo_Shoes
+    Name: Blue Diablo Shoes
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Shoes: true 
+    ArmorLevel: 1
+    Refineable: true
+    Script: |
+      bonus bMaxHPrate,20; bonus bMaxSPrate,20; bonus bSpeedRate,20; bonus bHit,50;
+  - Id: 34086
+    AegisName: Green_Diablo_Shoes
+    Name: Green Diablo Shoes
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Shoes: true 
+    ArmorLevel: 1
+    Refineable: true
+    Script: |
+      bonus bMaxHPrate,20; bonus bMaxSPrate,20; bonus bSpeedRate,20; bonus bFlee,50;
+#### GARMENT
+  - Id: 34077
+    AegisName: Black_Diablo_Manteau
+    Name: Black Diablo Manteau
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Garment: true 
+    ArmorLevel: 1
+    Refineable: true
+    Script: |
+      bonus2 bSubEle,Ele_Neutral,17; bonus bHit,50; bonus bFlee,50;
+  - Id: 34081
+    AegisName: Blue_Diablo_Manteau
+    Name: Blue Diablo Manteau
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Garment: true 
+    ArmorLevel: 1
+    Refineable: true
+    Script: |
+      bonus2 bSubEle,Ele_Neutral,17; bonus bHit,100;
+  - Id: 34085
+    AegisName: Green_Diablo_Manteau
+    Name: Green Diablo Manteau
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Garment: true 
+    ArmorLevel: 1
+    Refineable: true
+    Script: |
+      bonus2 bSubEle,Ele_Neutral,17; bonus bFlee,100;
+  - Id: 34089
+    AegisName: Purple_Diablo_Manteau
+    Name: Purple Diablo Manteau
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Garment: true 
+    ArmorLevel: 1
+    Refineable: true
+    Script: |
+      bonus2 bSubEle,Ele_Neutral,7; bonus2 bSubEle,Ele_Water,7; bonus2 bSubEle,Ele_Earth,7; bonus2 bSubEle,Ele_Fire,7; bonus2 bSubEle,Ele_Wind,7; bonus2 bSubEle,Ele_Poison,7; bonus2 bSubEle,Ele_Holy,7; bonus2 bSubEle,Ele_Dark,7; bonus2 bSubEle,Ele_Ghost,7; bonus2 bSubEle,Ele_Undead,7; bonus bHit,50; bonus bFlee,50;
+  - Id: 34093
+    AegisName: Red_Diablo_Manteau
+    Name: Red Diablo Manteau
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Garment: true 
+    ArmorLevel: 1
+    Refineable: true
+    Script: |
+      bonus2 bSubEle,Ele_Neutral,7; bonus2 bSubEle,Ele_Water,7; bonus2 bSubEle,Ele_Earth,7; bonus2 bSubEle,Ele_Fire,7; bonus2 bSubEle,Ele_Wind,7; bonus2 bSubEle,Ele_Poison,7; bonus2 bSubEle,Ele_Holy,7; bonus2 bSubEle,Ele_Dark,7; bonus2 bSubEle,Ele_Ghost,7; bonus2 bSubEle,Ele_Undead,7; bonus bHit,100;
+  - Id: 34097
+    AegisName: White_Diablo_Manteau
+    Name: White Diablo Manteau
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Garment: true 
+    ArmorLevel: 1
+    Refineable: true
+    Script: |
+      bonus2 bSubEle,Ele_Neutral,7; bonus2 bSubEle,Ele_Water,7; bonus2 bSubEle,Ele_Earth,7; bonus2 bSubEle,Ele_Fire,7; bonus2 bSubEle,Ele_Wind,7; bonus2 bSubEle,Ele_Poison,7; bonus2 bSubEle,Ele_Holy,7; bonus2 bSubEle,Ele_Dark,7; bonus2 bSubEle,Ele_Ghost,7; bonus2 bSubEle,Ele_Undead,7; bonus bFlee,100;
+  - Id: 34101
+    AegisName: Yellow_Diablo_Manteau
+    Name: Yellow Diablo Manteau
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Garment: true 
+    ArmorLevel: 1
+    Refineable: true
+    Script: |
+      bonus bLongAtkDef,10; bonus bHit,50; bonus bFlee,50;
+  - Id: 34049
+    AegisName: Black_Valkyrie_Manteau
+    Name: Black Valkyrie Manteau
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Garment: true 
+    ArmorLevel: 1
+    Refineable: true
+    Script: |
+      bonus bLongAtkDef,10; bonus bHit,100;
+  - Id: 34073
+    AegisName: White_Valkyrie_Manteau
+    Name: White Valkyrie Manteau
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Garment: true 
+    ArmorLevel: 1
+    Refineable: true
+    Script: |
+      bonus bLongAtkDef,10; bonus bFlee,100;
+### SHIELD
+  - Id: 34079
+    AegisName: Black_Diablo_Shield
+    Name: Black Diablo Shield
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 2
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Left_Hand: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 1
+    Script: |
+      bonus2 bSubEle,Ele_Neutral,7; bonus2 bSubEle,Ele_Water,7; bonus2 bSubEle,Ele_Earth,7; bonus2 bSubEle,Ele_Fire,7; bonus2 bSubEle,Ele_Wind,7; bonus2 bSubEle,Ele_Poison,7; bonus2 bSubEle,Ele_Holy,7; bonus2 bSubEle,Ele_Dark,7; bonus2 bSubEle,Ele_Ghost,7; bonus2 bSubEle,Ele_Undead,7; bonus bNearAtkDef,5;
+  - Id: 34083
+    AegisName: Blue_Diablo_Shield
+    Name: Blue Diablo Shield
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 2
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Left_Hand: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 1
+    Script: |
+      bonus2 bSubEle,Ele_Neutral,7; bonus2 bSubEle,Ele_Water,7; bonus2 bSubEle,Ele_Earth,7; bonus2 bSubEle,Ele_Fire,7; bonus2 bSubEle,Ele_Wind,7; bonus2 bSubEle,Ele_Poison,7; bonus2 bSubEle,Ele_Holy,7; bonus2 bSubEle,Ele_Dark,7; bonus2 bSubEle,Ele_Ghost,7; bonus2 bSubEle,Ele_Undead,7; bonus bLongAtkDef,5;
+  - Id: 34087
+    AegisName: Green_Diablo_Shield
+    Name: Green Diablo Shield
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 2
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Left_Hand: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 1
+    Script: |
+      bonus2 bSubEle,Ele_Neutral,7; bonus2 bSubEle,Ele_Water,7; bonus2 bSubEle,Ele_Earth,7; bonus2 bSubEle,Ele_Fire,7; bonus2 bSubEle,Ele_Wind,7; bonus2 bSubEle,Ele_Poison,7; bonus2 bSubEle,Ele_Holy,7; bonus2 bSubEle,Ele_Dark,7; bonus2 bSubEle,Ele_Ghost,7; bonus2 bSubEle,Ele_Undead,7; bonus bMagicAtkDef,5;
+  - Id: 34091
+    AegisName: Purple_Diablo_Shield
+    Name: Purple Diablo Shield
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 2
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Left_Hand: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 1
+    Script: |
+      bonus2 bSubEle,Ele_Water,23; bonus2 bSubEle,Ele_Fire,23; bonus2 bSubEle,Ele_Dark,23; bonus bNearAtkDef,5;
+  - Id: 34095
+    AegisName: Red_Diablo_Shield
+    Name: Red Diablo Shield
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 2
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Left_Hand: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 1
+    Script: |
+      bonus2 bSubEle,Ele_Water,23; bonus2 bSubEle,Ele_Fire,23; bonus2 bSubEle,Ele_Dark,23; bonus bLongAtkDef,5;
+  - Id: 34099
+    AegisName: White_Diablo_Shield
+    Name: White Diablo Shield
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 2
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Left_Hand: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 1
+    Script: |
+      bonus2 bSubEle,Ele_Water,23; bonus2 bSubEle,Ele_Fire,23; bonus2 bSubEle,Ele_Dark,23; bonus2 bSubRace,RC_DemiHuman,5; bonus2 bSubRace,RC_Player_Human,5;
+  - Id: 34103
+    AegisName: Yellow_Diablo_Shield
+    Name: Yellow Diablo Shield
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 2
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Left_Hand: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 1
+    Script: |
+      bonus2 bSubEle,Ele_Earth,23; bonus2 bSubEle,Ele_Poison,23; bonus bNearAtkDef,5;
+  - Id: 34051
+    AegisName: Black_Valkyrie_Shield
+    Name: Black Valkyrie Shield
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 2
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Left_Hand: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 1
+    Script: |
+      bonus2 bSubEle,Ele_Earth,23; bonus2 bSubEle,Ele_Poison,23; bonus bLongAtkDef,5; bonus bMagicAtkDef,5;
+
+### MEGINGARD ELITE
+  - Id: 30100
+    AegisName: Megingjard_STR_E
+    Name: E Megingjard STR
+    Type: Armor
+    Weight: 5
+    Defense: 2
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Both_Accessory: true 
+    ArmorLevel: 1
+    Script: |
+      bonus2 bSubEle,Ele_Fire,10; bonus bStr,50; bonus bAtkRate,3; bonus bMatkRate,3;
+  - Id: 30101
+    AegisName: Megingjard_AGI_E
+    Name: E Megingjard AGI
+    Type: Armor
+    Weight: 5
+    Defense: 2
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Both_Accessory: true 
+    ArmorLevel: 1
+    Script: |
+      bonus2 bSubEle,Ele_Fire,10; bonus bAgi,50; bonus bAtkRate,3; bonus bMatkRate,3;
+  - Id: 30102
+    AegisName: Megingjard_VIT_E
+    Name: E Megingjard VIT
+    Type: Armor
+    Weight: 5
+    Defense: 2
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Both_Accessory: true 
+    ArmorLevel: 1
+    Script: |
+      bonus2 bSubEle,Ele_Fire,10; bonus bVit,50;
+  - Id: 30103
+    AegisName: Megingjard_INT_E
+    Name: E Megingjard INT
+    Type: Armor
+    Weight: 5
+    Defense: 2
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Both_Accessory: true 
+    ArmorLevel: 1
+    Script: |
+      bonus2 bSubEle,Ele_Fire,10; bonus bInt,50; bonus bAtkRate,3; bonus bMatkRate,3;
+  - Id: 30104
+    AegisName: Megingjard_DEX_E
+    Name: E Megingjard DEX
+    Type: Armor
+    Weight: 5
+    Defense: 2
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Both_Accessory: true 
+    ArmorLevel: 1
+    Script: |
+      bonus2 bSubEle,Ele_Fire,10; bonus bDex,50; bonus bAtkRate,3; bonus bMatkRate,3;
+  - Id: 30105
+    AegisName: Megingjard_LUK_E
+    Name: E Megingjard LUK
+    Type: Armor
+    Weight: 5
+    Defense: 2
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Both_Accessory: true 
+    ArmorLevel: 1
+    Script: |
+      bonus2 bSubEle,Ele_Fire,10; bonus bLuk,50; bonus bAtkRate,3; bonus bMatkRate,3;

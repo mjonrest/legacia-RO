@@ -1,0 +1,331 @@
+# This file is a part of rAthena.
+#   Copyright(C) 2022 rAthena Development Team
+#   https://rathena.org - https://github.com/rathena
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+###########################################################################
+# Item Combo Database
+###########################################################################
+#
+# Settings
+#
+###########################################################################
+# - Combos:                 List of combo sets.
+#    - Combo:               Sequence of items to define a combo (minimum of 2 items).
+#       - <item name>       AEGIS name of the item
+#   Script                  Script to execute when one of the combos is equipped. (Default: null)
+#   Clear                   Remove the defined combos from database. (Default: false)
+###########################################################################
+
+Header:
+  Type: COMBO_DB
+  Version: 1
+
+Body:
+  - Combos:
+      - Combo:
+          - Charm_Of_Flame_Heart_BR     # 15920
+          - Flame_Sprits_Armor     # 2344
+    Script: |
+      bonus2 bAddEle,Ele_Fire,2;
+      if(getrefine()>5) { bonus2 bAddEle,Ele_Fire,getrefine()-5; }
+  - Combos:
+      - Combo:
+          - Charm_Of_Flame_Heart_BR     # 15920
+          - Flame_Sprits_Armor_     # 2345
+    Script: |
+      bonus2 bAddEle,Ele_Fire,2;
+      if(getrefine()>5) { bonus2 bAddEle,Ele_Fire,getrefine()-5; }
+  - Combos:
+      - Combo:
+          - Charm_Of_Nature_BR     # 15921
+          - Earth_Sprits_Armor     # 2350
+    Script: |
+      bonus2 bAddEle,Ele_Earth,2;
+      if(getrefine()>5) { bonus2 bAddEle,Ele_Earth,getrefine()-5; }
+  - Combos:
+      - Combo:
+          - Charm_Of_Nature_BR     # 15921
+          - Earth_Sprits_Armor_     # 2351
+    Script: |
+      bonus2 bAddEle,Ele_Earth,2;
+      if(getrefine()>5) { bonus2 bAddEle,Ele_Earth,getrefine()-5; }
+  - Combos:
+      - Combo:
+          - Charm_Of_Frozen_BR     # 15922
+          - Water_Sprits_Armor     # 2346
+    Script: |
+      bonus2 bAddEle,Ele_Water,2;
+      if(getrefine()>5) { bonus2 bAddEle,Ele_Water,getrefine()-5; }
+  - Combos:
+      - Combo:
+          - Charm_Of_Frozen_BR     # 15922
+          - Water_Sprits_Armor_     # 2347
+    Script: |
+      bonus2 bAddEle,Ele_Water,2;
+      if(getrefine()>5) { bonus2 bAddEle,Ele_Water,getrefine()-5; }
+  - Combos:
+      - Combo:
+          - Charm_Of_Wind_BR     # 15923
+          - Wind_Sprits_Armor     # 2348
+    Script: |
+      bonus2 bAddEle,Ele_Wind,2;
+      if(getrefine()>5) { bonus2 bAddEle,Ele_Wind,getrefine()-5; }
+  - Combos:
+      - Combo:
+          - Charm_Of_Wind_BR     # 15923
+          - Wind_Sprits_Armor_     # 2349
+    Script: |
+      bonus2 bAddEle,Ele_Wind,2;
+      if(getrefine()>5) { bonus2 bAddEle,Ele_Wind,getrefine()-5; }
+  - Combos:
+      - Combo:
+          - Academy_Badge    # 2751
+          - School_Bag    # 2888
+    Script: |
+      bonus bAspdRate,3;
+      bonus bVariableCastrate,-3;
+  - Combos:
+      - Combo:
+          - Antique_Pipe_J    # 5657
+          - J_Captain_Hat    # 5359
+    Script: |
+      .@ref = getequiprefinerycnt(EQI_HEAD_TOP);
+       bonus bLongAtkRate,.@ref;
+  - Combos:
+      - Combo:
+          - Well_Baked_Toast    # 5107
+          - Amistr_Cap    # 5766
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HEAD_TOP);
+      if (.@r>8) {
+         bonus bMaxHP,400;
+      }
+      else if (.@r>6) {
+         bonus bMaxHP,200;
+      }
+      else {
+         bonus bMaxHP,100;
+      }
+  - Combos:
+      - Combo:
+          - Amistr_Cap    # 5766
+          - Centimental_Flower    # 2269
+    Script: |
+      bonus bMaxSP,20*(getequiprefinerycnt(EQI_HEAD_TOP)/2);
+  - Combos:
+      - Combo:
+          - Amistr_Cap    # 5766
+          - Centimental_Leaf    # 2270
+    Script: |
+      bonus bShortWeaponDamageReturn,(getequiprefinerycnt(EQI_HEAD_TOP)/2);
+  - Combos:
+      - Combo:
+          - Scarlet_Rose    # 5548
+          - Amistr_Cap    # 5766
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HEAD_TOP);
+      bonus2 bAddClass,Class_All,min(.@r,10);
+      bonus bMatk,min(.@r,10);
+  - Combos:
+      - Combo:
+          - Toast_C    # 5391
+          - Amistr_Cap    # 5766
+    Script: |
+      bonus bMaxHP,100;
+      .@r = getrefine();
+      if (.@r >= 7) {
+         bonus bMaxHP,100;
+         if (.@r >= 9) {
+            bonus bMaxHP,200;
+         }
+      }
+  - Combos:
+      - Combo:
+          - Sakura_Coronet    # 5768
+          - Centimental_Flower    # 2269
+    Script: |
+      bonus bInt,1;
+      .@r = getequiprefinerycnt(EQI_HEAD_TOP);
+      if(.@r>=6) {bonus bMaxSPrate,.@r-6;}
+  - Combos:
+      - Combo:
+          - Sakura_Coronet    # 5768
+          - Centimental_Leaf    # 2270
+    Script: |
+      bonus bStr,1;
+      .@r = getequiprefinerycnt(EQI_HEAD_TOP);
+      if(.@r>=3) {bonus bUseSPrate,-(.@r-3);}
+  - Combos:
+      - Combo:
+          - Sakura_Coronet    # 5768
+          - Romantic_White_Flower    # 5206
+    Script: |
+      bonus bDex,1;
+      .@r = getequiprefinerycnt(EQI_HEAD_TOP);
+      if(.@r>=4) {bonus bDelayRate,-(.@r-4);}
+  - Combos:
+      - Combo:
+          - Gladius    # 1219
+          - Hoplite_Helmet    # 5782
+      - Combo:
+          - Gladius_    # 1220
+          - Hoplite_Helmet    # 5782
+      - Combo:
+          - Gladius__    # 1221
+          - Hoplite_Helmet    # 5782
+      - Combo:
+          - Pike    # 1407
+          - Hoplite_Helmet    # 5782
+      - Combo:
+          - Pike_    # 1408
+          - Hoplite_Helmet    # 5782
+      - Combo:
+          - Pike__    # 1409
+          - Hoplite_Helmet    # 5782
+    Script: |
+      bonus bAtkRate,3;
+  - Combos:
+      - Combo:
+          - Strong_Shield    # 2125
+          - Hoplite_Helmet    # 5782
+    Script: |
+      bonus bDef,2;
+      bonus2 bSubEle,Ele_All,5;
+  - Combos:
+      - Combo:
+          - Yellow_Scarf    # 5917
+          - Long_Mace    # 1525
+    Script: |
+      bonus bLongAtkDef,-10;
+  - Combos:
+      - Combo:
+          - Yellow_Scarf     # 5917
+          - YDragon_SkyWing     # 19104
+    Script: |
+      if (BaseClass == Job_Archer)
+         bonus bLongAtkDef,-10;
+  - Combos:
+      - Combo:
+          - Yellow_Scarf     # 5917
+          - Yellow_Bandana     # 5277
+      - Combo:
+          - Yellow_Scarf     # 5917
+          - Yellow_Ribbon     # 5278
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HEAD_TOP);
+      if (.@r>=5)
+         bonus bLongAtkDef,3;
+      if (.@r>=7)
+         bonus bLongAtkDef,4;
+  - Combos:
+      - Combo:
+          - Mr_Smile    # 2278
+          - Wit_Pumpkin_Hat    # 18656
+    Script: |
+      bonus2 bAddMonsterDropItem,12192,400;
+  - Combos:
+      - Combo:
+          - Opera_Ghost_Mask    # 5043
+          - Wit_Pumpkin_Hat    # 18656
+    Script: |
+      bonus bFlee,10;
+      bonus2 bAddEff,Eff_Stun,1000;
+  - Combos:
+      - Combo:
+          - Alarm_Mask    # 5086
+          - Wit_Pumpkin_Hat    # 18656
+    Script: |
+      bonus2 bAddItemHealRate,538,100;
+      bonus2 bAddItemHealRate,12192,100;
+      bonus2 bAddMonsterDropItem,538,400;
+      bonus2 bAddMonsterDropItem,12192,400;
+  - Combos:
+      - Combo:
+          - Hahoe_Mask    # 5176
+          - Wit_Pumpkin_Hat    # 18656
+    Script: |
+      bonus bAspdRate,10;
+      autobonus "{ bonus bBaseAtk,50; }",20,10000,0,"{ specialeffect2 EF_POTION_BERSERK; }";
+  - Combos:
+      - Combo:
+          - Cube_Mask    # 5475
+          - Wit_Pumpkin_Hat    # 18656
+    Script: |
+      bonus bBaseAtk,30;
+      bonus bMatk,30;
+      bonus2 bAddMonsterDropItem,529,400;
+      bonus2 bAddMonsterDropItem,530,400;
+      bonus2 bAddMonsterDropItem,538,400;
+      bonus2 bAddMonsterDropItem,12192,400;
+  - Combos:
+      - Combo:
+          - Phantom_Of_Opera    # 2281
+          - Wit_Pumpkin_Hat    # 18656
+    Script: |
+      bonus bFlee,10;
+  - Combos:
+      - Combo:
+          - Condor_Card    # 4015
+          - FlyingGalapago    # 5967
+    Script: |
+      bonus2 bSubEle,Ele_All,5;
+  - Combos:
+      - Combo:
+          - Galapago_Card    # 4152
+          - FlyingGalapago    # 5967
+    Script: |
+      bonus2 bAddItemGroupHealRate,IG_Juice,1000;
+  - Combos:
+      - Combo:
+          - Gryphon_Card    # 4163
+          - FlyingGalapago    # 5967
+    Script: |
+      bonus bAspdRate,3;
+      bonus bAspd,1;
+      bonus2 bAddClass,Class_All,-5;
+      if (getequiprefinerycnt(EQI_HAND_R) >= 10 && getiteminfo(getequipid(EQI_HAND_R), ITEMINFO_VIEW) == 11)
+         bonus bAspd,1;
+  - Combos:
+      - Combo:
+          - FlyingGalapago    # 5967
+          - Falconer_Claw    # 28321
+    Script: |
+      bonus2 bSubSkill,"HT_BLITZBEAT",200;
+  - Combos:
+      - Combo:
+          - Falconer_Flute    # 18985
+          - Falconer_Claw    # 28321
+    Script: |
+      bonus2 bSkillAtk,"HT_BLITZBEAT",100;
+  - Combos:
+      - Combo:
+          - Falconer_Flute    # 18985
+          - Falconer_Claw    # 28321
+          - Falconer_Glove    # 28322
+    Script: |
+      bonus2 bSkillAtk,"HT_BLITZBEAT",200;
+  - Combos:
+      - Combo:
+          - Falconer_Flute    # 18985
+          - Falconer_Glove    # 28322
+    Script: |
+      bonus2 bSkillAtk,"SN_FALCONASSAULT",50;
+  - Combos:
+      - Combo:
+          - Falconer_Claw    # 28321
+          - Falconer_Glove    # 28322
+    Script: |
+      bonus bUseSPrate,-(getskilllv("HT_BEASTBANE") * 2);

@@ -1,0 +1,447 @@
+# This file is a part of rAthena.
+#   Copyright(C) 2022 rAthena Development Team
+#   https://rathena.org - https://github.com/rathena
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+###########################################################################
+# Item Cash Database
+###########################################################################
+#
+# Item Cash Settings
+#
+###########################################################################
+# - Tab                     Cash shop tab. Available tabs are New, Hot, Limited, Rental, Permanent, Scrolls, Consumables, Other, Sale.
+#   Items:                  List of possible items.
+#     - Item                Item name.
+#       Price               Item cost in cash points (#CASHPOINTS).
+###########################################################################
+
+Header:
+  Type: ITEM_CASH_DB
+  Version: 1
+
+Body:
+  - Tab: New
+    Items:
+     - Item: Vip_1D
+       Price: 2
+     - Item: Vip_7D
+       Price: 15
+     - Item: Vip_30D
+       Price: 50
+     - Item: 10cash
+       Price: 10
+     - Item: 100cash
+       Price: 100
+     - Item: 1000cash
+       Price: 1000
+     - Item: 10000cash
+       Price: 10000
+  - Tab: Hot
+    Items:
+     - Item: H_Level
+       Price: 1
+     - Item: H_Shuffle
+       Price: 30
+     - Item: Max_Weight_Up_Box
+       Price: 100
+     - Item: Convex_Mirror_Box5
+       Price: 25
+     - Item: In_Royal_Jelly_Box
+       Price: 5
+     - Item: Earth_Converter_Box
+       Price: 3
+     - Item: Fire_Converter_Box
+       Price: 3
+     - Item: Water_Converter_Box
+       Price: 3
+     - Item: Wind_Converter_Box
+       Price: 3
+     - Item: Str_Dish_Box
+       Price: 15
+     - Item: Agi_Dish_Box
+       Price: 15
+     - Item: Vit_Dish_Box
+       Price: 15
+     - Item: Int_Dish_Box
+       Price: 15
+     - Item: Dex_Dish_Box
+       Price: 15
+     - Item: Luk_Dish_Box
+       Price: 15
+  - Tab: Limited
+    Items:
+     - Item: Happy_Balloon_K
+       Price: 10
+     - Item: School_Bag
+       Price: 10
+     - Item: Academy_Badge
+       Price: 10
+  - Tab: Limited
+    Items:
+  - Tab: Permanent
+    Items:
+     - Item: Home_Cherry_Blossom
+       Price: 10
+     - Item: Sloth_Hat
+       Price: 20
+     - Item: Snake_Head
+       Price: 20
+     - Item: Flying_Angel
+       Price: 20
+     - Item: J_Captain_Hat
+       Price: 20
+     - Item: Bushy_Moustache
+       Price: 20
+     - Item: Angel_Spirit
+       Price: 20
+     - Item: Ramen_Hat
+       Price: 20
+     - Item: Twin_Ribbon
+       Price: 20
+     - Item: Parade_Cap
+       Price: 20
+     - Item: Magic_Eyes
+       Price: 20
+     - Item: Robo_Eye
+       Price: 25
+     - Item: Antique_Pipe_J
+       Price: 30
+     - Item: Pecopeco_Hairband
+       Price: 30
+     - Item: Alice_Doll
+       Price: 30
+     - Item: Deviling_Hat
+       Price: 30
+     - Item: Drooping_Kitty
+       Price: 30
+     - Item: White_Drooping_Kitty
+       Price: 30
+     - Item: Gray_Drooping_Kitty
+       Price: 30
+     - Item: Pink_Drooping_Kitty
+       Price: 30
+     - Item: Blue_Drooping_Kitty
+       Price: 30
+     - Item: Yellow_Drooping_Kitty
+       Price: 30
+     - Item: Carmen_Miranda's_Hat
+       Price: 30
+     - Item: Diadem
+       Price: 30
+     - Item: Feather_Beret
+       Price: 30
+     - Item: Ifrit's_Ear
+       Price: 30
+     - Item: Granpa_Beard_F
+       Price: 30
+     - Item: Satanic_Chain_P
+       Price: 30
+     - Item: Hockey_Mask
+       Price: 30
+     - Item: Large_Hibiscus
+       Price: 30
+     - Item: Valentine_Hat
+       Price: 30
+     - Item: Marvelous_Wig
+       Price: 30
+     - Item: Dress_Hat
+       Price: 30
+     - Item: Shiny_Wig
+       Price: 30
+     - Item: Yellow_Ribbon
+       Price: 30
+     - Item: Noble_Hat
+       Price: 30
+     - Item: Samurai_Mask
+       Price: 30
+     - Item: Shadow_Booster
+       Price: 30
+     - Item: Chatty_Parrot
+       Price: 30
+     - Item: Whikebain_Ears
+       Price: 30
+     - Item: Whike_Black_Tail
+       Price: 30
+     - Item: King_Tiger_Doll_Hat
+       Price: 30
+     - Item: Whikebain_Ears_
+       Price: 50
+     - Item: Whike_Black_Tail_S
+       Price: 50
+     - Item: Blush_Of_Groom
+       Price: 50
+     - Item: Antique_Pipe
+       Price: 50
+     - Item: Lovecap_China
+       Price: 50
+     - Item: Drooping_White_Kitty
+       Price: 50
+     - Item: Balloon_Hat
+       Price: 50
+     - Item: Victorious_Coronet
+       Price: 50
+     - Item: Taiwan_Flag_Hat
+       Price: 50
+     - Item: Scarlet_Rose
+       Price: 50
+     - Item: Yellow_Scarf
+       Price: 50
+     - Item: CD_In_Mouth
+       Price: 50
+     - Item: L_Magestic_Goat
+       Price: 150
+     - Item: Amistr_Cap
+       Price: 150
+     - Item: Fallen_Angel_Wing
+       Price: 150
+     - Item: QueenAnzRevenge
+       Price: 150
+  - Tab: Scrolls
+    Items:
+     - Item: C_Wing_Of_Fly_1Day_Para
+       Price: 5
+     - Item: C_Wing_Of_Fly_3Day_Box_
+       Price: 10
+     - Item: C_Wing_Of_Fly_Box_
+       Price: 15
+     - Item: Abrasive_Box5
+       Price: 10
+     - Item: Acidbomb_10_Box
+       Price: 1
+     - Item: Poison_Bottle_5_Box
+       Price: 2
+     - Item: Adrenaline_Scroll_Box
+       Price: 2
+     - Item: Adrenaline10_Box30
+       Price: 10
+     - Item: Aspersio_5_Scroll_Box
+       Price: 10
+     - Item: Aspersio_5_Box30
+       Price: 50
+     - Item: Assumptio_5_Scroll_Box
+       Price: 2
+     - Item: Assumptio_5_Box30
+       Price: 10
+     - Item: B_Def_Potion_Box10
+       Price: 5
+     - Item: B_Def_Potion_Box30
+       Price: 12
+     - Item: Blessing_10_Scroll_Box
+       Price: 2
+     - Item: Blessing10_Box30
+       Price: 10
+     - Item: Spark_Candy_Box5
+       Price: 5
+     - Item: Giant_Fly_Wing_Box100
+       Price: 20
+     - Item: Holy_Armor_S_Box10
+       Price: 5
+     - Item: Inc_Agi_10_Scroll_Box
+       Price: 2
+     - Item: Inc_Agi_10_Box30
+       Price: 10
+     - Item: Kafra_Card_Box50
+       Price: 5 
+     - Item: Party_Assumptio_Box
+       Price: 10
+     - Item: Party_Blessing_Box
+       Price: 10
+     - Item: Party_Inc_Agi_Box
+       Price: 10
+     - Item: Regeneration_Box10
+       Price: 2
+     - Item: Speed_Up_Potion_Box10
+       Price: 1
+     - Item: Siegfried_Box5
+       Price: 10
+     - Item: Siegfried_Box20
+       Price: 18
+     - Item: Wind_Walk_10_Scroll_Box
+       Price: 2
+     - Item: Wind_Walk10_Box30
+       Price: 5
+  - Tab: Consumables
+    Items:
+     - Item: Battle_Manual
+       Price: 1
+     - Item: F_Battle_Manual_Box5
+       Price: 5
+     - Item: HE_Battle_Manual
+       Price: 5
+     - Item: Battle_Manual_X3
+       Price: 10
+     - Item: Job_Manual50
+       Price: 5
+     - Item: Job_Manual50_Box
+       Price: 45
+     - Item: Bubble_Gum
+       Price: 3
+     - Item: Bubble_Gum_Box5
+       Price: 12
+     - Item: HE_Bubble_Gum
+       Price: 20
+  - Tab: Rental
+    Items:
+     - Item: Beholder_Ring_Box
+       Price: 10
+     - Item: Hallow_Ring_Box
+       Price: 10
+     - Item: Clamorous_Ring_Box
+       Price: 10
+     - Item: Chemical_Ring_Box
+       Price: 10
+     - Item: Insecticide_Ring_Box
+       Price: 10
+     - Item: Fisher_Ring_Box
+       Price: 10
+     - Item: Decussate_Ring_Box
+       Price: 10
+     - Item: Bloody_Ring_Box
+       Price: 10
+     - Item: Satanic_Ring_Box
+       Price: 10
+     - Item: Dragoon_Ring_Box
+       Price: 10
+     - Item: Beholder_Ring_Box2
+       Price: 18
+     - Item: Hallow_Ring_Box2
+       Price: 18
+     - Item: Clamorous_Ring_Box2
+       Price: 18
+     - Item: Chemical_Ring_Box2
+       Price: 18
+     - Item: Insecticide_Ring_Box2
+       Price: 18
+     - Item: Fisher_Ring_Box2
+       Price: 18
+     - Item: Decussate_Ring_Box2
+       Price: 18
+     - Item: Bloody_Ring_Box2
+       Price: 18
+     - Item: Satanic_Ring_Box2
+       Price: 18
+     - Item: Dragoon_Ring_Box2
+       Price: 18
+     - Item: All_In_One_Ring_Box
+       Price: 10
+     - Item: Balistar_Box
+       Price: 10
+     - Item: Counter_Dagger_Box
+       Price: 10
+     - Item: Cutlas_Box
+       Price: 10
+     - Item: Excalibur_Box
+       Price: 10
+     - Item: Healing_Staff_Box
+       Price: 10
+     - Item: Infiltrator_Box
+       Price: 10
+     - Item: Kaiser_Knuckle_Box
+       Price: 10
+     - Item: Right_Epsilon_Box
+       Price: 10
+     - Item: Mighty_Staff_Box
+       Price: 10
+     - Item: Moonlight_Sword_Box
+       Price: 10
+     - Item: Muramasa_Box
+       Price: 10
+     - Item: Pole_Axe_Box
+       Price: 10
+     - Item: Brood_Axe_Box
+       Price: 10
+     - Item: Bloody_Roar_Box
+       Price: 10
+     - Item: Skewer_Box
+       Price: 10
+     - Item: Fire_Brand_Box
+       Price: 10
+     - Item: Great_Axe_Box
+       Price: 10
+     - Item: Hardback_Box
+       Price: 10
+     - Item: Immaterial_Sword_Box
+       Price: 10
+     - Item: Nagan_Box
+       Price: 10
+     - Item: Quadrille_Box
+       Price: 10
+     - Item: Bow_Of_Rudra_Box
+       Price: 10
+     - Item: Solar_Sword_Box
+       Price: 10
+     - Item: Cloak_Of_Survival_Box
+       Price: 10
+     - Item: Survival_Rod_Box
+       Price: 10
+     - Item: Unholy_Touch_Box
+       Price: 10
+     - Item: Spanner_Box
+       Price: 10
+     - Item: Tomahawk_Box
+       Price: 10
+     - Item: Vesper_Core01_Box
+       Price: 10
+     - Item: Vesper_Core02_Box
+       Price: 10
+     - Item: Vesper_Core03_Box
+       Price: 10
+     - Item: Vesper_Core04_Box
+       Price: 10
+     - Item: Bloody_Iron_Ball_Box
+       Price: 10
+     - Item: Spiritual_Tunic_Box
+       Price: 20
+     - Item: Recuperative_Armor_Box
+       Price: 20
+     - Item: Refresh_Shoes_Box
+       Price: 20
+     - Item: Shelter_Resistance_Box
+       Price: 30
+     - Item: Picture_Diary_Box
+       Price: 5
+     - Item: Diary_Magic_Powder_Box
+       Price: 5
+     - Item: Newcomer_Box
+       Price: 5
+     - Item: Gogo_Box
+       Price: 5
+     - Item: Bulging_Head_Box
+       Price: 5
+     - Item: Kid_Box
+       Price: 5
+     - Item: Love_Angel_Box
+       Price: 5
+     - Item: Magic_Castle_Box
+       Price: 5
+     - Item: Mini_Heart_Box
+       Price: 5
+     - Item: Squirrel_Box
+       Price: 5
+     - Item: Magic_Castle_Box
+       Price: 5
+     - Item: Magic_Castle_Box
+       Price: 5
+  - Tab: Other
+    Items:
+     - Item: Enriched_Elunium
+       Price: 5
+     - Item: Enriched_Oridecon
+       Price: 5
+     - Item: Enriched_Oridecon_Box5
+       Price: 45
+     - Item: Enriched_Elunium_Box
+       Price: 45

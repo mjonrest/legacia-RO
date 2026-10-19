@@ -1,0 +1,3494 @@
+Header:
+  Type: ITEM_DB
+  Version: 3
+
+Body:
+######## UPPER #####################
+  - Id: 37027
+    AegisName: Philippines_Cap
+    Name: Philippines Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Slots: 4
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5030
+  - Id: 37508
+    AegisName: Cavalier_Cap
+    Name: Cavalier Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5511
+  - Id: 37509
+    AegisName: Celtics_Cap
+    Name: Celtics Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5512
+  - Id: 37510
+    AegisName: Clippers_Cap
+    Name: Clippers Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5513
+  - Id: 37511
+    AegisName: Grizzlies_Cap
+    Name: Grizzlies Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5514
+  - Id: 37512
+    AegisName: Hawks_Cap
+    Name: Hawks Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5515
+  - Id: 37513
+    AegisName: Heat_Cap
+    Name: Heat Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5516
+  - Id: 37514
+    AegisName: Hornets_Cap
+    Name: Hornets Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5517
+  - Id: 37515
+    AegisName: Jazz_Cap
+    Name: Jazz Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5518
+  - Id: 37516
+    AegisName: Knicks_Cap
+    Name: Knicks Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5519
+  - Id: 37517
+    AegisName: Lakers_Cap
+    Name: Lakers Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5520
+  - Id: 37518
+    AegisName: Mavericks_Cap
+    Name: Mavericks Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5521
+  - Id: 37519
+    AegisName: Nets_Cap
+    Name: Nets Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5522
+  - Id: 37520
+    AegisName: Nuggets_Cap
+    Name: Nuggets Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5523
+  - Id: 37521
+    AegisName: Thunder_Cap
+    Name: Thunder Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5524
+  - Id: 37522
+    AegisName: Magic_Cap
+    Name: Magic Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5525
+  - Id: 37523
+    AegisName: Pacers_Cap
+    Name: Pacers Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5526
+  - Id: 37524
+    AegisName: Pelicans_Cap
+    Name: Pelicans Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5527
+  - Id: 37525
+    AegisName: Pistons_Cap
+    Name: Pistons Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5528
+  - Id: 37526
+    AegisName: Raptors_Cap
+    Name: Raptors Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5529
+  - Id: 37527
+    AegisName: Rockets_Cap
+    Name: Rockets Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5530
+  - Id: 37528
+    AegisName: Kings_Cap
+    Name: Kings Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5531
+  - Id: 37529
+    AegisName: Sixers_Cap
+    Name: Sixers Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5532
+  - Id: 37530
+    AegisName: Spurs_Cap
+    Name: Spurs Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5533
+  - Id: 37531
+    AegisName: Suns_Cap
+    Name: Suns Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5534
+  - Id: 37532
+    AegisName: Timberwolves_Cap
+    Name: Timberwolves Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5535
+  - Id: 37533
+    AegisName: Trailblazers_Cap
+    Name: Trailblazers Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5536
+  - Id: 37534
+    AegisName: Warriors_Cap
+    Name: Warriors Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5537
+  - Id: 37535
+    AegisName: Wizards_Cap
+    Name: Wizards Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5538
+  - Id: 37536
+    AegisName: Nike_Cap
+    Name: Nike Cap
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    Refineable: true
+    View: 5539
+  - Id: 50021
+    AegisName: Black_Regin_Crown
+    Name: Black Regin Crown
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6225
+  - Id: 50041
+    AegisName: Black_Dedmou_Hat
+    Name: Black Dedmou Hat
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6245
+  - Id: 50042
+    AegisName: Blue_Dedmou_Hat
+    Name: Blue Dedmou Hat
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6246
+  - Id: 50043
+    AegisName: Green_Dedmou_Hat
+    Name: Green Dedmou Hat
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6247
+  - Id: 50044
+    AegisName: Orange_Dedmou_Hat
+    Name: Orange Dedmou Hat
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6248
+  - Id: 50045
+    AegisName: Pink_Dedmou_Hat
+    Name: Pink Dedmou Hat
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6249
+  - Id: 50046
+    AegisName: Red_Dedmou_Hat
+    Name: Red Dedmou Hat
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6250
+  - Id: 50049
+    AegisName: Black_Angel_Halo
+    Name: Black Angel Halo
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6253
+  - Id: 50050
+    AegisName: Red_Angel_Halo
+    Name: Red Angel Halo
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6254
+  - Id: 50051
+    AegisName: GvG_Hat
+    Name: GvG Hat
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6255
+  - Id: 50052
+    AegisName: PvP_Hat
+    Name: PvP Hat
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6256
+  - Id: 50053
+    AegisName: Glowing_Witch_Hat
+    Name: Glowing Witch Hat
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6257
+  - Id: 50054
+    AegisName: Shining_PooPoo_Hat
+    Name: Shining PooPoo Hat
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6258
+  - Id: 50055
+    AegisName: GM_Horns
+    Name: GM Horns
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6259
+  - Id: 50056
+    AegisName: Popcorn_Hair1
+    Name: Popcorn Hair
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6260
+  - Id: 50057
+    AegisName: Samurai_Helm_Flaming
+    Name: Samurai Helm Flaming
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6261
+  - Id: 50058
+    AegisName: Snow_Flake_Tiara
+    Name: Snow Flake Tiara
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6262
+  - Id: 50059
+    AegisName: Vesper_Helm
+    Name: Vesper Helm
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6263
+  - Id: 50060
+    AegisName: Seal_Of_Wisdom
+    Name: Seal Of Wisdom
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6264
+  - Id: 50061
+    AegisName: Animated_Antena_Crown
+    Name: Animated Antena Crown
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6265
+  - Id: 50062
+    AegisName: Astral_Trinity_Helm
+    Name: Astral Trinity Helm
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6266
+  - Id: 50063
+    AegisName: Fire_Helm
+    Name: Fire Helm
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6267
+  - Id: 50065
+    AegisName: Aang_Avatar_Head
+    Name: Aang Avatar Head
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Top: true 
+    ArmorLevel: 1
+    View: 6269
+######## MIDDLE #####################
+  - Id: 50129
+    AegisName: Byakugan_Eyes
+    Name: Byakugan Eyes
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true 
+    ArmorLevel: 1
+    View: 6333
+  - Id: 50130
+    AegisName: Rinnegan_Eyes
+    Name: Rinnegan Eyes
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true 
+    ArmorLevel: 1
+    View: 6334
+  - Id: 50131
+    AegisName: Sharingan_Eyes
+    Name: Sharingan Eyes
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    View: 6335
+  - Id: 38054
+    AegisName: Black_Night_Scarf
+    Name: Black Night Scarf
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6057
+  - Id: 38055
+    AegisName: Blue_Night_Scarf
+    Name: Blue Night Scarf
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6058
+  - Id: 38056
+    AegisName: Cyan_Night_Scarf
+    Name: Cyan Night Scarf
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6059
+  - Id: 38057
+    AegisName: Gold_Night_Scarf
+    Name: Gold Night Scarf
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6060
+  - Id: 38058
+    AegisName: Orange_Night_Scarf
+    Name: Orange Night Scarf
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6061
+  - Id: 38059
+    AegisName: Pink_Night_Scarf
+    Name: Pink Night Scarf
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6062
+  - Id: 38060
+    AegisName: Purple_Night_Scarf
+    Name: Purple Night Scarf
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6063
+  - Id: 38061
+    AegisName: Red_Night_Scarf
+    Name: Red Night Scarf
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6064
+  - Id: 38062
+    AegisName: White_Night_Scarf
+    Name: White Night Scarf
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6065
+
+######## LOWER #####################
+  - Id: 37911
+    AegisName: Naruto_Scroll
+    Name: Naruto Scroll
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5914
+  - Id: 37912
+    AegisName: Black_Naruto_Scroll
+    Name: Black Naruto Scroll
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5915
+  - Id: 37913
+    AegisName: Blue_Naruto_Scroll
+    Name: Blue Naruto Scroll
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5916
+  - Id: 37914
+    AegisName: Brown_Naruto_Scroll
+    Name: Brown Naruto Scroll
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5917
+  - Id: 37915
+    AegisName: Cyan_Naruto_Scroll
+    Name: Cyan Naruto Scroll
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5918
+  - Id: 37916
+    AegisName: Gray_Naruto_Scroll
+    Name: Gray Naruto Scroll
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5919
+  - Id: 37917
+    AegisName: Green_Naruto_Scroll
+    Name: Green Naruto Scroll
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5920
+  - Id: 37918
+    AegisName: Pink_Naruto_Scroll
+    Name: Pink Naruto Scroll
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5921
+  - Id: 37919
+    AegisName: Purple_Naruto_Scroll
+    Name: Purple Naruto Scroll
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5922
+  - Id: 37920
+    AegisName: Red_Naruto_Scroll
+    Name: Red Naruto Scroll
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5923
+  - Id: 37921
+    AegisName: Yellow_Naruto_Scroll
+    Name: Yellow Naruto Scroll
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 5924
+  - Id: 38027
+    AegisName: Basic_Board
+    Name: Basic Board
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6030
+  - Id: 38028
+    AegisName: Basic_Board_01
+    Name: Basic Board 01
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6031
+  - Id: 38029
+    AegisName: Basic_Board_02
+    Name: Basic Board 02
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6032
+  - Id: 38030
+    AegisName: Basic_Board_03
+    Name: Basic Board 03
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6033
+  - Id: 38031
+    AegisName: Basic_Board_04
+    Name: Basic Board 04
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6034
+  - Id: 38032
+    AegisName: Basic_Board_05
+    Name: Basic Board 05
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6035
+  - Id: 38033
+    AegisName: Basic_Board_06
+    Name: Basic Board 06
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6036
+  - Id: 38034
+    AegisName: Basic_Board_07
+    Name: Basic Board 07
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6037
+  - Id: 38035
+    AegisName: Basic_Board_08
+    Name: Basic Board 08
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6038
+  - Id: 38036
+    AegisName: Basic_Board_09
+    Name: Basic Board 09
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6039
+  - Id: 38037
+    AegisName: Basic_Board_10
+    Name: Basic Board 10
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6040
+  - Id: 38038
+    AegisName: Basic_Board_11
+    Name: Basic Board 11
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6041
+  - Id: 38039
+    AegisName: Basic_Board_12
+    Name: Basic Board 12
+    Type: Armor
+    Weight: 100
+    Defense: 5
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    EquipLevelMin: 1
+    Refineable: true
+    View: 6042
+  - Id: 50149
+    AegisName: Cyan_Slightly_Fox
+    Name: Cyan Slightly Fox
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6353
+  - Id: 50150
+    AegisName: Purple_Slightly_Fox
+    Name: Purple Slightly Fox
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6354
+  - Id: 50151
+    AegisName: Red_Slightly_Fox
+    Name: Red Slightly Fox
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6355
+  - Id: 50152
+    AegisName: White_Slightly_Fox
+    Name: White Slightly Fox
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6356
+  - Id: 50153
+    AegisName: Yellow_Slightly_Fox
+    Name: Yellow Slightly Fox
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6357
+  - Id: 50154
+    AegisName: Nine_Tails_V1
+    Name: Nine Tails V1
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6358
+  - Id: 50155
+    AegisName: Nine_Tails_V2
+    Name: Nine Tails V2
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6359
+  - Id: 50156
+    AegisName: One_Tail
+    Name: One Tail
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6360
+  - Id: 50157
+    AegisName: Two_Tails
+    Name: Two Tails
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6361
+  - Id: 50158
+    AegisName: Three_Tails
+    Name: Three Tails
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6362
+  - Id: 50159
+    AegisName: Gold_Almighty_Wing
+    Name: Gold Almighty Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6363
+  - Id: 50160
+    AegisName: Superior_Almighty_Wing
+    Name: Superior Almighty Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6364
+  - Id: 50161
+    AegisName: Darkness_Almighty_Wing
+    Name: Darkness Almighty Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6365
+  - Id: 50162
+    AegisName: Ice_Almighty_Wing
+    Name: Ice Almighty Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6366
+  - Id: 50163
+    AegisName: Bloody_Almighty_Wing
+    Name: Bloody Almighty Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6367
+  - Id: 50164
+    AegisName: Holy_Almighty_Wing
+    Name: Holy Almighty Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6368
+  - Id: 50170
+    AegisName: Black_Amaterasu_Aura
+    Name: Black Amaterasu Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true 
+    ArmorLevel: 1
+    View: 6374
+  - Id: 50171
+    AegisName: Blue_Amaterasu_Aura
+    Name: Blue Amaterasu Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true 
+    ArmorLevel: 1
+    View: 6375
+  - Id: 50172
+    AegisName: Gold_Amaterasu_Aura
+    Name: Gold Amaterasu Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true 
+    ArmorLevel: 1
+    View: 6376
+  - Id: 50173
+    AegisName: Green_Amaterasu_Aura
+    Name: Green Amaterasu Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true 
+    ArmorLevel: 1
+    View: 6377
+  - Id: 50174
+    AegisName: Navy_Amaterasu_Aura
+    Name: Navy Amaterasu Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true 
+    ArmorLevel: 1
+    View: 6378
+  - Id: 50175
+    AegisName: Pink_Amaterasu_Aura
+    Name: Pink Amaterasu Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true 
+    ArmorLevel: 1
+    View: 6379
+  - Id: 50176
+    AegisName: Red_Amaterasu_Aura
+    Name: Red Amaterasu Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true 
+    ArmorLevel: 1
+    View: 6380
+  - Id: 50177
+    AegisName: White_Amaterasu_Aura
+    Name: White Amaterasu Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true 
+    ArmorLevel: 1
+    View: 6381
+  - Id: 50187
+    AegisName: Black_God_Aura
+    Name: Black God Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true 
+    ArmorLevel: 1
+    View: 6391
+  - Id: 50188
+    AegisName: Blue_God_Aura
+    Name: Blue God Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true 
+    ArmorLevel: 1
+    View: 6392
+  - Id: 50189
+    AegisName: Gold_God_Aura
+    Name: Gold God Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true 
+    ArmorLevel: 1
+    View: 6393
+  - Id: 50190
+    AegisName: Green_God_Aura
+    Name: Green God Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true 
+    ArmorLevel: 1
+    View: 6394
+  - Id: 50191
+    AegisName: Pink_God_Aura
+    Name: Pink God Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true 
+    ArmorLevel: 1
+    View: 6395
+  - Id: 50192
+    AegisName: Red_God_Aura
+    Name: Red God Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6396
+  - Id: 50193
+    AegisName: White_God_Aura
+    Name: White God Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6397
+  - Id: 50216
+    AegisName: Black_Power_Aura
+    Name: Black Power Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6420
+  - Id: 50217
+    AegisName: Brown_Power_Aura
+    Name: Brown Power Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6421
+  - Id: 50218
+    AegisName: Green_Power_Aura
+    Name: Green Power Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6422
+  - Id: 50219
+    AegisName: Rainbow_Power_Aura
+    Name: Rainbow Power Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6423
+  - Id: 50220
+    AegisName: Red_Power_Aura
+    Name: Red Power Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6424
+  - Id: 50221
+    AegisName: Yellow_Power_Aura
+    Name: Yellow Power Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6425
+  - Id: 50228
+    AegisName: Orange_Rosescent
+    Name: Orange Rosescent
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6432
+  - Id: 50229
+    AegisName: Pink_Rosescent
+    Name: Pink Rosescent
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6433
+  - Id: 50230
+    AegisName: White_Rosescent
+    Name: White Rosescent
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6434
+  - Id: 50231
+    AegisName: Blue_Electric_Spell
+    Name: Blue Electric Spell
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6435
+  - Id: 50232
+    AegisName: Orange_Electric_Spell
+    Name: Orange Electric Spell
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6436
+  - Id: 50233
+    AegisName: Purple_Electric_Spell
+    Name: Purple Electric Spell
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6437
+  - Id: 50234
+    AegisName: Red_Electric_Spell
+    Name: Red Electric Spell
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6438
+  - Id: 50242
+    AegisName: Black_Kirin_Soul
+    Name: Black Kirin Soul
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6446
+  - Id: 50243
+    AegisName: Blue_Kirin_Soul
+    Name: Blue Kirin Soul
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6447
+  - Id: 50244
+    AegisName: Green_Kirin_Soul
+    Name: Green Kirin Soul
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6448
+  - Id: 50245
+    AegisName: Red_Kirin_Soul
+    Name: Red Kirin Soul
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6449
+  - Id: 50246
+    AegisName: Purple_Imperial_Cape
+    Name: Purple Imperial Cape
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6450
+  - Id: 50247
+    AegisName: Red_Imperial_Cape
+    Name: Red Imperial Cape
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6451
+  - Id: 50248
+    AegisName: Red_King_Imperial_Cape
+    Name: Red King Imperial Cape
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6452
+  - Id: 50249
+    AegisName: Red_God_Imperial_Cape
+    Name: Red God Imperial Cape
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6453
+  - Id: 50250
+    AegisName: White_Imperial_Cape
+    Name: White Imperial Cape
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6454
+  - Id: 50267
+    AegisName: Ashura_Chakra
+    Name: Ashura Chakra
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6471
+  - Id: 50268
+    AegisName: Black_Chakra
+    Name: Black Chakra
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6472
+  - Id: 50269
+    AegisName: Blue_Chakra
+    Name: Blue Chakra
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6473
+  - Id: 50270
+    AegisName: Coffee_Chakra
+    Name: Coffee Chakra
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6474
+  - Id: 50271
+    AegisName: Darkness_Chakra
+    Name: Darkness Chakra
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6475
+  - Id: 50272
+    AegisName: Flame_Chakra
+    Name: Flame Chakra
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6476
+  - Id: 50273
+    AegisName: Green_Chakra
+    Name: Green Chakra
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6477
+  - Id: 50274
+    AegisName: Neutral_Chakra
+    Name: Neutral Chakra
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6478
+  - Id: 50275
+    AegisName: Permen_Chakra
+    Name: Permen Chakra
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6479
+  - Id: 50276
+    AegisName: Pink_Chakra
+    Name: Pink Chakra
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6480
+  - Id: 50277
+    AegisName: Red_Chakra
+    Name: Red Chakra
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6481
+  - Id: 50278
+    AegisName: Reika_Chakra
+    Name: Reika Chakra
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6482
+  - Id: 50279
+    AegisName: Rumora_Chakra
+    Name: Rumora Chakra
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6483
+  - Id: 50280
+    AegisName: Water_Chakra
+    Name: Water Chakra
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6484
+  - Id: 50281
+    AegisName: White_Chakra
+    Name: White Chakra
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6485
+  - Id: 50282
+    AegisName: Yellow_Chakra
+    Name: Yellow Chakra
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6486
+  - Id: 50319
+    AegisName: Power_Of_Darkness
+    Name: Power Of Darkness
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6523
+  - Id: 50320
+    AegisName: Power_Of_Earth
+    Name: Power Of Earth
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6524
+  - Id: 50322
+    AegisName: Power_Of_Wind
+    Name: Power Of Wind
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6526
+  - Id: 50338
+    AegisName: Glare_Assaulter
+    Name: Glare Assaulter
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6542
+  - Id: 50339
+    AegisName: Glare_Dagger
+    Name: Glare Dagger
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6543
+  - Id: 50340
+    AegisName: Glare_Katzbalger
+    Name: Glare Katzbalger
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6544
+  - Id: 50341
+    AegisName: Glare_Slayer
+    Name: Glare Slayer
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6545
+  - Id: 50342
+    AegisName: Glare_Staff
+    Name: Glare Staff
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6546
+  - Id: 50343
+    AegisName: Black_Wrath_Wing
+    Name: Black Wrath Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6547
+  - Id: 50344
+    AegisName: Blue_Wrath_Wing
+    Name: Blue Wrath Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6548
+  - Id: 50345
+    AegisName: Cyan_Wrath_Wing
+    Name: Cyan Wrath Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6549
+  - Id: 50346
+    AegisName: Gold_Wrath_Wing
+    Name: Gold Wrath Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6550
+  - Id: 50347
+    AegisName: Green_Wrath_Wing
+    Name: Green Wrath Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6551
+  - Id: 50348
+    AegisName: Wrath_Wing
+    Name: Wrath Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6552
+  - Id: 50349
+    AegisName: Pink_Wrath_Wing
+    Name: Pink Wrath Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6553
+  - Id: 50350
+    AegisName: Purple_Wrath_Wing
+    Name: Purple Wrath Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6554
+  - Id: 50351
+    AegisName: White_Wrath_Wing
+    Name: White Wrath Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6555
+  - Id: 50352
+    AegisName: Yellow_Wrath_Wing
+    Name: Yellow Wrath Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6556
+  - Id: 50353
+    AegisName: Grand_Wolf_Aura
+    Name: Grand Wolf Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true 
+    ArmorLevel: 1
+    View: 6557
+  - Id: 50354
+    AegisName: Black_Grand_Wolf_Aura
+    Name: Black Grand Wolf Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true
+    ArmorLevel: 1
+    View: 6558
+  - Id: 50355
+    AegisName: Blue_Grand_Wolf_Aura
+    Name: Blue Grand Wolf Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true
+    ArmorLevel: 1
+    View: 6559
+  - Id: 50356
+    AegisName: Cyan_Grand_Wolf_Aura
+    Name: Cyan Grand Wolf Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true
+    ArmorLevel: 1
+    View: 6560
+  - Id: 50357
+    AegisName: Green_Grand_Wolf_Aura
+    Name: Green Grand Wolf Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true
+    ArmorLevel: 1
+    View: 6561
+  - Id: 50358
+    AegisName: Red_Grand_Wolf_Aura
+    Name: Red Grand Wolf Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Costume_Head_Low: true
+    ArmorLevel: 1
+    View: 6562
+  - Id: 50380
+    AegisName: Black_Grand_Crow_Wings
+    Name: Black Grand Crow Wings
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6584
+  - Id: 50381
+    AegisName: Green_Grand_Crow_Wings
+    Name: Green Grand Crow Wings
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6585
+  - Id: 50382
+    AegisName: Red_Grand_Crow_Wings
+    Name: Red Grand Crow Wings
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6586
+  - Id: 50400
+    AegisName: Itachi_Susanoo
+    Name: Itachi Susanoo
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6604
+  - Id: 50401
+    AegisName: Madara_Susanoo
+    Name: Madara Susanoo
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6605
+  - Id: 50402
+    AegisName: Sasuke_Susanoo
+    Name: Sasuke Susanoo
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6606
+  - Id: 50403
+    AegisName: Yellow_Sage_Aura
+    Name: Yellow Sage Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6607
+  - Id: 50404
+    AegisName: Blue_Sage_Aura
+    Name: Blue Sage Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6608
+  - Id: 50405
+    AegisName: Angel_Sage_Aura
+    Name: Angel Sage Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6609
+  - Id: 50406
+    AegisName: Devil_Sage_Aura
+    Name: Devil Sage Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6610
+  - Id: 50440
+    AegisName: Black_Supreme_Aura
+    Name: Black Supreme Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6644
+  - Id: 50441
+    AegisName: Blue_Supreme_Aura
+    Name: Blue Supreme Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6645
+  - Id: 50442
+    AegisName: Orange_Supreme_Aura
+    Name: Orange Supreme Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6646
+  - Id: 50443
+    AegisName: Purple_Supreme_Aura
+    Name: Purple Supreme Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6647
+  - Id: 50444
+    AegisName: Red_Supreme_Aura
+    Name: Red Supreme Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6648
+  - Id: 50445
+    AegisName: White_Supreme_Aura
+    Name: White Supreme Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6649
+  - Id: 50457
+    AegisName: Black_Seeking_Wing
+    Name: Black Seeking Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6661
+  - Id: 50458
+    AegisName: Blue_Seeking_Wing
+    Name: Blue Seeking Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6662
+  - Id: 50459
+    AegisName: Cyan_Seeking_Wing
+    Name: Cyan Seeking Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6663
+  - Id: 50460
+    AegisName: Green_Seeking_Wing
+    Name: Green Seeking Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6664
+  - Id: 50461
+    AegisName: Orange_Seeking_Wing
+    Name: Orange Seeking Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6665
+  - Id: 50462
+    AegisName: Pink_Seeking_Wing
+    Name: Pink Seeking Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6666
+  - Id: 50463
+    AegisName: Purple_Seeking_Wing
+    Name: Purple Seeking Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6667
+  - Id: 50464
+    AegisName: Red_Seeking_Wing
+    Name: Red Seeking Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6668
+  - Id: 50465
+    AegisName: Supreme_Saiyan_Aura
+    Name: Supreme Saiyan Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6669
+  - Id: 50466
+    AegisName: Cyan_Ultimate_Saiyan_Aura
+    Name: Cyan Ultimate Saiyan Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6670
+  - Id: 50467
+    AegisName: Green_Ultimate_Saiyan_Aura
+    Name: Green Ultimate Saiyan Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6671
+  - Id: 50468
+    AegisName: Orange_Ultimate_Saiyan_Aura
+    Name: Orange Ultimate Saiyan Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6672
+  - Id: 50469
+    AegisName: Pink_Ultimate_Saiyan_Aura
+    Name: Pink Ultimate Saiyan Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6673
+  - Id: 50470
+    AegisName: Purple_Ultimate_Saiyan_Aura
+    Name: Purple Ultimate Saiyan Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6674
+  - Id: 50471
+    AegisName: Yellow_Ultimate_Saiyan_Aura
+    Name: Yellow Ultimate Saiyan Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6675
+  - Id: 50472
+    AegisName: Supreme_Dragon_Aura
+    Name: Supreme Dragon Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6676
+  - Id: 50473
+    AegisName: Supreme_Exodus_Wing
+    Name: Supreme Exodus Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6677
+  - Id: 50474
+    AegisName: Supreme_Fairy_Wing
+    Name: Supreme Fairy Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6678
+  - Id: 50475
+    AegisName: Supreme_Icarus_Wing
+    Name: Supreme Icarus Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6679
+  - Id: 50476
+    AegisName: Supreme_Lucifer_Wing
+    Name: Supreme Lucifer Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6680
+  - Id: 50477
+    AegisName: Supreme_Phoenix_Wing
+    Name: Supreme Phoenix Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6681
+  - Id: 50478
+    AegisName: Supreme_Sorcerer_Wing
+    Name: Supreme Sorcerer Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6682
+  - Id: 50479
+    AegisName: Supreme_Valkyrie_Wing
+    Name: Supreme Valkyrie Wing
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6683
+  - Id: 50496
+    AegisName: Majesty_Gennie
+    Name: Majesty Gennie
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6700
+  - Id: 50507
+    AegisName: Songoku_Aura
+    Name: Songoku Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6711
+  - Id: 50510
+    AegisName: Zombie_Hands
+    Name: Zombie Hands
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6714
+  - Id: 50511
+    AegisName: Anakid_Aura
+    Name: Anakid Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6715
+  - Id: 50513
+    AegisName: Flying_Phoenix
+    Name: Flying Phoenix
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6717
+  - Id: 50517
+    AegisName: Reafer_Aura
+    Name: Reafer Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6721
+  - Id: 50521
+    AegisName: Legend_Decay_Aura
+    Name: Legend Decay Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6725
+  - Id: 50525
+    AegisName: Broken_Aura
+    Name: Broken Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6729
+  - Id: 50527
+    AegisName: Evil_Instinct_Aura
+    Name: Evil Instinct Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6731
+  - Id: 50531
+    AegisName: Diamond_Dust
+    Name: Diamond Dust
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6735
+  - Id: 50532
+    AegisName: Falling_Feathers_Aura
+    Name: Falling Feathers Aura
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6736
+  - Id: 50534
+    AegisName: Falling_Money
+    Name: Falling Money
+    Type: Armor
+    Classes:
+      All_Third: true
+      Normal: true
+      Upper: true
+      Baby: true
+      All_Upper: true
+    Locations:
+      Head_Low: true 
+    ArmorLevel: 1
+    View: 6738

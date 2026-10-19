@@ -1,0 +1,933 @@
+# This file is a part of rAthena.
+#   Copyright(C) 2024 rAthena Development Team
+#   https://rathena.org - https://github.com/rathena
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+###########################################################################
+# Monster Database
+###########################################################################
+#
+# Monster Settings
+#
+###########################################################################
+# - Id                      Monster ID.
+#   AegisName               Server name to reference the monster in scripts and lookups, should use no spaces.
+#   Name                    Name in English.
+#   JapaneseName            Name in Japanese. (Default: 'Name' value)
+#   Level                   Level. (Default: 1)
+#   Hp                      Total HP. (Default: 1)
+#   Sp                      Total SP. (Default: 1)
+#   BaseExp                 Base experience gained. (Default: 0)
+#   JobExp                  Job experience gained. (Default: 0)
+#   MvpExp                  MVP experience gained. (Default: 0)
+#   Attack                  Minimum attack in pre-renewal and base attack in renewal. (Default: 0)
+#   Attack2                 Maximum attack in pre-renewal and base magic attack in renewal. (Default: 0)
+#   Defense                 Physical defense of the monster, reduces melee and ranged physical attack/skill damage. (Default: 0)
+#   MagicDefense            Magic defense of the monster, reduces magical skill damage. (Default: 0)
+#   Resistance              Physical resistance of the monster, reduces melee and ranged physical attack/skill damage. (Default: 0)
+#   MagicResistance         Magic resistance of the monster, reduces magical skill damage. (Default: 0)
+#   Str                     Strength which affects attack. (Default: 1)
+#   Agi                     Agility which affects flee. (Default: 1)
+#   Vit                     Vitality which affects defense. (Default: 1)
+#   Int                     Intelligence which affects magic attack. (Default: 1)
+#   Dex                     Dexterity which affects hit rate. (Default: 1)
+#   Luk                     Luck which affects perfect dodge/lucky flee/perfect flee/lucky dodge rate. (Default: 1)
+#   AttackRange             Attack range. (Default: 0)
+#   SkillRange              Skill cast range. (Default: 0)
+#   ChaseRange              Chase range. (Default: 0)
+#   Size                    Size. (Default: Small)
+#   Race                    Race. (Default: Formless)
+#   RaceGroups:             List of secondary groups the monster may be part of. (Optional)
+#     <group>: <value>      Group to toggle.
+#   Element                 Element. (Default: Neutral)
+#   ElementLevel            Level of element. (Default: 1)
+#   WalkSpeed               Walk speed. (Default: DEFAULT_WALK_SPEED)
+#   AttackDelay             Attack speed. (Default: 0)
+#   AttackMotion            Attack animation speed. (Default: 0)
+#   ClientAttackMotion      Client attack speed. (Default: AttackMotion)
+#   DamageMotion            Damage animation speed. (Default: 0)
+#   DamageTaken             Rate at which the monster will receive incoming damage. (Default: 100)
+#   GroupId                 Monster group ID. (Default: 0)
+#   Title                   Monster title. (Default: None)
+#   Ai                      Aegis monster type AI behavior. (Default: 06)
+#   Class                   Aegis monster class. (Default: Normal)
+#   Modes:                  List of unique behavior not defined by AI, Class, or Attribute. (Optional)
+#     <mode>: <value>       Mode to toggle.
+#   MvpDrops:               List of possible MVP prize items. Max of MAX_MVP_DROP. (Optional)
+#     - Item                Item name.
+#       Rate                Drop rate of item.
+#       RandomOptionGroup   Random Option Group applied to item on drop. (Default: None)
+#       Index               Index used for overwriting item. (Optional)
+#   Drops:                  List of possible normal item drops. Max of MAX_MOB_DROP. (Optional)
+#     - Item                Item name.
+#       Rate                Drop rate of item.
+#       StealProtected      If the item is shielded from TF_STEAL. (Default: false)
+#       RandomOptionGroup   Random Option Group applied to item on drop. (Default: None)
+#       Index               Index used for overwriting item. (Optional)
+###########################################################################
+
+Header:
+  Type: MOB_DB
+  Version: 5
+
+Body:
+  - Id: 22383
+    AegisName: VIOLEN
+    Name: Violen
+    Level: 273
+    Hp: 25126600
+    BaseExp: 2606000
+    JobExp: 2498000
+    Attack: 251
+    Attack2: 160
+    Defense: 273
+    MagicDefense: 178
+    Str: 160
+    Agi: 155
+    Vit: 102
+    Int: 135
+    Dex: 201
+    Luk: 252
+    AttackRange: 7
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Medium
+    Race: Demihuman
+    Element: Neutral
+    ElementLevel: 3
+    WalkSpeed: 200
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: Golden_Jewel
+        Rate: 3153
+      - Item: Hot_Water_Drop_Gem
+        Rate: 25
+      - Item: Shining_Crystal
+        Rate: 600
+      - Item: Small_Sewing_Box
+        Rate: 25
+      - Item: aegis_300555
+        Rate: 1
+        StealProtected: true
+  - Id: 22384
+    AegisName: CP_VIOLEN
+    Name: Sturdy Violen
+    Level: 273
+    Hp: 55293200
+    BaseExp: 10244398
+    JobExp: 7153178
+    Attack: 320
+    Attack2: 229
+    Defense: 327
+    MagicDefense: 238
+    Str: 229
+    Agi: 232
+    Vit: 145
+    Int: 201
+    Dex: 307
+    Luk: 374
+    AttackRange: 7
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Medium
+    Race: Demihuman
+    Element: Neutral
+    ElementLevel: 3
+    WalkSpeed: 200
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: Golden_Jewel
+        Rate: 3153
+      - Item: Hot_Water_Drop_Gem
+        Rate: 25
+      - Item: Shining_Crystal
+        Rate: 600
+      - Item: Small_Sewing_Box
+        Rate: 25
+      - Item: aegis_300555
+        Rate: 1
+        StealProtected: true
+  - Id: 22385
+    AegisName: SPIDING
+    Name: Spiding
+    Level: 273
+    Hp: 23018500
+    BaseExp: 3385982
+    JobExp: 2364272
+    Attack: 326
+    Attack2: 235
+    Defense: 305
+    MagicDefense: 203
+    Str: 235
+    Agi: 227
+    Vit: 254
+    Int: 198
+    Dex: 229
+    Luk: 347
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Medium
+    Race: Insect
+    Element: Dark
+    ElementLevel: 2
+    WalkSpeed: 120
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: Etel_Dust
+        Rate: 600
+      - Item: Congealed_Poison
+        Rate: 600
+      - Item: Firm_Land_Crystal
+        Rate: 600
+      - Item: Ectoplasmic_Stone
+        Rate: 600
+      - Item: aegis_300556
+        Rate: 1
+        StealProtected: true
+  - Id: 22386
+    AegisName: CP_SPIDING
+    Name: Sturdy Spiding
+    Level: 273
+    Hp: 50648900
+    BaseExp: 10157948
+    JobExp: 7092814
+    Attack: 360
+    Attack2: 269
+    Defense: 350
+    MagicDefense: 254
+    Str: 336
+    Agi: 272
+    Vit: 361
+    Int: 295
+    Dex: 345
+    Luk: 515
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Medium
+    Race: Insect
+    Element: Dark
+    ElementLevel: 2
+    WalkSpeed: 120
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: Etel_Dust
+        Rate: 600
+      - Item: Congealed_Poison
+        Rate: 600
+      - Item: Firm_Land_Crystal
+        Rate: 600
+      - Item: Ectoplasmic_Stone
+        Rate: 600
+      - Item: aegis_300556
+        Rate: 1
+        StealProtected: true
+  - Id: 22387
+    AegisName: GARLING
+    Name: Garling
+    Level: 274
+    Hp: 24468900
+    BaseExp: 3426154
+    JobExp: 2386316
+    Attack: 402
+    Attack2: 311
+    Defense: 522
+    MagicDefense: 243
+    Str: 310
+    Agi: 231
+    Vit: 246
+    Int: 198
+    Dex: 243
+    Luk: 373
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Small
+    Race: Plant
+    Element: Fire
+    ElementLevel: 3
+    WalkSpeed: 100
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: aegis_300557
+        Rate: 1
+        StealProtected: true
+  - Id: 22388
+    AegisName: CP_GARLING
+    Name: Sturdy Garling
+    Level: 274
+    Hp: 53843500
+    BaseExp: 10278462
+    JobExp: 7158950
+    Attack: 446
+    Attack2: 355
+    Defense: 607
+    MagicDefense: 305
+    Str: 444
+    Agi: 256
+    Vit: 350
+    Int: 295
+    Dex: 363
+    Luk: 554
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Small
+    Race: Plant
+    Element: Fire
+    ElementLevel: 3
+    WalkSpeed: 100
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: aegis_300557
+        Rate: 1
+        StealProtected: true
+  - Id: 22389
+    AegisName: JACKONETTE
+    Name: Jackonette
+    Level: 274
+    Hp: 22990300
+    BaseExp: 3463024
+    JobExp: 2422910
+    Attack: 268
+    Attack2: 177
+    Defense: 317
+    MagicDefense: 410
+    Str: 176
+    Agi: 181
+    Vit: 198
+    Int: 267
+    Dex: 227
+    Luk: 378
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Small
+    Race: Demon
+    Element: Ghost
+    ElementLevel: 2
+    WalkSpeed: 180
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: Shadowdecon
+        Rate: 600
+      - Item: Ice_Water_Drop_Gem
+        Rate: 25
+      - Item: Small_Sewing_Box
+        Rate: 600
+      - Item: Evil_Minded_Ruby
+        Rate: 600
+      - Item: Etel_Dust
+        Rate: 600
+      - Item: Amber
+        Rate: 600
+      - Item: aegis_300558
+        Rate: 1
+        StealProtected: true
+  - Id: 22390
+    AegisName: CP_JACKONETTE
+    Name: Sturdy Jackonette
+    Level: 274
+    Hp: 50588600
+    BaseExp: 10389072
+    JobExp: 7272728
+    Attack: 293
+    Attack2: 202
+    Defense: 366
+    MagicDefense: 520
+    Str: 252
+    Agi: 218
+    Vit: 282
+    Int: 397
+    Dex: 341
+    Luk: 561
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Small
+    Race: Demon
+    Element: Ghost
+    ElementLevel: 2
+    WalkSpeed: 180
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: Shadowdecon
+        Rate: 600
+      - Item: Ice_Water_Drop_Gem
+        Rate: 25
+      - Item: Small_Sewing_Box
+        Rate: 600
+      - Item: Evil_Minded_Ruby
+        Rate: 600
+      - Item: Etel_Dust
+        Rate: 600
+      - Item: Amber
+        Rate: 600
+      - Item: aegis_300558
+        Rate: 1
+        StealProtected: true
+  - Id: 22391
+    AegisName: LIAMETTE
+    Name: Liamette
+    Level: 275
+    Hp: 29946400
+    BaseExp: 3521528
+    JobExp: 2452744
+    Attack: 323
+    Attack2: 232
+    Defense: 469
+    MagicDefense: 218
+    Str: 231
+    Agi: 159
+    Vit: 181
+    Int: 148
+    Dex: 183
+    Luk: 290
+    AttackRange: 2
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Medium
+    Race: Demihuman
+    Element: Earth
+    ElementLevel: 3
+    WalkSpeed: 150
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: Blue_Flame_Heart_Gem
+        Rate: 600
+      - Item: Evil_Minded_Ruby
+        Rate: 600
+      - Item: Heavy_Chain
+        Rate: 600
+      - Item: Etel_Dust
+        Rate: 600
+      - Item: Etel_Stone
+        Rate: 600
+      - Item: Zelunium
+        Rate: 600
+      - Item: Violet_Jewel
+        Rate: 600
+      - Item: aegis_300559
+        Rate: 1
+        StealProtected: true
+  - Id: 22392
+    AegisName: CP_LIAMETTE
+    Name: Sturdy Liamette
+    Level: 275
+    Hp: 65891020
+    BaseExp: 10564584
+    JobExp: 7358234
+    Attack: 356
+    Attack2: 265
+    Defense: 540
+    MagicDefense: 271
+    Str: 331
+    Agi: 191
+    Vit: 257
+    Int: 220
+    Dex: 280
+    Luk: 430
+    AttackRange: 2
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Medium
+    Race: Demihuman
+    Element: Earth
+    ElementLevel: 3
+    WalkSpeed: 150
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: Blue_Flame_Heart_Gem
+        Rate: 600
+      - Item: Evil_Minded_Ruby
+        Rate: 600
+      - Item: Heavy_Chain
+        Rate: 600
+      - Item: Etel_Dust
+        Rate: 600
+      - Item: Etel_Stone
+        Rate: 600
+      - Item: Zelunium
+        Rate: 600
+      - Item: Violet_Jewel
+        Rate: 600
+      - Item: aegis_300559
+        Rate: 1
+        StealProtected: true
+  - Id: 22393
+    AegisName: G_LIAMETTE
+    Name: Liamette
+    Level: 275
+    Hp: 29946400
+    Attack: 323
+    Attack2: 232
+    Defense: 469
+    MagicDefense: 218
+    Str: 231
+    Agi: 159
+    Vit: 181
+    Int: 148
+    Dex: 183
+    Luk: 290
+    AttackRange: 2
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Medium
+    Race: Demihuman
+    Element: Earth
+    ElementLevel: 3
+    WalkSpeed: 150
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+  - Id: 22394
+    AegisName: NIGHTMARE_PIAMETTE
+    Name: Nightmare Piamette
+    Level: 275
+    Hp: 754280400
+    BaseExp: 45014318
+    JobExp: 31352472
+    Attack: 508
+    Attack2: 417
+    Defense: 1308
+    MagicDefense: 658
+    Str: 520
+    Agi: 301
+    Vit: 420
+    Int: 400
+    Dex: 421
+    Luk: 560
+    AttackRange: 2
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Large
+    Race: Demihuman
+    Element: Neutral
+    ElementLevel: 3
+    WalkSpeed: 150
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 100
+    Ai: 21
+    Class: Boss
+    Modes:
+      Mvp: true
+    Drops:
+      - Item: aegis_300560
+        Rate: 1
+        StealProtected: true
+  - Id: 22395
+    AegisName: MEDJED
+    Name: Medjed
+    Level: 272
+    Hp: 23535500
+    BaseExp: 3367462
+    JobExp: 2345438
+    Attack: 374
+    Attack2: 283
+    Defense: 502
+    MagicDefense: 233
+    Str: 300
+    Agi: 195
+    Vit: 245
+    Int: 195
+    Dex: 222
+    Luk: 365
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Small
+    Race: Angel
+    Element: Ghost
+    ElementLevel: 2
+    WalkSpeed: 120
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: aegis_300561
+        Rate: 1
+        StealProtected: true
+  - Id: 22396
+    AegisName: CP_MEDJED
+    Name: Sturdy Medjed
+    Level: 272
+    Hp: 51788960
+    BaseExp: 10102388
+    JobExp: 7036314
+    Attack: 414
+    Attack2: 323
+    Defense: 582
+    MagicDefense: 292
+    Str: 429
+    Agi: 234
+    Vit: 348
+    Int: 290
+    Dex: 335
+    Luk: 542
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Small
+    Race: Angel
+    Element: Ghost
+    ElementLevel: 2
+    WalkSpeed: 120
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: aegis_300561
+        Rate: 1
+        StealProtected: true
+  - Id: 22397
+    AegisName: MEDJAY
+    Name: Medjay
+    Level: 274
+    Hp: 26708750
+    BaseExp: 3484274
+    JobExp: 2426796
+    Attack: 331
+    Attack2: 240
+    Defense: 474
+    MagicDefense: 221
+    Str: 285
+    Agi: 165
+    Vit: 240
+    Int: 190
+    Dex: 188
+    Luk: 362
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Medium
+    Race: Demihuman
+    Element: Fire
+    ElementLevel: 3
+    WalkSpeed: 150
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: aegis_300562
+        Rate: 1
+        StealProtected: true
+  - Id: 22398
+    AegisName: CP_MEDJAY
+    Name: Sturdy Medjay
+    Level: 274
+    Hp: 58768350
+    BaseExp: 10452822
+    JobExp: 7280390
+    Attack: 364
+    Attack2: 273
+    Defense: 547
+    MagicDefense: 274
+    Str: 408
+    Agi: 198
+    Vit: 341
+    Int: 283
+    Dex: 289
+    Luk: 537
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Medium
+    Race: Demihuman
+    Element: Fire
+    ElementLevel: 3
+    WalkSpeed: 150
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: aegis_300562
+        Rate: 1
+        StealProtected: true
+  - Id: 22399
+    AegisName: OPHOIS
+    Name: Ophois
+    Level: 275
+    Hp: 27228250
+    BaseExp: 3521528
+    JobExp: 2452744
+    Attack: 336
+    Attack2: 245
+    Defense: 478
+    MagicDefense: 223
+    Str: 288
+    Agi: 168
+    Vit: 242
+    Int: 192
+    Dex: 194
+    Luk: 365
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Large
+    Race: Undead
+    Element: Dark
+    ElementLevel: 2
+    WalkSpeed: 170
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: aegis_300563
+        Rate: 1
+        StealProtected: true
+  - Id: 22400
+    AegisName: CP_OPHOIS
+    Name: Sturdy Ophois
+    Level: 275
+    Hp: 60011470
+    BaseExp: 10564584
+    JobExp: 7358234
+    Attack: 371
+    Attack2: 280
+    Defense: 552
+    MagicDefense: 277
+    Str: 412
+    Agi: 202
+    Vit: 344
+    Int: 286
+    Dex: 294
+    Luk: 542
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Large
+    Race: Undead
+    Element: Dark
+    ElementLevel: 2
+    WalkSpeed: 170
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: aegis_300563
+        Rate: 1
+        StealProtected: true
+  - Id: 22401
+    AegisName: HEKA
+    Name: Heka
+    Level: 273
+    Hp: 23207890
+    BaseExp: 3411768
+    JobExp: 2387048
+    Attack: 224
+    Attack2: 133
+    Defense: 282
+    MagicDefense: 364
+    Str: 175
+    Agi: 137
+    Vit: 195
+    Int: 270
+    Dex: 220
+    Luk: 375
+    AttackRange: 7
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Large
+    Race: Demon
+    Element: Wind
+    ElementLevel: 3
+    WalkSpeed: 200
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: aegis_300564
+        Rate: 1
+        StealProtected: true
+  - Id: 22402
+    AegisName: CP_HEKA
+    Name: Sturdy Heka
+    Level: 273
+    Hp: 51101790
+    BaseExp: 10235304
+    JobExp: 7161144
+    Attack: 280
+    Attack2: 189
+    Defense: 348
+    MagicDefense: 504
+    Str: 251
+    Agi: 205
+    Vit: 277
+    Int: 402
+    Dex: 332
+    Luk: 557
+    AttackRange: 7
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Large
+    Race: Demon
+    Element: Wind
+    ElementLevel: 3
+    WalkSpeed: 200
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+    Drops:
+      - Item: aegis_300564
+        Rate: 1
+        StealProtected: true
+  - Id: 22403
+    AegisName: G_OPHOIS
+    Name: Ophois
+    Level: 275
+    Hp: 27228250
+    Attack: 336
+    Attack2: 245
+    Defense: 478
+    MagicDefense: 223
+    Str: 288
+    Agi: 168
+    Vit: 242
+    Int: 192
+    Dex: 194
+    Luk: 365
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Large
+    Race: Undead
+    Element: Dark
+    ElementLevel: 2
+    WalkSpeed: 170
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 1000
+    Ai: 05
+  - Id: 22404
+    AegisName: GUIDE_OF_DEAD
+    Name: Guide of Dead
+    Level: 275
+    Hp: 776870690
+    BaseExp: 45014318
+    JobExp: 31352472
+    Attack: 511
+    Attack2: 420
+    Defense: 1312
+    MagicDefense: 660
+    Str: 525
+    Agi: 303
+    Vit: 422
+    Int: 402
+    Dex: 243
+    Luk: 562
+    AttackRange: 2
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Large
+    Race: Undead
+    Element: Dark
+    ElementLevel: 3
+    WalkSpeed: 120
+    AttackDelay: 542
+    AttackMotion: 422
+    ClientAttackMotion: 240
+    DamageMotion: 540
+    DamageTaken: 100
+    Ai: 21
+    Class: Boss
+    Modes:
+      Mvp: true
+    Drops:
+      - Item: aegis_300565
+        Rate: 1
+        StealProtected: true
