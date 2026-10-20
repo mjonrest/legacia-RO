@@ -242,6 +242,21 @@ function	script	Claw_Machine_Gacha	{
 	
 	setarray .@low[0], 5977,19528,19541,19552,19553,19566,19584,19605,19606,19634,19783,19785,19902,19947,19992,20015,20022,20054,20091,20169,20201,20202,20223,20239,20259,20279,20305,20326,20328,20342,20364,20365,20366,20367,20368,20369,20370,20429,20440,20441,20462,20798,31055,31071,31072,31073,31074,31075,31076,31077,31078,31079,31080,31081,31082,31083,31084,31085,31086,31087,31093,31121,31152,31164,31181,31189,31251,31300,31315,31438,31453,31566,31671,31729,31735,31852;
 	
+	// Costume Headgear Box (item 30063): always gives one upper, mid or lower costume, not bound
+	if (getarg(0,0) == 1) {
+		.@type = rand(3);
+		if (.@type == 0)
+			.@item = .@top[rand(getarraysize(.@top))];
+		else if (.@type == 1)
+			.@item = .@mid[rand(getarraysize(.@mid))];
+		else
+			.@item = .@low[rand(getarraysize(.@low))];
+		getitem .@item,1;
+		specialeffect2 EF_GANBANTEIN;
+		dispbottom "[Costume Headgear Box] You got " + getitemname(.@item) + "!";
+		return;
+	}
+
 	mes "[Gacha Machine]";
 	mes "Spinning...";
 	progressbar "ffffff", 3;

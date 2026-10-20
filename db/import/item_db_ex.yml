@@ -329,3 +329,10 @@ Body:
     Weight: 10
     Script: |
        callfunc("ex_acc");
+  - Id: 30063
+    AegisName: Costume_Headgear_Box
+    Name: Costume Headgear Box
+    Type: Usable
+    Weight: 10
+    Script: |
+       callfunc("Claw_Machine_Gacha",1);
