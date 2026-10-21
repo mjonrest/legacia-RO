@@ -11920,6 +11920,8 @@ static const struct _battle_data {
 	{ "autohunt_exp_rate",                  &battle_config.autohunt_exp_rate,               50,     0,      100,            },
 	{ "autohunt_drop_rate",                 &battle_config.autohunt_drop_rate,              50,     0,      100,            },
 	{ "autohunt_mastery_rate",              &battle_config.autohunt_mastery_rate,           50,     0,      100,            },
+	{ "feature.turbo",                      &battle_config.feature_turbo,                   1,      0,      1,              },
+	{ "turbo_interval",                     &battle_config.turbo_interval,                  100,    50,     1000,           },
 
 #include <custom/battle_config_init.inc>
 };

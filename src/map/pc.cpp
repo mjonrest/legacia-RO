@@ -3418,6 +3418,8 @@ bool pc_authok(map_session_data *sd, uint32 login_id2, time_t expiration_time, i
 	sd->respawn_tid = INVALID_TIMER;
 	sd->autohunt = {};
 	sd->autohunt.tid = INVALID_TIMER;
+	sd->turbo = {};
+	sd->turbo.tid = INVALID_TIMER;
 	sd->tid_queue_active = INVALID_TIMER;
 	sd->macro_detect.timer = INVALID_TIMER;
 
@@ -18017,6 +18019,178 @@ void pc_autohunt_moblist( map_session_data& sd ){
 	pc_setreg( &sd, add_str( "@ah_mob_count" ), count );
 }
 
+/**
+ * Skill repeat (@turbo)
+ * While @turbo is on, the last attack skill the player used on an enemy (or damage skill on the
+ * ground) is cast again as soon as cast delay and cooldown allow, until the target dies, the
+ * spot has no enemies left, or the player walks, attacks, sits or uses another skill.
+ */
+#define TURBO_FAIL_LIMIT 3 // Failed casts in a row before the skill is forgotten
+
+static TIMER_FUNC(pc_turbo_timer);
+
+/**
+ * Remembers a skill the player just used, so @turbo repeats it.
+ * Skills that can't be repeated make @turbo forget the old one.
+ * @param sd: Player
+ * @param skill_id: Skill used
+ * @param skill_lv: Level used
+ * @param target_id: Target of a targeted skill, 0 for a ground skill
+ * @param x, y: Spot of a ground skill
+ */
+void pc_turbo_remember( map_session_data& sd, uint16 skill_id, uint16 skill_lv, int32 target_id, int16 x, int16 y ){
+	if( !sd.turbo.active )
+		return;
+
+	pc_turbo_forget( sd );
+
+	if( sd.autohunt.active || skill_id == 0 || skill_lv == 0 )
+		return;
+
+	int32 inf = skill_get_inf( skill_id );
+
+	if( target_id != 0 ){
+		// Only attack skills on enemies, never buffs, heals or self skills
+		block_list* target = map_id2bl( target_id );
+
+		if( !( inf & INF_ATTACK_SKILL ) || target == nullptr || target->id == sd.id || battle_check_target( &sd, target, BCT_ENEMY ) <= 0 )
+			return;
+	}else{
+		// Only ground skills that do damage, not Warp Portal, Pneuma, Sanctuary...
+		if( !( inf & INF_GROUND_SKILL ) || skill_get_nk( skill_id, NK_NODAMAGE ) )
+			return;
+	}
+
+	sd.turbo.skill_id = skill_id;
+	sd.turbo.skill_lv = skill_lv;
+	sd.turbo.target_id = target_id;
+	sd.turbo.m = sd.m;
+	sd.turbo.x = x;
+	sd.turbo.y = y;
+	sd.turbo.fails = 0;
+}
+
+/**
+ * Stops repeating the remembered skill (@turbo stays on)
+ * @param sd: Player
+ */
+void pc_turbo_forget( map_session_data& sd ){
+	sd.turbo.skill_id = 0;
+	sd.turbo.skill_lv = 0;
+	sd.turbo.target_id = 0;
+	sd.turbo.fails = 0;
+}
+
+static int32 pc_turbo_enemy_sub( block_list* bl, va_list ap ){
+	map_session_data* sd = va_arg( ap, map_session_data* );
+
+	return ( !status_isdead( *bl ) && battle_check_target( sd, bl, BCT_ENEMY ) > 0 ) ? 1 : 0;
+}
+
+static void pc_turbo_cast( map_session_data& sd, t_tick tick ){
+	uint16 skill_id = sd.turbo.skill_id;
+	uint16 skill_lv = sd.turbo.skill_lv;
+
+	if( pc_isdead( &sd ) || sd.m != sd.turbo.m || sd.autohunt.active || pc_checkskill( &sd, skill_id ) < skill_lv ){
+		pc_turbo_forget( sd );
+		return;
+	}
+
+	// Wait until the player could use the skill again by hand
+	if( sd.ud.skilltimer != INVALID_TIMER || DIFF_TICK( tick, sd.ud.canact_tick ) < 0 || sd.scd.count( skill_id ) )
+		return;
+
+	if( pc_cant_act( &sd ) || pc_issit( &sd ) || ( sd.state.block_action & PCBLOCK_SKILL ) || sd.menuskill_id || ( sd.sc.option & OPTION_COSTUME ) )
+		return;
+
+	if( skill_isNotOk( skill_id, sd ) || sd.battle_status.sp < static_cast<uint32>( skill_get_sp( skill_id, skill_lv ) ) ){
+		pc_turbo_forget( sd );
+		return;
+	}
+
+	int32 ok;
+
+	if( sd.turbo.target_id != 0 ){
+		block_list* target = map_id2bl( sd.turbo.target_id );
+
+		if( target == nullptr || target->m != sd.m || status_isdead( *target ) || battle_check_target( &sd, target, BCT_ENEMY ) <= 0 || !check_distance_bl( &sd, target, AREA_SIZE ) ){
+			pc_turbo_forget( sd );
+			return;
+		}
+
+		// Out of reach for now: wait for it to come back instead of walking after it
+		if( !battle_check_range( &sd, target, skill_get_range2( &sd, skill_id, skill_lv, true ) ) )
+			return;
+
+		ok = unit_skilluse_id( &sd, target->id, skill_id, skill_lv );
+	}else{
+		int16 x = sd.turbo.x, y = sd.turbo.y;
+		int32 area = max( skill_get_splash( skill_id, skill_lv ), 0 ) + 1;
+
+		// Nothing left to hit on the spot
+		if( map_foreachinarea( pc_turbo_enemy_sub, sd.m, x - area, y - area, x + area, y + area, BL_CHAR, &sd ) == 0 ){
+			pc_turbo_forget( sd );
+			return;
+		}
+
+		ok = unit_skilluse_pos( &sd, x, y, skill_id, skill_lv );
+	}
+
+	if( ok ){
+		sd.turbo.fails = 0;
+		// Same as a player using the skill by hand
+		if( battle_config.idletime_option & ( sd.turbo.target_id != 0 ? IDLE_USESKILLTOID : IDLE_USESKILLTOPOS ) )
+			sd.idletime = last_tick;
+	}else if( ++sd.turbo.fails >= TURBO_FAIL_LIMIT ) // missing gemstones, blocked by a status...
+		pc_turbo_forget( sd );
+}
+
+static TIMER_FUNC(pc_turbo_timer){
+	map_session_data* sd = map_id2sd( id );
+
+	if( sd == nullptr || sd->turbo.tid != tid )
+		return 0;
+
+	sd->turbo.tid = INVALID_TIMER;
+
+	if( !sd->turbo.active )
+		return 0;
+
+	if( sd->turbo.skill_id != 0 && sd->prev != nullptr && !sd->state.warping )
+		pc_turbo_cast( *sd, tick );
+
+	sd->turbo.tid = add_timer( tick + battle_config.turbo_interval, pc_turbo_timer, sd->id, 0 );
+
+	return 0;
+}
+
+/**
+ * Turns @turbo on
+ * @param sd: Player
+ */
+void pc_turbo_start( map_session_data& sd ){
+	if( sd.turbo.active )
+		return;
+
+	sd.turbo.active = true;
+	pc_turbo_forget( sd );
+	sd.turbo.tid = add_timer( gettick() + battle_config.turbo_interval, pc_turbo_timer, sd.id, 0 );
+}
+
+/**
+ * Turns @turbo off
+ * @param sd: Player
+ */
+void pc_turbo_stop( map_session_data& sd ){
+	sd.turbo.active = false;
+	pc_turbo_forget( sd );
+
+	if( sd.turbo.tid != INVALID_TIMER ){
+		delete_timer( sd.turbo.tid, pc_turbo_timer );
+		sd.turbo.tid = INVALID_TIMER;
+	}
+}
+
 /* this timer exists only when a character with a expire timer > 24h is online */
 /* it loops thru online players once an hour to check whether a new < 24h is available */
 TIMER_FUNC(pc_global_expiration_timer){
@@ -19427,6 +19601,7 @@ void do_init_pc(void) {
 	add_timer_func_list(pc_expiration_timer, "pc_expiration_timer");
 	add_timer_func_list(pc_autotrade_timer, "pc_autotrade_timer");
 	add_timer_func_list(pc_autohunt_timer, "pc_autohunt_timer");
+	add_timer_func_list(pc_turbo_timer, "pc_turbo_timer");
 	add_timer_func_list(pc_on_expire_active, "pc_on_expire_active");
 	add_timer_func_list(pc_macro_detector_timeout, "pc_macro_detector_timeout");
 	add_timer_func_list( pc_goldpc_update, "pc_goldpc_update" );

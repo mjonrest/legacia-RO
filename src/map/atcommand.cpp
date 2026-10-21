@@ -7115,6 +7115,51 @@ ACMD_FUNC(autohunt)
 }
 
 /*==========================================
+ * @turbo - Repeats your last attack skill
+ *   @turbo : turn on/off
+ * While on, the last attack skill you used on a monster (or damage skill on the ground)
+ * is cast again as soon as cast delay and cooldown allow, until the target dies
+ * or you walk, attack, sit or use another skill.
+ *------------------------------------------*/
+ACMD_FUNC(turbo)
+{
+	char sub[32] = "";
+
+	nullpo_retr(-1, sd);
+
+	if (!battle_config.feature_turbo) {
+		clif_displaymessage(fd, "Turbo is disabled on this server.");
+		return -1;
+	}
+
+	if (message && *message)
+		sscanf(message, "%31s", sub);
+
+	bool on;
+
+	if (!*sub)
+		on = !sd->turbo.active;
+	else if (!strcmpi(sub, "on"))
+		on = true;
+	else if (!strcmpi(sub, "off"))
+		on = false;
+	else {
+		clif_displaymessage(fd, "Usage: @turbo [on|off]");
+		return -1;
+	}
+
+	if (on) {
+		pc_turbo_start(*sd);
+		clif_displaymessage(fd, "Turbo is now ON. Your last attack skill is repeated until the target dies or you walk, attack or use another skill.");
+	} else {
+		pc_turbo_stop(*sd);
+		clif_displaymessage(fd, "Turbo is now OFF.");
+	}
+
+	return 0;
+}
+
+/*==========================================
  * @autoloot by Upa-Kun
  * Turns on/off AutoLoot for a specific player
  *------------------------------------------*/
@@ -12476,6 +12521,7 @@ void atcommand_basecommands(void) {
 		ACMD_DEF(showdelay),
 		ACMD_DEF(autotrade),
 		ACMD_DEF(autohunt),
+		ACMD_DEF(turbo),
 		ACMD_DEF(changegm),
 		ACMD_DEF(changeleader),
 		ACMD_DEF(partyoption),

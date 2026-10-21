@@ -11753,6 +11753,7 @@ void clif_parse_WalkToXY(int32 fd, map_session_data *sd)
 	if (battle_config.mer_idle_no_share && sd->md && battle_config.idletime_mer_option&IDLE_WALK)
 		sd->idletime_mer = last_tick;
 
+	pc_turbo_forget( *sd ); // walking stops @turbo's skill repeat
 	unit_walktoxy(sd, x, y, 4);
 }
 
@@ -12042,6 +12043,7 @@ void clif_parse_ActionRequest_sub( map_session_data& sd, uint8 action_type, int3
 	}
 
 	unit_stop_attack( &sd );
+	pc_turbo_forget( sd ); // attacking, sitting... stops @turbo's skill repeat
 
 	if(target_id<0 && -target_id == sd.id) // for disguises [Valaris]
 		target_id = sd.id;
@@ -13314,8 +13316,11 @@ void clif_parse_skill_toid( map_session_data* sd, uint16 skill_id, uint16 skill_
 
 	pc_delinvincibletimer(sd);
 
-	if( skill_lv )
-		unit_skilluse_id(sd, target_id, skill_id, skill_lv);
+	// @turbo repeats the skill if it was used
+	if( skill_lv && unit_skilluse_id(sd, target_id, skill_id, skill_lv) )
+		pc_turbo_remember( *sd, skill_id, skill_lv, target_id, 0, 0 );
+	else
+		pc_turbo_forget( *sd );
 }
 
 
@@ -13419,7 +13424,11 @@ static void clif_parse_UseSkillToPosSub( int32 fd, map_session_data& sd, uint16 
 		if( (lv = pc_checkskill(&sd, skill_id)) > 0 ) {
 			if( skill_lv > lv )
 				skill_lv = lv;
-			unit_skilluse_pos(&sd, x, y, skill_id,skill_lv);
+			// @turbo repeats the skill if it was used
+			if( unit_skilluse_pos(&sd, x, y, skill_id,skill_lv) )
+				pc_turbo_remember( sd, skill_id, skill_lv, 0, x, y );
+			else
+				pc_turbo_forget( sd );
 		}
 	}
 }

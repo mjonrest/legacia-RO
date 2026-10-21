@@ -48,6 +48,7 @@ Body:
     Commands:
       autotrade: true
       autohunt: true
+      turbo: true
       go: true
       showexp: true
       #warp: true

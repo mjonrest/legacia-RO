@@ -1060,6 +1060,17 @@ public:
 		bool offline;           ///< Character keeps hunting without a client
 	} autohunt;
 
+	/// Skill repeat (@turbo) runtime state
+	struct s_turbo {
+		int32 tid;              ///< Repeat timer
+		int32 target_id;        ///< Target of the remembered skill, 0 for a ground skill
+		uint16 skill_id;        ///< Skill being repeated, 0 = none
+		uint16 skill_lv;
+		int16 m, x, y;          ///< Map, and spot of a ground skill
+		uint8 fails;            ///< Failed casts in a row
+		bool active;            ///< @turbo is on
+	} turbo;
+
 
 	void update_look( _look look );
 };
@@ -1854,6 +1865,12 @@ void pc_autohunt_skilllist(map_session_data& sd, bool buffs);
 void pc_autohunt_moblist(map_session_data& sd);
 int64 pc_autohunt_timeleft(map_session_data& sd);
 bool pc_autohunt_device_ok(map_session_data& sd, bool offline);
+
+// Skill repeat (@turbo)
+void pc_turbo_start(map_session_data& sd);
+void pc_turbo_stop(map_session_data& sd);
+void pc_turbo_remember(map_session_data& sd, uint16 skill_id, uint16 skill_lv, int32 target_id, int16 x, int16 y);
+void pc_turbo_forget(map_session_data& sd);
 
 void do_final_pc(void);
 

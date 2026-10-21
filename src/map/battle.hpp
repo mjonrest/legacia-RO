@@ -806,6 +806,10 @@ struct Battle_Config
 	int32 autohunt_drop_rate;
 	int32 autohunt_mastery_rate;
 
+	// Skill repeat (@turbo)
+	int32 feature_turbo;
+	int32 turbo_interval;
+
 #include <custom/battle_config_struct.inc>
 };
 
