@@ -2,8 +2,8 @@
 //= Halloween Event: 7 Nights of Jack
 //===== Description: =========================================
 //= A multi-day Halloween quest line. Players clear ONE night per
-//= day (resets at 00:00 server time). After 7 nights they pick a
-//= Halloween costume as the final reward.
+//= day (resets at 00:00 server time). After 7 nights they get a
+//= random Halloween headgear + garment costume and items.
 //=
 //= - Progress is per account (#HW_*), so any character counts.
 //= - Newbie friendly: "monster" kills only need a monster that is
@@ -103,8 +103,9 @@ prontera,159,183,4	script	Jack the Pumpkin Keeper	1130,{
 		mes "Every day I give you ^FF6600one^000000 night task.";
 		mes "Finish it, then come back ^FF6600tomorrow^000000";
 		mes "for the next night. Tasks reset at 00:00.";
-		mes "After ^FF6600" + .nights + " nights^000000 you choose a";
-		mes "^FF6600Halloween costume^000000 as the final reward!";
+		mes "After ^FF6600" + .nights + " nights^000000 you get a random";
+		mes "^FF6600Halloween headgear and garment costume^000000";
+		mes "plus more treats as the final reward!";
 		next;
 		mes .@n$;
 		mes "- ^FF6600Monsters^000000: any monster not more than";
@@ -288,29 +289,30 @@ prontera,159,183,4	script	Jack the Pumpkin Keeper	1130,{
 	close;
 
 S_Final:
+	if (#HW_FINAL)
+		return;
 	mes "[Jack the Pumpkin Keeper]";
 	mes "You kept my lanterns lit for " + .nights + " nights!";
-	mes "Choose your Halloween costume.";
+	mes "Here is your reward, open your hands...";
 	next;
-	callsub S_PickCostume;
 	#HW_FINAL = 1;
+	.@head = .final_head[rand(getarraysize(.final_head))];
+	.@garment = .final_garment[rand(getarraysize(.final_garment))];
+	getitembound .@head, 1, BOUND_ACCOUNT;
+	getitembound .@garment, 1, BOUND_ACCOUNT;
+	mes "[Jack the Pumpkin Keeper]";
+	mes "- " + mesitemlink(.@head);
+	mes "- " + mesitemlink(.@garment);
+	for (.@i = 0; .@i < getarraysize(.final_item); .@i++) {
+		// Skip IDs that are not in the item db (getitem would stop the script)
+		if (getitemname(.final_item[.@i]) == "null")
+			continue;
+		getitem .final_item[.@i], .final_amt[.@i];
+		mes "- " + .final_amt[.@i] + "x " + mesitemlink(.final_item[.@i]);
+	}
+	mes "The costumes are ^FF0000account bound^000000.";
 	specialeffect2 EF_ANGEL2;
-	announce "[Halloween] " + strcharinfo(0) + " survived all " + .nights + " nights of Jack and earned a Halloween costume!", bc_all, 0xFF8C00;
-	return;
-
-S_PickCostume:
-	.@menu$ = "";
-	for (.@i = 0; .@i < getarraysize(.costumes); .@i++)
-		.@menu$ += getitemname(.costumes[.@i]) + ":";
-	mes "[Jack the Pumpkin Keeper]";
-	mes "Pick one costume. It is ^FF0000account bound^000000.";
-	for (.@i = 0; .@i < getarraysize(.costumes); .@i++)
-		mes "- " + mesitemlink(.costumes[.@i]);
-	next;
-	.@pick = select(.@menu$) - 1;
-	getitembound .costumes[.@pick], 1, BOUND_ACCOUNT;
-	mes "[Jack the Pumpkin Keeper]";
-	mes "Enjoy your " + mesitemlink(.costumes[.@pick]) + "!";
+	announce "[Halloween] " + strcharinfo(0) + " survived all " + .nights + " nights of Jack and received " + getitemname(.@head) + " and " + getitemname(.@garment) + "!", bc_all, 0xFF8C00;
 	return;
 
 S_Shop:
@@ -318,7 +320,7 @@ S_Shop:
 	.@menu$ = "";
 	for (.@i = 0; .@i < .@size; .@i++)
 		.@menu$ += .shop_amt[.@i] + "x " + getitemname(.shop_id[.@i]) + " (" + .shop_cost[.@i] + " candy):";
-	.@menu$ += "Halloween costume (" + .costume_cost + " candy):Cancel";
+	.@menu$ += "Random Halloween headgear (" + .costume_cost + " candy):Cancel";
 	mes "[Jack's Candy Shop]";
 	mes "Pumpkin Candy: ^FF6600" + #HW_CANDY + "^000000";
 	next;
@@ -333,7 +335,10 @@ S_Shop:
 	}
 	if (.@s == .@size) {
 		#HW_CANDY -= .@cost;
-		callsub S_PickCostume;
+		.@head = .final_head[rand(getarraysize(.final_head))];
+		getitembound .@head, 1, BOUND_ACCOUNT;
+		mes "[Jack's Candy Shop]";
+		mes "You got " + mesitemlink(.@head) + "! (account bound)";
 		return;
 	}
 	if (!checkweight(.shop_id[.@s], .shop_amt[.@s])) {
@@ -381,8 +386,19 @@ OnInit:
 	setarray .reward_id[0],  12192, 12215, 12192, 529, 12216, 12210, 12208;
 	setarray .reward_amt[0],    10,     3,    10,  10,     3,     1,     2;
 
-	// Final reward choices (account bound costumes)
-	setarray .costumes[0], 20225, 31581, 19910, 19903, 20055, 420078, 20543;
+	// Final reward: 1 random headgear costume + 1 random garment costume
+	// (both account bound) + every item in .final_item
+	setarray .final_head[0],
+		15888, 19290, 19525, 19727, 19903, 19904, 19910, 19915, 19917, 20055,  // top
+		20098, 20172, 20174, 20225, 20394, 20395, 31123, 31314, 31322, 31385,
+		31525, 31530, 31581, 31607, 31708, 31832, 400370, 400516, 400565, 400634,
+		401248, 420593,
+		5912, 19542, 19621, 19846, 20215, 31120, 31310, 31853, 410060, 410074,  // mid
+		410201, 410242, 410363, 420596,
+		19683, 20034, 20798, 31833, 31834, 31852, 420025, 420053, 420078;       // low
+	setarray .final_garment[0], 480436, 480493, 480393, 20588, 480288, 20621, 480235, 480169, 20590, 20547, 20762, 20737, 20502, 480290, 20514, 20586;
+	setarray .final_item[0], 30012, 14003, 7621, 3007;
+	setarray .final_amt[0],      5,    10,   10,  100;
 
 	// Candy Shop
 	setarray .shop_id[0],   12192, 12215, 12216, 12208, 12214, 12210;
@@ -402,7 +418,7 @@ OnAtcommand:
 		end;
 	}
 	if (#HW_NIGHT >= .nights) {
-		dispbottom "[Halloween] All " + .nights + " nights done! Candy: " + #HW_CANDY + (#HW_FINAL ? "" : ". Talk to Jack for your costume!");
+		dispbottom "[Halloween] All " + .nights + " nights done! Candy: " + #HW_CANDY + (#HW_FINAL ? "" : ". Talk to Jack for your final reward!");
 		end;
 	}
 	callfunc "F_HW_ShowTask", 1;
