@@ -1,0 +1,594 @@
+//===== Legacia RO Script ====================================
+//= Halloween Event: 7 Nights of Jack
+//===== Description: =========================================
+//= A multi-day Halloween quest line. Players clear ONE night per
+//= day (resets at 00:00 server time). After 7 nights they get a
+//= random Halloween headgear + garment costume and items.
+//=
+//= - Progress is per account (#HW_*), so any character counts.
+//= - Newbie friendly: "monster" kills only need a monster that is
+//=   at most .lv_gap levels below you (a Lv 10 can kill anything),
+//=   item hand-ins depend on Base Level, and missing a day does not
+//=   reset anything (the event window is longer than 7 days).
+//= - Kills are counted automatically once the player has joined.
+//= - Each night gives Pumpkin Candy (#HW_CANDY), EXP and items.
+//=   Candy is spent in Jack's Candy Shop.
+//= - Only one account per Gepard device can do the event: the first
+//=   account that clears a night on a device owns it ($HW_OWN_<id>),
+//=   other accounts on that device can't clear nights or claim the
+//=   final reward.
+//=
+//= Settings are in OnInit of "Jack the Pumpkin Keeper".
+//= GM (level >= .gm_level) gets an extra menu for testing.
+//============================================================
+
+// Clears the daily counters when a new day starts.
+function	script	F_HW_Sync	{
+	.@today = atoi(gettimestr("%Y%m%d", 9));
+	if (#HW_DAY != .@today) {
+		#HW_DAY = .@today;
+		#HW_KILL = 0;
+		#HW_GHOST = 0;
+		#HW_VISIT = 0;
+	}
+	return .@today;
+}
+
+// Device lock: one account per Gepard unique id for the whole event.
+// getarg(0) = 1 registers the device to this account when it is free.
+// Returns 1 when this account may continue, 0 after showing a message.
+function	script	F_HW_DeviceOk	{
+	if (!getvariableofnpc(.device_lock, "Jack the Pumpkin Keeper"))
+		return 1;
+	.@uid = get_unique_id();
+	if (!.@uid) {
+		mes "[Jack the Pumpkin Keeper]";
+		mes "I can't see your Gepard ID.";
+		mes "Please relog and try again.";
+		return 0;
+	}
+	.@var$ = "$HW_OWN_" + (.@uid < 0 ? "n" + (-.@uid) : "" + .@uid);
+	.@owner = getd(.@var$);
+	if (.@owner && .@owner != getcharid(3)) {
+		mes "[Jack the Pumpkin Keeper]";
+		mes "Another account on this computer is";
+		mes "already doing my Halloween event.";
+		mes "Only ^FF0000one account per device^000000 can";
+		mes "clear nights and claim the reward.";
+		return 0;
+	}
+	if (getarg(0) && !.@owner)
+		setd .@var$, getcharid(3);
+	return 1;
+}
+
+prontera,159,183,4	script	Jack the Pumpkin Keeper	1130,{
+	.@n$ = "[Jack the Pumpkin Keeper]";
+	.@today = callfunc("F_HW_Sync");
+
+	if (getgmlevel() >= .gm_level) {
+		mes .@n$;
+		mes "GM tools are available.";
+		next;
+		switch (select("Normal menu:Reset my progress:Unlock today's night:Add +1 night:Fill today's counters")) {
+		case 2:
+			#HW_JOIN = 0; #HW_NIGHT = 0; #HW_LAST = 0; #HW_FINAL = 0;
+			#HW_KILL = 0; #HW_GHOST = 0; #HW_VISIT = 0;
+			.@uid = get_unique_id();
+			if (.@uid)
+				setd "$HW_OWN_" + (.@uid < 0 ? "n" + (-.@uid) : "" + .@uid), 0;
+			mes .@n$;
+			mes "Progress and this device's lock reset.";
+			close;
+		case 3:
+			#HW_LAST = 0;
+			mes .@n$;
+			mes "Today's lock removed.";
+			close;
+		case 4:
+			if (#HW_NIGHT < .nights)
+				#HW_NIGHT++;
+			mes .@n$;
+			mes "Nights done: " + #HW_NIGHT + "/" + .nights + ".";
+			close;
+		case 5:
+			#HW_KILL = 999;
+			#HW_GHOST = 999;
+			#HW_VISIT = (1 << .ghost_count) - 1;
+			mes .@n$;
+			mes "Kills and visits filled (items still needed).";
+			close;
+		}
+	}
+
+	mes .@n$;
+	if (.@today < .start) {
+		mes "Hehehe... the Halloween nights";
+		mes "have not started yet.";
+		mes "Come back on ^FF6600" + .start_txt$ + "^000000!";
+		close;
+	}
+	if (.@today > .end) {
+		mes "The Halloween nights are over.";
+		mes "The pumpkins sleep until next year.";
+		if (#HW_NIGHT >= .nights && !#HW_FINAL) {
+			next;
+			callsub S_Final;
+			close;
+		}
+		if (#HW_CANDY) {
+			next;
+			if (select("Spend my leftover candy:Leave") == 1)
+				callsub S_Shop;
+		}
+		close;
+	}
+	mes "Happy Halloween, " + strcharinfo(0) + "!";
+	if (#HW_JOIN)
+		mes "Nights done: ^FF6600" + #HW_NIGHT + "/" + .nights + "^000000";
+	mes "Pumpkin Candy: ^FF6600" + #HW_CANDY + "^000000";
+	next;
+	switch (select("Tonight's task:How does this event work?:Candy Shop:Leave")) {
+	case 1:
+		break;
+	case 2:
+		mes .@n$;
+		mes "Every day I give you ^FF6600one^000000 night task.";
+		mes "Finish it, then come back ^FF6600tomorrow^000000";
+		mes "for the next night. Tasks reset at 00:00.";
+		mes "After ^FF6600" + .nights + " nights^000000 you get a random";
+		mes "^FF6600Halloween headgear and garment costume^000000";
+		mes "plus more treats as the final reward!";
+		next;
+		mes .@n$;
+		mes "- ^FF6600Monsters^000000: any monster not more than";
+		mes "  " + .lv_gap + " levels below your Base Level.";
+		mes "- ^FF6600Ghostly monsters^000000: Undead or Demon race,";
+		mes "  or Undead/Ghost element. New players can";
+		mes "  hunt Skeletons and Zombies in Payon Cave.";
+		mes "- Item tasks depend on your Base Level.";
+		mes "- Kills count automatically. Type ^FF6600@halloween^000000";
+		mes "  to see your progress anywhere.";
+		next;
+		mes .@n$;
+		mes "Missing a day is fine, you just continue";
+		mes "where you stopped. The event runs from";
+		mes "^FF6600" + .start_txt$ + "^000000 to ^FF6600" + .end_txt$ + "^000000.";
+		mes "Progress is shared by your whole account.";
+		close;
+	case 3:
+		callsub S_Shop;
+		close;
+	default:
+		close;
+	}
+
+	// ---------------- Final reward ----------------
+	if (#HW_NIGHT >= .nights) {
+		if (#HW_FINAL) {
+			mes .@n$;
+			mes "You already finished all " + .nights + " nights.";
+			mes "Thank you for keeping Halloween alive!";
+			mes "You can still spend candy in my shop.";
+			close;
+		}
+		callsub S_Final;
+		close;
+	}
+
+	// ---------------- Join ----------------
+	if (!#HW_JOIN) {
+		mes .@n$;
+		mes "The pumpkin lanterns are going dark...";
+		mes "Will you help me keep them lit for";
+		mes "^FF6600" + .nights + " nights^000000?";
+		next;
+		if (select("Yes, I will help!:Not now") == 2)
+			close;
+		#HW_JOIN = 1;
+		#HW_KILL = 0;
+		#HW_GHOST = 0;
+		#HW_VISIT = 0;
+		mes .@n$;
+		mes "Wonderful! Your first night starts now.";
+		mes "Monsters you kill are counted";
+		mes "automatically. Come back when you're done.";
+		next;
+	}
+
+	.@night = #HW_NIGHT + 1;
+
+	if (#HW_LAST == .@today) {
+		mes .@n$;
+		mes "You already finished tonight's task.";
+		mes "Rest now, and come back ^FF6600tomorrow^000000";
+		mes "for Night " + .@night + ": " + .night_name$[.@night] + ".";
+		close;
+	}
+
+	.@kill = .night_kill[.@night];
+	.@ghost = .night_ghost[.@night];
+	.@visit = .night_visit[.@night];
+	.@cnt = callfunc("F_HW_ItemSet", .night_items[.@night]);
+	if (.@cnt) {
+		copyarray .@iid[0], @hw_iid[0], .@cnt;
+		copyarray .@iamt[0], @hw_iamt[0], .@cnt;
+	}
+
+	mes .@n$;
+	mes "^FF6600Night " + .@night + ": " + .night_name$[.@night] + "^000000";
+	mes .night_story$[.@night];
+	callfunc "F_HW_ShowTask";
+	next;
+
+	// Check every part (script && does not short-circuit, so plain ifs)
+	.@ok = 1;
+	if (#HW_KILL < .@kill) .@ok = 0;
+	if (#HW_GHOST < .@ghost) .@ok = 0;
+	if (.@visit) {
+		if (#HW_VISIT != (1 << .ghost_count) - 1)
+			.@ok = 0;
+	}
+	for (.@i = 0; .@i < .@cnt; .@i++) {
+		if (countitem(.@iid[.@i]) < .@iamt[.@i])
+			.@ok = 0;
+	}
+	if (!.@ok) {
+		mes .@n$;
+		mes "Not finished yet. Keep going!";
+		mes "Talk to me again any time to check.";
+		close;
+	}
+
+	// One account per Gepard device for the whole event
+	if (!callfunc("F_HW_DeviceOk", 0))
+		close;
+
+	mes .@n$;
+	if (.@cnt)
+		mes "Hand over the items and finish";
+	else
+		mes "Ready to finish";
+	mes "Night " + .@night + "?";
+	next;
+	if (select("Yes:Not yet") == 2)
+		close;
+
+	// Check again after the dialog, then take the items
+	for (.@i = 0; .@i < .@cnt; .@i++) {
+		if (countitem(.@iid[.@i]) < .@iamt[.@i]) {
+			mes .@n$;
+			mes "You're missing some items now.";
+			close;
+		}
+	}
+	if (#HW_LAST == atoi(gettimestr("%Y%m%d", 9)))
+		close;
+	for (.@i = 0; .@i < .@cnt; .@i++)
+		delitem .@iid[.@i], .@iamt[.@i];
+
+	callfunc "F_HW_DeviceOk", 1;
+
+	#HW_NIGHT = .@night;
+	#HW_LAST = .@today;
+
+	// Rewards
+	.@candy = (.@night == .nights ? .final_candy : .night_candy);
+	#HW_CANDY += .@candy;
+	.@pct = (.@night == .nights ? .final_exp_pct : .night_exp_pct);
+	.@bexp = NextBaseExp * .@pct / 100;
+	.@jexp = NextJobExp * .@pct / 100;
+	if (.@bexp > 0 || .@jexp > 0)
+		getexp2 .@bexp, .@jexp;
+	.@r = .@night - 1;
+	if (.reward_id[.@r])
+		getitem .reward_id[.@r], .reward_amt[.@r];
+	specialeffect2 EF_BAT;
+
+	mes .@n$;
+	mes "^00AA00Night " + .@night + " complete!^000000";
+	mes "+" + .@candy + " Pumpkin Candy (total " + #HW_CANDY + ")";
+	if (.@pct)
+		mes "+" + .@pct + "% Base/Job EXP";
+	if (.reward_id[.@r])
+		mes "+" + .reward_amt[.@r] + "x " + getitemname(.reward_id[.@r]);
+	if (.@night < .nights) {
+		mes " ";
+		mes "Come back ^FF6600tomorrow^000000 for Night " + (.@night + 1) + ".";
+		close;
+	}
+	next;
+	mes .@n$;
+	mes "You did it! All " + .nights + " nights are done!";
+	next;
+	callsub S_Final;
+	close;
+
+S_Final:
+	if (#HW_FINAL)
+		return;
+	if (!callfunc("F_HW_DeviceOk", 1))
+		return;
+	mes "[Jack the Pumpkin Keeper]";
+	mes "You kept my lanterns lit for " + .nights + " nights!";
+	mes "Here is your reward, open your hands...";
+	next;
+	#HW_FINAL = 1;
+	.@head = .final_head[rand(getarraysize(.final_head))];
+	.@garment = .final_garment[rand(getarraysize(.final_garment))];
+	getitem .@head, 1;
+	getitem .@garment, 1;
+	mes "[Jack the Pumpkin Keeper]";
+	mes "- " + mesitemlink(.@head);
+	mes "- " + mesitemlink(.@garment);
+	for (.@i = 0; .@i < getarraysize(.final_item); .@i++) {
+		// Skip IDs that are not in the item db (getitem would stop the script)
+		if (getitemname(.final_item[.@i]) == "null")
+			continue;
+		getitem .final_item[.@i], .final_amt[.@i];
+		mes "- " + .final_amt[.@i] + "x " + mesitemlink(.final_item[.@i]);
+	}
+	specialeffect2 EF_ANGEL2;
+	announce "[Halloween] " + strcharinfo(0) + " survived all " + .nights + " nights of Jack and received " + getitemname(.@head) + " and " + getitemname(.@garment) + "!", bc_all, 0xFF8C00;
+	return;
+
+S_Shop:
+	.@size = getarraysize(.shop_id);
+	.@menu$ = "";
+	for (.@i = 0; .@i < .@size; .@i++)
+		.@menu$ += .shop_amt[.@i] + "x " + getitemname(.shop_id[.@i]) + " (" + .shop_cost[.@i] + " candy):";
+	.@menu$ += "Random Halloween headgear (" + .costume_cost + " candy):Cancel";
+	mes "[Jack's Candy Shop]";
+	mes "Pumpkin Candy: ^FF6600" + #HW_CANDY + "^000000";
+	next;
+	.@s = select(.@menu$) - 1;
+	if (.@s > .@size)
+		return;
+	.@cost = (.@s == .@size ? .costume_cost : .shop_cost[.@s]);
+	if (#HW_CANDY < .@cost) {
+		mes "[Jack's Candy Shop]";
+		mes "You need " + .@cost + " candy for that.";
+		return;
+	}
+	if (.@s == .@size) {
+		#HW_CANDY -= .@cost;
+		.@head = .final_head[rand(getarraysize(.final_head))];
+		getitem .@head, 1;
+		mes "[Jack's Candy Shop]";
+		mes "You got " + mesitemlink(.@head) + "!";
+		return;
+	}
+	if (!checkweight(.shop_id[.@s], .shop_amt[.@s])) {
+		mes "[Jack's Candy Shop]";
+		mes "You're carrying too much.";
+		return;
+	}
+	#HW_CANDY -= .@cost;
+	getitem .shop_id[.@s], .shop_amt[.@s];
+	mes "[Jack's Candy Shop]";
+	mes "Here you go! Candy left: " + #HW_CANDY + ".";
+	return;
+
+OnInit:
+	// ---------------- Settings ----------------
+	.start = 20261026;          // first day (YYYYMMDD)
+	.end   = 20261115;          // last day (YYYYMMDD)
+	.start_txt$ = "Oct 26";
+	.end_txt$   = "Nov 15";
+	.gm_level = 99;
+	.device_lock = 1;           // 1 = only one account per Gepard device can do the event
+	.lv_gap = 30;               // "monster" counts if its level >= BaseLevel - lv_gap
+	.nights = 7;
+	.night_candy = 10;
+	.final_candy = 30;
+	.night_exp_pct = 5;         // % of the EXP needed for the next level
+	.final_exp_pct = 10;
+
+	// Night tasks, index = night (1..7)
+	setarray .night_name$[1], "Light the Lanterns", "Pumpkin Harvest", "Ghost Hunt", "Trick or Treat", "Witch's Brew", "The Long Night", "Jack's Final Night";
+	setarray .night_story$[1],
+		"Monsters blew out my lanterns. Teach them a lesson!",
+		"My pumpkin stew needs ingredients and the fields are full of monsters.",
+		"The dead are restless tonight. Put them back to sleep.",
+		"My Pumpkin Ghosts hide in Payon, Geffen, Alberta and Morroc. Visit them all!",
+		"The witch needs herbs and bottles for her brew, and ghosts to scare away.",
+		"The longest night of the year. Hold the line!",
+		"The Great Pumpkin rises! Defeat the ghosts and the monsters one last time.";
+	setarray .night_kill[1],  50, 80,  0, 60,  0, 150, 100;
+	setarray .night_ghost[1],  0,  0, 40,  0, 50,   0,  60;
+	setarray .night_items[1],  0,  1,  0,  0,  2,   0,   0;  // item set id, see F_HW_ItemSet
+	setarray .night_visit[1],  0,  0,  0,  1,  0,   0,   0;  // 1 = visit every Pumpkin Ghost
+
+	// Item reward per night (index 0 = night 1)
+	setarray .reward_id[0],  12192, 12215, 12192, 529, 12216, 12210, 12208;
+	setarray .reward_amt[0],    10,     3,    10,  10,     3,     1,     2;
+
+	// Final reward: 1 random headgear costume + 1 random garment costume
+	// + every item in .final_item
+	setarray .final_head[0],
+		15888, 19290, 19525, 19727, 19903, 19904, 19910, 19915, 19917, 20055,  // top
+		20098, 20172, 20174, 20225, 20394, 20395, 31123, 31314, 31322, 31385,
+		31525, 31530, 31581, 31607, 31708, 31832, 400370, 400516, 400565, 400634,
+		401248, 420593,
+		5912, 19542, 19621, 19846, 20215, 31120, 31310, 31853, 410060, 410074,  // mid
+		410201, 410242, 410363, 420596,
+		19683, 20034, 20798, 31833, 31834, 31852, 420025, 420053, 420078;       // low
+	setarray .final_garment[0], 480436, 480493, 480393, 20588, 480288, 20621, 480235, 480169, 20590, 20547, 20762, 20737, 20502, 480290, 20514, 20586;
+	setarray .final_item[0], 30012, 14003, 7621, 30007;
+	setarray .final_amt[0],      5,    10,   10,  100;
+
+	// Candy Shop
+	setarray .shop_id[0],   12192, 12215, 12216, 12208, 12214, 12210;
+	setarray .shop_amt[0],      5,     3,     3,     1,     1,     1;
+	setarray .shop_cost[0],     1,     2,     2,     5,     8,    10;
+	.costume_cost = 60;
+
+	.ghost_count = 4;           // number of Pumpkin Ghost NPCs (hw1..hw4 below)
+
+	bindatcmd "halloween", strnpcinfo(0) + "::OnAtcommand", 0, 99;
+	end;
+
+OnAtcommand:
+	callfunc "F_HW_Sync";
+	if (!#HW_JOIN) {
+		dispbottom "[Halloween] Talk to Jack the Pumpkin Keeper in Prontera to join the event.";
+		end;
+	}
+	if (#HW_NIGHT >= .nights) {
+		dispbottom "[Halloween] All " + .nights + " nights done! Candy: " + #HW_CANDY + (#HW_FINAL ? "" : ". Talk to Jack for your final reward!");
+		end;
+	}
+	callfunc "F_HW_ShowTask", 1;
+	end;
+}
+
+// Fills the player's @hw_iid[]/@hw_iamt[] with the item ids/amounts of
+// item set getarg(0) for the player's Base Level (empty for set 0).
+function	script	F_HW_ItemSet	{
+	.@set = getarg(0);
+	deletearray @hw_iid;
+	deletearray @hw_iamt;
+	if (.@set == 1) {        // Pumpkin Harvest
+		if (BaseLevel <= 30)      setarray @hw_iid, 909;      // Jellopy
+		else if (BaseLevel <= 60) setarray @hw_iid, 957;      // Decayed Nail
+		else                      setarray @hw_iid, 930;      // Rotten Bandage
+		setarray @hw_iamt, 20;
+	} else if (.@set == 2) { // Witch's Brew
+		if (BaseLevel <= 30)      setarray @hw_iid, 507, 713; // Red Herb, Empty Bottle
+		else if (BaseLevel <= 60) setarray @hw_iid, 508, 713; // Yellow Herb, Empty Bottle
+		else                      setarray @hw_iid, 509, 713; // White Herb, Empty Bottle
+		setarray @hw_iamt, 10, 5;
+	}
+	return getarraysize(@hw_iid);
+}
+
+// Prints the current night's task. getarg(0) = 1 prints to chat instead of the dialog.
+function	script	F_HW_ShowTask	{
+	.@chat = getarg(0, 0);
+	.@npc$ = "Jack the Pumpkin Keeper";
+	.@night = #HW_NIGHT + 1;
+	.@today = atoi(gettimestr("%Y%m%d", 9));
+	.@kill = getelementofarray(getvariableofnpc(.night_kill, .@npc$), .@night);
+	.@ghost = getelementofarray(getvariableofnpc(.night_ghost, .@npc$), .@night);
+	.@visit = getelementofarray(getvariableofnpc(.night_visit, .@npc$), .@night);
+	.@gc = getvariableofnpc(.ghost_count, .@npc$);
+	.@cnt = callfunc("F_HW_ItemSet", getelementofarray(getvariableofnpc(.night_items, .@npc$), .@night));
+
+	if (#HW_LAST == .@today) {
+		.@line$[0] = "Tonight is done. Come back tomorrow for Night " + .@night + ".";
+	} else {
+		.@line$[0] = "Night " + .@night + ": " + getelementofarray(getvariableofnpc(.night_name$, .@npc$), .@night);
+		if (.@kill)
+			.@line$[getarraysize(.@line$)] = "- Monsters: " + (#HW_KILL >= .@kill ? .@kill : #HW_KILL) + "/" + .@kill;
+		if (.@ghost)
+			.@line$[getarraysize(.@line$)] = "- Ghostly monsters: " + (#HW_GHOST >= .@ghost ? .@ghost : #HW_GHOST) + "/" + .@ghost;
+		if (.@visit) {
+			.@v = 0;
+			for (.@i = 0; .@i < .@gc; .@i++)
+				if (#HW_VISIT & (1 << .@i)) .@v++;
+			.@line$[getarraysize(.@line$)] = "- Pumpkin Ghosts (Payon/Geffen/Alberta/Morroc): " + .@v + "/" + .@gc;
+		}
+		for (.@i = 0; .@i < .@cnt; .@i++)
+			.@line$[getarraysize(.@line$)] = "- " + getitemname(@hw_iid[.@i]) + ": " + countitem(@hw_iid[.@i]) + "/" + @hw_iamt[.@i];
+	}
+	for (.@i = 0; .@i < getarraysize(.@line$); .@i++) {
+		if (.@chat)
+			dispbottom "[Halloween] " + .@line$[.@i];
+		else
+			mes .@line$[.@i];
+	}
+	return;
+}
+
+// Counts kills for the current night. Offline autohunt kills count too.
+-	script	HW_KillTracker	-1,{
+OnNPCKillEvent:
+	if (!#HW_JOIN)
+		end;
+	.@npc$ = "Jack the Pumpkin Keeper";
+	.@today = callfunc("F_HW_Sync");
+	if (#HW_LAST == .@today)
+		end;
+	if (.@today < getvariableofnpc(.start, .@npc$))
+		end;
+	if (.@today > getvariableofnpc(.end, .@npc$))
+		end;
+	.@night = #HW_NIGHT + 1;
+	if (.@night > getvariableofnpc(.nights, .@npc$))
+		end;
+
+	.@mob = killedrid;
+	.@kill = getelementofarray(getvariableofnpc(.night_kill, .@npc$), .@night);
+	if (.@kill) {
+		if (#HW_KILL < .@kill) {
+			if (getmonsterinfo(.@mob, MOB_LV) >= BaseLevel - getvariableofnpc(.lv_gap, .@npc$)) {
+				#HW_KILL++;
+				if (#HW_KILL == .@kill)
+					dispbottom "[Halloween] Monster task done (" + .@kill + "/" + .@kill + ")!";
+				else if (#HW_KILL % 10 == 0)
+					dispbottom "[Halloween] Monsters: " + #HW_KILL + "/" + .@kill;
+			}
+		}
+	}
+	.@ghost = getelementofarray(getvariableofnpc(.night_ghost, .@npc$), .@night);
+	if (.@ghost) {
+		if (#HW_GHOST < .@ghost) {
+			.@race = getmonsterinfo(.@mob, MOB_RACE);
+			.@ele = getmonsterinfo(.@mob, MOB_ELEMENT);
+			if (.@race == RC_UNDEAD || .@race == RC_DEMON || .@ele == ELE_UNDEAD || .@ele == ELE_GHOST) {
+				#HW_GHOST++;
+				if (#HW_GHOST == .@ghost)
+					dispbottom "[Halloween] Ghostly monster task done (" + .@ghost + "/" + .@ghost + ")!";
+				else if (#HW_GHOST % 10 == 0)
+					dispbottom "[Halloween] Ghostly monsters: " + #HW_GHOST + "/" + .@ghost;
+			}
+		}
+	}
+	end;
+}
+
+// Pumpkin Ghosts for the Trick or Treat night. The number after "hw"
+// is the bit index (0..3); keep .ghost_count in sync when adding more.
+-	script	Pumpkin Ghost::HW_Ghost	-1,{
+	.@npc$ = "Jack the Pumpkin Keeper";
+	.@bit = 1 << atoi(strnpcinfo(2));
+	.@today = callfunc("F_HW_Sync");
+	.@night = #HW_NIGHT + 1;
+	mes "[Pumpkin Ghost]";
+	if (.@today < getvariableofnpc(.start, .@npc$) || .@today > getvariableofnpc(.end, .@npc$)) {
+		mes "Boo... it's not Halloween right now.";
+		close;
+	}
+	if (!#HW_JOIN) {
+		mes "Boo! Have you met Jack the Pumpkin";
+		mes "Keeper in Prontera yet?";
+		close;
+	}
+	if (#HW_LAST == .@today) {
+		mes "Boo! You look tired. Rest until tomorrow!";
+		close;
+	}
+	if (!getelementofarray(getvariableofnpc(.night_visit, .@npc$), .@night)) {
+		mes "Boo! Come back on the Trick or Treat";
+		mes "night and I'll have a treat for you.";
+		close;
+	}
+	if (#HW_VISIT & .@bit) {
+		mes "You already got my treat. Go find";
+		mes "the other Pumpkin Ghosts!";
+		close;
+	}
+	#HW_VISIT = #HW_VISIT | .@bit;
+	getitem 529, 2; // Candy
+	specialeffect EF_BAT;
+	mes "Trick or treat! Hehehe, here's a treat.";
+	.@gc = getvariableofnpc(.ghost_count, .@npc$);
+	for (.@i = 0; .@i < .@gc; .@i++)
+		if (#HW_VISIT & (1 << .@i)) .@v++;
+	mes "Pumpkin Ghosts visited: " + .@v + "/" + .@gc;
+	close;
+}
+payon,177,108,4	duplicate(HW_Ghost)	Pumpkin Ghost#0	1179
+geffen,117,70,4	duplicate(HW_Ghost)	Pumpkin Ghost#1	1179
+alberta,27,238,4	duplicate(HW_Ghost)	Pumpkin Ghost#2	1179
+morocc,151,99,4	duplicate(HW_Ghost)	Pumpkin Ghost#3	1179
