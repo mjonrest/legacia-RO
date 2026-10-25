@@ -13,8 +13,10 @@
 //= - Kills are counted automatically once the player has joined.
 //= - Each night gives Pumpkin Candy (#HW_CANDY), EXP and items.
 //=   Candy is spent in Jack's Candy Shop.
-//= - One account per device (Gepard unique id) can clear a night
-//=   per day.
+//= - Only one account per Gepard device can do the event: the first
+//=   account that clears a night on a device owns it ($HW_OWN_<id>),
+//=   other accounts on that device can't clear nights or claim the
+//=   final reward.
 //=
 //= Settings are in OnInit of "Jack the Pumpkin Keeper".
 //= GM (level >= .gm_level) gets an extra menu for testing.
@@ -32,6 +34,34 @@ function	script	F_HW_Sync	{
 	return .@today;
 }
 
+// Device lock: one account per Gepard unique id for the whole event.
+// getarg(0) = 1 registers the device to this account when it is free.
+// Returns 1 when this account may continue, 0 after showing a message.
+function	script	F_HW_DeviceOk	{
+	if (!getvariableofnpc(.device_lock, "Jack the Pumpkin Keeper"))
+		return 1;
+	.@uid = get_unique_id();
+	if (!.@uid) {
+		mes "[Jack the Pumpkin Keeper]";
+		mes "I can't see your Gepard ID.";
+		mes "Please relog and try again.";
+		return 0;
+	}
+	.@var$ = "$HW_OWN_" + (.@uid < 0 ? "n" + (-.@uid) : "" + .@uid);
+	.@owner = getd(.@var$);
+	if (.@owner && .@owner != getcharid(3)) {
+		mes "[Jack the Pumpkin Keeper]";
+		mes "Another account on this computer is";
+		mes "already doing my Halloween event.";
+		mes "Only ^FF0000one account per device^000000 can";
+		mes "clear nights and claim the reward.";
+		return 0;
+	}
+	if (getarg(0) && !.@owner)
+		setd .@var$, getcharid(3);
+	return 1;
+}
+
 prontera,159,183,4	script	Jack the Pumpkin Keeper	1130,{
 	.@n$ = "[Jack the Pumpkin Keeper]";
 	.@today = callfunc("F_HW_Sync");
@@ -44,8 +74,11 @@ prontera,159,183,4	script	Jack the Pumpkin Keeper	1130,{
 		case 2:
 			#HW_JOIN = 0; #HW_NIGHT = 0; #HW_LAST = 0; #HW_FINAL = 0;
 			#HW_KILL = 0; #HW_GHOST = 0; #HW_VISIT = 0;
+			.@uid = get_unique_id();
+			if (.@uid)
+				setd "$HW_OWN_" + (.@uid < 0 ? "n" + (-.@uid) : "" + .@uid), 0;
 			mes .@n$;
-			mes "Progress reset.";
+			mes "Progress and this device's lock reset.";
 			close;
 		case 3:
 			#HW_LAST = 0;
@@ -207,23 +240,9 @@ prontera,159,183,4	script	Jack the Pumpkin Keeper	1130,{
 		close;
 	}
 
-	// One account per device per day
-	.@key$ = "";
-	if (.device_lock) {
-		.@uid = get_unique_id();
-		if (.@uid) {
-			.@key$ = (.@uid < 0 ? "n" + (-.@uid) : "" + .@uid);
-			if (getd("$HW_UD_" + .@key$) == .@today) {
-				if (getd("$HW_UA_" + .@key$) != getcharid(3)) {
-					mes .@n$;
-					mes "Another account on this computer already";
-					mes "finished a night today. Only one account";
-					mes "per device can clear a night each day.";
-					close;
-				}
-			}
-		}
-	}
+	// One account per Gepard device for the whole event
+	if (!callfunc("F_HW_DeviceOk", 0))
+		close;
 
 	mes .@n$;
 	if (.@cnt)
@@ -248,10 +267,7 @@ prontera,159,183,4	script	Jack the Pumpkin Keeper	1130,{
 	for (.@i = 0; .@i < .@cnt; .@i++)
 		delitem .@iid[.@i], .@iamt[.@i];
 
-	if (.@key$ != "") {
-		setd "$HW_UD_" + .@key$, .@today;
-		setd "$HW_UA_" + .@key$, getcharid(3);
-	}
+	callfunc "F_HW_DeviceOk", 1;
 
 	#HW_NIGHT = .@night;
 	#HW_LAST = .@today;
@@ -290,6 +306,8 @@ prontera,159,183,4	script	Jack the Pumpkin Keeper	1130,{
 
 S_Final:
 	if (#HW_FINAL)
+		return;
+	if (!callfunc("F_HW_DeviceOk", 1))
 		return;
 	mes "[Jack the Pumpkin Keeper]";
 	mes "You kept my lanterns lit for " + .nights + " nights!";
@@ -359,7 +377,7 @@ OnInit:
 	.start_txt$ = "Oct 26";
 	.end_txt$   = "Nov 15";
 	.gm_level = 99;
-	.device_lock = 1;           // 1 = one account per device can clear a night each day
+	.device_lock = 1;           // 1 = only one account per Gepard device can do the event
 	.lv_gap = 30;               // "monster" counts if its level >= BaseLevel - lv_gap
 	.nights = 7;
 	.night_candy = 10;
