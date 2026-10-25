@@ -316,8 +316,8 @@ S_Final:
 	#HW_FINAL = 1;
 	.@head = .final_head[rand(getarraysize(.final_head))];
 	.@garment = .final_garment[rand(getarraysize(.final_garment))];
-	getitembound .@head, 1, BOUND_ACCOUNT;
-	getitembound .@garment, 1, BOUND_ACCOUNT;
+	getitem .@head, 1;
+	getitem .@garment, 1;
 	mes "[Jack the Pumpkin Keeper]";
 	mes "- " + mesitemlink(.@head);
 	mes "- " + mesitemlink(.@garment);
@@ -328,7 +328,6 @@ S_Final:
 		getitem .final_item[.@i], .final_amt[.@i];
 		mes "- " + .final_amt[.@i] + "x " + mesitemlink(.final_item[.@i]);
 	}
-	mes "The costumes are ^FF0000account bound^000000.";
 	specialeffect2 EF_ANGEL2;
 	announce "[Halloween] " + strcharinfo(0) + " survived all " + .nights + " nights of Jack and received " + getitemname(.@head) + " and " + getitemname(.@garment) + "!", bc_all, 0xFF8C00;
 	return;
@@ -354,9 +353,9 @@ S_Shop:
 	if (.@s == .@size) {
 		#HW_CANDY -= .@cost;
 		.@head = .final_head[rand(getarraysize(.final_head))];
-		getitembound .@head, 1, BOUND_ACCOUNT;
+		getitem .@head, 1;
 		mes "[Jack's Candy Shop]";
-		mes "You got " + mesitemlink(.@head) + "! (account bound)";
+		mes "You got " + mesitemlink(.@head) + "!";
 		return;
 	}
 	if (!checkweight(.shop_id[.@s], .shop_amt[.@s])) {
@@ -405,7 +404,7 @@ OnInit:
 	setarray .reward_amt[0],    10,     3,    10,  10,     3,     1,     2;
 
 	// Final reward: 1 random headgear costume + 1 random garment costume
-	// (both account bound) + every item in .final_item
+	// + every item in .final_item
 	setarray .final_head[0],
 		15888, 19290, 19525, 19727, 19903, 19904, 19910, 19915, 19917, 20055,  // top
 		20098, 20172, 20174, 20225, 20394, 20395, 31123, 31314, 31322, 31385,
