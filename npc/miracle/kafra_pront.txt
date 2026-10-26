@@ -13,16 +13,21 @@ prontera,145,197,6	script	Kafra Employee::kaf_miracle	894,{
 			openstorage;
 			end;
 		case 3:
+		mes .@name$;
+		mes "Which Premium storage do you want to open?";
+		next;
+		// storage IDs 1-6 (conf/inter_server.yml)
+		set .@stor, select("Vip Storage 1:Vip Storage 2:Vip Storage 3:Vip Storage 4:Vip Storage 5:Vip Storage 6");
 		if (vip_status(VIP_STATUS_ACTIVE)) {
 			mes "I will open your Premium storage.";
 			mes "Thank you for using our service.";
 			close2;
-			openstorage2 1;
+			openstorage2 .@stor;
 		} else {
 			mes "Sorry, your Premium status is expired.";
 			mes "Storage will be opened but you can't put any item into it.";
 			close2;
-			openstorage2 1,STOR_MODE_GET;
+			openstorage2 .@stor,STOR_MODE_GET;
 		}
 		end;
 		case 4:
