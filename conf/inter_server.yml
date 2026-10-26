@@ -43,6 +43,21 @@ Body:
   - ID: 1
     Name: "Storage2"
     Table: storage2
+  - ID: 2
+    Name: "Storage3"
+    Table: storage3
+  - ID: 3
+    Name: "Storage4"
+    Table: storage4
+  - ID: 4
+    Name: "Storage5"
+    Table: storage5
+  - ID: 5
+    Name: "Storage6"
+    Table: storage6
+  - ID: 6
+    Name: "Storage7"
+    Table: storage7
 
 Footer:
   Imports:
