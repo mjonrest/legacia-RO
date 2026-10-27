@@ -9,18 +9,9 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 on:
+  # Automatic push/pull_request runs disabled to save Actions minutes.
+  # Run manually from the Actions tab if needed.
   workflow_dispatch:
-  push:
-    branches:
-      - master
-  pull_request:
-    paths:
-      # Always trigger all Github Actions if an action or something CI related was changed
-      - '.github/workflows/**'
-      - 'tools/ci/**'
-      # This workflow should run when a file in either the db/ or npc/ directory has been modified.
-      - 'db/**'
-      - 'npc/**'
 
 jobs:
   build:
