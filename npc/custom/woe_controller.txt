@@ -64,8 +64,8 @@ OnInit:
 	set .StartDate,20261104;	// No WoE starts before this date (YYYYMMDD). 0 = no limit.
 	set .ScheduleVer,1;
 	set .DefDay,3;			// 0 Sunday ... 3 Wednesday ... 6 Saturday
-	set .DefStart,21;		// Start hour (server time)
-	set .DefEnd,23;			// End hour (server time)
+	set .DefStart,20;		// Start hour (server time)
+	set .DefEnd,22;			// End hour (server time)
 	setarray .DefCastles$[0],"schg_cas01";
 
 // -----------------------------------------------------------
