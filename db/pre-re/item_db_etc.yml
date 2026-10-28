@@ -4255,6 +4255,8 @@ Body:
       BuyingStore: true
     Script: |
       bonus2 bHPDrainRate,30,20;
+      bonus2 bIgnoreDefClassRate,Class_Normal,10;
+      bonus2 bIgnoreDefClassRate,Class_Boss,5;
   - Id: 4135
     AegisName: Orc_Load_Card
     Name: Orc Lord Card
