@@ -56,6 +56,19 @@ OnInit:
 	set .GMAccess,99;		// GM level required to access Session Manager.
 
 // -----------------------------------------------------------
+//  Legacia default schedule.
+// -----------------------------------------------------------
+//  Loaded into $WOE_CONTROL when the server starts and .ScheduleVer
+//  differs from the saved one. Bump .ScheduleVer after changing these
+//  to overwrite the schedule; otherwise edit it in-game (Manage sessions).
+	set .StartDate,20261104;	// No WoE starts before this date (YYYYMMDD). 0 = no limit.
+	set .ScheduleVer,1;
+	set .DefDay,3;			// 0 Sunday ... 3 Wednesday ... 6 Saturday
+	set .DefStart,20;		// Start hour (server time)
+	set .DefEnd,22;			// End hour (server time)
+	setarray .DefCastles$[0],"schg_cas01";
+
+// -----------------------------------------------------------
 //  Reward options.
 // -----------------------------------------------------------
 //  [1] Enable rewards.
@@ -93,43 +106,45 @@ OnInit:
 // Region function defines the region of the castle defined by Castle function.
 // Region("<region name>");
 // Castle("<castle map name>", "<event name when woe end>", "<event killmonster name>", "<map name special warp>",<x>,<y>)
+// Legacia: only schg_cas01 is open. To open another castle, uncomment its line here
+// and load its castle script in npc/scripts_guild.conf.
 
-	Region("Prontera");
-		Castle("prtg_cas01", "Agit#prtg_cas01::OnAgitEnd", "Agit#prtg_cas01::OnAgitBreak", "prt_gld",134,65);
-		Castle("prtg_cas02", "Agit#prtg_cas02::OnAgitEnd", "Agit#prtg_cas02::OnAgitBreak", "prt_gld",240,128);
-		Castle("prtg_cas03", "Agit#prtg_cas03::OnAgitEnd", "Agit#prtg_cas03::OnAgitBreak", "prt_gld",153,137);
-		Castle("prtg_cas04", "Agit#prtg_cas04::OnAgitEnd", "Agit#prtg_cas04::OnAgitBreak", "prt_gld",111,240);
-		Castle("prtg_cas05", "Agit#prtg_cas05::OnAgitEnd", "Agit#prtg_cas05::OnAgitBreak", "prt_gld",208,240);
-	Region("Payon");
-		Castle("payg_cas01", "Agit#payg_cas01::OnAgitEnd", "Agit#payg_cas01::OnAgitBreak", "pay_gld",121,233);
-		Castle("payg_cas02", "Agit#payg_cas02::OnAgitEnd", "Agit#payg_cas02::OnAgitBreak", "pay_gld",295,116);
-		Castle("payg_cas03", "Agit#payg_cas03::OnAgitEnd", "Agit#payg_cas03::OnAgitBreak", "pay_gld",317,293);
-		Castle("payg_cas04", "Agit#payg_cas04::OnAgitEnd", "Agit#payg_cas04::OnAgitBreak", "pay_gld",140,160);
-		Castle("payg_cas05", "Agit#payg_cas05::OnAgitEnd", "Agit#payg_cas05::OnAgitBreak", "pay_gld",204,266);
-	Region("Geffen");
-		Castle("gefg_cas01", "Agit#gefg_cas01::OnAgitEnd", "Agit#gefg_cas01::OnAgitBreak", "gef_fild13",214,75);
-		Castle("gefg_cas02", "Agit#gefg_cas02::OnAgitEnd", "Agit#gefg_cas02::OnAgitBreak", "gef_fild13",308,240);
-		Castle("gefg_cas03", "Agit#gefg_cas03::OnAgitEnd", "Agit#gefg_cas03::OnAgitBreak", "gef_fild13",143,240);
-		Castle("gefg_cas04", "Agit#gefg_cas04::OnAgitEnd", "Agit#gefg_cas04::OnAgitBreak", "gef_fild13",193,278);
-		Castle("gefg_cas05", "Agit#gefg_cas05::OnAgitEnd", "Agit#gefg_cas05::OnAgitBreak", "gef_fild13",305,87);
-	Region("Aldebaran");
-		Castle("aldeg_cas01", "Agit#aldeg_cas01::OnAgitEnd", "Agit#aldeg_cas01::OnAgitBreak", "alde_gld",48,83);
-		Castle("aldeg_cas02", "Agit#aldeg_cas02::OnAgitEnd", "Agit#aldeg_cas02::OnAgitBreak", "alde_gld",95,249);
-		Castle("aldeg_cas03", "Agit#aldeg_cas03::OnAgitEnd", "Agit#aldeg_cas03::OnAgitBreak", "alde_gld",142,85);
-		Castle("aldeg_cas04", "Agit#aldeg_cas04::OnAgitEnd", "Agit#aldeg_cas04::OnAgitBreak", "alde_gld",239,242);
-		Castle("aldeg_cas05", "Agit#aldeg_cas05::OnAgitEnd", "Agit#aldeg_cas05::OnAgitBreak", "alde_gld",264,90);
-	Region("Arunafeltz");
-		Castle("arug_cas01", "Manager#arug_cas01::OnAgitEnd2", "Steward#ar01::OnStartArena", "aru_gld",158,272);
-		Castle("arug_cas02", "Manager#arug_cas02::OnAgitEnd2", "Steward#ar02::OnStartArena", "aru_gld",83,47);
-		Castle("arug_cas03", "Manager#arug_cas03::OnAgitEnd2", "Steward#ar03::OnStartArena", "aru_gld",68,155);
-		Castle("arug_cas04", "Manager#arug_cas04::OnAgitEnd2", "Steward#ar04::OnStartArena", "aru_gld",299,345);
-		Castle("arug_cas05", "Manager#arug_cas05::OnAgitEnd2", "Steward#ar05::OnStartArena", "aru_gld",292,107);
+//	Region("Prontera");
+//		Castle("prtg_cas01", "Agit#prtg_cas01::OnAgitEnd", "Agit#prtg_cas01::OnAgitBreak", "prt_gld",134,65);
+//		Castle("prtg_cas02", "Agit#prtg_cas02::OnAgitEnd", "Agit#prtg_cas02::OnAgitBreak", "prt_gld",240,128);
+//		Castle("prtg_cas03", "Agit#prtg_cas03::OnAgitEnd", "Agit#prtg_cas03::OnAgitBreak", "prt_gld",153,137);
+//		Castle("prtg_cas04", "Agit#prtg_cas04::OnAgitEnd", "Agit#prtg_cas04::OnAgitBreak", "prt_gld",111,240);
+//		Castle("prtg_cas05", "Agit#prtg_cas05::OnAgitEnd", "Agit#prtg_cas05::OnAgitBreak", "prt_gld",208,240);
+//	Region("Payon");
+//		Castle("payg_cas01", "Agit#payg_cas01::OnAgitEnd", "Agit#payg_cas01::OnAgitBreak", "pay_gld",121,233);
+//		Castle("payg_cas02", "Agit#payg_cas02::OnAgitEnd", "Agit#payg_cas02::OnAgitBreak", "pay_gld",295,116);
+//		Castle("payg_cas03", "Agit#payg_cas03::OnAgitEnd", "Agit#payg_cas03::OnAgitBreak", "pay_gld",317,293);
+//		Castle("payg_cas04", "Agit#payg_cas04::OnAgitEnd", "Agit#payg_cas04::OnAgitBreak", "pay_gld",140,160);
+//		Castle("payg_cas05", "Agit#payg_cas05::OnAgitEnd", "Agit#payg_cas05::OnAgitBreak", "pay_gld",204,266);
+//	Region("Geffen");
+//		Castle("gefg_cas01", "Agit#gefg_cas01::OnAgitEnd", "Agit#gefg_cas01::OnAgitBreak", "gef_fild13",214,75);
+//		Castle("gefg_cas02", "Agit#gefg_cas02::OnAgitEnd", "Agit#gefg_cas02::OnAgitBreak", "gef_fild13",308,240);
+//		Castle("gefg_cas03", "Agit#gefg_cas03::OnAgitEnd", "Agit#gefg_cas03::OnAgitBreak", "gef_fild13",143,240);
+//		Castle("gefg_cas04", "Agit#gefg_cas04::OnAgitEnd", "Agit#gefg_cas04::OnAgitBreak", "gef_fild13",193,278);
+//		Castle("gefg_cas05", "Agit#gefg_cas05::OnAgitEnd", "Agit#gefg_cas05::OnAgitBreak", "gef_fild13",305,87);
+//	Region("Aldebaran");
+//		Castle("aldeg_cas01", "Agit#aldeg_cas01::OnAgitEnd", "Agit#aldeg_cas01::OnAgitBreak", "alde_gld",48,83);
+//		Castle("aldeg_cas02", "Agit#aldeg_cas02::OnAgitEnd", "Agit#aldeg_cas02::OnAgitBreak", "alde_gld",95,249);
+//		Castle("aldeg_cas03", "Agit#aldeg_cas03::OnAgitEnd", "Agit#aldeg_cas03::OnAgitBreak", "alde_gld",142,85);
+//		Castle("aldeg_cas04", "Agit#aldeg_cas04::OnAgitEnd", "Agit#aldeg_cas04::OnAgitBreak", "alde_gld",239,242);
+//		Castle("aldeg_cas05", "Agit#aldeg_cas05::OnAgitEnd", "Agit#aldeg_cas05::OnAgitBreak", "alde_gld",264,90);
+//	Region("Arunafeltz");
+//		Castle("arug_cas01", "Manager#arug_cas01::OnAgitEnd2", "Steward#ar01::OnStartArena", "aru_gld",158,272);
+//		Castle("arug_cas02", "Manager#arug_cas02::OnAgitEnd2", "Steward#ar02::OnStartArena", "aru_gld",83,47);
+//		Castle("arug_cas03", "Manager#arug_cas03::OnAgitEnd2", "Steward#ar03::OnStartArena", "aru_gld",68,155);
+//		Castle("arug_cas04", "Manager#arug_cas04::OnAgitEnd2", "Steward#ar04::OnStartArena", "aru_gld",299,345);
+//		Castle("arug_cas05", "Manager#arug_cas05::OnAgitEnd2", "Steward#ar05::OnStartArena", "aru_gld",292,107);
 	Region("Schwarzwald");
 		Castle("schg_cas01", "Manager#schg_cas01::OnAgitEnd2", "Steward#sc01::OnStartArena", "sch_gld",293,100);
-		Castle("schg_cas02", "Manager#schg_cas02::OnAgitEnd2", "Steward#sc02::OnStartArena", "sch_gld",288,252);
-		Castle("schg_cas03", "Manager#schg_cas03::OnAgitEnd2", "Steward#sc03::OnStartArena", "sch_gld",97,196);
-		Castle("schg_cas04", "Manager#schg_cas04::OnAgitEnd2", "Steward#sc04::OnStartArena", "sch_gld",137,90);
-		Castle("schg_cas05", "Manager#schg_cas05::OnAgitEnd2", "Steward#sc05::OnStartArena", "sch_gld",71,315);
+//		Castle("schg_cas02", "Manager#schg_cas02::OnAgitEnd2", "Steward#sc02::OnStartArena", "sch_gld",288,252);
+//		Castle("schg_cas03", "Manager#schg_cas03::OnAgitEnd2", "Steward#sc03::OnStartArena", "sch_gld",97,196);
+//		Castle("schg_cas04", "Manager#schg_cas04::OnAgitEnd2", "Steward#sc04::OnStartArena", "sch_gld",137,90);
+//		Castle("schg_cas05", "Manager#schg_cas05::OnAgitEnd2", "Steward#sc05::OnStartArena", "sch_gld",71,315);
 
 	if (checkre(0)) {
 		Region("Prontera (TE)");
@@ -151,6 +166,16 @@ OnInit:
 // -----------------------------------------------------------
 
 	.reward_id_size = getarraysize(.reward_id);
+	if ($WOE_CONTROL_VER != .ScheduleVer) {
+		.@mask = 0;
+		for(set .@i,0; .@i<getarraysize(.DefCastles$); set .@i,.@i+1) {
+			.@c = inarray(.Castles$, .DefCastles$[.@i]);
+			if (.@c >= 0) .@mask = .@mask | (1<<.@c);
+		}
+		deletearray $WOE_CONTROL;
+		setarray $WOE_CONTROL[0], .DefDay, .DefStart, .DefEnd, .@mask;
+		set $WOE_CONTROL_VER, .ScheduleVer;
+	}
 	set .Size, getarraysize($WOE_CONTROL);
 
 	if (.AutoKick || .NoOwner) {
@@ -188,6 +213,10 @@ OnMinute00:
 		}
 	}
 	.@agit_check = (!agitcheck() && !agitcheck2() && !agitcheck3());
+	if (.StartDate && atoi(gettimestr("%Y%m%d",9)) < .StartDate) {
+		set .Init,0;
+		end;
+	}
 	if (.@agit_check || .Init) {
 		if (.@agit_check) set .Init,0;
 		for(set .@i,0; .@i<.Size; set .@i,.@i+4) {
