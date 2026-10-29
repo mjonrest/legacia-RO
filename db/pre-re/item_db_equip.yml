@@ -20695,6 +20695,8 @@ Body:
       bonus bNoRegen,2;
       bonus bHPGainValue,60;
       bonus bSPGainValue,6;
+      bonus bLongHPGainValue,60;
+      bonus bLongSPGainValue,6;
       bonus bMagicHPGainValue,60;
       bonus bMagicSPGainValue,6;
     UnEquipScript: |
