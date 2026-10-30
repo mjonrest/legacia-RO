@@ -1165,13 +1165,13 @@ Body:
   - Combos:
       - Combo:
           - Drake_Card
-          - Minorous_Card
+          - Skel_Worker_Card
     Script: |
       bonus2 bAddSize,Size_Medium,50;
   - Combos:
       - Combo:
           - Drake_Card
-          - Minorous_Card
+          - Desert_Wolf_Card
     Script: |
       bonus2 bAddSize,Size_Small,50;
 
