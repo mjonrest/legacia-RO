@@ -7115,6 +7115,728 @@ ACMD_FUNC(autohunt)
 }
 
 /*==========================================
+ * @statsview [section]
+ * Lists every battle bonus the character has right now. Values are read
+ * straight from the player's calculated bonus data, so equipment, cards,
+ * combos, bonus_script (weapon mastery), passive skills and buffs that add
+ * to those bonuses are all included. Only non-zero bonuses are shown.
+ *   @statsview          : everything
+ *   @statsview <section>: only one section (status, attack, magic, defense,
+ *                         skill, heal, effect, drop)
+ *------------------------------------------*/
+namespace statsview {
+
+static const char* ele_names[ELE_MAX] = { "Neutral", "Water", "Earth", "Fire", "Wind", "Poison", "Holy", "Shadow", "Ghost", "Undead", "All" };
+static const char* race_names[RC_MAX] = { "Formless", "Undead", "Brute", "Plant", "Insect", "Fish", "Demon", "Demi-Human", "Angel", "Dragon", "Player(Human)", "Player(Doram)", "All" };
+static const char* class_names[CLASS_MAX] = { "Normal", "Boss", "Guardian", "Class3", "Battleground", "Event", "All" };
+static const char* size_names[SZ_MAX] = { "Small", "Medium", "Large", "All" };
+static const char* weapon_names[16] = { "Bare Hand", "Dagger", "1H Sword", "2H Sword", "1H Spear", "2H Spear", "1H Axe", "2H Axe", "Mace", "2H Mace", "Staff", "Bow", "Knuckle", "Instrument", "Whip", "Book" };
+
+static_assert( ARRAYLENGTH( ele_names ) == ELE_MAX, "statsview: ele_names" );
+static_assert( ARRAYLENGTH( race_names ) == RC_MAX, "statsview: race_names" );
+static_assert( ARRAYLENGTH( class_names ) == CLASS_MAX, "statsview: class_names" );
+static_assert( ARRAYLENGTH( size_names ) == SZ_MAX, "statsview: size_names" );
+
+/// Output helper: prints a section header only when the section has something to show.
+struct Out {
+	int32 fd;
+	const char* filter;
+	const char* section = nullptr;
+	bool section_on = true;
+	bool header_sent = false;
+	int32 count = 0;
+
+	Out( int32 fd, const char* filter ) : fd( fd ), filter( filter ) {}
+
+	void begin( const char* key, const char* title ){
+		this->section = title;
+		this->section_on = ( filter == nullptr || *filter == '\0' || strncmpi( filter, key, strlen( filter ) ) == 0 );
+		this->header_sent = false;
+	}
+
+	void raw( const char* text ){
+		if( !section_on )
+			return;
+		if( !header_sent && section != nullptr ){
+			char buf[CHAT_SIZE_MAX];
+			safesnprintf( buf, sizeof( buf ), "[ %s ]", section );
+			clif_displaymessage( fd, buf );
+			header_sent = true;
+		}
+		clif_displaymessage( fd, text );
+		count++;
+	}
+
+	void line( const char* fmt, ... ){
+		if( !section_on )
+			return;
+		char buf[CHAT_SIZE_MAX];
+		va_list ap;
+		va_start( ap, fmt );
+		vsnprintf( buf, sizeof( buf ), fmt, ap );
+		va_end( ap );
+		std::string text = "  ";
+		text += buf;
+		raw( text.c_str() );
+	}
+
+	/// Prints "label: a, b, c" and wraps long lists over several lines.
+	void list( const char* label, const std::vector<std::string>& items ){
+		if( !section_on || items.empty() )
+			return;
+		const size_t width = 100;
+		std::string cur = std::string( "  " ) + label + ": ";
+		std::string indent( strlen( label ) + 4, ' ' );
+		bool first = true;
+		for( const std::string& it : items ){
+			if( !first && cur.size() + it.size() + 2 > width ){
+				cur += ",";
+				raw( cur.c_str() );
+				cur = indent;
+				first = true;
+			}
+			if( !first )
+				cur += ", ";
+			cur += it;
+			first = false;
+		}
+		raw( cur.c_str() );
+	}
+};
+
+static std::string fmt( const char* f, ... ){
+	char buf[256];
+	va_list ap;
+	va_start( ap, f );
+	vsnprintf( buf, sizeof( buf ), f, ap );
+	va_end( ap );
+	return buf;
+}
+
+/// Formats a value stored in 1/scale units, e.g. 25 with scale 10 -> "2.5"
+static std::string scaled( int32 val, int32 scale ){
+	if( scale <= 1 )
+		return fmt( "%d", val );
+	std::string sign = val < 0 ? "-" : "";
+	int32 a = std::abs( val );
+	int32 decimals = ( scale == 10 ? 1 : ( scale == 100 ? 2 : 3 ) );
+	std::string out = fmt( "%s%d.%0*d", sign.c_str(), a / scale, decimals, a % scale );
+	// Trim trailing zeros
+	while( out.back() == '0' )
+		out.pop_back();
+	if( out.back() == '.' )
+		out.pop_back();
+	return out;
+}
+
+/// Like scaled() but always shows the sign
+static std::string signed_scaled( int32 val, int32 scale ){
+	return ( val > 0 ? "+" : "" ) + scaled( val, scale );
+}
+
+static std::string race2_name( int32 i ){
+	const char* name = script_get_constant_str( "RC2_", i );
+	if( name == nullptr )
+		return fmt( "Race2 %d", i );
+	return name + 4;
+}
+
+static std::string sc_name( int32 sc ){
+	const char* name = script_get_constant_str( "SC_", sc );
+	if( name == nullptr )
+		return fmt( "Status %d", sc );
+	return name + 3;
+}
+
+static std::string skill_name( uint16 skill_id ){
+	const char* name = skill_get_desc( skill_id );
+	if( name == nullptr || *name == '\0' )
+		return fmt( "Skill %d", skill_id );
+	return name;
+}
+
+static std::string item_name( t_itemid nameid ){
+	std::shared_ptr<item_data> id = item_db.find( nameid );
+	if( id == nullptr )
+		return fmt( "Item %u", nameid );
+	return id->ename;
+}
+
+static std::string mob_name( int32 mob_id ){
+	std::shared_ptr<s_mob_db> mob = mob_db.find( mob_id );
+	if( mob == nullptr )
+		return fmt( "Monster %d", mob_id );
+	return mob->jname;
+}
+
+static std::string group_name( uint16 group ){
+	const char* name = script_get_constant_str( "IG_", group );
+	if( name == nullptr )
+		return fmt( "Item group %d", group );
+	return name + 3;
+}
+
+/// Lists an indexed bonus array, e.g. "Demon +10%, Undead +5%"
+template <typename T>
+static void array_list( Out& o, const char* label, const T* arr, int32 size, const char** names, const char* unit = "%", int32 scale = 1 ){
+	std::vector<std::string> items;
+	for( int32 i = 0; i < size; i++ ){
+		if( arr[i] == 0 )
+			continue;
+		std::string name = ( names != nullptr && names[i] != nullptr ) ? names[i] : fmt( "#%d", i );
+		items.push_back( name + " " + signed_scaled( arr[i], scale ) + unit );
+	}
+	o.list( label, items );
+}
+
+/// Same as array_list but adds two arrays together (e.g. weapon + arrow bonuses)
+template <typename T1, typename T2>
+static void array_list2( Out& o, const char* label, const T1* a, const T2* b, int32 size, const char** names, const char* unit = "%" ){
+	std::vector<int32> sum( size );
+	for( int32 i = 0; i < size; i++ )
+		sum[i] = a[i] + ( b != nullptr ? b[i] : 0 );
+	array_list( o, label, sum.data(), size, names, unit );
+}
+
+static void race2_list( Out& o, const char* label, const int32* arr ){
+	std::vector<std::string> items;
+	for( int32 i = RC2_NONE + 1; i < RC2_MAX; i++ ){
+		if( arr[i] != 0 )
+			items.push_back( race2_name( i ) + " " + ( arr[i] > 0 ? "+" : "" ) + std::to_string( arr[i] ) + "%" );
+	}
+	o.list( label, items );
+}
+
+/// Lists the names of the bits set in a mask
+static void mask_list( Out& o, const char* label, int32 mask, const char** names, int32 size ){
+	std::vector<std::string> items;
+	for( int32 i = 0; i < size; i++ ){
+		if( mask & ( 1 << i ) )
+			items.push_back( names[i] );
+	}
+	o.list( label, items );
+}
+
+/// Describes a BF_* trigger flag
+static std::string bf_text( int32 flag ){
+	std::vector<std::string> parts;
+	if( ( flag & BF_WEAPONMASK ) != BF_WEAPONMASK ){
+		if( flag & BF_WEAPON ) parts.push_back( "physical" );
+		if( flag & BF_MAGIC ) parts.push_back( "magic" );
+		if( flag & BF_MISC ) parts.push_back( "misc" );
+	}
+	if( ( flag & BF_RANGEMASK ) != BF_RANGEMASK ){
+		if( flag & BF_SHORT ) parts.push_back( "melee" );
+		if( flag & BF_LONG ) parts.push_back( "ranged" );
+	}
+	if( ( flag & BF_SKILLMASK ) != BF_SKILLMASK ){
+		if( flag & BF_NORMAL ) parts.push_back( "normal attack" );
+		if( flag & BF_SKILL ) parts.push_back( "skill" );
+	}
+	if( parts.empty() )
+		return "";
+	std::string out = " (";
+	for( size_t i = 0; i < parts.size(); i++ ){
+		if( i > 0 )
+			out += " ";
+		out += parts[i];
+	}
+	return out + ")";
+}
+
+static void addele2_list( Out& o, const char* label, const std::vector<s_addele2>& vec ){
+	std::vector<std::string> items;
+	for( const s_addele2& it : vec ){
+		if( it.rate == 0 )
+			continue;
+		const char* name = it.ele < ELE_MAX ? ele_names[it.ele] : "?";
+		items.push_back( fmt( "%s %+d%%", name, it.rate ) + bf_text( it.flag ) );
+	}
+	o.list( label, items );
+}
+
+static void itembonus_list( Out& o, const char* label, const std::vector<s_item_bonus>& vec, int32 kind, const char* unit, bool invert = false ){
+	std::vector<std::string> items;
+	for( const s_item_bonus& it : vec ){
+		if( it.val == 0 )
+			continue;
+		int32 val = invert ? -it.val : it.val;
+		std::string name;
+		switch( kind ){
+			case 0: name = skill_name( it.id ); break;
+			case 1: name = item_name( it.id ); break;
+			case 2: name = group_name( it.id ); break;
+			case 3: name = mob_name( it.id ); break;
+			default: name = sc_name( it.id ); break;
+		}
+		items.push_back( name + " " + ( val > 0 ? "+" : "" ) + std::to_string( val ) + unit );
+	}
+	o.list( label, items );
+}
+
+static void autospell_list( Out& o, const char* label, const std::vector<s_autospell>& vec, bool onskill ){
+	std::vector<std::string> items;
+	for( const s_autospell& it : vec ){
+		if( it.id == 0 || it.rate == 0 )
+			continue;
+		std::string text = skill_name( it.id ) + fmt( " Lv%d %s%%", it.lv, scaled( it.rate, 10 ).c_str() );
+		if( onskill && it.trigger_skill > 0 )
+			text += " on " + skill_name( it.trigger_skill );
+		if( !onskill )
+			text += bf_text( it.battle_flag );
+		items.push_back( text );
+	}
+	o.list( label, items );
+}
+
+static void addeff_list( Out& o, const char* label, const std::vector<s_addeffect>& vec ){
+	std::vector<std::string> items;
+	for( const s_addeffect& it : vec ){
+		std::string text = sc_name( it.sc ) + " " + scaled( it.rate, 100 ) + "%";
+		if( it.arrow_rate != 0 )
+			text += " (+" + scaled( it.arrow_rate, 100 ) + "% arrows)";
+		if( it.flag & ATF_SELF )
+			text += " on self";
+		if( it.duration > 0 )
+			text += fmt( " %us", it.duration / 1000 );
+		items.push_back( text );
+	}
+	o.list( label, items );
+}
+
+static void autobonus_list( Out& o, const char* label, const std::vector<std::shared_ptr<s_autobonus>>& vec, bool onskill ){
+	for( const std::shared_ptr<s_autobonus>& it : vec ){
+		if( it == nullptr )
+			continue;
+		std::string script = it->bonus_script != nullptr ? it->bonus_script : "";
+		// Collapse whitespace so the script fits on one chat line
+		std::string flat;
+		for( char c : script ){
+			if( c == '\n' || c == '\r' || c == '\t' )
+				c = ' ';
+			if( c == ' ' && !flat.empty() && flat.back() == ' ' )
+				continue;
+			flat += c;
+		}
+		if( flat.size() > 120 )
+			flat = flat.substr( 0, 117 ) + "...";
+		std::string trigger = onskill ? ( " on " + skill_name( it->atk_type ) ) : bf_text( it->atk_type );
+		o.line( "%s: %s%% for %us%s%s: %s", label, scaled( it->rate, 10 ).c_str(), it->duration / 1000, trigger.c_str(), it->active != INVALID_TIMER ? " [ACTIVE]" : "", flat.c_str() );
+	}
+}
+
+static void vanish_list( Out& o, const char* label, const std::vector<s_vanish_bonus>& vec ){
+	std::vector<std::string> items;
+	for( const s_vanish_bonus& it : vec ){
+		if( it.rate == 0 || it.per == 0 )
+			continue;
+		items.push_back( fmt( "%s%% chance, %d%%", scaled( it.rate, 10 ).c_str(), it.per ) + bf_text( it.flag ) );
+	}
+	o.list( label, items );
+}
+
+template <typename T>
+static void vanish_race_list( Out& o, const char* label, const T* arr ){
+	std::vector<std::string> items;
+	for( int32 i = 0; i < RC_MAX; i++ ){
+		if( arr[i].rate == 0 || arr[i].per == 0 )
+			continue;
+		items.push_back( fmt( "%s %s%% chance, %d%%", race_names[i], scaled( arr[i].rate, 10 ).c_str(), arr[i].per ) );
+	}
+	o.list( label, items );
+}
+
+/// Weapon (melee) bonuses for one hand, plus optional arrow bonuses
+static void weapon_bonus( Out& o, map_session_data* sd, const weapon_data& wd, const char* hand, bool arrows ){
+	char label[64];
+
+	safesnprintf( label, sizeof( label ), "%sRace dmg", hand );
+	array_list( o, label, wd.addrace, RC_MAX, race_names );
+	safesnprintf( label, sizeof( label ), "%sElement dmg", hand );
+	array_list( o, label, wd.addele, ELE_MAX, ele_names );
+	safesnprintf( label, sizeof( label ), "%sElement dmg (cond.)", hand );
+	addele2_list( o, label, wd.addele2 );
+	safesnprintf( label, sizeof( label ), "%sSize dmg", hand );
+	array_list( o, label, wd.addsize, SZ_MAX, size_names );
+	safesnprintf( label, sizeof( label ), "%sClass dmg", hand );
+	array_list( o, label, wd.addclass, CLASS_MAX, class_names );
+	safesnprintf( label, sizeof( label ), "%sMonster group dmg", hand );
+	race2_list( o, label, wd.addrace2 );
+	safesnprintf( label, sizeof( label ), "%sDmg vs monster", hand );
+	itembonus_list( o, label, wd.add_dmg, 3, "%" );
+
+	if( arrows ){
+		array_list( o, "Arrow/Ammo race dmg", sd->indexed_bonus.arrow_addrace, RC_MAX, race_names );
+		array_list( o, "Arrow/Ammo element dmg", sd->indexed_bonus.arrow_addele, ELE_MAX, ele_names );
+		array_list( o, "Arrow/Ammo size dmg", sd->indexed_bonus.arrow_addsize, SZ_MAX, size_names );
+		array_list( o, "Arrow/Ammo class dmg", sd->indexed_bonus.arrow_addclass, CLASS_MAX, class_names );
+	}
+
+	safesnprintf( label, sizeof( label ), "%sIgnore DEF of element", hand );
+	mask_list( o, label, wd.ignore_def_ele, ele_names, ELE_MAX );
+	safesnprintf( label, sizeof( label ), "%sIgnore DEF of race", hand );
+	mask_list( o, label, wd.ignore_def_race, race_names, RC_MAX );
+	safesnprintf( label, sizeof( label ), "%sIgnore DEF of class", hand );
+	mask_list( o, label, wd.ignore_def_class, class_names, CLASS_MAX );
+	safesnprintf( label, sizeof( label ), "%sMore dmg vs high DEF (element)", hand );
+	mask_list( o, label, wd.def_ratio_atk_ele, ele_names, ELE_MAX );
+	safesnprintf( label, sizeof( label ), "%sMore dmg vs high DEF (race)", hand );
+	mask_list( o, label, wd.def_ratio_atk_race, race_names, RC_MAX );
+	safesnprintf( label, sizeof( label ), "%sMore dmg vs high DEF (class)", hand );
+	mask_list( o, label, wd.def_ratio_atk_class, class_names, CLASS_MAX );
+
+	if( wd.hp_drain_rate.per != 0 )
+		o.line( "%sHP drain: %s%% chance to drain %d%% of damage", hand, scaled( wd.hp_drain_rate.rate, 10 ).c_str(), wd.hp_drain_rate.per );
+	if( wd.sp_drain_rate.per != 0 )
+		o.line( "%sSP drain: %s%% chance to drain %d%% of damage", hand, scaled( wd.sp_drain_rate.rate, 10 ).c_str(), wd.sp_drain_rate.per );
+	safesnprintf( label, sizeof( label ), "%sHP per hit vs race", hand );
+	array_list( o, label, wd.hp_drain_race, RC_MAX, race_names, "" );
+	safesnprintf( label, sizeof( label ), "%sSP per hit vs race", hand );
+	array_list( o, label, wd.sp_drain_race, RC_MAX, race_names, "" );
+	safesnprintf( label, sizeof( label ), "%sHP per hit vs class", hand );
+	array_list( o, label, wd.hp_drain_class, CLASS_MAX, class_names, "" );
+	safesnprintf( label, sizeof( label ), "%sSP per hit vs class", hand );
+	array_list( o, label, wd.sp_drain_class, CLASS_MAX, class_names, "" );
+}
+
+} // namespace statsview
+
+ACMD_FUNC(statsview)
+{
+	using namespace statsview;
+
+	nullpo_retr(-1, sd);
+
+	char filter[CHAT_SIZE_MAX] = "";
+	if( message != nullptr && *message != '\0' )
+		sscanf( message, "%255s", filter );
+
+	Out o( fd, filter );
+	const status_data* st = &sd->battle_status;
+	const status_data* base = &sd->base_status;
+	const auto& ib = sd->indexed_bonus;
+	const auto& b = sd->bonus;
+
+	clif_displaymessage( fd, "------------- Character Battle Stats -------------" );
+
+	// ------------------------------------------------------------------
+	o.begin( "status", "Status" );
+	{
+		static const char* stat_names[6] = { "STR", "AGI", "VIT", "INT", "DEX", "LUK" };
+		const int32 base_stats[6] = { sd->status.str, sd->status.agi, sd->status.vit, sd->status.int_, sd->status.dex, sd->status.luk };
+		const int32 total_stats[6] = { st->str, st->agi, st->vit, st->int_, st->dex, st->luk };
+		std::string text;
+		for( int32 i = 0; i < 6; i++ ){
+			if( i > 0 )
+				text += "  ";
+			text += fmt( "%s %d", stat_names[i], base_stats[i] );
+			if( total_stats[i] != base_stats[i] )
+				text += fmt( "%+d", total_stats[i] - base_stats[i] );
+		}
+		o.line( "%s", text.c_str() );
+		o.line( "Max HP %u (rate %d%%)  Max SP %u (rate %d%%)", st->max_hp, sd->hprate, st->max_sp, sd->sprate );
+#ifdef RENEWAL
+		o.line( "ATK %d + %d  MATK %d~%d", st->batk + st->rhw.atk + st->rhw.atk2, b.eatk, st->matk_min, st->matk_max );
+#else
+		o.line( "ATK %d + %d (base %d, weapon %d)  MATK %d~%d", st->batk + st->rhw.atk, st->rhw.atk2, st->batk, st->rhw.atk, st->matk_min, st->matk_max );
+#endif
+		if( sd->weapontype2 != W_FIST )
+			o.line( "Left hand ATK %d + %d", st->lhw.atk, st->lhw.atk2 );
+		o.line( "HIT %d  FLEE %d  Perfect Dodge %s  CRIT %s", st->hit, st->flee, scaled( st->flee2, 10 ).c_str(), scaled( st->cri, 10 ).c_str() );
+		o.line( "DEF %d + %d  MDEF %d + %d", st->def, st->def2, st->mdef, st->mdef2 );
+		o.line( "ASPD %d  Walk speed %d (150 = normal, lower is faster)  Attack range %d", ( AMOTION_ZERO_ASPD - st->amotion ) / AMOTION_INTERVAL, st->speed, st->rhw.range );
+		o.line( "Weapon element %s  Armor element %s", st->rhw.ele < ELE_MAX ? ele_names[st->rhw.ele] : "?", st->def_ele < ELE_MAX ? ele_names[st->def_ele] : "?" );
+		if( b.arrow_ele > 0 && b.arrow_ele < ELE_MAX )
+			o.line( "Arrow/Ammo element %s", ele_names[b.arrow_ele] );
+		if( sd->add_max_weight != 0 )
+			o.line( "Max weight %+d", sd->add_max_weight / 10 );
+	}
+
+	// ------------------------------------------------------------------
+	o.begin( "attack", "Physical Attack" );
+	{
+		if( b.short_attack_atk_rate != 0 ) o.line( "Melee damage %+d%%", b.short_attack_atk_rate );
+		if( b.long_attack_atk_rate != 0 ) o.line( "Ranged damage %+d%%", b.long_attack_atk_rate );
+		if( b.crit_atk_rate != 0 ) o.line( "Critical damage %+d%%", b.crit_atk_rate );
+		if( b.non_crit_atk_rate != 0 ) o.line( "Non-critical damage %+d%%", b.non_crit_atk_rate );
+#ifdef RENEWAL
+		if( b.atk_rate != 0 ) o.line( "ATK %+d%%", b.atk_rate );
+#endif
+		if( b.weapon_atk_rate != 0 ) o.line( "Weapon ATK %+d%%", b.weapon_atk_rate );
+		if( b.skill_ratio != 0 ) o.line( "Skill damage (all skills) %+d%%", b.skill_ratio );
+		if( sd->critical_rate != 100 ) o.line( "CRIT %+d%%", sd->critical_rate - 100 );
+		if( b.critical_rangeatk != 0 ) o.line( "CRIT on ranged attacks %s", signed_scaled( b.critical_rangeatk, 10 ).c_str() );
+		if( b.arrow_cri - b.critical_rangeatk != 0 ) o.line( "CRIT from arrows/ammo %s", signed_scaled( b.arrow_cri - b.critical_rangeatk, 10 ).c_str() );
+		array_list( o, "CRIT vs race", ib.critaddrace, RC_MAX, race_names, "", 10 );
+		if( sd->hit_rate != 100 ) o.line( "HIT %+d%%", sd->hit_rate - 100 );
+		if( b.arrow_hit != 0 ) o.line( "HIT from arrows/ammo %+d", b.arrow_hit );
+		if( b.perfect_hit != 0 ) o.line( "Perfect hit chance %d%%", b.perfect_hit );
+		if( b.perfect_hit_add != 0 ) o.line( "Perfect hit bonus %+d%%", b.perfect_hit_add );
+		if( b.double_rate != 0 ) o.line( "Double attack chance %d%%", b.double_rate );
+		if( b.splash_range != 0 ) o.line( "Splash attack range %d", b.splash_range );
+#ifndef RENEWAL_ASPD
+		if( base->aspd_rate != 1000 ) o.line( "ASPD %s%% (equipment + passive skills)", signed_scaled( 1000 - base->aspd_rate, 10 ).c_str() );
+#else
+		if( base->aspd_rate2 != 0 ) o.line( "ASPD %+d%%", base->aspd_rate2 );
+#endif
+		if( b.aspd_add != 0 ) o.line( "ASPD %s", signed_scaled( -b.aspd_add, 10 ).c_str() );
+		array_list( o, "ATK by weapon type", ib.weapon_atk, 16, weapon_names, "" );
+		array_list( o, "Damage by weapon type", ib.weapon_damage_rate, 16, weapon_names );
+		array_list( o, "Ignore DEF % vs race", ib.ignore_def_by_race, RC_MAX, race_names );
+		array_list( o, "Ignore DEF % vs class", ib.ignore_def_by_class, CLASS_MAX, class_names );
+		if( sd->special_state.no_sizefix ) o.line( "No size penalty (100%% damage on all sizes)" );
+
+		bool dual = sd->weapontype2 != W_FIST;
+		weapon_bonus( o, sd, sd->right_weapon, dual ? "Right hand " : "", true );
+		if( dual )
+			weapon_bonus( o, sd, sd->left_weapon, "Left hand ", false );
+	}
+
+	// ------------------------------------------------------------------
+	o.begin( "magic", "Magic Attack" );
+	{
+		if( sd->matk_rate != 100 ) o.line( "MATK %+d%%", sd->matk_rate - 100 );
+		if( b.ematk != 0 ) o.line( "MATK %+d", b.ematk );
+		if( b.ematk_hidden != 0 ) o.line( "Hidden MATK %+d", b.ematk_hidden );
+		if( b.weapon_matk_rate != 0 ) o.line( "Weapon MATK %+d%%", b.weapon_matk_rate );
+		array_list( o, "Magic dmg vs race", ib.magic_addrace, RC_MAX, race_names );
+		array_list2( o, "Magic dmg vs element", ib.magic_addele, ib.magic_addele_script, ELE_MAX, ele_names );
+		array_list( o, "Magic dmg vs size", ib.magic_addsize, SZ_MAX, size_names );
+		array_list( o, "Magic dmg vs class", ib.magic_addclass, CLASS_MAX, class_names );
+		race2_list( o, "Magic dmg vs monster group", ib.magic_addrace2 );
+		itembonus_list( o, "Magic dmg vs monster", sd->add_mdmg, 3, "%" );
+		array_list( o, "Damage of own element spells", ib.magic_atk_ele, ELE_MAX, ele_names );
+		if( b.ignore_mdef_ele != 0 ) mask_list( o, "Ignore MDEF of element", b.ignore_mdef_ele, ele_names, ELE_MAX );
+		if( b.ignore_mdef_race != 0 ) mask_list( o, "Ignore MDEF of race", b.ignore_mdef_race, race_names, RC_MAX );
+		if( b.ignore_mdef_class != 0 ) mask_list( o, "Ignore MDEF of class", b.ignore_mdef_class, class_names, CLASS_MAX );
+		array_list( o, "Ignore MDEF % vs race", ib.ignore_mdef_by_race, RC_MAX, race_names );
+		array_list( o, "Ignore MDEF % vs class", ib.ignore_mdef_by_class, CLASS_MAX, class_names );
+		race2_list( o, "Ignore MDEF % vs monster group", ib.ignore_mdef_by_race2 );
+	}
+
+	// ------------------------------------------------------------------
+	o.begin( "defense", "Defense" );
+	{
+		if( sd->def_rate != 100 ) o.line( "DEF %+d%%", sd->def_rate - 100 );
+		if( sd->def2_rate != 100 ) o.line( "VIT DEF %+d%%", sd->def2_rate - 100 );
+		if( sd->mdef_rate != 100 ) o.line( "MDEF %+d%%", sd->mdef_rate - 100 );
+		if( sd->mdef2_rate != 100 ) o.line( "INT MDEF %+d%%", sd->mdef2_rate - 100 );
+		if( sd->flee_rate != 100 ) o.line( "FLEE %+d%%", sd->flee_rate - 100 );
+		if( sd->flee2_rate != 100 ) o.line( "Perfect Dodge %+d%%", sd->flee2_rate - 100 );
+		if( b.near_attack_def_rate != 0 ) o.line( "Melee damage taken %+d%%", -b.near_attack_def_rate );
+#ifndef RENEWAL
+		if( b.long_attack_def_rate != 0 ) o.line( "Ranged damage taken %+d%% (also reduces magic)", -b.long_attack_def_rate );
+#else
+		if( b.long_attack_def_rate != 0 ) o.line( "Ranged damage taken %+d%%", -b.long_attack_def_rate );
+#endif
+		if( b.magic_def_rate != 0 ) o.line( "Magic damage taken %+d%%", -b.magic_def_rate );
+		if( b.misc_def_rate != 0 ) o.line( "Trap/misc damage taken %+d%%", -b.misc_def_rate );
+		if( b.crit_def_rate != 0 ) o.line( "Critical damage taken %+d%%", -b.crit_def_rate );
+		if( b.critical_def != 0 ) o.line( "Chance to be crit %+d%%", -b.critical_def );
+		if( sd->special_state.no_weapon_damage ) o.line( "Physical damage taken -%d%%", sd->special_state.no_weapon_damage );
+		if( sd->special_state.no_magic_damage ) o.line( "Magic damage taken -%d%%", sd->special_state.no_magic_damage );
+		if( sd->special_state.no_misc_damage ) o.line( "Misc damage taken -%d%%", sd->special_state.no_misc_damage );
+
+		// Element resistance: script bonuses and skill/status bonuses are applied together
+		array_list2( o, "Resist element", ib.subele, ib.subele_script, ELE_MAX, ele_names );
+		addele2_list( o, "Resist element (cond.)", sd->subele2 );
+		array_list( o, "Resist element of attacker's armor", ib.subdefele, ELE_MAX, ele_names );
+		array_list( o, "Resist magic from attacker's armor element", ib.magic_subdefele, ELE_MAX, ele_names );
+		array_list( o, "Resist race", ib.subrace, RC_MAX, race_names );
+		{
+			std::vector<std::string> items;
+			for( const s_addrace2& it : sd->subrace3 ){
+				if( it.rate != 0 && it.race < RC_MAX )
+					items.push_back( fmt( "%s %+d%%", race_names[it.race], it.rate ) + bf_text( it.flag ) );
+			}
+			o.list( "Resist race (cond.)", items );
+		}
+		array_list( o, "Resist size", ib.subsize, SZ_MAX, size_names );
+		array_list( o, "Resist physical from size", ib.weapon_subsize, SZ_MAX, size_names );
+		array_list( o, "Resist magic from size", ib.magic_subsize, SZ_MAX, size_names );
+		array_list( o, "Resist class", ib.subclass, CLASS_MAX, class_names );
+		race2_list( o, "Resist monster group", ib.subrace2 );
+		itembonus_list( o, "Resist physical from monster", sd->add_def, 3, "%" );
+		itembonus_list( o, "Resist magic from monster", sd->add_mdef, 3, "%" );
+		itembonus_list( o, "Resist skill", sd->subskill, 0, "%" );
+		{
+			std::vector<std::string> items;
+			for( const s_item_bonus& it : sd->reseff ){
+				if( it.val != 0 )
+					items.push_back( sc_name( it.id ) + " " + scaled( it.val, 100 ) + "%" );
+			}
+			o.list( "Status resist", items );
+		}
+		if( b.short_weapon_damage_return != 0 ) o.line( "Reflect melee damage %d%%", b.short_weapon_damage_return );
+		if( b.long_weapon_damage_return != 0 ) o.line( "Reflect ranged damage %d%%", b.long_weapon_damage_return );
+		if( b.magic_damage_return != 0 ) o.line( "Reflect magic %d%% chance", b.magic_damage_return );
+		if( b.reduce_damage_return != 0 ) o.line( "Reflected damage taken -%d%%", b.reduce_damage_return );
+		if( b.absorb_dmg_maxhp != 0 ) o.line( "Damage over %d%% of Max HP is cut by that much", b.absorb_dmg_maxhp );
+		if( b.absorb_dmg_maxhp2 != 0 ) o.line( "Damage capped at %d%% of Max HP", b.absorb_dmg_maxhp2 );
+		if( sd->special_state.no_knockback ) o.line( "Cannot be knocked back" );
+		if( b.unbreakable != 0 ) o.line( "Equipment break chance -%d%%", b.unbreakable );
+		{
+			static const struct { int32 mask; const char* name; } eq[] = {
+				{ EQP_WEAPON, "Weapon" }, { EQP_ARMOR, "Armor" }, { EQP_HELM, "Headgear" }, { EQP_SHIELD, "Shield" }, { EQP_GARMENT, "Garment" }, { EQP_SHOES, "Shoes" }
+			};
+			std::vector<std::string> unbreak, unstrip;
+			for( const auto& e : eq ){
+				if( ( b.unbreakable_equip & e.mask ) == e.mask ) unbreak.push_back( e.name );
+				if( ( b.unstripable_equip & e.mask ) == e.mask ) unstrip.push_back( e.name );
+			}
+			o.list( "Unbreakable", unbreak );
+			o.list( "Cannot be stripped", unstrip );
+		}
+	}
+
+	// ------------------------------------------------------------------
+	o.begin( "skill", "Skills & Casting" );
+	{
+#ifdef RENEWAL_CAST
+		if( b.varcastrate != 0 ) o.line( "Variable cast time %+d%%", -b.varcastrate );
+		if( b.fixcastrate != 0 ) o.line( "Fixed cast time %+d%%", b.fixcastrate );
+		if( b.add_fixcast != 0 ) o.line( "Fixed cast time %+d ms", b.add_fixcast );
+		itembonus_list( o, "Fixed cast time by skill", sd->skillfixcastrate, 0, "%", true );
+		itembonus_list( o, "Fixed cast time (ms) by skill", sd->skillfixcast, 0, " ms" );
+		itembonus_list( o, "Cast time by skill", sd->skillcastrate, 0, "%", true );
+#else
+		if( sd->castrate != 100 ) o.line( "Cast time %+d%%", sd->castrate - 100 );
+		itembonus_list( o, "Cast time by skill", sd->skillcastrate, 0, "%" );
+#endif
+		if( b.add_varcast != 0 ) o.line( "Cast time %+d ms", b.add_varcast );
+		itembonus_list( o, "Cast time (ms) by skill", sd->skillvarcast, 0, " ms" );
+		if( b.delayrate != 0 ) o.line( "After-cast delay %+d%%", -b.delayrate );
+		itembonus_list( o, "After-cast delay (ms) by skill", sd->skilldelay, 0, " ms" );
+		itembonus_list( o, "Cooldown (ms) by skill", sd->skillcooldown, 0, " ms" );
+		if( sd->dsprate != 100 ) o.line( "SP cost %+d%%", sd->dsprate - 100 );
+		itembonus_list( o, "SP cost by skill", sd->skillusesprate, 0, "%", true );
+		itembonus_list( o, "SP cost (flat) by skill", sd->skillusesp, 0, "", true );
+		itembonus_list( o, "Damage by skill", sd->skillatk, 0, "%" );
+		itembonus_list( o, "Knockback by skill", sd->skillblown, 0, " cells" );
+		if( sd->special_state.no_castcancel ) o.line( "Casting cannot be interrupted%s", sd->special_state.no_castcancel2 ? "" : " (not in WoE)" );
+		else if( sd->special_state.no_castcancel2 ) o.line( "Casting cannot be interrupted" );
+		if( sd->special_state.no_gemstone ) o.line( "Skills need no gemstones" );
+		if( b.add_steal_rate != 0 ) o.line( "Steal chance %s%%", signed_scaled( b.add_steal_rate, 100 ).c_str() );
+	}
+
+	// ------------------------------------------------------------------
+	o.begin( "heal", "Healing & Recovery" );
+	{
+		if( b.add_heal_rate != 0 ) o.line( "Healing done %+d%%", b.add_heal_rate );
+		if( b.add_heal2_rate != 0 ) o.line( "Healing received %+d%%", b.add_heal2_rate );
+		itembonus_list( o, "Healing done by skill", sd->skillheal, 0, "%" );
+		itembonus_list( o, "Healing received by skill", sd->skillheal2, 0, "%" );
+		if( b.itemhealrate2 != 0 ) o.line( "HP from items %+d%%", b.itemhealrate2 );
+		if( b.itemsphealrate2 != 0 ) o.line( "SP from items %+d%%", b.itemsphealrate2 );
+		itembonus_list( o, "HP from item", sd->itemhealrate, 1, "%" );
+		itembonus_list( o, "HP from item group", sd->itemgrouphealrate, 2, "%" );
+		itembonus_list( o, "SP from item", sd->itemsphealrate, 1, "%" );
+		itembonus_list( o, "SP from item group", sd->itemgroupsphealrate, 2, "%" );
+		if( sd->hprecov_rate != 100 ) o.line( "HP regen %+d%%", sd->hprecov_rate - 100 );
+		if( sd->sprecov_rate != 100 ) o.line( "SP regen %+d%%", sd->sprecov_rate - 100 );
+		if( sd->hp_regen.value != 0 ) o.line( "Gain %d HP every %s s", sd->hp_regen.value, scaled( sd->hp_regen.rate, 1000 ).c_str() );
+		if( sd->sp_regen.value != 0 ) o.line( "Gain %d SP every %s s", sd->sp_regen.value, scaled( sd->sp_regen.rate, 1000 ).c_str() );
+		if( sd->percent_hp_regen.value != 0 ) o.line( "Gain %d%% HP every %s s", sd->percent_hp_regen.value, scaled( sd->percent_hp_regen.rate, 1000 ).c_str() );
+		if( sd->percent_sp_regen.value != 0 ) o.line( "Gain %d%% SP every %s s", sd->percent_sp_regen.value, scaled( sd->percent_sp_regen.rate, 1000 ).c_str() );
+		if( sd->hp_loss.value != 0 ) o.line( "Lose %d HP every %s s", sd->hp_loss.value, scaled( sd->hp_loss.rate, 1000 ).c_str() );
+		if( sd->sp_loss.value != 0 ) o.line( "Lose %d SP every %s s", sd->sp_loss.value, scaled( sd->sp_loss.rate, 1000 ).c_str() );
+		if( sd->regen.state.block & 1 ) o.line( "Natural HP regen disabled" );
+		if( sd->regen.state.block & 2 ) o.line( "Natural SP regen disabled" );
+		if( b.hp_gain_value != 0 ) o.line( "HP per melee kill %+d", b.hp_gain_value );
+		if( b.sp_gain_value != 0 ) o.line( "SP per melee kill %+d", b.sp_gain_value );
+		if( b.long_hp_gain_value != 0 ) o.line( "HP per ranged kill %+d", b.long_hp_gain_value );
+		if( b.long_sp_gain_value != 0 ) o.line( "SP per ranged kill %+d", b.long_sp_gain_value );
+		if( b.magic_hp_gain_value != 0 ) o.line( "HP per magic kill %+d", b.magic_hp_gain_value );
+		if( b.magic_sp_gain_value != 0 ) o.line( "SP per magic kill %+d", b.magic_sp_gain_value );
+		array_list( o, "SP per melee kill vs race", ib.sp_gain_race, RC_MAX, race_names, "" );
+		if( sd->special_state.restart_full_recover ) o.line( "Full HP/SP when revived" );
+	}
+
+	// ------------------------------------------------------------------
+	o.begin( "effect", "Proc & Status Effects" );
+	{
+		addeff_list( o, "On attack", sd->addeff );
+		addeff_list( o, "When hit", sd->addeff_atked );
+		{
+			std::vector<std::string> items;
+			for( const s_addeffectonskill& it : sd->addeff_onskill ){
+				std::string text = sc_name( it.sc ) + " " + scaled( it.rate, 100 ) + "% on " + skill_name( it.skill_id );
+				if( it.target & ATF_SELF )
+					text += " (self)";
+				items.push_back( text );
+			}
+			o.list( "On skill", items );
+		}
+		autospell_list( o, "Autocast on attack", sd->autospell, false );
+		autospell_list( o, "Autocast when hit", sd->autospell2, false );
+		autospell_list( o, "Autocast on skill", sd->autospell3, true );
+		autobonus_list( o, "Bonus on attack", sd->autobonus, false );
+		autobonus_list( o, "Bonus when hit", sd->autobonus2, false );
+		autobonus_list( o, "Bonus on skill", sd->autobonus3, true );
+		vanish_list( o, "Destroy target HP", sd->hp_vanish );
+		vanish_list( o, "Destroy target SP", sd->sp_vanish );
+		vanish_race_list( o, "Destroy target HP vs race", sd->hp_vanish_race );
+		vanish_race_list( o, "Destroy target SP vs race", sd->sp_vanish_race );
+		array_list( o, "Coma vs race", ib.coma_race, RC_MAX, race_names, "%", 100 );
+		array_list( o, "Coma vs class", ib.coma_class, CLASS_MAX, class_names, "%", 100 );
+		array_list( o, "Coma (normal attack) vs race", ib.weapon_coma_race, RC_MAX, race_names, "%", 100 );
+		array_list( o, "Coma (normal attack) vs element", ib.weapon_coma_ele, ELE_MAX, ele_names, "%", 100 );
+		array_list( o, "Coma (normal attack) vs class", ib.weapon_coma_class, CLASS_MAX, class_names, "%", 100 );
+		for( int32 i = 0; i < RC_MAX; i++ ){
+			if( sd->def_set_race[i].rate != 0 )
+				o.line( "Set %s DEF to %d: %d%% for %s s", race_names[i], sd->def_set_race[i].value, sd->def_set_race[i].rate, scaled( sd->def_set_race[i].tick, 1000 ).c_str() );
+			if( sd->mdef_set_race[i].rate != 0 )
+				o.line( "Set %s MDEF to %d: %d%% for %s s", race_names[i], sd->mdef_set_race[i].value, sd->mdef_set_race[i].rate, scaled( sd->mdef_set_race[i].tick, 1000 ).c_str() );
+			if( sd->norecover_state_race[i].rate != 0 )
+				o.line( "Block %s healing: %s%% for %s s", race_names[i], scaled( sd->norecover_state_race[i].rate, 100 ).c_str(), scaled( sd->norecover_state_race[i].tick, 1000 ).c_str() );
+		}
+		if( b.break_weapon_rate != 0 ) o.line( "Break enemy weapon %s%%", scaled( b.break_weapon_rate, 100 ).c_str() );
+		if( b.break_armor_rate != 0 ) o.line( "Break enemy armor %s%%", scaled( b.break_armor_rate, 100 ).c_str() );
+		if( b.classchange != 0 ) o.line( "Change monster class %s%%", scaled( b.classchange, 100 ).c_str() );
+		if( sd->special_state.intravision ) o.line( "Can see hidden/cloaked players" );
+		if( sd->special_state.perfect_hiding ) o.line( "Hiding cannot be detected" );
+		if( sd->special_state.no_walk_delay ) o.line( "No walk delay after being hit" );
+	}
+
+	// ------------------------------------------------------------------
+	o.begin( "drop", "EXP, Drops & Zeny" );
+	{
+		array_list( o, "EXP vs race", ib.expaddrace, RC_MAX, race_names );
+		array_list( o, "EXP vs class", ib.expaddclass, CLASS_MAX, class_names );
+		array_list( o, "Drop rate vs race", ib.dropaddrace, RC_MAX, race_names );
+		array_list( o, "Drop rate vs class", ib.dropaddclass, CLASS_MAX, class_names );
+		if( b.get_zeny_num != 0 ) o.line( "Zeny on kill: %d%% chance of 1~%d zeny", b.get_zeny_rate, b.get_zeny_num );
+		{
+			std::vector<std::string> items;
+			for( const s_add_drop& it : sd->add_drop ){
+				std::string text = it.nameid ? item_name( it.nameid ) : group_name( it.group );
+				if( it.rate < 0 )
+					text += " " + scaled( -it.rate, 100 ) + "% (by mob level)";
+				else
+					text += " " + scaled( it.rate, 100 ) + "%";
+				if( it.race < RC_NONE_ )
+					text += " from " + mob_name( -it.race );
+				else if( it.race >= 0 && it.race < RC_ALL )
+					text += std::string( " from " ) + race_names[it.race];
+				else if( it.class_ < CLASS_ALL )
+					text += std::string( " from " ) + class_names[it.class_];
+				items.push_back( text );
+			}
+			o.list( "Extra drops", items );
+		}
+	}
+
+	if( o.count == 0 ){
+		if( *filter != '\0' )
+			clif_displaymessage( fd, "Unknown section. Use: status, attack, magic, defense, skill, heal, effect, drop." );
+		else
+			clif_displaymessage( fd, "No active bonuses found." );
+	}
+	clif_displaymessage( fd, "--------------------------------------------------" );
+	return 0;
+}
+
+/*==========================================
  * @autoloot by Upa-Kun
  * Turns on/off AutoLoot for a specific player
  *------------------------------------------*/
@@ -12476,6 +13198,7 @@ void atcommand_basecommands(void) {
 		ACMD_DEF(showdelay),
 		ACMD_DEF(autotrade),
 		ACMD_DEF(autohunt),
+		ACMD_DEF(statsview),
 		ACMD_DEF(changegm),
 		ACMD_DEF(changeleader),
 		ACMD_DEF(partyoption),
