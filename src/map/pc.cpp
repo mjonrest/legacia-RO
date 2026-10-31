@@ -16899,6 +16899,7 @@ TIMER_FUNC(pc_autotrade_timer){
  *   AH_HITMVP                 : 1 = attack MVPs (only if the server allows it)
  *   AH_TELE                   : seconds without a monster before teleporting (0 = server default, -1 = never)
  *   AH_TELETYPE               : 0 = auto, 1 = Teleport skill, 2 = Infinite Fly Wing, 3 = Fly Wing
+ *   AH_CROWD                  : teleport when this many monsters are within autohunt_crowd_range (0 = off)
  *   AH_FREE_DAY, AH_FREE_LEFT : today's free time (seconds left), see autohunt_free_time
  *                               (#AH_FREE_* per account, $AH_DEV_* / $AH_IP_* per device, see autohunt_free_share)
  *   AH_PAID_TIME              : bought time in seconds (Autohunt Time tickets)
@@ -17130,6 +17131,42 @@ static bool pc_autohunt_teleport( map_session_data& sd ){
 	if( consume )
 		pc_delitem( &sd, idx, 1, 0, 0, LOG_TYPE_CONSUME );
 
+	return true;
+}
+
+/// Counts living monsters around the player that it could fight (for the crowd teleport, AH_CROWD)
+static int32 pc_autohunt_crowd_sub( block_list* bl, va_list ap ){
+	map_session_data* sd = va_arg( ap, map_session_data* );
+
+	if( bl->prev == nullptr || status_isdead( *bl ) || battle_check_target( sd, bl, BCT_ENEMY ) <= 0 )
+		return 0;
+
+	return 1;
+}
+
+/// Teleports away when AH_CROWD or more monsters are within autohunt_crowd_range cells
+static bool pc_autohunt_crowd( map_session_data& sd, t_tick tick ){
+	int64 crowd = pc_autohunt_var( sd, "AH_CROWD" );
+
+	if( crowd <= 0 )
+		return false;
+
+	// Give the new spot a moment before checking again (monsters there may need a second to scatter)
+	if( DIFF_TICK( tick, sd.autohunt.crowd_tick ) < 2000 )
+		return false;
+
+	if( map_foreachinallrange( pc_autohunt_crowd_sub, &sd, battle_config.autohunt_crowd_range, BL_MOB, &sd ) < crowd )
+		return false;
+
+	sd.autohunt.crowd_tick = tick;
+
+	if( !pc_autohunt_teleport( sd ) )
+		return false;
+
+	unit_stop_attack( &sd );
+	sd.autohunt.target_id = 0;
+	sd.autohunt.last_found_tick = tick;
+	sd.autohunt.has_goal = false; // new spot, choose a new area to explore from here
 	return true;
 }
 
@@ -17741,7 +17778,7 @@ static TIMER_FUNC(pc_autohunt_timer){
 		}
 
 		// Busy: casting, talking to an NPC or sitting
-		if( sd->ud.skilltimer == INVALID_TIMER && sd->npc_id == 0 && !pc_issit( sd ) && !pc_autohunt_buff( *sd, tick ) ){
+		if( sd->ud.skilltimer == INVALID_TIMER && sd->npc_id == 0 && !pc_issit( sd ) && !pc_autohunt_crowd( *sd, tick ) && !pc_autohunt_buff( *sd, tick ) ){
 			block_list* target = map_id2bl( sd->autohunt.target_id );
 
 			if( !pc_autohunt_valid_target( *sd, target ) || !check_distance_bl( sd, target, battle_config.autohunt_search_range * 2 ) ){
@@ -17826,6 +17863,7 @@ bool pc_autohunt_start( map_session_data& sd ){
 	sd.autohunt.has_goal = false;
 	sd.autohunt.visited = 0;
 	sd.autohunt.effect_tick = 0;
+	sd.autohunt.crowd_tick = 0;
 
 	// Let other players see who is autohunting
 	sd.autohunt.tag_name[0] = '\0';

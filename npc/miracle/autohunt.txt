@@ -14,6 +14,8 @@
 //   AH_TELE     : seconds without a monster before teleporting (0 = server default, -1 = never)
 //   AH_TELETYPE : 0 = auto (skill, then Infinite Fly Wing, then Fly Wing), 1 = Teleport skill,
 //                 2 = Infinite Fly Wing, 3 = Fly Wing
+//   AH_CROWD    : teleport when this many monsters are around you (0 = off,
+//                 range is autohunt_crowd_range in feature.conf)
 //   AH_LOOT     : autoloot rate x100 (10000 = everything, -1 = off, 0 = server default)
 //
 // Autohunt time:
@@ -57,6 +59,7 @@ OnMenu:
 			"Buff skills",
 			"Auto potion",
 			"Auto teleport - " + callfunc("F_AH_TeleText") + ", " + callfunc("F_AH_TeleTypeText"),
+			"Crowd teleport - " + callfunc("F_AH_CrowdText"),
 			"Ignore monsters (" + callfunc("F_AH_IgnoreCount") + ")",
 			"MVP - " + .@mvp$,
 			"Autoloot - " + callfunc("F_AH_LootText"),
@@ -134,9 +137,32 @@ OnMenu:
 			break;
 		case 8:
 			clear;
-			callfunc "F_AH_Ignore";
+			mes "[Autohunt]";
+			mes "Teleport away when too many monsters are around you.";
+			mes "Counts monsters within " + getbattleflag("autohunt_crowd_range") + " cells. Uses the same teleport as Auto teleport (" + callfunc("F_AH_TeleTypeText") + ").";
+			mes "Now: ^0000FF" + callfunc("F_AH_CrowdText") + "^000000";
+			switch (select("2 or more monsters:3 or more monsters:4 or more monsters:5 or more monsters:6 or more monsters:8 or more monsters:10 or more monsters:Enter a number:Off")) {
+				case 1: AH_CROWD = 2; break;
+				case 2: AH_CROWD = 3; break;
+				case 3: AH_CROWD = 4; break;
+				case 4: AH_CROWD = 5; break;
+				case 5: AH_CROWD = 6; break;
+				case 6: AH_CROWD = 8; break;
+				case 7: AH_CROWD = 10; break;
+				case 8:
+					mes "Enter a number of monsters from 2 to 30.";
+					input .@n, 2, 30;
+					AH_CROWD = cap_value(.@n, 2, 30);
+					break;
+				case 9: AH_CROWD = 0; break;
+			}
+			clear;
 			break;
 		case 9:
+			clear;
+			callfunc "F_AH_Ignore";
+			break;
+		case 10:
 			clear;
 			mes "[Autohunt]";
 			if (getbattleflag("autohunt_ignore_mvp")) {
@@ -148,7 +174,7 @@ OnMenu:
 			AH_HITMVP = (select("Avoid MVPs:Attack MVPs") == 2);
 			clear;
 			break;
-		case 10:
+		case 11:
 			clear;
 			mes "[Autohunt]";
 			mes "Which items should be picked up automatically while autohunting?";
@@ -242,6 +268,12 @@ function	script	F_AH_TeleTypeText	{
 		case 3: return "Fly Wing";
 	}
 	return "Auto";
+}
+
+function	script	F_AH_CrowdText	{
+	if (AH_CROWD > 0)
+		return AH_CROWD + "+ monsters";
+	return "Off";
 }
 
 // getarg(0): 0 = attack skills, 1 = buff skills

@@ -1052,6 +1052,7 @@ public:
 		bool has_goal;
 		char tag_name[NAME_LENGTH]; ///< Name shown to others while autohunting ("[AutoHunt] name")
 		t_tick effect_tick;     ///< Last time the autohunt effect was shown
+		t_tick crowd_tick;      ///< Last crowd teleport (AH_CROWD), so it does not fire again right away
 		int32 time_ms;          ///< Used milliseconds not yet taken from the time balance
 		uint32 device_id;       ///< Gepard unique ID of the player's device (kept while offline)
 		uint32 device_ip;       ///< Player's IP, used for the device limits when there is no Gepard ID
