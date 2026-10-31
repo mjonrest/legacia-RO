@@ -36636,7 +36636,7 @@ Body:
       }
   - Id: 5547
     AegisName: RJC_Katusa
-    Name: RJC Katusa Flower
+    Name: Red Flower Hairband
     Type: Armor
     Buy: 20
     Weight: 200
@@ -36645,6 +36645,7 @@ Body:
     Locations:
       Head_Top: true
     ArmorLevel: 1
+    EquipLevelMin: 70
     Refineable: true
     View: 533
     Trade:
@@ -36652,11 +36653,10 @@ Body:
       NoSell: true
       NoGuildStorage: true
     Script: |
-      bonus2 bSkillAtk, "WZ_HEAVENDRIVE", 15 + getequiprefinerycnt(EQI_HAND_R);
-      bonus2 bSkillAtk, "WZ_EARTHSPIKE", 15 + getequiprefinerycnt(EQI_HAND_R);
-      bonus2 bCastrate, "WZ_HEAVENDRIVE", -25;
-      bonus2 bCastrate, "WZ_EARTHSPIKE", -25;
-      ;
+      bonus2 bSkillAtk,"WZ_HEAVENDRIVE",15+getrefine();
+      bonus2 bSkillAtk,"WZ_EARTHSPIKE",15+getrefine();
+      bonus2 bCastrate,"WZ_HEAVENDRIVE",-25;
+      bonus2 bCastrate,"WZ_EARTHSPIKE",-25;
   - Id: 5548
     AegisName: Scarlet_Rose
     Name: Scarlet Rose
