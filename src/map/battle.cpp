@@ -11908,6 +11908,7 @@ static const struct _battle_data {
 	{ "autohunt_ignore_mvp",                &battle_config.autohunt_ignore_mvp,             0,      0,      1,              },
 	{ "autohunt_ignore_others_mobs",        &battle_config.autohunt_ignore_others_mobs,     1,      0,      1,              },
 	{ "autohunt_flywing_idle",              &battle_config.autohunt_flywing_idle,           10,     0,      INT_MAX,        },
+	{ "autohunt_crowd_range",               &battle_config.autohunt_crowd_range,            3,      1,      14,             },
 	{ "autohunt_hp_rate",                   &battle_config.autohunt_hp_rate,                50,     0,      99,             },
 	{ "autohunt_sp_rate",                   &battle_config.autohunt_sp_rate,                20,     0,      99,             },
 	{ "autohunt_time_limit",                &battle_config.autohunt_time_limit,             1,      0,      1,              },

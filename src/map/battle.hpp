@@ -793,6 +793,7 @@ struct Battle_Config
 	int32 autohunt_ignore_mvp;
 	int32 autohunt_ignore_others_mobs;
 	int32 autohunt_flywing_idle;
+	int32 autohunt_crowd_range;
 	int32 autohunt_hp_rate;
 	int32 autohunt_sp_rate;
 	int32 autohunt_time_limit;
