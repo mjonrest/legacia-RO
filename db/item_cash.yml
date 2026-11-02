@@ -32,18 +32,14 @@ Header:
   Type: ITEM_CASH_DB
   Version: 1
 
-# Autohunt Time tickets (npc/miracle/autohunt.txt). Not on sale yet:
-# to release them, remove the # in front of the lines below and run @reloadcashdb.
-#Body:
-#  - Tab: Consumables
-#    Items:
-#      - Item: Autohunt_Time_1H
-#        Price: 50
-#      - Item: Autohunt_Time_5H
-#        Price: 200
-#      - Item: Autohunt_Time_24H
-#        Price: 800
-
-Footer:
-  Imports:
-    - Path: db/import/item_cash.yml
+# Autohunt Time tickets (npc/miracle/autohunt.txt, items 300022-300024).
+# Run @reloadcashdb after changing prices.
+Body:
+  - Tab: Consumables
+    Items:
+      - Item: Autohunt_Time_1H
+        Price: 17
+      - Item: Autohunt_Time_5H
+        Price: 85
+      - Item: Autohunt_Time_24H
+        Price: 408
