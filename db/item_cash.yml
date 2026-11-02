@@ -43,3 +43,7 @@ Body:
         Price: 85
       - Item: Autohunt_Time_24H
         Price: 408
+
+Footer:
+  Imports:
+    - Path: db/import/item_cash.yml
