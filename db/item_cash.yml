@@ -40,6 +40,6 @@ Body:
       - Item: Autohunt_Time_1H
         Price: 17
       - Item: Autohunt_Time_5H
-        Price: 200
+        Price: 85
       - Item: Autohunt_Time_24H
-        Price: 800
+        Price: 408
