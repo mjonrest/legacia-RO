@@ -53,6 +53,7 @@ static const char* woestat_columns[WOESTAT_MAX] = {
 	"zeny_used",
 	"spiritb_used",
 	"ammo_used",
+	"active_time",
 };
 
 static const char* WOE_CHAR_TABLE = "woe_char_stats";
@@ -88,6 +89,9 @@ static std::unordered_map<uint64, t_tick> woe_last_kill;
 static map_session_data* woe_healer = nullptr;
 
 static int32 woestats_flush_tid = INVALID_TIMER;
+static int32 woestats_time_tid = INVALID_TIMER;
+
+#define WOESTATS_TIME_INTERVAL 10 // seconds between active time checks
 
 static int32 woestats_today() {
 	time_t now = time(nullptr);
@@ -558,8 +562,29 @@ static TIMER_FUNC(woestats_flush_timer) {
 	return 0;
 }
 
+/// Adds active time to every character standing on an active WoE map who isn't idle
+static TIMER_FUNC(woestats_time_timer) {
+	if (!battle_config.woe_stats_enable || !is_agit_start())
+		return 0;
+
+	s_mapiterator* iter = mapit_getallusers();
+
+	for (map_session_data* sd = (map_session_data*)mapit_first(iter); mapit_exists(iter); sd = (map_session_data*)mapit_next(iter)) {
+		if (sd->state.autotrade || sd->chatID || sd->state.vending)
+			continue;
+		if (DIFF_TICK(last_tick, sd->idletime) >= battle_config.woe_stats_idle_time)
+			continue; // AFK
+		woestats_add(sd, WOESTAT_ACTIVE_TIME, WOESTATS_TIME_INTERVAL);
+	}
+	mapit_free(iter);
+
+	return 0;
+}
+
 void do_init_woestats() {
 	add_timer_func_list(woestats_flush_timer, "woestats_flush_timer");
+	add_timer_func_list(woestats_time_timer, "woestats_time_timer");
+	woestats_time_tid = add_timer_interval(gettick() + WOESTATS_TIME_INTERVAL * 1000, woestats_time_timer, 0, 0, WOESTATS_TIME_INTERVAL * 1000);
 
 	woestats_rank_load();
 
@@ -572,6 +597,10 @@ void do_final_woestats() {
 	if (woestats_flush_tid != INVALID_TIMER) {
 		delete_timer(woestats_flush_tid, woestats_flush_timer);
 		woestats_flush_tid = INVALID_TIMER;
+	}
+	if (woestats_time_tid != INVALID_TIMER) {
+		delete_timer(woestats_time_tid, woestats_time_timer);
+		woestats_time_tid = INVALID_TIMER;
 	}
 
 	woestats_flush();

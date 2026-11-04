@@ -44,6 +44,7 @@ enum e_woe_stat : uint8 {
 	WOESTAT_ZENY_USED,
 	WOESTAT_SPIRITBALL_USED,
 	WOESTAT_AMMO_USED,
+	WOESTAT_ACTIVE_TIME, // seconds on a WoE map while not idle
 	WOESTAT_MAX
 };
 

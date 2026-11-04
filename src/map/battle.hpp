@@ -816,6 +816,7 @@ struct Battle_Config
 	int32 woe_rank_loss_rate;
 	int32 woe_rank_repeat_time;
 	int32 woe_rank_same_device;
+	int32 woe_stats_idle_time;
 
 #include <custom/battle_config_struct.inc>
 };
