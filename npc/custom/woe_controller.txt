@@ -430,7 +430,7 @@ while(1) {
 		}
 	}
 	next;
-	switch(select(""+((.CastleWarp || .Active[1])?" ~ Warp to castles...":"")+": ~ Check schedule...: ~ View castle owners...:"+((getgmlevel()<.GMAccess || !getgmlevel())?"":" ~ Manage sessions...")+": ~ ^777777Cancel^000000")) {
+	switch(select(""+((.CastleWarp || .Active[1])?" ~ Warp to castles...":"")+": ~ Check schedule...: ~ View castle owners...: ~ WoE player ranking...: ~ WoE guild stats...: ~ My WoE stats...:"+((getgmlevel()<.GMAccess || !getgmlevel())?"":" ~ Manage sessions...")+": ~ ^777777Cancel^000000")) {
 	case 1:
 		if (.CastleWarp) set .@clr$,"^0055FF";
 		set .@menu$,"";
@@ -481,6 +481,64 @@ while(1) {
 		next;
 		break;
 	case 4:
+		// WoE Stats & Ranking (src/map/woestats.cpp)
+		mes "[WoE Ranking]";
+		set .@n, getwoeranking(10);
+		if (!.@n)
+			mes "Nobody is ranked yet.";
+		for(set .@i,0; .@i<.@n; set .@i,.@i+1) {
+			set .@g$, (($@woerank_guild[.@i])?" ^777777["+getguildname($@woerank_guild[.@i])+"]^000000":"");
+			mes (.@i+1)+". ^0055FF"+$@woerank_name$[.@i]+"^000000"+.@g$;
+			mes "    "+$@woerank_score[.@i]+" pts  ("+$@woerank_kills[.@i]+" K / "+$@woerank_deaths[.@i]+" D)";
+		}
+		mes " ";
+		set .@r, getwoerank(getcharid(0));
+		if (.@r)
+			mes "Your rank: ^FF0000#"+.@r+"^000000 - "+getwoerank(getcharid(0),1)+" pts ("+getwoerank(getcharid(0),2)+" K / "+getwoerank(getcharid(0),3)+" D)";
+		else
+			mes "You are not ranked yet.";
+		next;
+		break;
+	case 5:
+		set .@s, select(" ~ Last WoE: ~ All time: ~ ^777777Go back^000000");
+		if (.@s == 3) break;
+		mes "[WoE Guild Stats - "+((.@s == 1)?"Last WoE":"All time")+"]";
+		if (.@s == 1)
+			set .@n, query_sql("SELECT s.`guild_id`, IFNULL(g.`name`,'?'), s.`kill_count`, s.`death_count`, DATE_FORMAT(s.`date`,'%Y-%m-%d') FROM `woe_guild_stats` s LEFT JOIN `guild` g ON g.`guild_id` = s.`guild_id` WHERE s.`date` = (SELECT MAX(`date`) FROM `woe_guild_stats`) ORDER BY s.`kill_count` DESC, s.`death_count` ASC LIMIT 10", .@gid, .@gname$, .@kill, .@death, .@date$);
+		else
+			set .@n, query_sql("SELECT s.`guild_id`, IFNULL(g.`name`,'?'), SUM(s.`kill_count`) AS k, SUM(s.`death_count`) AS d, '' FROM `woe_guild_stats` s LEFT JOIN `guild` g ON g.`guild_id` = s.`guild_id` GROUP BY s.`guild_id` ORDER BY k DESC, d ASC LIMIT 10", .@gid, .@gname$, .@kill, .@death, .@date$);
+		if (!.@n)
+			mes "No guild has fought in WoE yet.";
+		else if (.@s == 1)
+			mes "^777777("+.@date$[0]+")^000000";
+		for(set .@i,0; .@i<.@n; set .@i,.@i+1) {
+			set .@kd, .@kill[.@i]*100 / max(1,.@death[.@i]);
+			mes (.@i+1)+". ^0055FF"+.@gname$[.@i]+"^000000";
+			mes "    "+.@kill[.@i]+" kills / "+.@death[.@i]+" deaths  (K/D "+(.@kd/100)+"."+((.@kd%100 < 10)?"0":"")+(.@kd%100)+")";
+		}
+		next;
+		break;
+	case 6:
+		mes "[My WoE Stats]";
+		set .@n, query_sql("SELECT DATE_FORMAT(`date`,'%Y-%m-%d'), `kill_count`, `death_count`, `damage_done`, `damage_received`, `top_damage`, `emperium_damage`, `healing_done`, `support_skills_used` FROM `woe_char_stats` WHERE `char_id` = "+getcharid(0)+" ORDER BY `date` DESC LIMIT 1", .@date$, .@k, .@d, .@dmg$, .@rec$, .@top, .@emp$, .@heal$, .@sup);
+		if (!.@n) {
+			mes "You have no WoE stats yet.";
+			mes "Join the next War of Emperium!";
+		} else {
+			mes "Last WoE: ^0055FF"+.@date$+"^000000";
+			mes "Kills / Deaths: "+.@k+" / "+.@d;
+			mes "Damage done: "+.@dmg$;
+			mes "Damage taken: "+.@rec$;
+			mes "Top hit: "+.@top;
+			mes "Emperium damage: "+.@emp$;
+			mes "Healing done: "+.@heal$;
+			mes "Support skills: "+.@sup;
+		}
+		mes " ";
+		mes "Stats are saved every minute.";
+		next;
+		break;
+	case 7:
 	while(1) {
 		mes "[Session Manager]";
 		mes "There are ^0055FF"+(.Size/4)+" session(s)^000000 configured.";
@@ -641,7 +699,7 @@ while(1) {
 		}
 		if (.@d) { set .@d,0; break; }
 		} break;
-	case 5:
+	case 8:
 		close;
 	} }
 }

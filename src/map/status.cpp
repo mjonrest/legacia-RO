@@ -36,6 +36,7 @@
 #include "pet.hpp"
 #include "rune.hpp"
 #include "script.hpp"
+#include "woestats.hpp"
 
 using namespace rathena;
 
@@ -1647,6 +1648,10 @@ int32 status_damage(block_list *src,block_list *target,int64 dhp, int64 dsp, int
 			status_change_end(target, SC_SATURDAYNIGHTFEVER);
 	}
 
+	// WoE Stats & Ranking
+	if (hp > 0)
+		woestats_damage(src, target, hp);
+
 	// Need to pass original HP damage for the mob damage log
 	dhp = cap_value(dhp, INT_MIN, INT_MAX);
 	switch (target->type) {
@@ -1703,6 +1708,9 @@ int32 status_damage(block_list *src,block_list *target,int64 dhp, int64 dsp, int
 
 	if(!flag) // Death cancelled.
 		return (int32)(hp+sp+ap);
+
+	// WoE Stats & Ranking
+	woestats_dead(src, target, skill_id);
 
 	// Normal death
 	if (battle_config.clear_unit_ondeath &&
@@ -1866,6 +1874,10 @@ int32 status_heal(block_list *bl,int64 hhp,int64 hsp, int64 hap, int32 flag)
 	status->hp += hp;
 	status->sp += sp;
 	status->ap += ap;
+
+	// WoE Stats & Ranking (only counts while a player's skill is healing)
+	if (hp > 0)
+		woestats_heal(bl, hp);
 
 	// Send HP update to client
 	switch(bl->type) {

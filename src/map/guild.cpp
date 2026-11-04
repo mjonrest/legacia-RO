@@ -31,6 +31,7 @@
 #include "pc.hpp"
 #include "storage.hpp"
 #include "trade.hpp"
+#include "woestats.hpp"
 
 using namespace rathena;
 
@@ -2551,6 +2552,8 @@ bool guild_agit_end(void){
 
 	agit_flag = false;
 
+	woestats_flush(); // WoE Stats & Ranking: save right away
+
 	npc_event_runall( script_config.agit_end_event_name );
 
 	return true;
@@ -2581,6 +2584,8 @@ bool guild_agit2_end(void){
 
 	agit2_flag = false;
 
+	woestats_flush(); // WoE Stats & Ranking: save right away
+
 	npc_event_runall( script_config.agit_end2_event_name );
 
 	return true;
@@ -2610,6 +2615,8 @@ bool guild_agit3_end(void){
 	}
 
 	agit3_flag = false;
+
+	woestats_flush(); // WoE Stats & Ranking: save right away
 
 	npc_event_runall( script_config.agit_end3_event_name );
 

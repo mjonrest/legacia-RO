@@ -35,6 +35,7 @@
 #include "pc_groups.hpp"
 #include "pet.hpp"
 #include "./skills/skill_impl.hpp"
+#include "woestats.hpp"
 
 using namespace rathena;
 
@@ -2652,8 +2653,10 @@ void battle_consume_ammo(map_session_data*sd, int32 skill, int32 lv)
 		}
 	}
 
-	if (sd->equip_index[EQI_AMMO] >= 0) //Qty check should have been done in skill_check_condition
+	if (sd->equip_index[EQI_AMMO] >= 0) { //Qty check should have been done in skill_check_condition
 		pc_delitem(sd,sd->equip_index[EQI_AMMO],qty,0,1,LOG_TYPE_CONSUME);
+		woestats_add(sd, WOESTAT_AMMO_USED, qty); // WoE Stats & Ranking
+	}
 
 	sd->state.arrow_atk = 0;
 }
@@ -11921,6 +11924,14 @@ static const struct _battle_data {
 	{ "autohunt_exp_rate",                  &battle_config.autohunt_exp_rate,               50,     0,      100,            },
 	{ "autohunt_drop_rate",                 &battle_config.autohunt_drop_rate,              50,     0,      100,            },
 	{ "autohunt_mastery_rate",              &battle_config.autohunt_mastery_rate,           50,     0,      100,            },
+	{ "woe_stats_enable",                   &battle_config.woe_stats_enable,                1,      0,      1,              },
+	{ "woe_stats_save_interval",            &battle_config.woe_stats_save_interval,         60,     10,     3600,           },
+	{ "woe_stats_kill_log",                 &battle_config.woe_stats_kill_log,              1,      0,      1,              },
+	{ "woe_rank_start_score",               &battle_config.woe_rank_start_score,            1000,   0,      100000,         },
+	{ "woe_rank_k_factor",                  &battle_config.woe_rank_k_factor,               32,     1,      1000,           },
+	{ "woe_rank_loss_rate",                 &battle_config.woe_rank_loss_rate,              100,    0,      1000,           },
+	{ "woe_rank_repeat_time",               &battle_config.woe_rank_repeat_time,            0,      0,      86400,          },
+	{ "woe_rank_same_device",               &battle_config.woe_rank_same_device,            1,      0,      1,              },
 
 #include <custom/battle_config_init.inc>
 };

@@ -54,6 +54,7 @@
 #include "rune.hpp"
 #include "storage.hpp"
 #include "trade.hpp"
+#include "woestats.hpp"
 
 using namespace rathena;
 using namespace rathena::server_map;
@@ -5126,6 +5127,9 @@ void MapServer::finalize(){
 	do_final_skill();
 	do_final_status();
 	do_final_unit();
+#ifndef MAP_GENERATOR
+	do_final_woestats();
+#endif
 	do_final_battleground();
 	do_final_duel();
 	do_final_elemental();
@@ -5560,6 +5564,9 @@ bool MapServer::initialize( int32 argc, char *argv[] ){
 	do_init_quest();
 	do_init_achievement();
 	do_init_battleground();
+#ifndef MAP_GENERATOR
+	do_init_woestats();
+#endif
 	do_init_npc();
 	do_init_unit();
 	do_init_duel();
