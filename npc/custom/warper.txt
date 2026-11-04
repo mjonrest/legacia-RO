@@ -28,7 +28,8 @@ mes "How can i help you?";
 menu	"Last Warp ^777777["+lastwarp$+"]^000000",-,
     	" ~ Towns",Towns,
     	" ~ Fields",Fields,
-    	" ~ Dungeons",Dungeons;
+    	" ~ Dungeons",Dungeons,
+    	" ~ WoE Castle ^0000FF[Himinn]^000000",WoE_Castle;
 //	" ~ Guild Castles",Castles,
 //	" ~ Guild Dungeons",Guild_Dungeons,
 //	" ~ Instances",Instances,
@@ -535,6 +536,18 @@ D53: Restrict("RE");
 D54: Restrict("RE");
 	 setarray @c[2],205,385;
 	 Disp("Mjolnir Underground Cave",1,1); Pick("mjo_wst");
+// --------------------------------------------------
+	WoE_Castle:
+// --------------------------------------------------
+// Legacia: the open WoE castle is Himinn (schg_cas01, see npc/custom/woe_controller.txt).
+// Lands outside the castle gate in sch_gld (castle portal is at 293,90, a few steps south).
+// Always the fixed spot, even when .Random is on.
+	set lastwarpx, 293;
+	set lastwarpy, 100;
+	set lastwarp$, "sch_gld";
+	warp "sch_gld",293,100;
+	end;
+
 // --------------------------------------------------
 	Castles:
 // --------------------------------------------------
