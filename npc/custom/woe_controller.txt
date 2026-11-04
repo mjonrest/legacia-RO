@@ -100,6 +100,35 @@ OnInit:
 	.reward_zeny = 0;
 
 // -----------------------------------------------------------
+//  WoE contributor reward (Legacia)
+// -----------------------------------------------------------
+//  Every player who really took part in WoE can claim a reward once per
+//  WoE at this NPC ("Claim WoE reward"), also if they were offline when
+//  WoE ended. Uses the WoE stats saved by the server (woe_char_stats).
+//  Only one character per device (Gepard ID) can claim each WoE.
+//
+//  A player qualifies when BOTH are true:
+//   1. active time on the castle map >= .CRwdMinMinutes
+//      (AFK time doesn't count, see woe_stats_idle_time in conf/battle/guild.conf)
+//   2. did at least ONE of these:
+//      - killed a player
+//      - dealt .CRwdMinDamage damage (players, Emperium, guardians, barricades, stones)
+//      - healed .CRwdMinHeal HP on guild/alliance members
+//      - used .CRwdMinSupport support skills on guild/alliance members
+// -----------------------------------------------------------
+	set .CRwdEnable, 1;		// 1: on, 0: off
+	set .CRwdMinMinutes, 15;
+	set .CRwdMinDamage, 5000;
+	set .CRwdMinHeal, 5000;
+	set .CRwdMinSupport, 10;
+	set .CRwdDays, 6;		// Reward can be claimed until this many days after the WoE day.
+
+	// Reward (TODO: set the real reward)
+	set .CRwdZeny, 100000;
+	setarray .CRwdItem[0], 607;	// item IDs (607 = Yggdrasil Berry, placeholder)
+	setarray .CRwdAmount[0], 1;	// amounts, same order as .CRwdItem
+
+// -----------------------------------------------------------
 //  Castles datas.
 // -----------------------------------------------------------
 
@@ -206,6 +235,7 @@ OnMinute00:
 					if (.ExitWarp) maprespawnguildid .Castles$[.@j],0,3;
 				}
 				if ((.Options&1) && .Active[0] && .ForceEnd != 2) callsub OnReward, .Active[0];
+				if (.CRwdEnable) announce "WoE contributors can now claim their reward at the WOE Information NPC in Prontera!",bc_all|bc_woe;
 				deletearray .Active[0],2;
 				if (.ForceEnd) { set .ForceEnd,0; end; }
 				break;
@@ -430,7 +460,7 @@ while(1) {
 		}
 	}
 	next;
-	switch(select(""+((.CastleWarp || .Active[1])?" ~ Warp to castles...":"")+": ~ Check schedule...: ~ View castle owners...: ~ WoE player ranking...: ~ WoE guild stats...: ~ My WoE stats...:"+((getgmlevel()<.GMAccess || !getgmlevel())?"":" ~ Manage sessions...")+": ~ ^777777Cancel^000000")) {
+	switch(select(""+((.CastleWarp || .Active[1])?" ~ Warp to castles...":"")+": ~ Check schedule...: ~ View castle owners...: ~ WoE player ranking...: ~ WoE guild stats...: ~ My WoE stats...: ~ Claim WoE reward...:"+((getgmlevel()<.GMAccess || !getgmlevel())?"":" ~ Manage sessions...")+": ~ ^777777Cancel^000000")) {
 	case 1:
 		if (.CastleWarp) set .@clr$,"^0055FF";
 		set .@menu$,"";
@@ -539,6 +569,73 @@ while(1) {
 		next;
 		break;
 	case 7:
+		// WoE contributor reward
+		mes "[WoE Reward]";
+		if (!.CRwdEnable) {
+			mes "There is no contributor reward right now.";
+			next;
+			break;
+		}
+		if (agitcheck() || agitcheck2() || agitcheck3()) {
+			mes "WoE is still running.";
+			mes "Come back when it is over!";
+			next;
+			break;
+		}
+		set .@sql$, "SELECT DATE_FORMAT(`date`,'%Y%m%d'), `active_time` DIV 60, "
+			+ "(`kill_count` >= 1 OR (`damage_done` + `emperium_damage` + `guardian_damage` + `barricade_damage` + `gstone_damage`) >= "+.CRwdMinDamage
+			+ " OR `healing_done` >= "+.CRwdMinHeal+" OR `support_skills_used` >= "+.CRwdMinSupport+") "
+			+ "FROM `woe_char_stats` WHERE `char_id` = "+getcharid(0)+" AND `date` >= CURDATE() - INTERVAL "+.CRwdDays+" DAY ORDER BY `date` DESC LIMIT 1";
+		set .@n, query_sql(.@sql$, .@date, .@min, .@acted);
+		if (!.@n) {
+			mes "You didn't take part in a recent War of Emperium.";
+			next;
+			break;
+		}
+		if (WOE_CRWD == .@date) {
+			mes "You already claimed your reward for this WoE.";
+			next;
+			break;
+		}
+		if (.@min < .CRwdMinMinutes || !.@acted) {
+			mes "You didn't do enough in the last WoE to earn a reward.";
+			mes " ";
+			mes "Active time: "+((.@min >= .CRwdMinMinutes)?"^00AA00":"^FF0000")+.@min+" / "+.CRwdMinMinutes+" min^000000";
+			mes "Fought or supported: "+((.@acted)?"^00AA00yes":"^FF0000no")+"^000000";
+			next;
+			break;
+		}
+		set .@uid, get_unique_id();
+		if (.@uid && getd("$WOECRWD_"+.@uid) == .@date) {
+			mes "Another character on this device already claimed the reward for this WoE.";
+			next;
+			break;
+		}
+		set .@size, getarraysize(.CRwdItem);
+		set .@heavy, 0;
+		for(set .@i,0; .@i<.@size; set .@i,.@i+1)
+			if (.CRwdItem[.@i] && !checkweight(.CRwdItem[.@i], .CRwdAmount[.@i])) set .@heavy, 1;
+		if (.@heavy) {
+			mes "You are carrying too much.";
+			mes "Make some room and come back.";
+			next;
+			break;
+		}
+		if (.CRwdZeny && Zeny + .CRwdZeny > MAX_ZENY) {
+			mes "You can't carry that much zeny.";
+			next;
+			break;
+		}
+		set WOE_CRWD, .@date;
+		if (.@uid) setd "$WOECRWD_"+.@uid, .@date;
+		if (.CRwdZeny) set Zeny, Zeny + .CRwdZeny;
+		for(set .@i,0; .@i<.@size; set .@i,.@i+1)
+			if (.CRwdItem[.@i]) getitem .CRwdItem[.@i], .CRwdAmount[.@i];
+		mes "Thank you for fighting for your guild!";
+		mes "Here is your reward.";
+		next;
+		break;
+	case 8:
 	while(1) {
 		mes "[Session Manager]";
 		mes "There are ^0055FF"+(.Size/4)+" session(s)^000000 configured.";
@@ -699,7 +796,7 @@ while(1) {
 		}
 		if (.@d) { set .@d,0; break; }
 		} break;
-	case 8:
+	case 9:
 		close;
 	} }
 }

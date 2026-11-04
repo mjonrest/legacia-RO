@@ -11932,6 +11932,7 @@ static const struct _battle_data {
 	{ "woe_rank_loss_rate",                 &battle_config.woe_rank_loss_rate,              100,    0,      1000,           },
 	{ "woe_rank_repeat_time",               &battle_config.woe_rank_repeat_time,            0,      0,      86400,          },
 	{ "woe_rank_same_device",               &battle_config.woe_rank_same_device,            1,      0,      1,              },
+	{ "woe_stats_idle_time",                &battle_config.woe_stats_idle_time,             60,     10,     3600,           },
 
 #include <custom/battle_config_init.inc>
 };

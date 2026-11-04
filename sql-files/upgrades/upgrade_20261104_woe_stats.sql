@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS `woe_char_stats` (
   `zeny_used` bigint(20) unsigned NOT NULL default '0',
   `spiritb_used` int(11) unsigned NOT NULL default '0',
   `ammo_used` int(11) unsigned NOT NULL default '0',
+  `active_time` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY (`char_id`, `date`),
   KEY `date` (`date`),
   KEY `guild_id` (`guild_id`)
