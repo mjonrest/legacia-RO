@@ -55,6 +55,7 @@
 #include "storage.hpp"
 #include "trade.hpp"
 #include "vending.hpp"
+#include "woestats.hpp"
 
 using namespace rathena;
 
@@ -7837,6 +7838,42 @@ ACMD_FUNC(statsview)
 }
 
 /*==========================================
+ * @woerank - WoE ranking (top 10 + your own place)
+ *------------------------------------------*/
+ACMD_FUNC(woerank)
+{
+	nullpo_retr(-1, sd);
+
+	char out[CHAT_SIZE_MAX];
+	const std::vector<s_woe_rank*>& list = woestats_ranking();
+
+	clif_displaymessage(fd, "========== WoE Ranking ==========");
+
+	if (list.empty())
+		clif_displaymessage(fd, "Nobody is ranked yet. Join War of Emperium!");
+
+	for (size_t i = 0; i < list.size() && i < 10; i++) {
+		const s_woe_rank* rank = list[i];
+		std::shared_ptr<MapGuild> g = rank->guild_id ? guild_search(rank->guild_id) : nullptr;
+
+		safesnprintf(out, sizeof(out), "%2d. %s%s%s%s - %d pts (%u kills / %u deaths)", static_cast<int32>(i + 1), rank->name,
+			g ? " [" : "", g ? g->guild.name : "", g ? "]" : "", rank->score, rank->kills, rank->deaths);
+		clif_displaymessage(fd, out);
+	}
+
+	int32 pos = woestats_rank_position(sd->status.char_id);
+	s_woe_rank* own = woestats_rank_get(sd->status.char_id);
+
+	if (pos > 0 && own != nullptr)
+		safesnprintf(out, sizeof(out), "Your rank: #%d of %d - %d pts (%u kills / %u deaths)", pos, static_cast<int32>(list.size()), own->score, own->kills, own->deaths);
+	else
+		safesnprintf(out, sizeof(out), "You are not ranked yet (start score: %d pts).", battle_config.woe_rank_start_score);
+	clif_displaymessage(fd, out);
+
+	return 0;
+}
+
+/*==========================================
  * @autoloot by Upa-Kun
  * Turns on/off AutoLoot for a specific player
  *------------------------------------------*/
@@ -13199,6 +13236,7 @@ void atcommand_basecommands(void) {
 		ACMD_DEF(autotrade),
 		ACMD_DEF(autohunt),
 		ACMD_DEF(statsview),
+		ACMD_DEF(woerank),
 		ACMD_DEF(changegm),
 		ACMD_DEF(changeleader),
 		ACMD_DEF(partyoption),

@@ -46,6 +46,7 @@
 #include "status.hpp"
 #include "unit.hpp"
 #include "./skills/skill_factory.hpp"
+#include "woestats.hpp"
 
 using namespace rathena;
 
@@ -7118,6 +7119,9 @@ int32 skill_castend_nodamage_id (block_list *src, block_list *bl, uint16 skill_i
 	dstsd = BL_CAST(BL_PC, bl);
 	dstmd = BL_CAST(BL_MOB, bl);
 
+	// WoE Stats & Ranking: heals done by this skill are credited to the caster
+	woestats_healer_scope woe_healer(sd);
+
 	if(bl->prev == nullptr)
 		return 1;
 	if(status_isdead(*src))
@@ -7183,6 +7187,10 @@ int32 skill_castend_nodamage_id (block_list *src, block_list *bl, uint16 skill_i
 		skill_get_inf(skill_id) != INF_SUPPORT_SKILL &&
 		battle_attr_fix(nullptr, nullptr, 100, i, tstatus->def_ele, tstatus->ele_lv) <= 0)
 		return 1; //Skills that cause an status should be blocked if the target element blocks its element.
+
+	// WoE Stats & Ranking: support skill used on another player
+	if (sd != nullptr && dstsd != nullptr && sd != dstsd && (skill_get_inf(skill_id) & INF_SUPPORT_SKILL))
+		woestats_support(sd, dstsd);
 
 	FreeBlockLock freeLock;
 	switch(skill_id)
@@ -15076,7 +15084,10 @@ int32 skill_unit_onplace_timer(skill_unit *unit, block_list *bl, t_tick tick)
 				clif_skill_nodamage(unit, *bl, AL_HEAL, heal);
 				if( tsc && tsc->getSCE(SC_AKAITSUKI) && heal )
 					heal = ~heal + 1;
-				status_heal(bl, heal, 0, 0);
+				{
+					woestats_healer_scope woe_healer(BL_CAST(BL_PC, ss)); // WoE Stats: Sanctuary heals count for the caster
+					status_heal(bl, heal, 0, 0);
+				}
 			}
 			break;
 
@@ -17757,6 +17768,14 @@ void skill_consume_requirement(map_session_data *sd, uint16 skill_id, uint16 ski
 		if(require.hp || require.sp || require.ap)
 			skill_consume_hpspap(sd, skill_id, require.hp, require.sp, require.ap);
 
+		// WoE Stats & Ranking
+		if (require.sp > 0)
+			woestats_add(sd, WOESTAT_SP_USED, require.sp);
+		if (require.spiritball > 0)
+			woestats_add(sd, WOESTAT_SPIRITBALL_USED, require.spiritball);
+		else if (require.spiritball == -1)
+			woestats_add(sd, WOESTAT_SPIRITBALL_USED, sd->spiritball);
+
 		if(require.spiritball > 0) { // Skills that require certain types of spheres to use
 			switch (skill_id) { // Skills that require soul spheres.
 				case SP_SOULGOLEM:
@@ -17802,6 +17821,7 @@ void skill_consume_requirement(map_session_data *sd, uint16 skill_id, uint16 ski
 			if( sd->status.zeny < require.zeny )
 				require.zeny = sd->status.zeny;
 			pc_payzeny(sd,require.zeny,LOG_TYPE_CONSUME);
+			woestats_add(sd, WOESTAT_ZENY_USED, require.zeny); // WoE Stats & Ranking
 		}
 	}
 
@@ -17849,9 +17869,15 @@ void skill_consume_requirement(map_session_data *sd, uint16 skill_id, uint16 ski
 					break;
 			}
 
-			if( (n = pc_search_inventory(sd,require.itemid[i])) >= 0 )
+			if( (n = pc_search_inventory(sd,require.itemid[i])) >= 0 ) {
 				pc_delitem(sd,n,require.amount[i],0,1,LOG_TYPE_CONSUME);
+				woestats_item_used(sd, require.itemid[i], require.amount[i]); // WoE Stats & Ranking
+			}
 		}
+
+		// WoE Stats & Ranking
+		if (skill_id == CR_ACIDDEMONSTRATION)
+			woestats_add(sd, WOESTAT_ACID_DEMONSTRATION, 1);
 	}
 }
 

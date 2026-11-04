@@ -807,6 +807,16 @@ struct Battle_Config
 	int32 autohunt_drop_rate;
 	int32 autohunt_mastery_rate;
 
+	// WoE Stats & Ranking (woestats.cpp)
+	int32 woe_stats_enable;
+	int32 woe_stats_save_interval;
+	int32 woe_stats_kill_log;
+	int32 woe_rank_start_score;
+	int32 woe_rank_k_factor;
+	int32 woe_rank_loss_rate;
+	int32 woe_rank_repeat_time;
+	int32 woe_rank_same_device;
+
 #include <custom/battle_config_struct.inc>
 };
 

@@ -49,6 +49,7 @@ Body:
       autotrade: true
       autohunt: true
       statsview: true
+      woerank: true
       go: true
       showexp: true
       #warp: true

@@ -89,6 +89,7 @@
 #include "storage.hpp"
 #include "unit.hpp" // unit_stop_attack(), unit_stop_walking()
 #include "vending.hpp" // struct s_vending
+#include "woestats.hpp"
 
 using namespace rathena;
 
@@ -12273,6 +12274,12 @@ void pc_heal(map_session_data *sd,uint32 hp,uint32 sp, uint32 ap, int32 type)
 int32 pc_itemheal(map_session_data *sd, t_itemid itemid, int32 hp, int32 sp)
 {
 	int32 bonus, tmp, penalty = 0;
+
+	// WoE Stats & Ranking
+	if (hp > 0)
+		woestats_add(sd, WOESTAT_HP_POTION, 1);
+	if (sp > 0)
+		woestats_add(sd, WOESTAT_SP_POTION, 1);
 
 	if (hp) {
 		bonus = 100 + (sd->battle_status.vit * 2) + pc_checkskill(sd, SM_RECOVERY) * 10 + pc_checkskill(sd, AM_LEARNINGPOTION) * 5;

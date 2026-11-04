@@ -65,6 +65,7 @@
 #include "pet.hpp"
 #include "quest.hpp"
 #include "storage.hpp"
+#include "woestats.hpp"
 
 using namespace rathena;
 
@@ -27963,6 +27964,66 @@ BUILDIN_FUNC(get_unique_id)
 
 // (^~_~^) Gepard Shield End
 
+// WoE Stats & Ranking (woestats.cpp)
+
+/// getwoerank(<char id>{,<type>})
+/// type 0 = ranking position (1 = best, 0 = not ranked), 1 = score, 2 = WoE kills, 3 = WoE deaths
+BUILDIN_FUNC(getwoerank)
+{
+	uint32 char_id = script_getnum(st, 2);
+	int32 type = script_hasdata(st, 3) ? script_getnum(st, 3) : 0;
+	s_woe_rank* rank = woestats_rank_get(char_id);
+
+	switch (type) {
+		case 0: script_pushint(st, woestats_rank_position(char_id)); break;
+		case 1: script_pushint(st, rank != nullptr ? rank->score : battle_config.woe_rank_start_score); break;
+		case 2: script_pushint(st, rank != nullptr ? rank->kills : 0); break;
+		case 3: script_pushint(st, rank != nullptr ? rank->deaths : 0); break;
+		default:
+			ShowError("buildin_getwoerank: Unknown type %d.\n", type);
+			script_pushint(st, 0);
+			return SCRIPT_CMD_FAILURE;
+	}
+
+	return SCRIPT_CMD_SUCCESS;
+}
+
+/// getwoeranking(<count>{,<offset>})
+/// Fills $@woerank_cid[], $@woerank_name$[], $@woerank_guild[], $@woerank_class[],
+/// $@woerank_score[], $@woerank_kills[] and $@woerank_deaths[] (best first, starting at <offset>).
+/// Returns how many entries were filled.
+BUILDIN_FUNC(getwoeranking)
+{
+	int32 count = script_getnum(st, 2);
+	int32 offset = script_hasdata(st, 3) ? script_getnum(st, 3) : 0;
+	const std::vector<s_woe_rank*>& list = woestats_ranking();
+	int32 j = 0;
+
+	for (int32 i = std::max(offset, 0); i < static_cast<int32>(list.size()) && j < count; i++, j++) {
+		const s_woe_rank* rank = list[i];
+
+		mapreg_setreg(reference_uid(add_str("$@woerank_cid"), j), rank->char_id);
+		mapreg_setregstr(reference_uid(add_str("$@woerank_name$"), j), rank->name);
+		mapreg_setreg(reference_uid(add_str("$@woerank_guild"), j), rank->guild_id);
+		mapreg_setreg(reference_uid(add_str("$@woerank_class"), j), rank->class_);
+		mapreg_setreg(reference_uid(add_str("$@woerank_score"), j), rank->score);
+		mapreg_setreg(reference_uid(add_str("$@woerank_kills"), j), rank->kills);
+		mapreg_setreg(reference_uid(add_str("$@woerank_deaths"), j), rank->deaths);
+	}
+
+	script_pushint(st, j);
+	return SCRIPT_CMD_SUCCESS;
+}
+
+/// woerankreset;
+/// Starts a new ranking season: every score back to woe_rank_start_score, kills/deaths cleared.
+/// Daily stats (woe_char_stats, woe_guild_stats, woe_kill_log) are kept.
+BUILDIN_FUNC(woerankreset)
+{
+	woestats_rank_reset();
+	return SCRIPT_CMD_SUCCESS;
+}
+
 // (^~_~^) Auras Start
 
 BUILDIN_FUNC(set_aura)
@@ -28175,6 +28236,11 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(get_unique_id,""),
 
 // (^~_~^) Gepard Shield End
+
+	// WoE Stats & Ranking
+	BUILDIN_DEF(getwoerank,"i?"),
+	BUILDIN_DEF(getwoeranking,"i?"),
+	BUILDIN_DEF(woerankreset,""),
 
 	// NPC interaction
 	BUILDIN_DEF(mes,"s*"),
