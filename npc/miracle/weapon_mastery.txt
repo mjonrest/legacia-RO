@@ -254,7 +254,7 @@ function	script	F_WM_type	{
 	// ITEM ID EXCLUSIONS
 	//
 	// getarg(1) = item ID (optional).
-	// These daggers use Mystical instead of Swiftness.
+	// These weapons use Mystical instead of their normal mastery.
 	//=====================================================
 
 	switch(getarg(1,0)) {
@@ -262,6 +262,7 @@ function	script	F_WM_type	{
 		case 13010:	// Asura
 		case 13011:	// Asura
 		case 13023:	// Ashura
+		case 13414:	// Elemental Sword
 			return "Mystical";
 	}
 
