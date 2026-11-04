@@ -11930,7 +11930,7 @@ static const struct _battle_data {
 	{ "woe_rank_start_score",               &battle_config.woe_rank_start_score,            1000,   0,      100000,         },
 	{ "woe_rank_k_factor",                  &battle_config.woe_rank_k_factor,               32,     1,      1000,           },
 	{ "woe_rank_loss_rate",                 &battle_config.woe_rank_loss_rate,              100,    0,      1000,           },
-	{ "woe_rank_repeat_time",               &battle_config.woe_rank_repeat_time,            300,    0,      86400,          },
+	{ "woe_rank_repeat_time",               &battle_config.woe_rank_repeat_time,            0,      0,      86400,          },
 	{ "woe_rank_same_device",               &battle_config.woe_rank_same_device,            1,      0,      1,              },
 
 #include <custom/battle_config_init.inc>
