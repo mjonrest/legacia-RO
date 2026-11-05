@@ -1144,6 +1144,7 @@ ACMD_FUNC(hide)
 	{		
 		clif_send_aura_single(sd, sd->aura_data, sd->fd);
 	}
+	pc_aura_show(*sd, true);
 
 // (^~_~^) Auras End
 
@@ -1160,6 +1161,7 @@ ACMD_FUNC(hide)
 	{
 		clif_send_aura(sd, 0x1000000, AREA);
 	}
+	pc_aura_show(*sd, false);
 
 // (^~_~^) Auras End
 
@@ -12860,6 +12862,7 @@ ACMD_FUNC(auras)
 		}
 
 		pc_setglobalreg(sd, add_str("AURA_DATA"), sd->aura_data);
+		pc_aura_apply(*sd);
 	}
 
 	return 0; 

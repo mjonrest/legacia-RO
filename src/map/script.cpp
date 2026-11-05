@@ -24774,7 +24774,7 @@ BUILDIN_FUNC(hateffect){
 	int16 effectID = script_getnum(st,2);
 	bool enable = script_getnum(st,3) ? true : false;
 
-	if( effectID <= HAT_EF_MIN || effectID >= HAT_EF_MAX ){
+	if( !hateffect_id_valid( effectID ) ){
 		ShowError( "buildin_hateffect: unsupported hat effect id %d\n", effectID );
 		return SCRIPT_CMD_FAILURE;
 	}
@@ -24828,7 +24828,7 @@ BUILDIN_FUNC(has_hateffect) {
 
 	int16 effectID = script_getnum(st, 2);
 
-	if (effectID <= HAT_EF_MIN || effectID >= HAT_EF_MAX) {
+	if( !hateffect_id_valid( effectID ) ){
 		ShowError( "buildin_has_hateffect: unsupported hat effect id %hd\n", effectID );
 		script_pushint( st, false );
 		return SCRIPT_CMD_FAILURE;
@@ -28068,6 +28068,7 @@ BUILDIN_FUNC(set_aura)
 		}
 
 		pc_setglobalreg(sd, add_str("AURA_DATA"), sd->aura_data);
+		pc_aura_apply(*sd);
 	}
 
 	script_pushint(st, 0);
@@ -28124,6 +28125,7 @@ BUILDIN_FUNC(set_aura_part)
 		}
 
 		pc_setglobalreg(sd, add_str("AURA_DATA"), sd->aura_data);
+		pc_aura_apply(*sd);
 	}
 
 	script_pushint(st, error);

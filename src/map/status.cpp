@@ -10338,6 +10338,7 @@ static bool status_change_start_post_delay(block_list* src, block_list* bl, sc_t
 	if (sd && sd->aura_data > 0x1000000 && (type == SC_HIDING || type == SC_CLOAKING || type == SC_CHASEWALK))
 	{
 		clif_send_aura(sd, 0x1000000, AREA);
+		pc_aura_show(*sd, false);
 	}
 
 // (^~_~^) Auras End
@@ -14104,6 +14105,7 @@ int32 status_change_end( block_list* bl, enum sc_type type, int32 tid ){
 	if (sd && sd->aura_data > 0x1000000 && (type == SC_HIDING || type == SC_CLOAKING || type == SC_CHASEWALK))
 	{
 		clif_send_aura(sd, sd->aura_data, AREA);
+		pc_aura_show(*sd, true);
 	}
 
 // (^~_~^) Auras End

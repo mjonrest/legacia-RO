@@ -803,6 +803,8 @@ struct Battle_Config
 	int32 autohunt_offline_per_device;
 	int32 autohunt_name_tag;
 	int32 autohunt_effect;
+	int32 aura_hateffect;
+	int32 gepard_aura_packet;
 	int32 autohunt_exp_rate;
 	int32 autohunt_drop_rate;
 	int32 autohunt_mastery_rate;
