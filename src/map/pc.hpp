@@ -1851,6 +1851,8 @@ void do_init_pc(void);
 // Autohunt (@autohunt)
 bool pc_autohunt_start(map_session_data& sd);
 void pc_autohunt_stop(map_session_data& sd, const char* reason = nullptr);
+void pc_aura_apply(map_session_data& sd);
+void pc_aura_show(map_session_data& sd, bool show);
 void pc_autohunt_skilllist(map_session_data& sd, bool buffs);
 void pc_autohunt_moblist(map_session_data& sd);
 int64 pc_autohunt_timeleft(map_session_data& sd);

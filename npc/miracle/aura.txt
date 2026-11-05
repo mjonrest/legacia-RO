@@ -1,278 +1,197 @@
-//==============================================================
-// LegaciaRO - Aura Master (our own aura system)
-//==============================================================
-// Replaces the Gepard aura. Players unlock an aura once
-// (account-wide), then switch between owned auras for free.
-// @aura opens the same menu from anywhere.
-//
-// How it works
-//  - Server: hateffect <id>,1 shows the aura to everyone nearby.
-//    Custom IDs 1001-1999 are allowed by hateffect_id_valid()
-//    in src/map/script.hpp (needs a map-server recompile).
-//  - Client: data/texture/effect/efst_legacia_aura/*.str + *.bmp
-//    and the entries added to HatEffectIDs.lub / HatEffectInfo.lub.
-//  - Maps with the nocostume mapflag hide auras (core behaviour).
-//
-// Aura IDs
-//  1001-1152 : Ground circles (spin under the character)
-//  1201-1235 : Body glows (1204, 1209, 1214 are floating particles)
-//
-// Variables
-//  #AURA_OWN[n] : account bitmask of unlocked auras (31 per entry)
-//  AURA_ID      : the character's active aura (0 = none)
-//==============================================================
+prontera,175,177,3	script	Princess Mary	640,{
+	set .@aura1, get_aura_part(1);
+	set .@aura2, get_aura_part(2);
+	set .@aura3, get_aura_part(3);
+	set .@name$, "[Princess Mary]";
 
-prontera,142,223,4	script	Aura Master	4_M_SAGE_C,{
-	mes "[Aura Master]";
-	mes "I can surround you with a lasting aura.";
-	mes "Unlock an aura once and every character on your account can wear it.";
+	mes .@name$;
+	mes "I can help you customize cosmetics.";
+	mes "I can convert your nick color or Auras.";
+
+	setarray .@auras_max[1],
+		152,117,35;
+
+	setarray .@AuraTicket[1],
+		30058,	// Aura Part 1
+		30059,	// Aura Part 2
+		30060;	// Aura Part 3
 	next;
-	callsub S_Menu;
-	end;
+	switch(select("Color Nickname:Aura Changer")){
+	case 1:
+	.@costitem2 = 30061;
+	.@costname2$ = getitemname(.@costitem2);
 
-OnCmd:
-	callsub S_Menu;
-	end;
+	mes .@name$;
+	mes "I can change your nickname color.";
+	mes "Required Item:";
+	mes "^FF00001 x " + .@costname2$ + "^000000";
+	next;
 
-OnInit:
-	// ---- settings ----
-	.Zeny = 5000000;	// zeny per aura (0 = no zeny cost)
-	.ItemID = 0;		// optional item cost per aura, e.g. 30012 (10 Cash Points). 0 = none
-	.ItemAmt = 0;
-	.PreviewSec = 10;	// how long a preview lasts
-	// ------------------
-	.GroundFirst = 1001; .GroundLast = 1152;
-	.GlowFirst = 1201;   .GlowLast = 1235;
-	.Total = (.GroundLast - .GroundFirst + 1) + (.GlowLast - .GlowFirst + 1);
-	.Price$ = "";
-	if (.Zeny)
-		.Price$ = callfunc("F_InsertComma", .Zeny) + " zeny";
-	if (.ItemID)
-		.Price$ += (.Price$ == "" ? "" : " + ") + .ItemAmt + "x " + getitemname(.ItemID);
-	if (.Price$ == "")
-		.Price$ = "free";
-	bindatcmd "aura", strnpcinfo(3) + "::OnCmd", 0, 99;
-	waitingroom "[ Auras ]", 0;
-	end;
+	.@original = get_color_nick();
+	.@current = .@original;
 
-OnPCLoginEvent:
-	if (AURA_ID) {
-		if (callsub(S_Owned, AURA_ID))
-			hateffect AURA_ID, 1;
-		else
-			AURA_ID = 0;
-	}
-	end;
-
-// ---------------- main menu ----------------
-S_Menu:
 	while (1) {
-		clear;
-		mes "[Aura Master]";
-		mes "Active aura: " + (AURA_ID ? "^0000FF" + callsub(S_Name, AURA_ID) + "^000000" : "none");
-		mes "Unlocked: " + callsub(S_CountOwned) + " / " + .Total;
-		mes "Price per aura: " + .Price$;
-		switch (select("Browse ground circles", "Browse body glows", "My auras", (AURA_ID ? "Turn my aura off" : ""), "Close")) {
+
+		set_color_nick(.@current);
+
+	//	message strcharinfo(0),
+	//		"Nickname Color Group : " + .@current + " / 20";
+
+		.@menu$ =
+			"Next (^0055FF"+((.@current<20)?.@current+1:0)+"^000000):"+
+			"Previous (^0055FF"+((.@current>0)?.@current-1:20)+"^000000):"+
+			"Jump to...:"+
+			"Revert (^0055FF"+.@original+"^000000):"+
+			"Confirm";
+
+		switch(prompt(.@menu$)) {
+
 		case 1:
-			callsub S_Browse, .GroundFirst, .GroundLast;
+			.@current = (.@current < 20) ? .@current + 1 : 0;
 			break;
+
 		case 2:
-			callsub S_Browse, .GlowFirst, .GlowLast;
+			.@current = (.@current > 0) ? .@current - 1 : 20;
 			break;
+
 		case 3:
-			callsub S_Mine;
+		//	message strcharinfo(0),"Choose a color between 0 and 20.";
+			input .@current,0,20;
 			break;
+
 		case 4:
-			callsub S_Set, 0;
+			.@current = .@original;
+			set_color_nick(.@original);
 			break;
-		default:
+
+		case 5:
+			next;
+			mes .@name$;
+			mes "Proceed with this nickname color?";
+			mes "";
+			mes "Required:";
+			mes "^FF00001 x " + .@costname2$ + "^000000";
+			next;
+			switch(select("Yes:Maybe Later")) {
+
+			case 1:
+				if (countitem(.@costitem2) < 1) {
+					mes .@name$;
+					mes "You don't have the required item.";
+					set_color_nick(.@original);
+					close;
+				}
+
+				delitem .@costitem2,1;
+
+				mes .@name$;
+				mes "Your nickname color has been changed!";
+				close;
+
+			case 2:
+				set_color_nick(.@original);
+				mes .@name$;
+				mes "Maybe next time.";
+				close;
+			}
+			break;
+
+		case 255:
+			set_color_nick(.@original);
+			mes .@name$;
+			mes "Cancelled.";
 			close;
 		}
 	}
+	case 2:
+	next;
+	set .@s, select("Aura 1 Part:Aura 2 Part:Aura 3 Part");
 
-// ---------------- browse a category (20 per page) ----------------
-S_Browse:
-	.@first = getarg(0);
-	.@last = getarg(1);
-	.@per = 20;
-	.@pages = (.@last - .@first) / .@per + 1;
-	.@page = 0;
-	while (1) {
-		clear;
-		.@from = .@first + .@page * .@per;
-		.@to = min(.@from + .@per - 1, .@last);
-		.@n = .@to - .@from + 1;
-		.@menu$ = "";
-		for (.@i = .@from; .@i <= .@to; .@i++) {
-			.@tag$ = "";
-			if (.@i == AURA_ID)
-				.@tag$ = " ^0000FF[wearing]^000000";
-			else if (callsub(S_Owned, .@i))
-				.@tag$ = " ^008800[owned]^000000";
-			.@menu$ += callsub(S_Name, .@i) + .@tag$ + ":";
-		}
-		.@menu$ += (.@page + 1 < .@pages ? "> Next page" : "") + ":" + (.@page ? "< Previous page" : "") + ":Back";
-		mes "[Aura Master]";
-		mes "Page " + (.@page + 1) + " of " + .@pages + ". Pick an aura to preview or unlock it.";
-		.@s = select(.@menu$);
-		if (.@s <= .@n) {
-			callsub S_Aura, .@from + .@s - 1;
-			continue;
-		}
-		.@s -= .@n;
-		if (.@s == 1)
-			.@page++;
-		else if (.@s == 2)
-			.@page--;
-		else
-			return;
-	}
+	.@costitem = .@AuraTicket[.@s];
+	.@costname$ = getitemname(.@costitem);
 
-// ---------------- one aura ----------------
-S_Aura:
-	.@id = getarg(0);
+	set .@revert, get_aura_part(.@s);
+	set .@current, .@revert;
+
 	while (1) {
-		clear;
-		.@own = callsub(S_Owned, .@id);
-		mes "[Aura Master]";
-		mes "^0000FF" + callsub(S_Name, .@id) + "^000000";
-		if (.@id == AURA_ID)
-			mes "You are wearing this aura.";
-		else if (.@own)
-			mes "You own this aura.";
-		else
-			mes "Price: " + .Price$;
-		.@use$ = "";
-		if (.@id != AURA_ID)
-			.@use$ = (.@own ? "Wear this aura" : "Unlock and wear this aura");
-		switch (select("Preview for " + .PreviewSec + " seconds", .@use$, "Back")) {
+
+		set_aura_part(.@s, .@current);
+
+	//	message strcharinfo(0),
+	//		"Aura " + .@s + " Part = " + .@current;
+
+		set .@menu$,
+			"Next (^0055FF"+((.@current<.@auras_max[.@s])?.@current+1:0)+"^000000):"+
+			"Previous (^0055FF"+((.@current>0)?.@current-1:.@auras_max[.@s])+"^000000):"+
+			"Jump to...:"+
+			"Revert to Original (^0055FF"+.@revert+"^000000):"+
+			"Confirm";
+
+		switch(prompt(.@menu$)) {
+
 		case 1:
-			callsub S_Preview, .@id;
-			end;
-		case 2:
-			if (!.@own) {
-				if (!callsub(S_Pay, .@id))
-					break;
-				callsub S_Give, .@id;
-				mes "Aura unlocked!";
-			}
-			callsub S_Set, .@id;
-			mes "You are now wearing " + callsub(S_Name, .@id) + ".";
-			next;
+			.@current = ((.@current < .@auras_max[.@s]) ? .@current + 1 : 0);
 			break;
-		default:
-			return;
-		}
-	}
 
-// ---------------- owned list ----------------
-S_Mine:
-	clear;
-	.@c = 0;
-	for (.@i = .GroundFirst; .@i <= .GroundLast; .@i++)
-		if (callsub(S_Owned, .@i))
-			.@ids[.@c++] = .@i;
-	for (.@i = .GlowFirst; .@i <= .GlowLast; .@i++)
-		if (callsub(S_Owned, .@i))
-			.@ids[.@c++] = .@i;
-	mes "[Aura Master]";
-	if (!.@c) {
-		mes "You have not unlocked any aura yet.";
-		next;
-		return;
-	}
-	mes "Pick an aura to wear. Switching is free.";
-	.@menu$ = "";
-	for (.@i = 0; .@i < .@c; .@i++)
-		.@menu$ += callsub(S_Name, .@ids[.@i]) + (.@ids[.@i] == AURA_ID ? " ^0000FF[wearing]^000000" : "") + ":";
-	.@menu$ += "Back";
-	.@s = select(.@menu$) - 1;
-	if (.@s < .@c)
-		callsub S_Set, .@ids[.@s];
-	return;
+		case 2:
+			.@current = ((.@current > 0) ? .@current - 1 : .@auras_max[.@s]);
+			break;
 
-// ---------------- helpers ----------------
-S_Preview:
-	.@id = getarg(0);
-	mes "Take a look at your character.";
-	mes "The preview ends in " + .PreviewSec + " seconds.";
-	close2;
-	if (.@id == AURA_ID)
-		end;
-	if (AURA_ID)
-		hateffect AURA_ID, 0;
-	hateffect .@id, 1;
-	sleep2 .PreviewSec * 1000;
-	hateffect .@id, 0;
-	if (AURA_ID)
-		hateffect AURA_ID, 1;
-	end;
+		case 3:
+		//	message strcharinfo(0),
+		//		"Choose a type between 0 and "+.@auras_max[.@s]+".";
+			input .@current,0,.@auras_max[.@s];
+			break;
 
-S_Pay:
-	mes "Unlock " + callsub(S_Name, getarg(0)) + " for " + .Price$ + "?";
-	if (select("Yes:No") == 2)
-		return 0;
-	if (.Zeny) {
-		if (Zeny < .Zeny) {
-			mes "You don't have enough zeny.";
+		case 4:
+			.@current = .@revert;
+			set_aura_part(.@s,.@revert);
+			break;
+
+		case 255:
+			mes .@name$;
+			mes "Cancelled.";
+			set_aura(.@aura1,.@aura2,.@aura3);
+			close;
+
+		case 5:
+
 			next;
-			return 0;
-		}
-	}
-	if (.ItemID) {
-		if (countitem(.ItemID) < .ItemAmt) {
-			mes "You need " + .ItemAmt + "x " + getitemname(.ItemID) + ".";
+			mes .@name$;
+			mes "This Aura looks great!";
+			mes "";
+			mes "Required Item:";
+			mes "^FF00001 x "+.@costname$+"^000000";
+			mes "";
+			mes "Proceed?";
 			next;
-			return 0;
+			switch(select("Yes:Maybe Later")) {
+
+			case 1:
+
+				if (countitem(.@costitem) < 1) {
+					mes .@name$;
+					mes "You don't have the required item.";
+					set_aura(.@aura1,.@aura2,.@aura3);
+					close;
+				}
+
+				delitem .@costitem,1;
+
+				mes .@name$;
+				mes "Your Aura has been updated successfully!";
+				close;
+
+			case 2:
+				mes .@name$;
+				mes "Maybe next time.";
+				set_aura(.@aura1,.@aura2,.@aura3);
+				close;
+			}
 		}
 	}
-	if (.Zeny)
-		Zeny -= .Zeny;
-	if (.ItemID)
-		delitem .ItemID, .ItemAmt;
-	return 1;
-
-S_Set:
-	if (AURA_ID)
-		hateffect AURA_ID, 0;
-	AURA_ID = getarg(0);
-	if (AURA_ID)
-		hateffect AURA_ID, 1;
-	return;
-
-S_Slot:
-	.@id = getarg(0);
-	if (.@id >= .GlowFirst && .@id <= .GlowLast)
-		return (.GroundLast - .GroundFirst + 1) + .@id - .GlowFirst;
-	if (.@id >= .GroundFirst && .@id <= .GroundLast)
-		return .@id - .GroundFirst;
-	return -1;
-
-S_Owned:
-	.@s = callsub(S_Slot, getarg(0));
-	if (.@s < 0)
-		return 0;
-	return (#AURA_OWN[.@s / 31] & (1 << (.@s % 31))) ? 1 : 0;
-
-S_Give:
-	.@s = callsub(S_Slot, getarg(0));
-	if (.@s >= 0)
-		#AURA_OWN[.@s / 31] = #AURA_OWN[.@s / 31] | (1 << (.@s % 31));
-	return;
-
-S_CountOwned:
-	.@c = 0;
-	for (.@s = 0; .@s < .Total; .@s++)
-		if (#AURA_OWN[.@s / 31] & (1 << (.@s % 31)))
-			.@c++;
-	return .@c;
-
-S_Name:
-	.@id = getarg(0);
-	if (.@id == 1204) return "Floating Notes";
-	if (.@id == 1209) return "Floating Stars";
-	if (.@id == 1214) return "Floating Feathers";
-	if (.@id >= .GlowFirst)
-		return sprintf("Body Glow %03d", .@id - .GlowFirst + 1);
-	return sprintf("Ground Circle %03d", .@id - .GroundFirst + 1);
+	}
+OnInit:
+setunittitle( getnpcid(0), "<Cosmetic Girl>" );
+end;
 }

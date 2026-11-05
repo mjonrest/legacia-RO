@@ -17,7 +17,8 @@ def pow2(n):
     return p
 
 def make_texture(path, name):
-    im = Image.open(path).convert('RGB')
+    src = Image.open(path).convert('RGBA')
+    im = Image.new('RGB', src.size, (0, 0, 0)); im.paste(src, mask=src.getchannel('A'))   # alpha -> black
     px = im.load()
     for y in range(im.size[1]):
         for x in range(im.size[0]):
@@ -96,12 +97,35 @@ def particle_layers(tex):
         ls.append(layer(tex, st))
     return ls, P_PERIOD
 
+# ---- pillar: the texture wraps around the body like a spinning cylinder ----
+C_R, C_H, C_SEGS, C_PERIOD, C_STEP = 30.0, 96.0, 10, 4 * FPS, 10
+def pillar_layers(tex):
+    ls = []
+    for k in range(C_SEGS):
+        st = []
+        for f in range(0, C_PERIOD + 1, C_STEP):
+            a0 = 2 * math.pi * (k / C_SEGS + f / C_PERIOD)
+            a1 = a0 + 2 * math.pi / C_SEGS
+            x0, x1 = C_R * math.sin(a0), C_R * math.sin(a1)
+            y0, y1 = C_R * G_SQUASH * math.cos(a0), C_R * G_SQUASH * math.cos(a1)
+            pts = ((x0, y0 - C_H), (x1, y1 - C_H), (x1, y1), (x0, y0))   # TL TR BR BL, bottom on the floor
+            pos, xy = quad(320.0, 320.0, pts)
+            st.append((f, pos, xy, (255.0, 255.0, 255.0, 190.0)))
+        ls.append(layer(tex, st))
+    return ls, C_PERIOD
+
+# Gepard aura parts: 1 = ground (1000+n), 2 = pillar (1300+n), 3 = glow (1600+n)
 auras = []
 for n, f in enumerate(sorted(os.listdir(os.path.join(SRC, '1'))), 1):
     tex = 'g%03d.bmp' % n; make_texture(os.path.join(SRC, '1', f), tex)
     st, mk = ground_states()
     write_str('g%03d.str' % n, mk, [layer(tex, st)])
-    auras.append(dict(id=1000 + n, kind='ground', file='g%03d.str' % n, src='1/' + f))
+    auras.append(dict(id=1000 + n, part=1, num=n, kind='ground', file='g%03d.str' % n, src='1/' + f))
+for n, f in enumerate(sorted(os.listdir(os.path.join(SRC, '2'))), 1):
+    tex = 'p%03d.bmp' % n; make_texture(os.path.join(SRC, '2', f), tex)
+    ls, mk = pillar_layers(tex)
+    write_str('p%03d.str' % n, mk, ls)
+    auras.append(dict(id=1300 + n, part=2, num=n, kind='pillar', file='p%03d.str' % n, src='2/' + f))
 for n, f in enumerate(sorted(os.listdir(os.path.join(SRC, '3'))), 1):
     p = os.path.join(SRC, '3', f); w = Image.open(p).size[0]
     tex = 'b%03d.bmp' % n; make_texture(p, tex)
@@ -110,6 +134,6 @@ for n, f in enumerate(sorted(os.listdir(os.path.join(SRC, '3'))), 1):
     else:
         st, mk = glow_states(); ls = [layer(tex, st)]; kind = 'glow'
     write_str('b%03d.str' % n, mk, ls)
-    auras.append(dict(id=1200 + n, kind=kind, file='b%03d.str' % n, src='3/' + f))
+    auras.append(dict(id=1600 + n, part=3, num=n, kind=kind, file='b%03d.str' % n, src='3/' + f))
 json.dump(auras, open(os.path.join(OUT, 'auras.json'), 'w'), indent=1)
 print(len(auras), 'auras')

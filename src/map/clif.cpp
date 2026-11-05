@@ -158,7 +158,7 @@ void clif_send_aura(const struct block_list * bl, int type, enum send_target tar
 { // Auras by Functor
 	unsigned char buf[0x10];
 
-	if (type == 0)
+	if (type == 0 || !battle_config.gepard_aura_packet)
 	{
 		return;
 	}
@@ -174,7 +174,7 @@ void clif_send_aura(const struct block_list * bl, int type, enum send_target tar
 
 void clif_send_aura_single(struct block_list * bl, int type, int fd)
 { // Auras by Functor
-	if (type == 0)
+	if (type == 0 || !battle_config.gepard_aura_packet)
 	{
 		return;
 	}
@@ -597,6 +597,17 @@ static int32 clif_send_sub(block_list *bl, va_list ap)
 		if (packet_number == 0x8d && option_number == 0x5)
 		{	
 			if ((sd->state.show_auras == 1 && bl != src_bl) || (sd->state.show_auras == 2))
+			{
+				return 0;
+			}
+		}
+
+		// Legacia auras are hat effects; custom ones always travel in their own packet (clif_hat_effects)
+		if (packet_number == 0x0a3b && len >= 11)
+		{
+			int effect_id = RBUFW(buf, 9);
+
+			if (effect_id >= HAT_EF_CUSTOM_MIN && effect_id <= HAT_EF_CUSTOM_MAX && ((sd->state.show_auras == 1 && bl != src_bl) || (sd->state.show_auras == 2)))
 			{
 				return 0;
 			}
@@ -21856,18 +21867,38 @@ void clif_hat_effects( const block_list& bl, enum send_target target, const bloc
 
 	PACKET_ZC_EQUIPMENT_EFFECT* p = reinterpret_cast<PACKET_ZC_EQUIPMENT_EFFECT*>( packet_buffer );
 
-	p->packetType = HEADER_ZC_EQUIPMENT_EFFECT;
-	p->packetLength = sizeof( *p );
-	p->aid = bl.id;
-	p->status = 1;
+	// Pass 0 sends official hat effects, pass 1 the Legacia auras (custom IDs), so @show_auras can filter them.
+	for( int32 pass = 0; pass < 2; pass++ ){
+		bool custom = ( pass == 1 );
 
-	for( size_t i = 0; i < ud->hatEffects.size(); i++ ){
-		p->effects[i] = ud->hatEffects[i];
+		if( custom && target == SELF && tbl.type == BL_PC ){
+			const map_session_data* tsd = reinterpret_cast<const map_session_data*>( &tbl );
 
-		p->packetLength += static_cast<decltype(p->packetLength)>( sizeof( p->effects[0] ) );
+			if( tsd->state.show_auras == 2 || ( tsd->state.show_auras == 1 && &tbl != &bl ) ){
+				continue;
+			}
+		}
+
+		p->packetType = HEADER_ZC_EQUIPMENT_EFFECT;
+		p->packetLength = sizeof( *p );
+		p->aid = bl.id;
+		p->status = 1;
+
+		size_t count = 0;
+
+		for( int16 effect : ud->hatEffects ){
+			if( ( effect >= HAT_EF_CUSTOM_MIN && effect <= HAT_EF_CUSTOM_MAX ) != custom ){
+				continue;
+			}
+
+			p->effects[count++] = effect;
+			p->packetLength += static_cast<decltype(p->packetLength)>( sizeof( p->effects[0] ) );
+		}
+
+		if( count > 0 ){
+			clif_send( p, p->packetLength, &tbl, target );
+		}
 	}
-
-	clif_send( p, p->packetLength, &tbl, target );
 #endif
 }
 

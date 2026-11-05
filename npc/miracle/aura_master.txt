@@ -1,0 +1,267 @@
+//==============================================================
+// LegaciaRO - Aura Master (our own aura system)
+//==============================================================
+// Replaces the Gepard aura renderer. An aura has 3 parts, same
+// as Gepard: Ground circle (part 1), Pillar (part 2) and Glow
+// (part 3). Players unlock a part once (account-wide) and can
+// switch between owned parts for free. @aura opens the menu.
+//
+// How it works
+//  - The aura is still stored by the Gepard commands
+//    (set_aura_part / AURA_DATA), so old auras, @auras and the
+//    old Princess Mary NPC (npc/miracle/aura.txt) keep working.
+//  - pc_aura_apply() in src/map/pc.cpp shows it as hat effects:
+//    part 1 #n = 1000+n, part 2 #n = 1300+n, part 3 #n = 1600+n
+//    (battle config aura_hateffect in conf/battle/feature.conf).
+//  - Client: data/texture/effect/efst_legacia_aura/* and the
+//    entries added to HatEffectIDs.lub / HatEffectInfo.lub.
+//
+// Variables
+//  #AURA_OWN[n] : account bitmask of unlocked parts (31 per entry)
+//  AURA_GRANDF  : 1 once the character's old aura was marked owned
+//==============================================================
+
+prontera,142,223,4	script	Aura Master	4_M_SAGE_C,{
+	mes "[Aura Master]";
+	mes "I can surround you with a lasting aura.";
+	mes "An aura has three parts: a ground circle, a pillar and a glow. Mix them as you like.";
+	mes "Unlock a part once and every character on your account can wear it.";
+	next;
+	callsub S_Menu;
+	end;
+
+OnCmd:
+	callsub S_Menu;
+	end;
+
+OnInit:
+	// ---- settings ----
+	.Zeny = 5000000;	// zeny per aura part (0 = no zeny cost)
+	.ItemID = 0;		// optional item cost per part, e.g. 30012 (10 Cash Points). 0 = none
+	.ItemAmt = 0;
+	// ------------------
+	setarray .PartMax[1], 152, 117, 35;
+	setarray .PartName$[1], "Ground Circle", "Pillar", "Glow";
+	setarray .PartBase[1], 0, 152, 269;	// bit slot of #1 of each part
+	.Price$ = "";
+	if (.Zeny)
+		.Price$ = callfunc("F_InsertComma", .Zeny) + " zeny";
+	if (.ItemID)
+		.Price$ += (.Price$ == "" ? "" : " + ") + .ItemAmt + "x " + getitemname(.ItemID);
+	if (.Price$ == "")
+		.Price$ = "free";
+	bindatcmd "aura", strnpcinfo(3) + "::OnCmd", 0, 99;
+	waitingroom "[ Auras ]", 0;
+	end;
+
+OnPCLoginEvent:
+	// Auras bought before this NPC (Princess Mary / GM) become owned once.
+	if (!AURA_GRANDF) {
+		for (.@p = 1; .@p <= 3; .@p++)
+			if (get_aura_part(.@p) > 0)
+				callsub S_Give, .@p, get_aura_part(.@p);
+		AURA_GRANDF = 1;
+		end;
+	}
+	// Drop a part that is not owned (e.g. logged out during a preview).
+	for (.@p = 1; .@p <= 3; .@p++)
+		if (get_aura_part(.@p) > 0 && !callsub(S_Owned, .@p, get_aura_part(.@p)))
+			set_aura_part .@p, 0;
+	end;
+
+// ---------------- main menu ----------------
+S_Menu:
+	while (1) {
+		clear;
+		mes "[Aura Master]";
+		mes "Your aura:";
+		for (.@p = 1; .@p <= 3; .@p++)
+			mes " " + .PartName$[.@p] + ": " + (get_aura_part(.@p) ? "^0000FF#" + get_aura_part(.@p) + "^000000" : "none");
+		mes "Price per part: " + .Price$;
+		.@s = select(
+			"Browse ground circles (" + callsub(S_CountOwned, 1) + "/" + .PartMax[1] + " owned)",
+			"Browse pillars (" + callsub(S_CountOwned, 2) + "/" + .PartMax[2] + " owned)",
+			"Browse glows (" + callsub(S_CountOwned, 3) + "/" + .PartMax[3] + " owned)",
+			"My auras",
+			"Remove a part",
+			"Close");
+		switch (.@s) {
+		case 1:
+		case 2:
+		case 3:
+			callsub S_Browse, .@s;
+			break;
+		case 4:
+			callsub S_Mine;
+			break;
+		case 5:
+			clear;
+			mes "[Aura Master]";
+			mes "Which part should I remove?";
+			.@r = select(
+				(get_aura_part(1) ? "Ground circle #" + get_aura_part(1) : ""),
+				(get_aura_part(2) ? "Pillar #" + get_aura_part(2) : ""),
+				(get_aura_part(3) ? "Glow #" + get_aura_part(3) : ""),
+				"All parts",
+				"Back");
+			if (.@r <= 3)
+				set_aura_part .@r, 0;
+			else if (.@r == 4)
+				set_aura 0, 0, 0;
+			break;
+		default:
+			close;
+		}
+	}
+
+// ---------------- browse one part (20 per page) ----------------
+S_Browse:
+	.@part = getarg(0);
+	.@per = 20;
+	.@pages = (.PartMax[.@part] - 1) / .@per + 1;
+	.@page = 0;
+	while (1) {
+		clear;
+		.@from = .@page * .@per + 1;
+		.@to = min(.@from + .@per - 1, .PartMax[.@part]);
+		.@n = .@to - .@from + 1;
+		.@menu$ = "";
+		for (.@i = .@from; .@i <= .@to; .@i++) {
+			.@tag$ = "";
+			if (.@i == get_aura_part(.@part))
+				.@tag$ = " ^0000FF[wearing]^000000";
+			else if (callsub(S_Owned, .@part, .@i))
+				.@tag$ = " ^008800[owned]^000000";
+			.@menu$ += .PartName$[.@part] + " #" + .@i + .@tag$ + ":";
+		}
+		.@menu$ += (.@page + 1 < .@pages ? "> Next page" : "") + ":" + (.@page ? "< Previous page" : "") + ":Back";
+		mes "[Aura Master]";
+		mes .PartName$[.@part] + "s, page " + (.@page + 1) + " of " + .@pages + ".";
+		mes "Pick one to see it on your character.";
+		.@s = select(.@menu$);
+		if (.@s <= .@n) {
+			callsub S_Try, .@part, .@from + .@s - 1;
+			continue;
+		}
+		.@s -= .@n;
+		if (.@s == 1)
+			.@page++;
+		else if (.@s == 2)
+			.@page--;
+		else
+			return;
+	}
+
+// ---------------- try one part on (live preview) ----------------
+S_Try:
+	.@part = getarg(0);
+	.@num = getarg(1);
+	.@old = get_aura_part(.@part);
+	.@own = callsub(S_Owned, .@part, .@num);
+	set_aura_part .@part, .@num;
+	clear;
+	mes "[Aura Master]";
+	mes "^0000FF" + .PartName$[.@part] + " #" + .@num + "^000000";
+	mes "Take a look at your character.";
+	if (!.@own)
+		mes "Price: " + .Price$;
+	.@s = prompt((.@own ? "Wear it" : "Unlock and wear it"), "Back");
+	if (.@s == 1) {
+		if (.@own)
+			return;
+		if (callsub(S_Pay, .@part, .@num)) {
+			callsub S_Give, .@part, .@num;
+			mes "Unlocked! You are now wearing it.";
+			next;
+			return;
+		}
+	}
+	set_aura_part .@part, .@old;	// Back, cancel, or could not pay
+	if (.@s == 255)
+		end;
+	return;
+
+// ---------------- owned list ----------------
+S_Mine:
+	clear;
+	mes "[Aura Master]";
+	mes "Which part do you want to change?";
+	.@part = select("Ground circles:Pillars:Glows:Back");
+	if (.@part == 4)
+		return;
+	.@c = 0;
+	for (.@i = 1; .@i <= .PartMax[.@part]; .@i++)
+		if (callsub(S_Owned, .@part, .@i))
+			.@ids[.@c++] = .@i;
+	clear;
+	mes "[Aura Master]";
+	if (!.@c) {
+		mes "You have not unlocked any " + .PartName$[.@part] + " yet.";
+		next;
+		return;
+	}
+	mes "Pick one to wear. Switching is free.";
+	.@menu$ = "";
+	for (.@i = 0; .@i < .@c; .@i++)
+		.@menu$ += .PartName$[.@part] + " #" + .@ids[.@i] + (.@ids[.@i] == get_aura_part(.@part) ? " ^0000FF[wearing]^000000" : "") + ":";
+	.@menu$ += "Back";
+	.@s = select(.@menu$) - 1;
+	if (.@s < .@c)
+		set_aura_part .@part, .@ids[.@s];
+	return;
+
+// ---------------- helpers ----------------
+S_Pay:
+	clear;
+	mes "[Aura Master]";
+	mes "Unlock " + .PartName$[getarg(0)] + " #" + getarg(1) + " for " + .Price$ + "?";
+	if (prompt("Yes:No") != 1)
+		return 0;
+	if (.Zeny) {
+		if (Zeny < .Zeny) {
+			mes "You don't have enough zeny.";
+			next;
+			return 0;
+		}
+	}
+	if (.ItemID) {
+		if (countitem(.ItemID) < .ItemAmt) {
+			mes "You need " + .ItemAmt + "x " + getitemname(.ItemID) + ".";
+			next;
+			return 0;
+		}
+	}
+	if (.Zeny)
+		Zeny -= .Zeny;
+	if (.ItemID)
+		delitem .ItemID, .ItemAmt;
+	return 1;
+
+// slot of (part, number), -1 if out of range
+S_Slot:
+	.@part = getarg(0);
+	.@num = getarg(1);
+	if (.@part < 1 || .@part > 3 || .@num < 1 || .@num > .PartMax[.@part])
+		return -1;
+	return .PartBase[.@part] + .@num - 1;
+
+S_Owned:
+	.@s = callsub(S_Slot, getarg(0), getarg(1));
+	if (.@s < 0)
+		return 0;
+	return (#AURA_OWN[.@s / 31] & (1 << (.@s % 31))) ? 1 : 0;
+
+S_Give:
+	.@s = callsub(S_Slot, getarg(0), getarg(1));
+	if (.@s >= 0)
+		#AURA_OWN[.@s / 31] = #AURA_OWN[.@s / 31] | (1 << (.@s % 31));
+	return;
+
+S_CountOwned:
+	.@part = getarg(0);
+	.@c = 0;
+	for (.@i = 1; .@i <= .PartMax[.@part]; .@i++)
+		if (callsub(S_Owned, .@part, .@i))
+			.@c++;
+	return .@c;
+}

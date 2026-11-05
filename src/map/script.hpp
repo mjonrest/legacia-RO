@@ -2207,6 +2207,9 @@ enum e_hat_effects : int16{
 // hat effects never clash with them.
 #define HAT_EF_CUSTOM_MIN 1001
 #define HAT_EF_CUSTOM_MAX 1999
+// Gepard-style aura parts map to: part 1 (ground) 1000+n, part 2 (pillar) 1300+n, part 3 (glow) 1600+n.
+#define HAT_EF_AURA_PART_BASE 1000
+#define HAT_EF_AURA_PART_STEP 300
 
 static inline bool hateffect_id_valid( int32 effectID ){
 	return ( effectID > HAT_EF_MIN && effectID < HAT_EF_MAX ) || ( effectID >= HAT_EF_CUSTOM_MIN && effectID <= HAT_EF_CUSTOM_MAX );

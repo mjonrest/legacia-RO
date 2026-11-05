@@ -28068,6 +28068,7 @@ BUILDIN_FUNC(set_aura)
 		}
 
 		pc_setglobalreg(sd, add_str("AURA_DATA"), sd->aura_data);
+		pc_aura_apply(*sd);
 	}
 
 	script_pushint(st, 0);
@@ -28124,6 +28125,7 @@ BUILDIN_FUNC(set_aura_part)
 		}
 
 		pc_setglobalreg(sd, add_str("AURA_DATA"), sd->aura_data);
+		pc_aura_apply(*sd);
 	}
 
 	script_pushint(st, error);

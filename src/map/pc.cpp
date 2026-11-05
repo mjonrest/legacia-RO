@@ -3721,6 +3721,7 @@ void pc_reg_received(map_session_data *sd)
 
 	sd->aura_data = pc_readglobalreg(sd, add_str("AURA_DATA"));
 	sd->state.show_auras = pc_readglobalreg(sd, add_str("SHOW_AURAS_MODE"));
+	pc_aura_apply(*sd);
 
 // (^~_~^) Auras End
 
@@ -17935,6 +17936,55 @@ bool pc_autohunt_device_ok( map_session_data& sd, bool offline ){
 	}
 
 	return true;
+}
+
+/**
+ * Legacia auras: show the Gepard-style aura (AURA_DATA parts 1-3) as client hat effects,
+ * so auras work without Gepard's own aura renderer.
+ * Part n of type t becomes hat effect HAT_EF_AURA_PART_BASE + (t-1)*HAT_EF_AURA_PART_STEP + n.
+ * Client files: data/texture/effect/efst_legacia_aura + HatEffectInfo.lub entries.
+ */
+void pc_aura_apply(map_session_data& sd) {
+	std::vector<int16> want;
+
+	if (battle_config.aura_hateffect && sd.aura_data > 0x1000000) {
+		const uint8 parts[3] = { sd.aura.part_1, sd.aura.part_2, sd.aura.part_3 };
+
+		for (int32 i = 0; i < 3; i++) {
+			if (parts[i] > 0)
+				want.push_back(static_cast<int16>(HAT_EF_AURA_PART_BASE + i * HAT_EF_AURA_PART_STEP + parts[i]));
+		}
+	}
+
+	// Packets are only needed once the client is on the map; at login clif_hat_effects sends the list.
+	bool send = !sd.state.connect_new && sd.prev != nullptr && !pc_isinvisible(&sd) && !sd.sc.getSCE(SC_HIDING) && !sd.sc.getSCE(SC_CLOAKING) && !sd.sc.getSCE(SC_CHASEWALK);
+
+	for (auto it = sd.ud.hatEffects.begin(); it != sd.ud.hatEffects.end(); ) {
+		int16 id = *it;
+
+		if (id >= HAT_EF_CUSTOM_MIN && id <= HAT_EF_CUSTOM_MAX && !util::vector_exists(want, id)) {
+			it = sd.ud.hatEffects.erase(it);
+			if (send)
+				clif_hat_effect_single(sd, id, false);
+		} else
+			++it;
+	}
+
+	for (int16 id : want) {
+		if (util::vector_exists(sd.ud.hatEffects, id))
+			continue;
+		sd.ud.hatEffects.push_back(id);
+		if (send)
+			clif_hat_effect_single(sd, id, true);
+	}
+}
+
+/// Hide or show the aura hat effects to others without changing the aura (hiding, cloaking, @hide).
+void pc_aura_show(map_session_data& sd, bool show) {
+	for (int16 id : sd.ud.hatEffects) {
+		if (id >= HAT_EF_CUSTOM_MIN && id <= HAT_EF_CUSTOM_MAX)
+			clif_hat_effect_single(sd, id, show);
+	}
 }
 
 /**
