@@ -54,7 +54,7 @@ prontera,138,176,5	script	Devil Square Guardian#1	406,{
 		close;
 	case 3:
 	mes "[Reward Info]";
-	mes "You will get random Devil Square Point";
+	mes "You will get 1~20 random Devil Square Points";
 	mes "when leaving ^FF0000Devil Square^000000.";
 	close;
 	case 4:
@@ -276,7 +276,7 @@ ordeal_1-1,246,245,7	script	Devil Square Guardian#2	406,{
 	mes "Farewell.";
 	close2;
 	warp "SavePoint",0,0;
-	set .@rand,rand(1,7);
+	set .@rand,rand(1,20);
 	#dspoint += .@rand;
 	dispbottom "You get "+.@rand+" Devil Square Point";
 	dispbottom "Your current Devil Square Point : "+#dspoint+" pt(s).";
