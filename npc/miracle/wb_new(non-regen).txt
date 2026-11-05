@@ -13,10 +13,11 @@ prontera,136,171,4	script	World Boss	10308,{
 
 	// Reward list: { ItemID, min_amount, max_amount, drop_rate (0-100) }
 	// Example: 501 (10% chance), 502 (5% chance)
-	setarray .reward_item[0], 12103,7619,7620,12211,12215,12216,13989,678,13517,23304,30008;
-	setarray .reward_min[0],  1,1,1,10,5,5,10,10,1,1,1;
-	setarray .reward_max[0], 2,3,3,30,10,10,20,20,5,3,3;
-	setarray .reward_rate[0], 5,5,5,10,10,10,10,10,10,10,10;   // 10% for 501, 5% for 502
+	// 2589 Fallen Angel Wing is first so it always fits in the reward mail (max 5 items).
+	setarray .reward_item[0], 2589,12103,7619,7620,12211,12215,12216,13989,678,13517,23304,30008;
+	setarray .reward_min[0],  1,1,1,1,10,5,5,10,10,1,1,1;
+	setarray .reward_max[0], 1,2,3,3,30,10,10,20,20,5,3,3;
+	setarray .reward_rate[0], 1,5,5,5,10,10,10,10,10,10,10,10;   // 10% for 501, 5% for 502
 
 	// Default item that always drops (100% chance)
 	setarray .default_item[0], 30007;   // change to your default item ID
