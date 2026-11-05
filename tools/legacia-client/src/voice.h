@@ -52,6 +52,7 @@ extern HWND g_gameWnd;
 
 void config_load();
 void config_save();
+const char* config_ini_path();
 void log_line(const char* fmt, ...);
 
 // shared lock for small cross-thread state
@@ -133,6 +134,24 @@ void stats_ui_toggle();
 HWND stats_ui_window();
 void stats_ui_on_page(uint8_t page, const std::string& text); // from the net thread
 void stats_ui_on_unavailable(uint8_t page);                    // from the net thread
+
+// ---- gui_*.cpp: the same windows drawn inside the game picture ----
+// The plugin hooks the game's Direct3D 9 device and draws the voice bar,
+// Voice Settings, Graymap and Player Statistics windows with Dear ImGui as
+// part of the game frame (fullscreen works, nothing floats over other apps).
+// If the device can't be found, the separate windows above are used instead.
+void gui_install_early();   // DllMain: catch the device when the game creates it
+bool gui_start();           // plugin thread, after the game window is found; false = use the old windows
+void gui_loop();            // plugin thread: hotkeys, push-to-talk, hook checks; never returns
+bool gui_active();
+void gui_stats_on_page(uint8_t page, const std::string& text);
+void gui_stats_on_unavailable(uint8_t page);
+// the animated 43x43 button pictures (0x00RRGGBB), shared with the old windows
+const uint32_t* graymap_button_pixels(bool hover, bool down);
+const uint32_t* stats_button_pixels(bool hover, bool down);
+// hooks.cpp: point one import of a module at hook (false if not imported)
+bool patch_import(HMODULE exe, const char* dll, const char* name, WORD ordinal, void* hook, void** original,
+                  ULONG_PTR** slot = nullptr);
 
 // ---- stats_button.cpp: Player Statistics button under the Graymap button ----
 void stats_button_create();

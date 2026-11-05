@@ -128,8 +128,8 @@ void hooks_queue_claim(const uint8_t code[16]) {
 // Patch one import of the exe. Slots are found through the original thunk
 // (name or ordinal), so this works even if something else already replaced
 // the pointer; in that case we chain to it.
-static bool patch_import(HMODULE exe, const char* dll, const char* name, WORD ordinal, void* hook, void** original,
-                         ULONG_PTR** slot = nullptr) {
+bool patch_import(HMODULE exe, const char* dll, const char* name, WORD ordinal, void* hook, void** original,
+                  ULONG_PTR** slot) {
 	BYTE* base = (BYTE*)exe;
 	IMAGE_DOS_HEADER* dos = (IMAGE_DOS_HEADER*)base;
 	IMAGE_NT_HEADERS* nt = (IMAGE_NT_HEADERS*)(base + dos->e_lfanew);

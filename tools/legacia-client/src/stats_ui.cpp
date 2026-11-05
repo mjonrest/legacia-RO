@@ -785,6 +785,10 @@ HWND stats_ui_window() {
 }
 
 void stats_ui_on_page(uint8_t page, const std::string& text) {
+	if (gui_active()) {
+		gui_stats_on_page(page, text);
+		return;
+	}
 	if (page >= TAB_COUNT)
 		return;
 	{
@@ -801,6 +805,10 @@ void stats_ui_on_page(uint8_t page, const std::string& text) {
 }
 
 void stats_ui_on_unavailable(uint8_t page) {
+	if (gui_active()) {
+		gui_stats_on_unavailable(page);
+		return;
+	}
 	(void)page;
 	g_waiting = false;
 	g_unavailable = true;

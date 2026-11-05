@@ -1226,6 +1226,13 @@ void ui_run() {
 	}
 	log_line("game window found");
 
+	// draw everything inside the game picture when the game's Direct3D device
+	// can be hooked; the separate windows below are the fallback
+	if (GetPrivateProfileIntA("ui", "ingame", 1, config_ini_path()) && gui_start()) {
+		gui_loop();
+		return;
+	}
+
 	INITCOMMONCONTROLSEX icc = {sizeof(icc), ICC_BAR_CLASSES | ICC_STANDARD_CLASSES};
 	InitCommonControlsEx(&icc);
 	g_font = CreateFontA(-11, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET, 0, 0, CLEARTYPE_QUALITY, 0, "Tahoma");

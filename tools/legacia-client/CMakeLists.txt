@@ -19,11 +19,19 @@ add_library(legacia_plugin SHARED
 	src/stats_ui.cpp
 	src/stats_button.cpp
 	src/crashguard.cpp
+	src/gui_d3d.cpp
+	src/gui_windows.cpp
+	third_party/imgui/imgui.cpp
+	third_party/imgui/imgui_draw.cpp
+	third_party/imgui/imgui_tables.cpp
+	third_party/imgui/imgui_widgets.cpp
+	third_party/imgui/backends/imgui_impl_dx9.cpp
+	third_party/imgui/backends/imgui_impl_win32.cpp
 )
 set_target_properties(legacia_plugin PROPERTIES PREFIX "")
-target_include_directories(legacia_plugin PRIVATE ${OPUS_INCLUDE_DIR})
+target_include_directories(legacia_plugin PRIVATE ${OPUS_INCLUDE_DIR} third_party/imgui third_party/imgui/backends)
 target_compile_definitions(legacia_plugin PRIVATE _WIN32_WINNT=0x0601 WINVER=0x0601 NOMINMAX)
-target_link_libraries(legacia_plugin PRIVATE ${OPUS_LIBRARY} ws2_32 winmm comctl32 gdi32 user32 gdiplus msimg32 shell32)
+target_link_libraries(legacia_plugin PRIVATE ${OPUS_LIBRARY} ws2_32 winmm comctl32 gdi32 user32 gdiplus msimg32 shell32 dwmapi imm32)
 if(MINGW)
 	target_link_options(legacia_plugin PRIVATE -static -static-libgcc -static-libstdc++ -s)
 endif()

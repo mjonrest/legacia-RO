@@ -60,6 +60,10 @@ static void ini_set(const char* key, int value) {
 	WritePrivateProfileStringA("voice", key, buf, g_iniPath);
 }
 
+const char* config_ini_path() {
+	return g_iniPath;
+}
+
 void config_load() {
 	GetPrivateProfileStringA("server", "host", "", g_cfg.host, sizeof(g_cfg.host), g_iniPath);
 	g_cfg.port = GetPrivateProfileIntA("server", "port", 6951, g_iniPath);
@@ -163,6 +167,7 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE inst, DWORD reason, LPVOID) {
 			log_line("could not hook the game connection, signing in by address or @voice instead");
 		graymap_install();
 		crashguard_install();
+		gui_install_early();
 		HANDLE t = CreateThread(nullptr, 0, plugin_main, nullptr, 0, nullptr);
 		if (t)
 			CloseHandle(t);

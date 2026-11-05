@@ -18,6 +18,14 @@
 
 The push-to-talk key and the window shortcut only work while the game window has focus.
 
+## Drawn inside the game
+
+By default every window, button and the voice bar is drawn inside the game picture, as part of the game's own frame (Dear ImGui on the game's Direct3D 9 device, code in `src/gui_d3d.cpp` and `src/gui_windows.cpp`). They look and work the same as before, in the game's colours, but they also show in fullscreen, never float over other programs, and move with the game window. Clicks on a plugin window, and typing in a plugin text box (the whisper name, colour codes), don't reach the game; everything else does.
+
+How it finds the device: the plugin points the exe's import of `Direct3DCreate9Ex` at itself, so it sees the device when the game creates it. If the plugin was loaded too late for that, it searches the game's renderer object for it (only on the 2026-01-07 exe). The hooks swap the device object's own function table for a copy with `Present`/`Reset` replaced; no code in the exe or in `d3d9.dll` is changed.
+
+If the device isn't found within 20 seconds, the plugin falls back to the separate windows (`src/ui.cpp`, `src/graymap_ui.cpp`, `src/stats_ui.cpp` and the two button files) and writes why to `legacia.log`. `ingame=0` in the `[ui]` section of `legacia.ini` always uses the separate windows.
+
 ## Graymap
 
 A **Graymap** button sits under the Cash Shop button at the top right of the game screen, drawn in the same style (code in `src/graymap_button.cpp`). Click it to switch Graymap on or off; while it's on, the little map shows your colours, the rim glows gold and sparkles twinkle. Right-click it, or press **Ctrl+Shift+G**, to open the Graymap window. Drag the button to move it; its spot is saved as `button_right`/`button_top` (pixels from the game window's top right corner) in the `[graymap]` section of `legacia.ini`.

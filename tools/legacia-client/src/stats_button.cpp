@@ -385,3 +385,13 @@ void stats_button_update(bool gameActive) {
 	if (!IsWindowVisible(g_btn) || cur.left != x || cur.top != y)
 		SetWindowPos(g_btn, HWND_TOP, x, y, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
 }
+
+// for the in-game drawn button (gui_windows.cpp)
+const uint32_t* stats_button_pixels(bool hover, bool down) {
+	if (!g_t0)
+		g_t0 = GetTickCount();
+	g_hover = hover;
+	g_down = down;
+	render();
+	return g_px;
+}
