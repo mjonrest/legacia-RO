@@ -9,11 +9,15 @@
 //= Members sharing a Gepard unique ID with the killer or with
 //= a member already rolled are skipped, so alts on the same PC
 //= give nothing.
+//= Uses OnMVPKillEvent (src/map/mob.cpp), which also runs for
+//= MVPs spawned with an event label (instances, quest bosses
+//= like Ktullanux or Thanatos Phantom). OnNPCKillEvent skips
+//= those, so this script no longer uses it.
 //= Shared drops at or below rare_drop_announce (drops.conf,
 //= 100 = 1%) are announced server-wide like official drops.
 //============================================================
 -	script	MVPPartyShare	-1,{
-OnNPCKillEvent:
+OnMVPKillEvent:
 	.@pid = getcharid(1);
 	.@mob_id = killedrid;
 	if (!.@pid || getmonsterinfo(.@mob_id, MOB_MVPEXP) <= 0)

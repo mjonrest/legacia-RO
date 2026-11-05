@@ -1633,6 +1633,7 @@ enum npce_event : uint8 {
 
 	NPCE_GOLDPC,
 	NPCE_IDENTIFY,
+	NPCE_KILLMVP,
 	NPCE_MAX
 };
 
