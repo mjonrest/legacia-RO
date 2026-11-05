@@ -3783,6 +3783,18 @@ int32 mob_dead(mob_data *md, block_list *src, int32 type)
 			pc_setparam(first_sd, SP_KILLEDRID, md->mob_id);
 			npc_script_event( *first_sd, NPCE_KILLNPC );
 		}
+
+		// Legacia: OnMVPKillEvent runs once for every MVP kill, also for MVPs
+		// spawned by instances or scripts with an event label (those skip
+		// OnNPCKillEvent above). Used by npc/miracle/mvp_party_share.txt.
+		map_session_data* mvp_event_sd = ( first_sd != nullptr ? first_sd : sd );
+
+		if( mvp_event_sd != nullptr && md->db->mexp > 0 && !md->state.npc_killmonster ) {
+			pc_setparam(mvp_event_sd, SP_KILLEDGID, md->id);
+			pc_setparam(mvp_event_sd, SP_KILLEDRID, md->mob_id);
+			pc_setparam(mvp_event_sd, SP_KILLERRID, sd != nullptr ? sd->id : 0);
+			npc_script_event( *mvp_event_sd, NPCE_KILLMVP );
+		}
 	}
 
 	if(md->deletetimer != INVALID_TIMER) {

@@ -323,6 +323,7 @@ struct Script_Config script_config = {
 
 	"OnNaviGenerate", //navi_generate_name (is executed right before navi generation)
 	"OnGoldPcClick", //gold_pc_click_event_name (is executed when a gold pc is clicked)
+	"OnMVPKillEvent", //kill_mvp_event_name (is executed when an MVP dies, also for MVPs spawned with an event label)
 };
 
 static jmp_buf     error_jump;

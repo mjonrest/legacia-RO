@@ -224,6 +224,7 @@ struct Script_Config {
 	// Navigation related
 	const char* navi_generate_name;
 	const char* goldpc_event_name;
+	const char* kill_mvp_event_name;
 };
 extern struct Script_Config script_config;
 
