@@ -2202,6 +2202,16 @@ enum e_hat_effects : int16{
 	HAT_EF_MAX
 };
 
+// Legacia custom auras. The client draws them from data/texture/effect/efst_legacia_aura
+// (entries in HatEffectInfo.lub). They sit above the official IDs so new official
+// hat effects never clash with them.
+#define HAT_EF_CUSTOM_MIN 1001
+#define HAT_EF_CUSTOM_MAX 1999
+
+static inline bool hateffect_id_valid( int32 effectID ){
+	return ( effectID > HAT_EF_MIN && effectID < HAT_EF_MAX ) || ( effectID >= HAT_EF_CUSTOM_MIN && effectID <= HAT_EF_CUSTOM_MAX );
+}
+
 enum e_convertpcinfo_type : uint8 {
 	CPC_NAME      = 0,
 	CPC_CHAR      = 1,
