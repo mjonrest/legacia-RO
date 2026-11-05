@@ -2,7 +2,7 @@
 // LegaciaRO - Aura Master (our own aura system)
 //==============================================================
 // Replaces the Gepard aura renderer. An aura has 3 parts, same
-// as Gepard: Ground circle (part 1), Pillar (part 2) and Glow
+// as Gepard: Ground circle (part 1), Rings (part 2) and Sparkles
 // (part 3). Players unlock a part once (account-wide) and can
 // switch between owned parts for free. @aura opens the menu.
 //
@@ -24,7 +24,7 @@
 prontera,142,223,4	script	Aura Master	4_M_SAGE_C,{
 	mes "[Aura Master]";
 	mes "I can surround you with a lasting aura.";
-	mes "An aura has three parts: a ground circle, a pillar and a glow. Mix them as you like.";
+	mes "An aura has three parts: a ground circle, rings and sparkles. Mix them as you like.";
 	mes "Unlock a part once and every character on your account can wear it.";
 	next;
 	callsub S_Menu;
@@ -41,7 +41,7 @@ OnInit:
 	.ItemAmt = 0;
 	// ------------------
 	setarray .PartMax[1], 152, 117, 35;
-	setarray .PartName$[1], "Ground Circle", "Pillar", "Glow";
+	setarray .PartName$[1], "Ground Circle", "Ring", "Sparkle";
 	setarray .PartBase[1], 0, 152, 269;	// bit slot of #1 of each part
 	.Price$ = "";
 	if (.Zeny)
@@ -80,8 +80,8 @@ S_Menu:
 		mes "Price per part: " + .Price$;
 		.@s = select(
 			"Browse ground circles (" + callsub(S_CountOwned, 1) + "/" + .PartMax[1] + " owned)",
-			"Browse pillars (" + callsub(S_CountOwned, 2) + "/" + .PartMax[2] + " owned)",
-			"Browse glows (" + callsub(S_CountOwned, 3) + "/" + .PartMax[3] + " owned)",
+			"Browse rings (" + callsub(S_CountOwned, 2) + "/" + .PartMax[2] + " owned)",
+			"Browse sparkles (" + callsub(S_CountOwned, 3) + "/" + .PartMax[3] + " owned)",
 			"My auras",
 			"Remove a part",
 			"Close");
@@ -100,8 +100,8 @@ S_Menu:
 			mes "Which part should I remove?";
 			.@r = select(
 				(get_aura_part(1) ? "Ground circle #" + get_aura_part(1) : ""),
-				(get_aura_part(2) ? "Pillar #" + get_aura_part(2) : ""),
-				(get_aura_part(3) ? "Glow #" + get_aura_part(3) : ""),
+				(get_aura_part(2) ? "Ring #" + get_aura_part(2) : ""),
+				(get_aura_part(3) ? "Sparkle #" + get_aura_part(3) : ""),
 				"All parts",
 				"Back");
 			if (.@r <= 3)
@@ -186,7 +186,7 @@ S_Mine:
 	clear;
 	mes "[Aura Master]";
 	mes "Which part do you want to change?";
-	.@part = select("Ground circles:Pillars:Glows:Back");
+	.@part = select("Ground circles:Rings:Sparkles:Back");
 	if (.@part == 4)
 		return;
 	.@c = 0;
