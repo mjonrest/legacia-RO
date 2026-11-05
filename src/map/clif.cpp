@@ -59,6 +59,7 @@
 #include "storage.hpp"
 #include "unit.hpp"
 #include "vending.hpp"
+#include "voice.hpp"
 
 using namespace rathena;
 
@@ -11234,6 +11235,7 @@ void clif_parse_LoadEndAck(int32 fd,map_session_data *sd)
 	if(sd->state.connect_new) {
 		int32 lv;
 		guild_notice = true;
+		voice_player_online(*sd);
 		clif_skillinfoblock(*sd);
 		clif_hotkeys_send(sd,0);
 #if PACKETVER_MAIN_NUM >= 20190522 || PACKETVER_RE_NUM >= 20190508 || PACKETVER_ZERO_NUM >= 20190605

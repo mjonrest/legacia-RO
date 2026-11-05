@@ -245,6 +245,9 @@
     <ClInclude Include="vending.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="voice.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="woestats.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -377,6 +380,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="vending.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="voice.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="woestats.cpp">

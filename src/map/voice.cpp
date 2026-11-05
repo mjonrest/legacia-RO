@@ -1,0 +1,539 @@
+// Copyright (c) rAthena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
+#include "voice.hpp"
+
+#include <cstring>
+#include <string>
+#include <vector>
+#include <unordered_map>
+
+#include <common/cbasetypes.hpp>
+#include <common/showmsg.hpp>
+#include <common/socket.hpp>
+#include <common/strlib.hpp>
+#include <common/timer.hpp>
+
+#include "atcommand.hpp"
+#include "clif.hpp"
+#include "map.hpp"
+#include "packets.hpp"
+#include "pc.hpp"
+
+// map-server <-> voice server link packets. Every packet starts with cmd(2) len(2).
+enum e_voice_link_cmd : uint16 {
+	VOICE_LINK_HELLO = 0x7600,     // map -> voice: secret[32]
+	VOICE_LINK_PLAYER = 0x7601,    // map -> voice: insert or update one player
+	VOICE_LINK_LEAVE = 0x7602,     // map -> voice: char_id(4)
+	VOICE_LINK_PING = 0x7603,      // map -> voice
+	VOICE_LINK_CLAIM = 0x7604,     // map -> voice: code[16] char_id(4)
+	VOICE_LINK_CLAIM_SHORT = 0x7605, // map -> voice: short_code[8] char_id(4), from @voice
+	VOICE_LINK_ONLINE = 0x7606,    // map -> voice: ip[4], a player logged in from this address
+	VOICE_LINK_CLAIM_AUTO = 0x7607, // map -> voice: short_code[8] char_id(4), answer to AUTO_QUERY
+	VOICE_LINK_STATS = 0x7608,     // map -> voice: char_id(4) page(1) text, answer to STATS_QUERY
+	VOICE_LINK_HELLO_ACK = 0x7680, // voice -> map: result(1), 0 = ok
+	VOICE_LINK_PONG = 0x7681,      // voice -> map
+	VOICE_LINK_CLAIM_RESULT = 0x7682, // voice -> map: char_id(4) result(1), answer to CLAIM_SHORT
+	VOICE_LINK_AUTO_QUERY = 0x7683, // voice -> map: ip[4] short_code[8], a voice client from this address wants a code claimed
+	VOICE_LINK_STATS_QUERY = 0x7684, // voice -> map: char_id(4) page(1), the plugin's Player Statistics window wants a page
+};
+
+// Sent after the secret in HELLO. Older voice servers ignore it; newer ones
+// only send packets the map-server said it understands.
+enum e_voice_feature : uint8 {
+	VOICE_FEATURE_STATS = 0x01, // answers STATS_QUERY
+};
+
+enum e_voice_flag : uint8 {
+	VOICE_FLAG_MUTED = 0x01,      // chat-banned players can listen but not speak
+	VOICE_FLAG_NO_WHISPER = 0x02, // player blocks all whispers (/exall), voice whispers too
+};
+
+static const int32 VOICE_CODE_LENGTH = 16;
+static const int32 VOICE_SECRET_LENGTH = 32;
+static const int32 VOICE_MAP_LENGTH = 16;
+static const int32 VOICE_PLAYER_PACKET_LENGTH = 4 + 4 * 4 + 2 * 2 + 1 + VOICE_MAP_LENGTH + NAME_LENGTH + 4;
+static const int32 VOICE_CLAIM_PACKET_LENGTH = 4 + VOICE_CODE_LENGTH + 4;
+static const int32 VOICE_SHORT_CODE_LENGTH = 8; // codes shown to players are 6 characters, zero padded
+static const int32 VOICE_CLAIM_SHORT_PACKET_LENGTH = 4 + VOICE_SHORT_CODE_LENGTH + 4;
+static const t_tick VOICE_CLAIM_INTERVAL = 1000;  // per character, for plugin claims
+static const t_tick VOICE_COMMAND_INTERVAL = 3000; // per character, for @voice
+static const t_tick VOICE_STATS_INTERVAL = 250;    // per character, for the Player Statistics window
+static const size_t VOICE_STATS_MAX_TEXT = 6000;   // the voice server splits it into UDP packets
+
+struct s_voice_player {
+	uint32 account_id;
+	uint32 party_id;
+	uint32 guild_id;
+	uint16 x;
+	uint16 y;
+	uint8 flags;
+	char map[VOICE_MAP_LENGTH];
+	uint32 chat_id; // chat room the player sits in, 0 = none
+	bool synced; // last state was sent to the voice server
+	t_tick last_claim;
+	t_tick last_stats;
+};
+
+static bool voice_enabled = false;
+static char voice_ip_str[128] = "127.0.0.1";
+static uint32 voice_ip = 0;
+static uint16 voice_port = 6950;
+static char voice_secret[VOICE_SECRET_LENGTH + 1] = "";
+
+static int32 voice_fd = -1;
+static bool voice_ready = false; // link is up and the voice server accepted our secret
+
+// char_id -> player that linked a voice client during this login
+static std::unordered_map<uint32, s_voice_player> voice_players;
+
+bool voice_config_read( const char* w1, const char* w2 ){
+	if( strcmpi( w1, "voice_enable" ) == 0 )
+		voice_enabled = config_switch( w2 ) != 0;
+	else if( strcmpi( w1, "voice_ip" ) == 0 )
+		safestrncpy( voice_ip_str, w2, sizeof( voice_ip_str ) );
+	else if( strcmpi( w1, "voice_port" ) == 0 )
+		voice_port = static_cast<uint16>( atoi( w2 ) );
+	else if( strcmpi( w1, "voice_secret" ) == 0 )
+		safestrncpy( voice_secret, w2, sizeof( voice_secret ) );
+	else
+		return false;
+
+	return true;
+}
+
+/// Refresh the cached state of a player. Returns true if anything changed.
+static bool voice_player_refresh( s_voice_player& player, map_session_data& sd ){
+	struct map_data* mapdata = map_getmapdata( sd.m );
+	char map[VOICE_MAP_LENGTH] = {};
+	uint8 flags = 0;
+
+	if( mapdata != nullptr )
+		safestrncpy( map, mapdata->name, sizeof( map ) );
+	if( sd.sc.cant.chat || ( sd.state.block_action & PCBLOCK_CHAT ) )
+		flags |= VOICE_FLAG_MUTED;
+	if( sd.state.ignoreAll )
+		flags |= VOICE_FLAG_NO_WHISPER;
+
+	bool changed = !player.synced
+		|| player.party_id != static_cast<uint32>( sd.status.party_id )
+		|| player.guild_id != static_cast<uint32>( sd.status.guild_id )
+		|| player.x != sd.x || player.y != sd.y
+		|| player.flags != flags
+		|| player.chat_id != sd.chatID
+		|| strncmp( player.map, map, VOICE_MAP_LENGTH ) != 0;
+
+	player.party_id = sd.status.party_id;
+	player.guild_id = sd.status.guild_id;
+	player.x = sd.x;
+	player.y = sd.y;
+	player.flags = flags;
+	player.chat_id = sd.chatID;
+	memcpy( player.map, map, VOICE_MAP_LENGTH );
+
+	return changed;
+}
+
+static void voice_send_player( uint32 char_id, s_voice_player& player, map_session_data& sd ){
+	if( !voice_ready )
+		return;
+
+	int32 fd = voice_fd;
+
+	WFIFOHEAD( fd, VOICE_PLAYER_PACKET_LENGTH );
+	WFIFOW( fd, 0 ) = VOICE_LINK_PLAYER;
+	WFIFOW( fd, 2 ) = VOICE_PLAYER_PACKET_LENGTH;
+	WFIFOL( fd, 4 ) = player.account_id;
+	WFIFOL( fd, 8 ) = char_id;
+	WFIFOL( fd, 12 ) = player.party_id;
+	WFIFOL( fd, 16 ) = player.guild_id;
+	WFIFOW( fd, 20 ) = player.x;
+	WFIFOW( fd, 22 ) = player.y;
+	WFIFOB( fd, 24 ) = player.flags;
+	memcpy( WFIFOP( fd, 25 ), player.map, VOICE_MAP_LENGTH );
+	safestrncpy( WFIFOCP( fd, 25 + VOICE_MAP_LENGTH ), sd.status.name, NAME_LENGTH );
+	WFIFOL( fd, 25 + VOICE_MAP_LENGTH + NAME_LENGTH ) = player.chat_id;
+	WFIFOSET( fd, VOICE_PLAYER_PACKET_LENGTH );
+
+	player.synced = true;
+}
+
+static void voice_send_leave( uint32 char_id ){
+	if( !voice_ready )
+		return;
+
+	WFIFOHEAD( voice_fd, 8 );
+	WFIFOW( voice_fd, 0 ) = VOICE_LINK_LEAVE;
+	WFIFOW( voice_fd, 2 ) = 8;
+	WFIFOL( voice_fd, 4 ) = char_id;
+	WFIFOSET( voice_fd, 8 );
+}
+
+static void voice_send_online( uint32 ip ){
+	if( !voice_ready )
+		return;
+
+	WFIFOHEAD( voice_fd, 8 );
+	WFIFOW( voice_fd, 0 ) = VOICE_LINK_ONLINE;
+	WFIFOW( voice_fd, 2 ) = 8;
+	WFIFOB( voice_fd, 4 ) = static_cast<uint8>( ip >> 24 );
+	WFIFOB( voice_fd, 5 ) = static_cast<uint8>( ip >> 16 );
+	WFIFOB( voice_fd, 6 ) = static_cast<uint8>( ip >> 8 );
+	WFIFOB( voice_fd, 7 ) = static_cast<uint8>( ip );
+	WFIFOSET( voice_fd, 8 );
+}
+
+/// Send every player again, the voice server keeps nothing across reconnects.
+static void voice_send_all(){
+	for( auto it = voice_players.begin(); it != voice_players.end(); ){
+		map_session_data* sd = map_charid2sd( it->first );
+
+		if( sd == nullptr ){
+			it = voice_players.erase( it );
+			continue;
+		}
+
+		it->second.synced = false;
+		voice_player_refresh( it->second, *sd );
+		voice_send_player( it->first, it->second, *sd );
+		++it;
+	}
+
+	// voice clients that started while the link was down
+	s_mapiterator* iter = mapit_getallusers();
+
+	for( map_session_data* sd = (map_session_data*)mapit_first( iter ); mapit_exists( iter ); sd = (map_session_data*)mapit_next( iter ) ){
+		if( !sd->state.autotrade && session_isActive( sd->fd ) )
+			voice_send_online( session[sd->fd]->client_addr );
+	}
+	mapit_free( iter );
+}
+
+void voice_player_quit( map_session_data& sd ){
+	if( voice_players.erase( sd.status.char_id ) > 0 )
+		voice_send_leave( sd.status.char_id );
+}
+
+/// Called once per login. A voice client from the same address may be
+/// waiting, so the voice server can link it without the player doing anything.
+void voice_player_online( map_session_data& sd ){
+	if( voice_enabled && session_isActive( sd.fd ) )
+		voice_send_online( session[sd.fd]->client_addr );
+}
+
+/// Start tracking a player for a claim and send their state to the voice server.
+/// Returns nullptr when the character claimed less than interval ago.
+static s_voice_player* voice_player_for_claim( map_session_data& sd, t_tick interval ){
+	t_tick tick = gettick();
+	auto it = voice_players.find( sd.status.char_id );
+
+	if( it == voice_players.end() ){
+		s_voice_player player = {};
+
+		player.account_id = sd.status.account_id;
+		player.last_claim = tick - interval;
+		it = voice_players.emplace( sd.status.char_id, player ).first;
+	}
+
+	s_voice_player& player = it->second;
+
+	if( DIFF_TICK( tick, player.last_claim ) < interval )
+		return nullptr; // flood protection
+
+	player.last_claim = tick;
+	player.synced = false;
+	voice_player_refresh( player, sd );
+	voice_send_player( sd.status.char_id, player, sd );
+	return &player;
+}
+
+static void voice_send_claim_short( uint16 cmd, const char* code, uint32 char_id ){
+	WFIFOHEAD( voice_fd, VOICE_CLAIM_SHORT_PACKET_LENGTH );
+	WFIFOW( voice_fd, 0 ) = cmd;
+	WFIFOW( voice_fd, 2 ) = VOICE_CLAIM_SHORT_PACKET_LENGTH;
+	memcpy( WFIFOP( voice_fd, 4 ), code, VOICE_SHORT_CODE_LENGTH );
+	WFIFOL( voice_fd, 4 + VOICE_SHORT_CODE_LENGTH ) = char_id;
+	WFIFOSET( voice_fd, VOICE_CLAIM_SHORT_PACKET_LENGTH );
+}
+
+/// AUTO_QUERY: a voice client is waiting at this address. When exactly one
+/// player is playing from it, that must be them, so claim the code for them.
+/// Shared addresses (several players, or a second client) need @voice.
+static void voice_auto_query( uint32 ip, const char* code ){
+	map_session_data* found = nullptr;
+	int32 count = 0;
+	s_mapiterator* iter = mapit_getallusers();
+
+	for( map_session_data* sd = (map_session_data*)mapit_first( iter ); mapit_exists( iter ); sd = (map_session_data*)mapit_next( iter ) ){
+		// vendors left on @autotrade have no client
+		if( sd->state.autotrade || !session_isActive( sd->fd ) || session[sd->fd]->client_addr != ip )
+			continue;
+		found = sd;
+		if( ++count > 1 )
+			break;
+	}
+	mapit_free( iter );
+
+	if( count != 1 || voice_player_for_claim( *found, VOICE_CLAIM_INTERVAL ) == nullptr )
+		return;
+
+	voice_send_claim_short( VOICE_LINK_CLAIM_AUTO, code, found->status.char_id );
+}
+
+/// @voice <code>: links the voice plugin to this character with the code the
+/// plugin shows. Works with any client, since nothing but chat is needed.
+/// Returns the message to show the player.
+const char* voice_command( map_session_data& sd, const char* message ){
+	if( !voice_enabled || !voice_ready )
+		return "Voice chat is not available right now.";
+
+	char code[VOICE_SHORT_CODE_LENGTH] = {};
+	int32 len = 0;
+
+	for( const char* c = message; c != nullptr && *c != '\0'; c++ ){
+		if( ISSPACE( *c ) )
+			continue;
+		if( !ISALNUM( *c ) || len >= 6 )
+			return "Usage: @voice <code>, with the 6 letter code shown in the voice bar.";
+		code[len++] = static_cast<char>( TOUPPER( *c ) );
+	}
+	if( len != 6 )
+		return "Usage: @voice <code>, with the 6 letter code shown in the voice bar.";
+
+	if( voice_player_for_claim( sd, VOICE_COMMAND_INTERVAL ) == nullptr )
+		return "Please wait a few seconds before trying again.";
+
+	voice_send_claim_short( VOICE_LINK_CLAIM_SHORT, code, sd.status.char_id );
+
+	return "Linking voice chat...";
+}
+
+/// CZ_VOICE_CLAIM, sent by the voice client plugin through the game connection.
+/// The plugin got the code from the voice server over UDP; passing it on proves
+/// to the voice server which character that UDP endpoint belongs to.
+void clif_parse_voice_claim( int32 fd, map_session_data* sd ){
+	if( !voice_enabled || !voice_ready )
+		return;
+
+	const PACKET_CZ_VOICE_CLAIM* p = reinterpret_cast<PACKET_CZ_VOICE_CLAIM*>( RFIFOP( fd, 0 ) );
+
+	if( voice_player_for_claim( *sd, VOICE_CLAIM_INTERVAL ) == nullptr )
+		return;
+
+	WFIFOHEAD( voice_fd, VOICE_CLAIM_PACKET_LENGTH );
+	WFIFOW( voice_fd, 0 ) = VOICE_LINK_CLAIM;
+	WFIFOW( voice_fd, 2 ) = VOICE_CLAIM_PACKET_LENGTH;
+	memcpy( WFIFOP( voice_fd, 4 ), p->code, VOICE_CODE_LENGTH );
+	WFIFOL( voice_fd, 4 + VOICE_CODE_LENGTH ) = sd->status.char_id;
+	WFIFOSET( voice_fd, VOICE_CLAIM_PACKET_LENGTH );
+}
+
+static void voice_on_disconnect(){
+	if( voice_ready )
+		ShowWarning( "Connection to voice server lost.\n" );
+
+	voice_fd = -1;
+	voice_ready = false;
+
+	for( auto& entry : voice_players )
+		entry.second.synced = false;
+}
+
+/// Player Statistics window in the plugin: same text as the @statsview sections.
+/// Only answers for characters whose own voice client signed in this login,
+/// so nobody can read another player's stats.
+static void voice_stats_query( uint32 char_id, uint8 page ){
+	// the tabs of the plugin's Player Statistics window, in order (@statsview sections)
+	static const char* const pages[] = { "overview", "attack", "magic", "defense", "skill", "heal", "effect", "drop" };
+
+	auto it = voice_players.find( char_id );
+	map_session_data* sd = map_charid2sd( char_id );
+
+	if( it == voice_players.end() || sd == nullptr || page >= ARRAYLENGTH( pages ) )
+		return;
+
+	t_tick tick = gettick();
+
+	if( DIFF_TICK( tick, it->second.last_stats ) < VOICE_STATS_INTERVAL )
+		return;
+	it->second.last_stats = tick;
+
+	std::vector<std::string> lines;
+
+	statsview_page_lines( sd, pages[page], lines );
+
+	std::string text;
+
+	for( const std::string& line : lines ){
+		if( text.length() + line.length() + 1 > VOICE_STATS_MAX_TEXT ){
+			text += "^777777(more in @statsview)^000000";
+			break;
+		}
+		text += line;
+		text += '\n';
+	}
+
+	size_t len = 4 + 4 + 1 + text.length();
+
+	WFIFOHEAD( voice_fd, len );
+	WFIFOW( voice_fd, 0 ) = VOICE_LINK_STATS;
+	WFIFOW( voice_fd, 2 ) = static_cast<uint16>( len );
+	WFIFOL( voice_fd, 4 ) = char_id;
+	WFIFOB( voice_fd, 8 ) = page;
+	memcpy( WFIFOP( voice_fd, 9 ), text.data(), text.length() );
+	WFIFOSET( voice_fd, len );
+}
+
+static int32 voice_parse( int32 fd ){
+	if( fd != voice_fd ){
+		do_close( fd );
+		return 0;
+	}
+
+	if( session[fd]->flag.eof ){
+		do_close( fd );
+		voice_on_disconnect();
+		return 0;
+	}else if( session[fd]->flag.ping ){
+		if( DIFF_TICK( last_tick, session[fd]->rdata_tick ) > ( stall_time * 2 ) ){
+			set_eof( fd );
+			return 0;
+		}else if( session[fd]->flag.ping != 2 ){
+			WFIFOHEAD( fd, 4 );
+			WFIFOW( fd, 0 ) = VOICE_LINK_PING;
+			WFIFOW( fd, 2 ) = 4;
+			WFIFOSET( fd, 4 );
+			session[fd]->flag.ping = 2;
+		}
+	}
+
+	while( RFIFOREST( fd ) >= 4 ){
+		uint16 cmd = RFIFOW( fd, 0 );
+		uint16 len = RFIFOW( fd, 2 );
+
+		if( len < 4 ){
+			set_eof( fd );
+			return 0;
+		}
+		if( RFIFOREST( fd ) < len )
+			return 0;
+
+		switch( cmd ){
+			case VOICE_LINK_HELLO_ACK:
+				if( len < 5 || RFIFOB( fd, 4 ) != 0 ){
+					ShowError( "Voice server refused the connection, check voice_secret.\n" );
+					set_eof( fd );
+					return 0;
+				}
+				voice_ready = true;
+				ShowStatus( "Connected to voice server at '" CL_WHITE "%s:%d" CL_RESET "'.\n", voice_ip_str, voice_port );
+				voice_send_all();
+				break;
+			case VOICE_LINK_PONG:
+				break;
+			case VOICE_LINK_CLAIM_RESULT: {
+				if( len < 9 )
+					break;
+				map_session_data* sd = map_charid2sd( RFIFOL( fd, 4 ) );
+
+				if( sd != nullptr )
+					clif_displaymessage( sd->fd, RFIFOB( fd, 8 ) == 0 ? "Voice chat connected."
+						: "That voice code is wrong or expired. Type the code shown in the voice bar." );
+				break;
+			}
+			case VOICE_LINK_AUTO_QUERY: {
+				if( len < 4 + 4 + VOICE_SHORT_CODE_LENGTH )
+					break;
+				uint32 ip = ( RFIFOB( fd, 4 ) << 24 ) | ( RFIFOB( fd, 5 ) << 16 ) | ( RFIFOB( fd, 6 ) << 8 ) | RFIFOB( fd, 7 );
+				char code[VOICE_SHORT_CODE_LENGTH] = {};
+
+				memcpy( code, RFIFOP( fd, 8 ), 6 );
+				voice_auto_query( ip, code );
+				break;
+			}
+			case VOICE_LINK_STATS_QUERY:
+				if( len < 9 )
+					break;
+				voice_stats_query( RFIFOL( fd, 4 ), RFIFOB( fd, 8 ) );
+				break;
+			default:
+				ShowError( "voice_parse: unknown packet 0x%04x from voice server, disconnecting.\n", cmd );
+				set_eof( fd );
+				return 0;
+		}
+
+		RFIFOSKIP( fd, len );
+	}
+
+	return 0;
+}
+
+static TIMER_FUNC( voice_check_connect ){
+	if( !voice_enabled || ( voice_fd > 0 && session[voice_fd] != nullptr ) )
+		return 0;
+
+	voice_fd = make_connection( voice_ip, voice_port, true, 1 );
+
+	if( voice_fd == -1 )
+		return 0;
+
+	session[voice_fd]->func_parse = voice_parse;
+	session[voice_fd]->flag.server = 1;
+	realloc_fifo( voice_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK );
+
+	WFIFOHEAD( voice_fd, 4 + VOICE_SECRET_LENGTH + 1 );
+	WFIFOW( voice_fd, 0 ) = VOICE_LINK_HELLO;
+	WFIFOW( voice_fd, 2 ) = 4 + VOICE_SECRET_LENGTH + 1;
+	memset( WFIFOP( voice_fd, 4 ), 0, VOICE_SECRET_LENGTH );
+	memcpy( WFIFOP( voice_fd, 4 ), voice_secret, strnlen( voice_secret, VOICE_SECRET_LENGTH ) );
+	WFIFOB( voice_fd, 4 + VOICE_SECRET_LENGTH ) = VOICE_FEATURE_STATS;
+	WFIFOSET( voice_fd, 4 + VOICE_SECRET_LENGTH + 1 );
+
+	return 0;
+}
+
+/// Push party, guild, chat room, map and position changes to the voice server.
+static TIMER_FUNC( voice_sync_timer ){
+	for( auto it = voice_players.begin(); it != voice_players.end(); ){
+		map_session_data* sd = map_charid2sd( it->first );
+
+		if( sd == nullptr ){
+			voice_send_leave( it->first );
+			it = voice_players.erase( it );
+			continue;
+		}
+
+		if( voice_player_refresh( it->second, *sd ) )
+			voice_send_player( it->first, it->second, *sd );
+		++it;
+	}
+
+	return 0;
+}
+
+void do_init_voice(){
+	if( !voice_enabled )
+		return;
+
+	if( strlen( voice_secret ) < 8 ){
+		ShowError( "voice_enable is on but voice_secret is shorter than 8 characters, voice chat stays off.\n" );
+		voice_enabled = false;
+		return;
+	}
+
+	voice_ip = host2ip( voice_ip_str );
+
+	add_timer_func_list( voice_check_connect, "voice_check_connect" );
+	add_timer_func_list( voice_sync_timer, "voice_sync_timer" );
+	add_timer_interval( gettick() + 1000, voice_check_connect, 0, 0, 10 * 1000 );
+	add_timer_interval( gettick() + 1000, voice_sync_timer, 0, 0, 500 );
+}
+
+void do_final_voice(){
+	if( voice_fd > 0 && session[voice_fd] != nullptr )
+		do_close( voice_fd );
+
+	voice_fd = -1;
+	voice_ready = false;
+	voice_players.clear();
+}

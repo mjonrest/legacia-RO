@@ -1,0 +1,15 @@
+[Unit]
+Description=Legacia RO voice chat relay
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/voice-server -link 127.0.0.1:6950 -udp 0.0.0.0:6951
+# Set the secret with: systemctl edit voice-server
+#   [Service]
+#   Environment=VOICE_SECRET=same_as_voice_secret_in_map_conf
+Restart=always
+RestartSec=5
+DynamicUser=yes
+
+[Install]
+WantedBy=multi-user.target

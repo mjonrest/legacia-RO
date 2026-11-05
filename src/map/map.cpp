@@ -54,6 +54,7 @@
 #include "rune.hpp"
 #include "storage.hpp"
 #include "trade.hpp"
+#include "voice.hpp"
 #include "woestats.hpp"
 
 using namespace rathena;
@@ -2300,6 +2301,8 @@ int32 map_quit(map_session_data *sd) {
 	if (sd->expiration_tid != INVALID_TIMER)
 		delete_timer(sd->expiration_tid, pc_expiration_timer);
 
+	voice_player_quit(*sd);
+
 	if (sd->npc_timer_id != INVALID_TIMER) //Cancel the event timer.
 		npc_timerevent_quit(sd);
 
@@ -4268,6 +4271,8 @@ int32 map_config_read(const char *cfgName)
 			safestrncpy(console_log_filepath, w2, sizeof(console_log_filepath));
 		else if (strcmpi(w1, "import") == 0)
 			map_config_read(w2);
+		else if (voice_config_read(w1, w2))
+			;
 		else
 			ShowWarning("Unknown setting '%s' in file %s\n", w1, cfgName);
 	}
@@ -5129,6 +5134,7 @@ void MapServer::finalize(){
 	do_final_unit();
 #ifndef MAP_GENERATOR
 	do_final_woestats();
+	do_final_voice();
 #endif
 	do_final_battleground();
 	do_final_duel();
@@ -5566,6 +5572,7 @@ bool MapServer::initialize( int32 argc, char *argv[] ){
 	do_init_battleground();
 #ifndef MAP_GENERATOR
 	do_init_woestats();
+	do_init_voice();
 #endif
 	do_init_npc();
 	do_init_unit();

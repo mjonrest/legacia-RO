@@ -55,6 +55,7 @@
 #include "storage.hpp"
 #include "trade.hpp"
 #include "vending.hpp"
+#include "voice.hpp"
 #include "woestats.hpp"
 
 using namespace rathena;
@@ -7148,8 +7149,17 @@ struct Out {
 	bool section_on = true;
 	bool header_sent = false;
 	int32 count = 0;
+	std::vector<std::string>* sink = nullptr; ///< collect lines here instead of sending them to fd (Player Statistics window)
 
 	Out( int32 fd, const char* filter ) : fd( fd ), filter( filter ) {}
+	Out( std::vector<std::string>& lines, const char* filter ) : fd( 0 ), filter( filter ), sink( &lines ) {}
+
+	void emit( const char* text ){
+		if( sink != nullptr )
+			sink->push_back( text );
+		else
+			clif_displaymessage( fd, text );
+	}
 
 	void begin( const char* key, const char* title ){
 		this->section = title;
@@ -7161,12 +7171,15 @@ struct Out {
 		if( !section_on )
 			return;
 		if( !header_sent && section != nullptr ){
-			char buf[CHAT_SIZE_MAX];
-			safesnprintf( buf, sizeof( buf ), "[ %s ]", section );
-			clif_displaymessage( fd, buf );
+			// the Player Statistics window shows one section per tab, so it needs no header
+			if( sink == nullptr ){
+				char buf[CHAT_SIZE_MAX];
+				safesnprintf( buf, sizeof( buf ), "[ %s ]", section );
+				emit( buf );
+			}
 			header_sent = true;
 		}
-		clif_displaymessage( fd, text );
+		emit( text );
 		count++;
 	}
 
@@ -7502,25 +7515,12 @@ static void weapon_bonus( Out& o, map_session_data* sd, const weapon_data& wd, c
 	array_list( o, label, wd.sp_drain_class, CLASS_MAX, class_names, "" );
 }
 
-} // namespace statsview
-
-ACMD_FUNC(statsview)
-{
-	using namespace statsview;
-
-	nullpo_retr(-1, sd);
-
-	char filter[CHAT_SIZE_MAX] = "";
-	if( message != nullptr && *message != '\0' )
-		sscanf( message, "%255s", filter );
-
-	Out o( fd, filter );
+/// Writes every section that o's filter lets through
+static void collect( map_session_data* sd, Out& o ){
 	const status_data* st = &sd->battle_status;
 	const status_data* base = &sd->base_status;
 	const auto& ib = sd->indexed_bonus;
 	const auto& b = sd->bonus;
-
-	clif_displaymessage( fd, "------------- Character Battle Stats -------------" );
 
 	// ------------------------------------------------------------------
 	o.begin( "status", "Status" );
@@ -7828,6 +7828,53 @@ ACMD_FUNC(statsview)
 			o.list( "Extra drops", items );
 		}
 	}
+}
+
+} // namespace statsview
+
+/**
+ * Text of one @statsview section for the Player Statistics window of the
+ * legacia.dll client plugin (sent through the voice server, see voice.cpp).
+ * section is a @statsview section name; "overview" adds name, job and levels
+ * in front of the status section.
+ */
+void statsview_page_lines( map_session_data* sd, const char* section, std::vector<std::string>& out ){
+	using namespace statsview;
+
+	nullpo_retv( sd );
+
+	bool overview = strcmpi( section, "overview" ) == 0;
+
+	if( overview ){
+		out.push_back( fmt( "^0055AA%s^000000", sd->status.name ) );
+		out.push_back( fmt( "%s  Base Lv %d  Job Lv %d", job_name( sd->status.class_ ), sd->status.base_level, sd->status.job_level ) );
+		out.push_back( fmt( "HP %u / %u  SP %u / %u", sd->battle_status.hp, sd->battle_status.max_hp, sd->battle_status.sp, sd->battle_status.max_sp ) );
+		out.push_back( fmt( "Zeny %d", sd->status.zeny ) );
+		out.push_back( "" );
+	}
+
+	Out o( out, overview ? "status" : section );
+	collect( sd, o );
+
+	if( o.count == 0 )
+		out.push_back( "^777777No active bonuses in this section.^000000" );
+}
+
+ACMD_FUNC(statsview)
+{
+	using namespace statsview;
+
+	nullpo_retr(-1, sd);
+
+	char filter[CHAT_SIZE_MAX] = "";
+	if( message != nullptr && *message != '\0' )
+		sscanf( message, "%255s", filter );
+
+	Out o( fd, filter );
+
+	clif_displaymessage( fd, "------------- Character Battle Stats -------------" );
+
+	collect( sd, o );
 
 	if( o.count == 0 ){
 		if( *filter != '\0' )
@@ -7842,6 +7889,15 @@ ACMD_FUNC(statsview)
 /*==========================================
  * @woerank - WoE ranking (top 10 + your own place)
  *------------------------------------------*/
+/*==========================================
+ * @voice <code>: link the legacia.dll voice chat plugin to this character
+ *------------------------------------------*/
+ACMD_FUNC(voice){
+	nullpo_retr( -1, sd );
+	clif_displaymessage( fd, voice_command( *sd, message ) );
+	return 0;
+}
+
 ACMD_FUNC(woerank)
 {
 	nullpo_retr(-1, sd);
@@ -13239,6 +13295,7 @@ void atcommand_basecommands(void) {
 		ACMD_DEF(autotrade),
 		ACMD_DEF(autohunt),
 		ACMD_DEF(statsview),
+		ACMD_DEF(voice),
 		ACMD_DEF(woerank),
 		ACMD_DEF(changegm),
 		ACMD_DEF(changeleader),

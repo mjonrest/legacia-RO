@@ -49,6 +49,7 @@ Body:
       autotrade: true
       autohunt: true
       statsview: true
+      voice: true
       woerank: true
       go: true
       showexp: true

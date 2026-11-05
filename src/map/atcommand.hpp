@@ -5,6 +5,7 @@
 #define ATCOMMAND_HPP
 
 #include <string>
+#include <vector>
 
 #include <common/cbasetypes.hpp>
 #include <common/mmo.hpp>
@@ -30,6 +31,9 @@ void do_final_atcommand(void);
 void atcommand_db_load_groups();
 
 bool atcommand_exists(const char* name);
+
+// Player Statistics window (legacia.dll): text of one @statsview section, or "overview"
+void statsview_page_lines( map_session_data* sd, const char* section, std::vector<std::string>& out );
 const char* atcommand_alias_lookup( const std::string& cmd );
 
 // @commands (script based)
