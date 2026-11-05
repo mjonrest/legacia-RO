@@ -100,55 +100,62 @@ def ground_states(alpha=230.0):
         st.append((f, pos, xy, (255.0, 255.0, 255.0, alpha)))
     return st, G_SPIN
 
-# ---- part 2: tilted rings around the body; the strip runs along each ring ----
-R_PERIOD, R_STEP, R_SEGS, R_BAND, R_CENTER = 4 * FPS, 20, 12, 12.0, 30.0
-# (base radius, radius pulse, tilt about x (deg), tilt swing, tilt about z (deg), spin turns per loop, phase)
-RINGS = ((56.0, 12.0, 0.0, 16.0, 0.0, 1, 0.0), (46.0, 10.0, -6.0, 12.0, 28.0, -1, 0.5))
-def rot(p, ax, az):
-    x, y, z = p
-    y, z = y * math.cos(ax) - z * math.sin(ax), y * math.sin(ax) + z * math.cos(ax)
-    x, y = x * math.cos(az) - y * math.sin(az), x * math.sin(az) + y * math.cos(az)
-    return x, y, z
+# ---- part 2: rings that grow out of the feet ----
+# Each ring touches the floor at the player's feet, leans outward, grows and fades,
+# while its lean direction turns around the player. The strip wraps once around the ring.
+R_LIFE, R_STEP, R_SEGS, R_BAND, R_MAX = 2 * FPS, 12, 10, 9.0, 58.0
+R_TILTS = (68.0, 42.0, 18.0)          # lean of each ring from the floor (degrees)
 def ring_layers(slices):
     ls = []
-    for r0, rp, tx, ts, tz, turns, ph in RINGS:
+    n = len(R_TILTS)
+    for ri, tilt in enumerate(R_TILTS):
+        th = math.radians(tilt)
+        start = ri * R_LIFE // n
         for k in range(R_SEGS):
             st = []
-            for f in range(0, R_PERIOD + 1, R_STEP):
-                t = f / R_PERIOD
-                r = r0 + rp * math.sin(2 * math.pi * (t + ph))
-                ax = math.radians(tx + ts * math.sin(2 * math.pi * (t + ph)))
-                az = math.radians(tz)
-                a0 = 2 * math.pi * (k / R_SEGS + turns * t)
+            for f in range(0, R_LIFE + 1, R_STEP):
+                u = ((f - start) % R_LIFE) / R_LIFE
+                if f == R_LIFE and start == 0: u = 1.0
+                yaw = 2 * math.pi * (f / R_LIFE + ri / n)          # lean direction turns once per loop
+                d = (math.cos(yaw), 0.0, math.sin(yaw))             # horizontal lean direction
+                e1 = (-d[2], 0.0, d[0])                             # horizontal, across the ring
+                e2 = (math.cos(th) * d[0], math.sin(th), math.cos(th) * d[2])
+                r = R_MAX * (0.12 + 0.88 * u)
+                alpha = 230.0 * min(1.0, u / 0.15) * max(0.0, 1.0 - max(0.0, (u - 0.55) / 0.35))
+                a0 = 2 * math.pi * k / R_SEGS - math.pi / 2           # slice 0 starts at the feet
                 a1 = a0 + 2 * math.pi / R_SEGS
                 pts = []
                 for rr, aa in ((r + R_BAND, a0), (r + R_BAND, a1), (r - R_BAND, a1), (r - R_BAND, a0)):  # TL TR BR BL
-                    x, y, z = rot((rr * math.cos(aa), 0.0, rr * math.sin(aa)), ax, az)
-                    pts.append(project(x, y + R_CENTER, z))
+                    rr = max(rr, 0.5)
+                    # point on the ring; the ring's lowest point sits on the feet
+                    x = r * e2[0] + rr * (math.cos(aa) * e1[0] + math.sin(aa) * e2[0])
+                    y = r * e2[1] + rr * (math.cos(aa) * e1[1] + math.sin(aa) * e2[1])
+                    z = r * e2[2] + rr * (math.cos(aa) * e1[2] + math.sin(aa) * e2[2])
+                    pts.append(project(x, y, z))
                 pos, xy = quad(320.0, 320.0, pts)
-                st.append((f, pos, xy, (255.0, 255.0, 255.0, 210.0)))
+                st.append((f, pos, xy, (255.0, 255.0, 255.0, alpha)))
             ls.append(layer(slices[k], st))
-    return ls, R_PERIOD
+    return ls, R_LIFE
 
-# ---- part 3: small sprites rising from the floor around the player ----
-S_PERIOD, S_COUNT, S_LIFE, S_AREA, S_RISE = 4 * FPS, 10, 150, 66.0, 60.0
+# ---- part 3: small sprites shooting out from the feet across the floor ----
+S_PERIOD, S_COUNT, S_LIFE, S_DIST, S_RISE = 4 * FPS, 10, 90, 95.0, 14.0
 def sprite_layers(tex, size, seed):
     import random
     rnd = random.Random(seed)
     ls = []
     for k in range(S_COUNT):
-        a = rnd.uniform(0, 2 * math.pi); d = S_AREA * math.sqrt(rnd.uniform(0.05, 1.0))
-        x, z = d * math.cos(a), d * math.sin(a)
-        rise = S_RISE * rnd.uniform(0.7, 1.2); drift = rnd.uniform(-10, 10)
-        sz = size * rnd.uniform(0.75, 1.15)
-        start = (k * S_PERIOD // S_COUNT + rnd.randint(0, 8)) % S_PERIOD
-        def at(u):   # u = 0..1 through the life
-            sx, sy = project(x + drift * u, rise * u, z)
-            alpha = 255.0 * min(1.0, u / 0.2) * (1.0 - max(0.0, (u - 0.55) / 0.45))
-            h = sz * (1.0 - 0.3 * u)
+        a = rnd.uniform(0, 2 * math.pi)
+        dist = S_DIST * rnd.uniform(0.75, 1.15)
+        rise = S_RISE * rnd.uniform(0.0, 1.0)
+        sz = size * rnd.uniform(0.8, 1.1)
+        start = (k * S_PERIOD // S_COUNT + rnd.randint(0, 6)) % S_PERIOD
+        def at(u):   # u = 0..1 through the life: from the feet outwards
+            sx, sy = project(dist * u * math.cos(a), rise * u, dist * u * math.sin(a))
+            alpha = 255.0 * min(1.0, u / 0.12) * (1.0 - max(0.0, (u - 0.7) / 0.3))
+            h = sz
             pos, xy = quad(320.0 + sx, 320.0 + sy, ((-h, -h), (h, -h), (h, h), (-h, h)))
             return pos, xy, (255.0, 255.0, 255.0, alpha)
-        marks = [0.0, 0.2, 0.55, 1.0]
+        marks = [0.0, 0.12, 0.7, 1.0]
         samples = [(start + u * S_LIFE, u) for u in marks]
         if start + S_LIFE > S_PERIOD:          # life crosses the loop end: split it
             ub = (S_PERIOD - start) / S_LIFE
@@ -164,7 +171,7 @@ def sprite_layers(tex, size, seed):
         ls.append(layer(tex, st))
     return ls, S_PERIOD
 
-# Gepard aura parts: 1 = ground (1000+n), 2 = rings (1300+n), 3 = rising sprites (1600+n)
+# Gepard aura parts: 1 = ground (1000+n), 2 = rings from the feet (1300+n), 3 = sprites from the feet (1600+n)
 auras = []
 for n, f in enumerate(sorted(os.listdir(os.path.join(SRC, '1'))), 1):
     tex = 'g%03d.bmp' % n; make_texture(os.path.join(SRC, '1', f), tex)
