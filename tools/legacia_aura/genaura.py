@@ -101,9 +101,9 @@ def ground_states(alpha=230.0):
     return st, G_SPIN
 
 # ---- part 2: rings that grow out of the feet ----
-# Each ring surrounds the player: it starts small at the feet and grows up around the body,
+# Each ring surrounds the player: it starts at the inner edge of the ground circle and grows,
 # tilted, while its tilt direction turns around the player. The strip wraps once around the ring.
-R_LIFE, R_STEP, R_SEGS, R_BAND, R_MAX = 2 * FPS, 12, 10, 9.0, 58.0
+R_LIFE, R_STEP, R_SEGS, R_BAND, R_START, R_MAX = 2 * FPS, 12, 10, 9.0, 36.0, 62.0
 R_TILTS = (40.0, 25.0, 10.0)          # tilt of each ring from the floor (degrees)
 def ring_layers(slices):
     ls = []
@@ -120,7 +120,7 @@ def ring_layers(slices):
                 d = (math.cos(yaw), 0.0, math.sin(yaw))             # horizontal lean direction
                 e1 = (-d[2], 0.0, d[0])                             # horizontal, across the ring
                 e2 = (math.cos(th) * d[0], math.sin(th), math.cos(th) * d[2])
-                r = R_MAX * (0.12 + 0.88 * u)
+                r = R_START + (R_MAX - R_START) * u     # starts at the inner edge of the ground circle
                 alpha = 230.0 * min(1.0, u / 0.15) * max(0.0, 1.0 - max(0.0, (u - 0.55) / 0.35))
                 a0 = 2 * math.pi * k / R_SEGS - math.pi / 2           # slice 0 starts at the feet
                 a1 = a0 + 2 * math.pi / R_SEGS
