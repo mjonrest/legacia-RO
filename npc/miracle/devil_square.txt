@@ -54,7 +54,7 @@ prontera,138,176,5	script	Devil Square Guardian#1	406,{
 		close;
 	case 3:
 	mes "[Reward Info]";
-	mes "You will get random Devil Square Point";
+	mes "You will get 1~20 random Devil Square Points";
 	mes "when leaving ^FF0000Devil Square^000000.";
 	close;
 	case 4:
@@ -276,7 +276,7 @@ ordeal_1-1,246,245,7	script	Devil Square Guardian#2	406,{
 	mes "Farewell.";
 	close2;
 	warp "SavePoint",0,0;
-	set .@rand,rand(1,7);
+	set .@rand,rand(1,20);
 	#dspoint += .@rand;
 	dispbottom "You get "+.@rand+" Devil Square Point";
 	dispbottom "Your current Devil Square Point : "+#dspoint+" pt(s).";
@@ -298,7 +298,7 @@ OnCheckMap:
 	end;
 }
 
--	pointshop	dsshop	-1,#dspoint,28321:150,18985:150,28322:150,5967:150,5473:100,5563:100,5609:100,5610:100,5670:100,5674:100,5531:100,5761:100,5978:100,5497:100,18666:200,12208:5,14592:5,14545:50,12210:50,23323:100,480110:250,480492:250,480130:250
+-	pointshop	dsshop	-1,#dspoint,28321:150,18985:150,28322:150,5967:150,5473:100,5563:100,5609:100,5610:100,5670:100,5674:100,5531:100,5761:100,5978:100,5497:100,18666:200,12208:5,14592:5,14545:50,12210:50,23323:100,480110:250,480492:250,480130:250,30008:80
 
 ordeal_1-1	mapflag	nowarp
 ordeal_1-1	mapflag	nowarpto
