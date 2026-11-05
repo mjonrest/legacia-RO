@@ -123,10 +123,12 @@ OnInit:
 	set .CRwdMinSupport, 10;
 	set .CRwdDays, 6;		// Reward can be claimed until this many days after the WoE day.
 
-	// Reward (TODO: set the real reward)
-	set .CRwdZeny, 100000;
-	setarray .CRwdItem[0], 607;	// item IDs (607 = Yggdrasil Berry, placeholder)
-	setarray .CRwdAmount[0], 1;	// amounts, same order as .CRwdItem
+	// Reward
+	set .CRwdZeny, 10000000;
+	// 13989 Acid Bomb 10 Box, 14005 Poison Bottle 5 Box, 30012 Cash Point[10],
+	// 13534 Light White Potion Box, 13810 Blue Potion Box
+	setarray .CRwdItem[0],   13989, 14005, 30012, 13534, 13810;	// item IDs
+	setarray .CRwdAmount[0],    20,     5,     2,    10,    10;	// amounts, same order as .CRwdItem
 
 // -----------------------------------------------------------
 //  Castles datas.
