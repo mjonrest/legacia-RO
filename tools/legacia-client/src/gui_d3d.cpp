@@ -140,6 +140,10 @@ void render(IDirect3DDevice9* dev) {
 	ImGui_ImplDX9_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
+	// The game draws its own cursor before Present, so the plugin's windows
+	// would cover it. While the mouse is over a plugin window, draw a cursor
+	// on top of everything instead.
+	ImGui::GetIO().MouseDrawCursor = ImGui::GetIO().WantCaptureMouse;
 	gui_windows_frame();
 	ImGui::EndFrame();
 	ImGui::Render();
