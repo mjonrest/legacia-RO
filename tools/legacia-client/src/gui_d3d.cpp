@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <vector>
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -43,6 +44,11 @@ typedef HRESULT(STDMETHODCALLTYPE* ResetExFn)(IDirect3DDevice9*, D3DPRESENT_PARA
 const int D3D_SLOTS = 22, DEV_SLOTS = 134;
 const int SLOT_CREATEDEVICE = 16, SLOT_CREATEDEVICEEX = 20;
 const int SLOT_RESET = 16, SLOT_PRESENT = 17, SLOT_PRESENTEX = 121, SLOT_RESETEX = 132;
+const int SLOT_DRAWUP = 83, SLOT_DRAWINDEXEDUP = 84;
+
+typedef HRESULT(STDMETHODCALLTYPE* DrawUPFn)(IDirect3DDevice9*, D3DPRIMITIVETYPE, UINT, const void*, UINT);
+typedef HRESULT(STDMETHODCALLTYPE* DrawIndexedUPFn)(IDirect3DDevice9*, D3DPRIMITIVETYPE, UINT, UINT, UINT, const void*,
+                                                    D3DFORMAT, const void*, UINT);
 
 // the game's renderer object, see graymap.cpp (GET_DEVICE returns it)
 const uintptr_t RENDERER_OBJ = 0x1380ca0;
@@ -59,6 +65,8 @@ PresentFn g_realPresent;
 PresentExFn g_realPresentEx;
 ResetFn g_realReset;
 ResetExFn g_realResetEx;
+DrawUPFn g_realDrawUP;
+DrawIndexedUPFn g_realDrawIndexedUP;
 
 IDirect3DDevice9* volatile g_dev; // the game's device, once hooked
 volatile bool g_active;           // gui_start said yes: draw
@@ -87,6 +95,230 @@ bool readable(const void* p, size_t n) {
 		n -= chunk;
 	}
 	return true;
+}
+
+// ---------------------------------------------------------------- the game's mouse cursor
+//
+// The game draws its cursor as one of the last things before Present, so the
+// plugin's windows (drawn at Present) would cover it. The cursor's quads are
+// recognised as they are drawn (the game's own screen-space vertex format,
+// depth 1e-6, colour 0xfaffffff, around the mouse point), kept, and drawn a
+// second time on top of the plugin's windows with the same states.
+
+const uint32_t CURSOR_Z = 0x358637bd;        // 1e-6f, the depth the game gives its cursor
+const uint32_t CURSOR_COLOR = 0xfaffffff;    // and its vertex colour
+const UINT GAME_STRIDE = 32;                 // XYZRHW | DIFFUSE | SPECULAR | TEX1
+const uintptr_t MOUSE_X = 0x1313ea4, MOUSE_Y = 0x1313ea8; // where the game keeps the mouse point
+const unsigned MAX_CURSOR_DRAWS = 8, MAX_CURSOR_VERTS = 64;
+
+struct CursorDraw {
+	bool indexed = false;
+	D3DPRIMITIVETYPE type = D3DPT_TRIANGLELIST;
+	UINT prims = 0, minIndex = 0, numVerts = 0;
+	D3DFORMAT indexFormat = D3DFMT_INDEX16;
+	std::vector<unsigned char> verts, indices;
+	IDirect3DBaseTexture9* tex = nullptr;
+};
+struct CursorRun {
+	CursorDraw draws[MAX_CURSOR_DRAWS];
+	unsigned count = 0;
+	bool hasMouse = false; // one of its quads covers the mouse point
+	IDirect3DStateBlock9* states = nullptr;
+	void clear() {
+		for (unsigned i = 0; i < count; i++) {
+			if (draws[i].tex)
+				draws[i].tex->Release();
+			draws[i].tex = nullptr;
+		}
+		count = 0;
+		hasMouse = false;
+	}
+};
+CursorRun g_runs[2];  // one being collected, one kept (the last run that covered the mouse)
+int g_runCur = 0;      // the one being collected
+bool g_runOpen;        // the last draw belonged to it
+int g_runKept = -1;
+int g_cursorFrames;    // frames in a row without a cursor seen (arrow fallback after a few)
+POINT g_mouse;         // the mouse point, read when a cursor-like quad is drawn
+
+UINT vertex_count(D3DPRIMITIVETYPE t, UINT prims) {
+	switch (t) {
+	case D3DPT_POINTLIST: return prims;
+	case D3DPT_LINELIST: return prims * 2;
+	case D3DPT_LINESTRIP: return prims + 1;
+	case D3DPT_TRIANGLELIST: return prims * 3;
+	default: return prims + 2; // strip, fan
+	}
+}
+
+bool is_known_exe() {
+	static int known = -1;
+	if (known < 0)
+		known = readable((void*)GET_DEVICE_RET, sizeof(GET_DEVICE_RET_BYTES)) &&
+		        memcmp((void*)GET_DEVICE_RET, GET_DEVICE_RET_BYTES, sizeof(GET_DEVICE_RET_BYTES)) == 0;
+	return known == 1;
+}
+
+void read_mouse() {
+	if (is_known_exe() && readable((void*)MOUSE_X, 8)) {
+		g_mouse.x = *(volatile int*)MOUSE_X;
+		g_mouse.y = *(volatile int*)MOUSE_Y;
+		return;
+	}
+	if (!GetCursorPos(&g_mouse) || !g_gameWnd || !ScreenToClient(g_gameWnd, &g_mouse))
+		g_mouse.x = g_mouse.y = -100000;
+}
+
+// verts: the draw's vertices; returns whether they look like a cursor quad
+bool cursor_like(const void* verts, UINT n, UINT stride, bool* coversMouse) {
+	if (!verts || stride != GAME_STRIDE || n < 3 || n > MAX_CURSOR_VERTS)
+		return false;
+	const unsigned char* v = (const unsigned char*)verts;
+	float x0 = 1e9f, y0 = 1e9f, x1 = -1e9f, y1 = -1e9f;
+	for (UINT i = 0; i < n; i++, v += stride) {
+		uint32_t z, color;
+		float x, y;
+		memcpy(&x, v, 4);
+		memcpy(&y, v + 4, 4);
+		memcpy(&z, v + 8, 4);
+		memcpy(&color, v + 16, 4);
+		if (z != CURSOR_Z || color != CURSOR_COLOR)
+			return false;
+		x0 = x < x0 ? x : x0;
+		y0 = y < y0 ? y : y0;
+		x1 = x > x1 ? x : x1;
+		y1 = y > y1 ? y : y1;
+	}
+	if (x1 - x0 > 256 || y1 - y0 > 256)
+		return false; // a window piece, not a cursor
+	read_mouse();
+	const float slack = 4;
+	*coversMouse = g_mouse.x >= x0 - slack && g_mouse.x <= x1 + slack && g_mouse.y >= y0 - slack && g_mouse.y <= y1 + slack;
+	return true;
+}
+
+bool cursor_watch() { return g_active && g_inited && !g_inFrame; }
+
+void cursor_end_run() {
+	g_runOpen = false;
+	CursorRun& r = g_runs[g_runCur];
+	if (r.count && r.hasMouse) {
+		if (g_runKept >= 0 && g_runKept != g_runCur)
+			g_runs[g_runKept].clear();
+		g_runKept = g_runCur;
+		g_runCur ^= 1;
+	}
+	g_runs[g_runCur].clear();
+}
+
+void cursor_seen(IDirect3DDevice9* dev, const CursorDraw& d, bool coversMouse) {
+	CursorRun& r = g_runs[g_runCur];
+	if (!g_runOpen) {
+		r.clear();
+		g_runOpen = true;
+		if (!r.states && FAILED(dev->CreateStateBlock(D3DSBT_ALL, &r.states)))
+			r.states = nullptr;
+		if (r.states)
+			r.states->Capture();
+	}
+	if (r.count >= MAX_CURSOR_DRAWS)
+		return;
+	CursorDraw& c = r.draws[r.count++];
+	c.indexed = d.indexed;
+	c.type = d.type;
+	c.prims = d.prims;
+	c.minIndex = d.minIndex;
+	c.numVerts = d.numVerts;
+	c.indexFormat = d.indexFormat;
+	c.verts = d.verts;
+	c.indices = d.indices;
+	c.tex = nullptr;
+	dev->GetTexture(0, &c.tex);
+	r.hasMouse |= coversMouse;
+}
+
+HRESULT STDMETHODCALLTYPE hk_draw_up(IDirect3DDevice9* dev, D3DPRIMITIVETYPE t, UINT prims, const void* verts, UINT stride) {
+	if (dev == g_dev && cursor_watch()) {
+		UINT n = vertex_count(t, prims);
+		bool covers = false;
+		if (cursor_like(verts, n, stride, &covers)) {
+			CursorDraw d;
+			d.type = t;
+			d.prims = prims;
+			d.verts.assign((const unsigned char*)verts, (const unsigned char*)verts + n * stride);
+			cursor_seen(dev, d, covers);
+		} else if (g_runOpen) {
+			cursor_end_run();
+		}
+	}
+	return g_realDrawUP(dev, t, prims, verts, stride);
+}
+
+HRESULT STDMETHODCALLTYPE hk_draw_indexed_up(IDirect3DDevice9* dev, D3DPRIMITIVETYPE t, UINT minIndex, UINT numVerts,
+                                             UINT prims, const void* idx, D3DFORMAT fmt, const void* verts, UINT stride) {
+	if (dev == g_dev && cursor_watch()) {
+		bool covers = false;
+		UINT ni = vertex_count(t, prims), isz = fmt == D3DFMT_INDEX32 ? 4 : 2;
+		if (idx && ni <= MAX_CURSOR_VERTS * 2 && minIndex == 0 && cursor_like(verts, numVerts, stride, &covers)) {
+			CursorDraw d;
+			d.indexed = true;
+			d.type = t;
+			d.prims = prims;
+			d.minIndex = minIndex;
+			d.numVerts = numVerts;
+			d.indexFormat = fmt;
+			d.verts.assign((const unsigned char*)verts, (const unsigned char*)verts + numVerts * stride);
+			d.indices.assign((const unsigned char*)idx, (const unsigned char*)idx + ni * isz);
+			cursor_seen(dev, d, covers);
+		} else if (g_runOpen) {
+			cursor_end_run();
+		}
+	}
+	return g_realDrawIndexedUP(dev, t, minIndex, numVerts, prims, idx, fmt, verts, stride);
+}
+
+// inside a scene, after the plugin's windows: the cursor once more, on top
+bool cursor_redraw(IDirect3DDevice9* dev) {
+	if (g_runOpen)
+		cursor_end_run();
+	if (g_runKept < 0)
+		return false;
+	CursorRun& r = g_runs[g_runKept];
+	if (!r.count || !r.states)
+		return false;
+	IDirect3DStateBlock9* saved = nullptr;
+	if (FAILED(dev->CreateStateBlock(D3DSBT_ALL, &saved)))
+		return false;
+	r.states->Apply();
+	for (unsigned i = 0; i < r.count; i++) {
+		const CursorDraw& d = r.draws[i];
+		dev->SetTexture(0, d.tex);
+		if (d.indexed)
+			g_realDrawIndexedUP(dev, d.type, d.minIndex, d.numVerts, d.prims, d.indices.data(), d.indexFormat, d.verts.data(),
+			                    GAME_STRIDE);
+		else
+			g_realDrawUP(dev, d.type, d.prims, d.verts.data(), GAME_STRIDE);
+	}
+	saved->Apply();
+	saved->Release();
+	return true;
+}
+
+void cursor_frame_done() {
+	g_runOpen = false;
+	for (CursorRun& r : g_runs)
+		r.clear();
+	g_runKept = -1;
+	g_runCur = 0;
+}
+
+void cursor_free_states() {
+	cursor_frame_done();
+	for (CursorRun& r : g_runs)
+		if (r.states) {
+			r.states->Release();
+			r.states = nullptr;
+		}
 }
 
 // ---------------------------------------------------------------- rendering
@@ -140,10 +372,10 @@ void render(IDirect3DDevice9* dev) {
 	ImGui_ImplDX9_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
-	// The game draws its own cursor before Present, so the plugin's windows
-	// would cover it. While the mouse is over a plugin window, draw a cursor
-	// on top of everything instead.
-	ImGui::GetIO().MouseDrawCursor = ImGui::GetIO().WantCaptureMouse;
+	// The game's cursor is drawn again on top of the windows (cursor_redraw).
+	// If it hasn't been recognised for a while, draw an arrow over the
+	// windows instead so the mouse never disappears.
+	ImGui::GetIO().MouseDrawCursor = g_cursorFrames > 30 && ImGui::GetIO().WantCaptureMouse;
 	gui_windows_frame();
 	ImGui::EndFrame();
 	ImGui::Render();
@@ -160,6 +392,10 @@ void render(IDirect3DDevice9* dev) {
 	}
 	if (SUCCEEDED(dev->BeginScene())) {
 		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+		if (cursor_redraw(dev))
+			g_cursorFrames = 0;
+		else if (g_cursorFrames < 1000)
+			g_cursorFrames++;
 		dev->EndScene();
 	}
 	if (swapped) {
@@ -170,6 +406,7 @@ void render(IDirect3DDevice9* dev) {
 		cur->Release();
 	if (back)
 		back->Release();
+	cursor_frame_done();
 
 	g_inFrame = false;
 }
@@ -177,6 +414,7 @@ void render(IDirect3DDevice9* dev) {
 void before_reset(IDirect3DDevice9* dev) {
 	if (g_inited && dev == g_dev) {
 		gui_windows_device_lost();
+		cursor_free_states();
 		ImGui_ImplDX9_InvalidateDeviceObjects();
 	}
 }
@@ -215,6 +453,10 @@ bool hook_device(IDirect3DDevice9* dev) {
 	g_realPresent = (PresentFn)vt[SLOT_PRESENT];
 	g_realPresentEx = (PresentExFn)vt[SLOT_PRESENTEX];
 	g_realResetEx = (ResetExFn)vt[SLOT_RESETEX];
+	g_realDrawUP = (DrawUPFn)vt[SLOT_DRAWUP];
+	g_realDrawIndexedUP = (DrawIndexedUPFn)vt[SLOT_DRAWINDEXEDUP];
+	g_devVt[SLOT_DRAWUP] = (void*)hk_draw_up;
+	g_devVt[SLOT_DRAWINDEXEDUP] = (void*)hk_draw_indexed_up;
 	g_devVt[SLOT_RESET] = (void*)hk_reset;
 	g_devVt[SLOT_PRESENT] = (void*)hk_present;
 	g_devVt[SLOT_PRESENTEX] = (void*)hk_present_ex;

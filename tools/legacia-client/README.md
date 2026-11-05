@@ -24,6 +24,8 @@ By default every window, button and the voice bar is drawn inside the game pictu
 
 How it finds the device: the plugin points the exe's import of `Direct3DCreate9Ex` at itself, so it sees the device when the game creates it. If the plugin was loaded too late for that, it searches the game's renderer object for it (only on the 2026-01-07 exe). The hooks swap the device object's own function table for a copy with `Present`/`Reset` replaced; no code in the exe or in `d3d9.dll` is changed.
 
+The game's mouse cursor stays on top of the plugin's windows: the game draws its cursor just before `Present`, so the plugin recognises those quads as they are drawn (the game's screen-space vertices with depth 1e-6 and colour `0xfaffffff`, around the mouse point), keeps a copy with the same render states, and draws them once more after its windows. If no cursor has been recognised for about 30 frames, an arrow is drawn over the plugin windows instead.
+
 If the device isn't found within 20 seconds, the plugin falls back to the separate windows (`src/ui.cpp`, `src/graymap_ui.cpp`, `src/stats_ui.cpp` and the two button files) and writes why to `legacia.log`. `ingame=0` in the `[ui]` section of `legacia.ini` always uses the separate windows.
 
 ## Graymap
