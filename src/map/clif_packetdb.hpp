@@ -2087,4 +2087,7 @@
 	packet(HEADER_ZC_EMOTION2_EXPANTION_LIST, -1);
 #endif
 
+	// Legacia voice chat (legacia.dll client plugin)
+	parseable_packet( HEADER_CZ_VOICE_CLAIM, sizeof( PACKET_CZ_VOICE_CLAIM ), clif_parse_voice_claim, 0 );
+
 #endif /* CLIF_PACKETDB_HPP */

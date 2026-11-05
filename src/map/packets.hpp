@@ -2262,6 +2262,13 @@ struct PACKET_ZC_NPC_EXPANDED_BARTER_MARKET_ITEMINFO {
 DEFINE_PACKET_HEADER(ZC_NPC_EXPANDED_BARTER_MARKET_ITEMINFO, 0x0b56);
 #endif  // PACKETVER_MAIN_NUM >= 20191120 || PACKETVER_RE_NUM >= 20191106 || PACKETVER_ZERO_NUM >= 20191127
 
+// Legacia voice chat (custom, only sent by the legacia.dll client plugin). See doc/voice_chat.md
+struct PACKET_CZ_VOICE_CLAIM{
+	int16 packetType;
+	uint8 code[16];
+} __attribute__((packed));
+DEFINE_PACKET_HEADER(CZ_VOICE_CLAIM, 0x0cf0);
+
 // NetBSD 5 and Solaris don't like pragma pack but accept the packed attribute
 #if !defined( sun ) && ( !defined( __NETBSD__ ) || __NetBSD_Version__ >= 600000000 )
 	#pragma pack( pop )

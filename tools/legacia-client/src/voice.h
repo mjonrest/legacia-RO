@@ -1,0 +1,139 @@
+// Legacia voice chat client plugin.
+// Loaded into the game client, it captures the microphone, sends Opus audio
+// to tools/voice-server and plays back other players. Protocol: doc/voice_chat.md
+#pragma once
+
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
+
+#include <stdint.h>
+#include <string>
+#include <vector>
+
+// ---- channels / modes ----
+enum VoiceChannel { CHANNEL_NORMAL = 0, CHANNEL_PARTY = 1, CHANNEL_GUILD = 2, CHANNEL_ROOM = 3, CHANNEL_WHISPER = 4 };
+static const int CHANNEL_COUNT = 5;
+static const int NAME_LENGTH = 24; // character names, as in the game
+enum MicMode { MODE_PTT = 0, MODE_OPEN = 1 };
+
+// ---- settings (legacia.ini next to the game exe) ----
+struct Config {
+	char host[128];
+	int port;
+	int enabled;
+	int mode;          // MicMode
+	int pttKey;        // virtual key code
+	int toggleKey;     // virtual key code, used with Ctrl+Shift
+	int channel;       // VoiceChannel
+	int micVolume;     // percent, 0-200
+	int speakerVolume; // percent, 0-200
+	int voiceDetect;   // open mic only sends when louder than sensitivity
+	int sensitivity;   // dBFS * -1, 10-70
+	int inDevice;      // -1 = system default
+	int outDevice;     // -1 = system default
+	int overlay;       // show who is talking in the game window
+	int bar;           // show the voice bar at the bottom right of the game window
+	int deafen;        // hear nobody
+	int micMuted;      // send nothing, whatever the mic mode
+	char whisper[NAME_LENGTH]; // who CHANNEL_WHISPER talks to
+	int gmEnabled;               // graymap on
+	int gmColor[5];              // 0xRRGGBB, indexed by GraymapColor
+	int gmBtnRight, gmBtnTop;     // Graymap button: distance from the game window's top right corner
+	int stBtnRight, stBtnTop;     // Player Statistics button, the same way
+	char stBackground[MAX_PATH];  // Player Statistics background picture (file name in plugins\stats_backgrounds), "" = none
+	int stOpacity;                // how solid the text panels are over the picture, percent 30-100
+};
+
+extern Config g_cfg;
+extern HMODULE g_module;
+extern HWND g_gameWnd;
+
+void config_load();
+void config_save();
+void log_line(const char* fmt, ...);
+
+// shared lock for small cross-thread state
+struct Lock {
+	CRITICAL_SECTION* cs;
+	explicit Lock(CRITICAL_SECTION& c) : cs(&c) { EnterCriticalSection(cs); }
+	~Lock() { LeaveCriticalSection(cs); }
+};
+
+// ---- hooks.cpp: game connection ----
+bool hooks_install();
+bool hooks_in_game();
+void hooks_check(); // re-hook if something replaced ours; call now and then
+// queue a claim code to be sent through the game connection
+void hooks_queue_claim(const uint8_t code[16]);
+
+// ---- net.cpp: UDP link to the voice server ----
+enum NetState { NET_OFF, NET_WAIT_GAME, NET_HELLO, NET_CLAIMING, NET_CONNECTED };
+void net_start();
+void net_restart(); // host/port changed
+NetState net_state();
+const char* net_status_text();
+std::string net_short_code(); // code for @voice while signing in, else empty
+uint32_t net_char_id();
+void net_send_audio(uint16_t seq, uint8_t channel, const uint8_t* data, int len);
+bool net_request_stats(uint8_t page); // false while voice chat isn't connected
+
+// ---- audio.cpp ----
+struct SpeakerInfo {
+	uint32_t charId;
+	std::string name;
+	bool talking;
+	bool muted;
+	int volume; // percent
+	int channel;
+};
+void audio_start();
+void audio_restart_devices();
+void audio_set_transmit(bool on); // push-to-talk state
+bool audio_transmitting();        // currently sending voice
+float audio_mic_level();          // 0..1
+void audio_on_packet(uint32_t speaker, uint16_t seq, uint8_t channel, const uint8_t* data, int len);
+void audio_on_speaker_name(uint32_t speaker, const char* name);
+std::vector<SpeakerInfo> audio_speakers();
+void audio_set_speaker_muted(uint32_t speaker, bool muted);
+void audio_set_speaker_volume(uint32_t speaker, int volume);
+std::vector<std::string> audio_input_devices();
+std::vector<std::string> audio_output_devices();
+
+// ---- graymap.cpp: flat coloured map cells ----
+enum GraymapColor { GM_WALKABLE, GM_GRID, GM_UNWALKABLE, GM_WATER, GM_WALL, GM_COLOR_COUNT };
+extern const int GM_DEFAULT_COLORS[GM_COLOR_COUNT];
+bool graymap_install(); // hooks the map drawing; false on an unknown game exe
+bool crashguard_install(); // catches a known null-actor crash in the game exe (crashguard.cpp)
+bool graymap_available();
+
+// ---- ui.cpp ----
+void ui_run(); // runs on the plugin's main thread, never returns
+
+// ---- graymap_ui.cpp: Graymap window (Ctrl+Shift+G) ----
+void graymap_ui_create();
+void graymap_ui_toggle();
+void graymap_set_enabled(bool on); // switch Graymap on/off, save, refresh the window and bar
+HWND graymap_ui_window();
+
+// ---- graymap_button.cpp: Graymap button under the Cash Shop button ----
+void graymap_button_create();
+void graymap_button_update(bool gameActive); // place/show it; called from the UI poll
+void graymap_button_refresh();               // Graymap switched on/off or colours changed
+
+// ---- stats_ui.cpp: Player Statistics window (Ctrl+Shift+S) ----
+// The text comes from the map-server through the voice server (same pages as
+// @statsview), so it needs voice chat to be connected.
+// types "@voice CODE" into the game chat, signing this plugin in when the
+// server can't tell the player by address (several games on one connection)
+void ui_type_voice_command(const std::string& code);
+void stats_ui_create();
+void stats_ui_toggle();
+HWND stats_ui_window();
+void stats_ui_on_page(uint8_t page, const std::string& text); // from the net thread
+void stats_ui_on_unavailable(uint8_t page);                    // from the net thread
+
+// ---- stats_button.cpp: Player Statistics button under the Graymap button ----
+void stats_button_create();
+void stats_button_update(bool gameActive);
