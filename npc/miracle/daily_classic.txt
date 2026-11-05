@@ -356,7 +356,7 @@ function	script	F_GetDailyShopItem	{
 	15920,15921,15922,15923,2855,28351,5986,18656,
 
 	// ===== Group 8 =====
-	18522,5654;
+	18522,5654,5013,5547,5969;
 	.@pick = .@geararray[rand(getarraysize(.@geararray))];
 
 	// Save into today's daily quest row
