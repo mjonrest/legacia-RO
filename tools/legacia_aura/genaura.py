@@ -101,10 +101,10 @@ def ground_states(alpha=230.0):
     return st, G_SPIN
 
 # ---- part 2: rings that grow out of the feet ----
-# Each ring touches the floor at the player's feet, leans outward, grows and fades,
-# while its lean direction turns around the player. The strip wraps once around the ring.
+# Each ring surrounds the player: it starts small at the feet and grows up around the body,
+# tilted, while its tilt direction turns around the player. The strip wraps once around the ring.
 R_LIFE, R_STEP, R_SEGS, R_BAND, R_MAX = 2 * FPS, 12, 10, 9.0, 58.0
-R_TILTS = (68.0, 42.0, 18.0)          # lean of each ring from the floor (degrees)
+R_TILTS = (40.0, 25.0, 10.0)          # tilt of each ring from the floor (degrees)
 def ring_layers(slices):
     ls = []
     n = len(R_TILTS)
@@ -127,10 +127,10 @@ def ring_layers(slices):
                 pts = []
                 for rr, aa in ((r + R_BAND, a0), (r + R_BAND, a1), (r - R_BAND, a1), (r - R_BAND, a0)):  # TL TR BR BL
                     rr = max(rr, 0.5)
-                    # point on the ring; the ring's lowest point sits on the feet
-                    x = r * e2[0] + rr * (math.cos(aa) * e1[0] + math.sin(aa) * e2[0])
+                    # ring centred on the player's axis; its lowest edge rests on the floor
+                    x = rr * (math.cos(aa) * e1[0] + math.sin(aa) * e2[0])
                     y = r * e2[1] + rr * (math.cos(aa) * e1[1] + math.sin(aa) * e2[1])
-                    z = r * e2[2] + rr * (math.cos(aa) * e1[2] + math.sin(aa) * e2[2])
+                    z = rr * (math.cos(aa) * e1[2] + math.sin(aa) * e2[2])
                     pts.append(project(x, y, z))
                 pos, xy = quad(320.0, 320.0, pts)
                 st.append((f, pos, xy, (255.0, 255.0, 255.0, alpha)))
