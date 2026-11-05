@@ -6,8 +6,8 @@ The server sends each part as a hat effect (`pc_aura_apply` in `src/map/pc.cpp`)
 | Part | What | Count | Hat effect ID |
 |---|---|---|---|
 | 1 | Ground circle (spins on the floor) | 152 | 1000 + n |
-| 2 | Pillar (texture wrapped around the body) | 117 | 1300 + n |
-| 3 | Glow (behind the body; 3 are floating particles) | 35 | 1600 + n |
+| 2 | Rings (2 tilted rings that spin and pulse; the strip wraps once around each ring) | 117 | 1300 + n |
+| 3 | Sprites (10 small copies rise from the floor around the player and fade) | 35 | 1600 + n |
 
 1. Put the Gepard aura textures in `auras/1`, `auras/2`, `auras/3`.
 2. `python3 genaura.py auras out` writes `out/data/texture/effect/efst_legacia_aura/*.str|*.bmp` and `out/auras.json`.
@@ -15,6 +15,6 @@ The server sends each part as a hat effect (`pc_aura_apply` in `src/map/pc.cpp`)
    adds the entries to the client's two hat effect files (plain-text lub from the client).
 4. `python3 preview.py gif out/data/texture/effect/efst_legacia_aura/g001.str g001.gif` renders a preview.
 
-All parts are anchored at the feet with `hatEffectPos = -11` (same as the official Magic Circle hat effect).
+The look was matched to a recording of the Gepard aura. All parts are anchored at the feet with `hatEffectPos = -11` (same as the official Magic Circle hat effect).
 If they sit too high or low in game, change that number in `genlub.py` and rebuild.
 Sizes and speeds are the constants at the top of each section in `genaura.py`.

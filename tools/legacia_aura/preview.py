@@ -39,7 +39,7 @@ def draw(canvas, tex, pos, xy, color, ox, oy, scale):
     # affine dest->src from TL, TR, BL
     import numpy.linalg as la
     A = np.array([[P[0][0], P[0][1], 1], [P[1][0], P[1][1], 1], [P[3][0], P[3][1], 1]])
-    if abs(la.det(A)) < 1e-3: return   # edge-on quad
+    if abs(la.det(A)) < 20.0: return   # edge-on quad
     sx = la.solve(A, [0, tw, 0]); sy = la.solve(A, [0, 0, th])
     H, W = canvas.shape[:2]
     warped = np.asarray(Image.fromarray(tex).transform((W, H), Image.AFFINE, (*sx, *sy), Image.BILINEAR), dtype=np.float32) if False else \

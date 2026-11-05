@@ -17,7 +17,7 @@ anchor = NL + '}' + NL + 'effectHatItemTable = {'
 assert s.count(anchor) == 1
 ent = []
 for a in auras:
-    before = 'false' if a['kind'] == 'particle' else 'true'
+    before = 'true' if a['kind'] == 'ground' else 'false'   # rings and sprites pass in front of the body
     ent.append(NL.join([
         '\t[%d] = { -- %s (aura part %d #%d, %s)' % (a['id'], cname(a), a['part'], a['num'], a['kind']),
         '\t\tresourceFileName = "efst_legacia_aura\\\\%s",' % a['file'],
