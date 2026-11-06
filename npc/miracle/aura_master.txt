@@ -64,10 +64,12 @@ OnPCLoginEvent:
 		AURA_GRANDF = 1;
 		end;
 	}
-	// Drop a part that is not owned (e.g. logged out during a preview).
-	for (.@p = 1; .@p <= 3; .@p++)
-		if (get_aura_part(.@p) > 0 && !callsub(S_Owned, .@p, get_aura_part(.@p)))
-			set_aura_part .@p, 0;
+	// Logged out during a preview: put the part worn before back.
+	// (Only previews are undone, so auras given with the GM command @auras stay.)
+	if (AURA_PREVIEW) {
+		set_aura_part AURA_PREVIEW / 1000, AURA_PREVIEW % 1000;
+		AURA_PREVIEW = 0;
+	}
 	end;
 
 // ---------------- main menu ----------------
@@ -159,6 +161,8 @@ S_Try:
 	.@num = getarg(1);
 	.@old = get_aura_part(.@part);
 	.@own = callsub(S_Owned, .@part, .@num);
+	if (!.@own)
+		AURA_PREVIEW = .@part * 1000 + .@old;	// undone at login if the player logs out now
 	set_aura_part .@part, .@num;
 	clear;
 	mes "[Aura Master]";
@@ -172,12 +176,14 @@ S_Try:
 			return;
 		if (callsub(S_Pay, .@part, .@num)) {
 			callsub S_Give, .@part, .@num;
+			AURA_PREVIEW = 0;
 			mes "Unlocked! You are now wearing it.";
 			next;
 			return;
 		}
 	}
 	set_aura_part .@part, .@old;	// Back, cancel, or could not pay
+	AURA_PREVIEW = 0;
 	if (.@s == 255)
 		end;
 	return;
