@@ -324,10 +324,10 @@ void draw_ground(const V3& foot, void* tex, float t) {
 void draw_rings(const V3& foot, void* tex, float t) {
 	const float CYCLE = 4.0f;            // one turn round the player
 	const int PETALS = 3, SEGS = 32;
-	const float R = 34 * g_scale;        // petal ring radius at full size (8.5 units)
+	const float R = 28 * g_scale;        // petal ring radius at full size (7 units): the flower is as wide as the ground circle
 	const float BAND = 6 * g_scale;      // thin lines (the texture fades at its edges)
 	const float LIFT = 22 * g_scale;     // centre at the waist
-	const float OFF0 = 36 * g_scale, OFF1 = 14 * g_scale; // petal centres: come in from 9 units out to 3.5
+	const float OFF0 = 36 * g_scale, OFF1 = 12 * g_scale; // petal centres 3 units off the player
 	const float TILT = 30 * PI / 180;
 	// the flower stays and keeps turning round the player (one turn per CYCLE)
 	const float fade = 1, ease = 1;
@@ -523,10 +523,41 @@ bool hat_aura(const uint8_t* actor, Aura& out) {
 	return any;
 }
 
+// For your own character the game handles ZC_HAT_EFFECT in its status code
+// (0xd537a0, self branch) and keeps each hat effect in its own status list,
+// a std::vector of 0x1c-byte entries at 0x14a0258 (begin) / 0x14a025c (end):
+// +0 status 0x37f, +8 the hat ID. Right after the first login the effect does
+// not reach the character's effect set until a map change, so for yourself
+// the auras are read from this list.
+const uintptr_t SELF_STATUS_BEGIN = 0x14a0258, SELF_STATUS_END = 0x14a025c;
+const int STATUS_HAT_EFFECT = 0x37f;
+
+bool self_aura(Aura& out) {
+	out = Aura{};
+	const uint8_t* b = *(const uint8_t* const*)SELF_STATUS_BEGIN;
+	const uint8_t* e = *(const uint8_t* const*)SELF_STATUS_END;
+	if (!b || e < b || (e - b) % 0x1c != 0 || (e - b) / 0x1c > 2000 || !readable((uintptr_t)b, (size_t)(e - b)))
+		return false;
+	bool any = false;
+	for (const uint8_t* p = b; p < e; p += 0x1c) {
+		if (*(const int*)p != STATUS_HAT_EFFECT)
+			continue;
+		int id = *(const int*)(p + 8);
+		int k = (id - HAT_AURA_BASE - 1) / HAT_AURA_STEP, num = id - HAT_AURA_BASE - k * HAT_AURA_STEP;
+		if (id > HAT_AURA_BASE && k >= 0 && k < 3 && num >= 1 && num < HAT_AURA_STEP) {
+			out.part[k] = (uint8_t)num;
+			any = true;
+		}
+	}
+	return any;
+}
+
 // an actor's aura: from its hat effects, else from the voice server's list
-bool actor_aura(const uint8_t* actor, uint32_t aid, Aura& out) {
+bool actor_aura(const uint8_t* actor, uint32_t aid, Aura& out, bool self = false) {
 	if (aid < 2000000 || aid >= 100000000)
 		return false; // only players (account IDs); monsters and NPCs have other classes
+	if (self && readable(SELF_STATUS_BEGIN, 8) && self_aura(out))
+		return true; // the game's own list is current for you even right after login
 	if (hat_aura(actor, out)) {
 		static bool logged = false;
 		if (!logged) {
@@ -579,7 +610,7 @@ void aura_draw(void* view) {
 	uint32_t self = *(uint32_t*)SESSION_AID;
 	uint8_t* player = *(uint8_t**)(world + 0x2c);
 	Aura a;
-	if (player && actor_aura(player, self, a))
+	if (player && actor_aura(player, self, a, true))
 		draw_actor(player, a, self, t);
 
 	// std::list<CGameActor*>: head node at +0x10, size at +0x14; node = next, prev, value
