@@ -17979,6 +17979,23 @@ void pc_aura_apply(map_session_data& sd) {
 	}
 }
 
+/**
+ * Sends the aura hat effects again a moment after the map has loaded.
+ * Right after login or a character change the client drops the hat effects it gets for its own
+ * character during loading (they only came back after @go/@refresh), so they are repeated once it is on the map.
+ */
+TIMER_FUNC(pc_aura_resend_timer){
+	map_session_data* sd = map_id2sd(id);
+
+	if (sd == nullptr || sd->state.connect_new || sd->prev == nullptr)
+		return 0;
+	if (pc_isinvisible(sd) || sd->sc.getSCE(SC_HIDING) || sd->sc.getSCE(SC_CLOAKING) || sd->sc.getSCE(SC_CHASEWALK))
+		return 0;
+
+	pc_aura_show(*sd, true);
+	return 0;
+}
+
 /// Hide or show the aura hat effects to others without changing the aura (hiding, cloaking, @hide).
 void pc_aura_show(map_session_data& sd, bool show) {
 	for (int16 id : sd.ud.hatEffects) {
@@ -19522,6 +19539,7 @@ void do_init_pc(void) {
 	add_timer_func_list(pc_expiration_timer, "pc_expiration_timer");
 	add_timer_func_list(pc_autotrade_timer, "pc_autotrade_timer");
 	add_timer_func_list(pc_autohunt_timer, "pc_autohunt_timer");
+	add_timer_func_list(pc_aura_resend_timer, "pc_aura_resend_timer");
 	add_timer_func_list(pc_on_expire_active, "pc_on_expire_active");
 	add_timer_func_list(pc_macro_detector_timeout, "pc_macro_detector_timeout");
 	add_timer_func_list( pc_goldpc_update, "pc_goldpc_update" );

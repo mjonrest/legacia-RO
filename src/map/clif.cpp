@@ -11523,6 +11523,10 @@ void clif_parse_LoadEndAck(int32 fd,map_session_data *sd)
 	}
 #endif
 
+	// Legacia auras: the client loses its own hat effects sent while it loads, so repeat them shortly after
+	if( battle_config.aura_hateffect && sd->aura_data > 0x1000000 )
+		add_timer( gettick() + 1500, pc_aura_resend_timer, sd->id, 0 );
+
 	sd->state.connect_new = 0;
 	sd->state.changemap = false;
 }
