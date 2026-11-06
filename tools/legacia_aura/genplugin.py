@@ -10,7 +10,7 @@ import os, sys, struct
 from PIL import Image
 
 SRC, OUT = sys.argv[1], sys.argv[2]
-SIZE = {'1': 128, '2': 64, '3': 64}   # texels per side, per part
+SIZE = {'1': 256, '2': 64, '3': 64}   # most texels per side, per part (sharper ground circles)
 
 
 def pow2(n, cap):

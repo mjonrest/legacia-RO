@@ -235,7 +235,10 @@ float rnd(uint32_t& s, float lo, float hi) {
 
 const float PI = 3.14159265f;
 
-// part 1: the ground circle, turning flat on the floor once every 6 s
+// part 1: the ground circle, turning flat on the floor once every 6 s. Drawn
+// additively, so it is dimmed a little: at full strength light floors washed it
+// out to white.
+const float GROUND_BRIGHTNESS = 165;
 void draw_ground(const V3& foot, void* tex, float t) {
 	const float R = 62 * g_scale;
 	float th = 2 * PI * fmodf(t / 6.0f, 1.0f), c = cosf(th), s = sinf(th);
@@ -266,7 +269,7 @@ void draw_ground(const V3& foot, void* tex, float t) {
 	for (int i = 0; i < 4; i++) {
 		out[i] = v[order[i]];
 		out[i].z -= 0.00003f; // the client's own ground cells lift themselves the same way
-		out[i].color = grey(230);
+		out[i].color = grey(GROUND_BRIGHTNESS);
 		out[i].specular = 0xff000000u;
 		out[i].u = cu[order[i]];
 		out[i].v = cv[order[i]];
@@ -274,63 +277,67 @@ void draw_ground(const V3& foot, void* tex, float t) {
 	emit(out, tex);
 }
 
-// part 2: three rings round the player. Each one starts at the inner edge of
-// the ground circle, grows and fades, tilted, while its tilt turns round the
-// player; the texture runs once round each ring.
+// part 2: three rings round the player, as Gepard draws them: each about as
+// wide as the ground circle, floating round the body (rising from the feet to
+// the waist and settling back), tilted 12-30 degrees with the tilt slowly
+// turning round the player, and the texture sliding along the ring. Each
+// ring lives 3 s and fades in and out; the three are a second apart.
 void draw_rings(const V3& foot, void* tex, float t) {
-	const float LIFE = 2.0f, R0 = 36 * g_scale, R1 = 62 * g_scale, BAND = 9 * g_scale;
-	const float TILT[3] = {40, 25, 10};
-	const int SEGS = 20;
+	const float LIFE = 3.0f, R = 58 * g_scale, BAND = 7 * g_scale, LIFT = 26 * g_scale, DRIFT = 8 * g_scale;
+	const int SEGS = 28;
 	for (int ri = 0; ri < 3; ri++) {
-		float u = fmodf(t / LIFE - ri / 3.0f + 3.0f, 1.0f);
-		float alpha = 230 * fminf(1, u / 0.15f) * fmaxf(0, 1 - fmaxf(0, (u - 0.55f) / 0.35f));
+		float u = fmodf(t / LIFE + ri / 3.0f, 1.0f);
+		float alpha = 220 * fminf(1, u / 0.2f) * fminf(1, (1 - u) / 0.25f);
 		if (alpha < 2)
 			continue;
-		float yaw = 2 * PI * fmodf(t / LIFE + ri / 3.0f, 1.0f);
-		float th = TILT[ri] * PI / 180;
+		// tilt: size and direction both wander, different for each ring
+		float yaw = 2 * PI * fmodf(t / 5.0f + ri * 0.37f, 1.0f) * (ri == 1 ? -1.0f : 1.0f);
+		float th = (12 + 18 * (0.5f + 0.5f * sinf(t * 1.3f + ri * 2.1f))) * PI / 180;
 		V3 d = {cosf(yaw), 0, sinf(yaw)};
 		V3 e1 = {-d.z, 0, d.x};
 		V3 e2 = {cosf(th) * d.x, sinf(th), cosf(th) * d.z};
-		float r = R0 + (R1 - R0) * u;
-		auto at = [&](float rr, float a) {
-			if (rr < 0.5f * g_scale)
-				rr = 0.5f * g_scale;
-			float ca = cosf(a), sa = sinf(a);
+		// centre: rises from the feet to the waist and back, drifting a little sideways
+		float h = LIFT * sinf(PI * u);
+		float da = t * 0.9f + ri * 2.0f;
+		V3 c = {foot.x + DRIFT * cosf(da), foot.y - h, foot.z + DRIFT * sinf(da)};
+		float slide = fmodf(t * 0.25f * (ri == 2 ? -1.0f : 1.0f) + ri * 0.33f, 1.0f);
+		auto at = [&](float rr, float ang) {
+			float ca = cosf(ang), sa = sinf(ang);
 			float x = rr * (ca * e1.x + sa * e2.x);
-			float y = r * e2.y + rr * (sa * e2.y); // the lowest edge rests on the floor
+			float y = rr * (sa * e2.y);
 			float z = rr * (ca * e1.z + sa * e2.z);
-			return V3{foot.x + x, foot.y - y, foot.z + z}; // up is -y in the client
+			return V3{c.x + x, c.y - y, c.z + z}; // up is -y in the client
 		};
 		uint32_t col = grey(alpha);
 		for (int k = 0; k < SEGS; k++) {
-			float a0 = 2 * PI * k / SEGS - PI / 2, a1 = a0 + 2 * PI / SEGS;
+			// the texture slides by turning the ring itself (u stays in 0..1)
+			float a0 = 2 * PI * ((float)k / SEGS + slide), a1 = a0 + 2 * PI / SEGS;
 			float u0 = (float)k / SEGS, u1 = (float)(k + 1) / SEGS;
-			V3 p[4] = {at(r + BAND, a0), at(r + BAND, a1), at(r - BAND, a0), at(r - BAND, a1)};
+			V3 p[4] = {at(R + BAND, a0), at(R + BAND, a1), at(R - BAND, a0), at(R - BAND, a1)};
 			float uv[8] = {u0, 0, u1, 0, u0, 1, u1, 1};
 			quad(p, uv, col, tex);
 		}
 	}
 }
 
-// part 3: small sparkles shooting out from the feet across the floor
+// part 3: small glowing sparkles (or bubbles) around the player, as Gepard
+// draws them: each pops up at a random spot round the body, from the floor
+// to above the head, floats slowly upwards and fades out again.
 void draw_sparkles(const V3& foot, uint32_t aid, void* tex, float t) {
-	const float PERIOD = 4.0f, LIFE = 1.5f;
-	const int COUNT = 10;
+	const float LIFE = 1.4f;
+	const int COUNT = 9;
 	float hpc = fabsf(*(float*)(g_renderer + 4)), vpc = fabsf(*(float*)(g_renderer + 8));
 	for (int k = 0; k < COUNT; k++) {
 		uint32_t seed = hash(aid * 31u + (uint32_t)k);
-		float start = PERIOD * k / COUNT + rnd(seed, 0, 0.1f);
-		float since = t - start;
-		float cyc = floorf(since / PERIOD);
-		float phase = since - cyc * PERIOD;
-		if (phase > LIFE)
-			continue;
-		float u = phase / LIFE;
+		float since = t + LIFE * k / COUNT + rnd(seed, 0, 0.2f);
+		float cyc = floorf(since / LIFE);
+		float u = (since - cyc * LIFE) / LIFE;
 		uint32_t s = hash(seed ^ (uint32_t)(int)cyc);
-		float a = rnd(s, 0, 2 * PI), dist = 95 * g_scale * rnd(s, 0.75f, 1.15f);
-		float rise = 14 * g_scale * rnd(s, 0, 1), size = 10 * g_scale * rnd(s, 0.8f, 1.1f);
-		float alpha = 255 * fminf(1, u / 0.12f) * (1 - fmaxf(0, (u - 0.7f) / 0.3f));
-		V3 c = {foot.x + dist * u * cosf(a), foot.y - rise * u, foot.z + dist * u * sinf(a)};
+		float a = rnd(s, 0, 2 * PI), dist = 70 * g_scale * sqrtf(rnd(s, 0.08f, 1.0f));
+		float h0 = 95 * g_scale * rnd(s, 0, 1), rise = 18 * g_scale * rnd(s, 0.5f, 1);
+		float size = 9 * g_scale * rnd(s, 0.75f, 1.15f);
+		float alpha = 240 * fminf(1, u / 0.2f) * fminf(1, (1 - u) / 0.35f);
+		V3 c = {foot.x + dist * cosf(a), foot.y - h0 - rise * u, foot.z + dist * sinf(a)};
 		TLV m;
 		if (!project(c, m) || alpha < 2)
 			continue;
