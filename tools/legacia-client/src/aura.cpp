@@ -558,19 +558,9 @@ bool actor_aura(const uint8_t* actor, uint32_t aid, Aura& out, bool self = false
 		return false; // only players (account IDs); monsters and NPCs have other classes
 	if (self && readable(SELF_STATUS_BEGIN, 8) && self_aura(out))
 		return true; // the game's own list is current for you even right after login
-	if (hat_aura(actor, out)) {
-		static bool logged = false;
-		if (!logged) {
-			logged = true;
-			log_line("aura: first hat-effect aura seen (player %u: %d %d %d)", (unsigned)aid, out.part[0], out.part[1], out.part[2]);
-		}
-		return true;
-	}
-	auto a = g_frameAuras.find(aid);
-	if (a == g_frameAuras.end())
-		return false;
-	out = a->second;
-	return true;
+	// Only the hat effects count. The voice server's old aura list is not used
+	// any more: it could hold a stale aura (e.g. 153 118 36) and show that instead.
+	return hat_aura(actor, out);
 }
 
 // The game drops its textures when it leaves the game for the character

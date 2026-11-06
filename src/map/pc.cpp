@@ -17993,6 +17993,10 @@ TIMER_FUNC(pc_aura_resend_timer){
 		return 0;
 
 	pc_aura_show(*sd, true);
+
+	// the client can still wipe its own list a few seconds after loading, so send once more later
+	if (data > 0)
+		add_timer(tick + 4000, pc_aura_resend_timer, id, data - 1);
 	return 0;
 }
 
