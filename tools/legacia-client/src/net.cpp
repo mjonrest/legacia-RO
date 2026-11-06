@@ -12,6 +12,8 @@ enum : uint8_t {
 	C_BYE = 0x04,
 	C_STATS = 0x05,
 	C_MODE = 0x06,
+	C_CELLS = 0x07,
+	C_AURAS = 0x08,
 	S_WELCOME = 0x81,
 	S_DENIED = 0x82,
 	S_PONG = 0x83,
@@ -20,6 +22,10 @@ enum : uint8_t {
 	S_CHALLENGE = 0x86,
 	S_STATS = 0x87,
 	S_NO_STATS = 0x88,
+	S_CELLS = 0x89,
+	S_NO_CELLS = 0x8a,
+	S_AURAS = 0x8b,
+	S_NO_AURAS = 0x8c,
 };
 
 static CRITICAL_SECTION g_netLock;
@@ -247,6 +253,37 @@ static void handle_packet(const uint8_t* p, int n, DWORD now, DWORD& lastHeard) 
 		if (n >= 5)
 			on_stats_part(p, n);
 		break;
+	case S_CELLS:
+		if (n >= 3) {
+			uint16_t count;
+			memcpy(&count, p + 1, 2);
+			if (n < 3 + count * 7)
+				break;
+			std::vector<LgpCell> cells(count);
+			for (int i = 0; i < count; i++) {
+				const uint8_t* e = p + 3 + i * 7;
+				memcpy(&cells[i].x, e, 2);
+				memcpy(&cells[i].y, e + 2, 2);
+				memcpy(&cells[i].skill, e + 4, 2);
+				cells[i].kind = e[6];
+			}
+			lgp_set_cells(cells.data(), count);
+		}
+		break;
+	case S_NO_CELLS:
+		lgp_set_no_cells();
+		break;
+	case S_AURAS:
+		if (n >= 3) {
+			uint16_t count;
+			memcpy(&count, p + 1, 2);
+			if (n >= 3 + count * 7)
+				aura_set(p + 3, count);
+		}
+		break;
+	case S_NO_AURAS:
+		aura_set_none();
+		break;
 	case S_NO_STATS:
 		if (n >= 2)
 			stats_ui_on_unavailable(p[1]);
@@ -266,7 +303,7 @@ static void handle_packet(const uint8_t* p, int n, DWORD now, DWORD& lastHeard) 
 }
 
 static DWORD WINAPI net_thread(LPVOID) {
-	DWORD lastSend = 0, lastHeard = 0, stateSince = 0;
+	DWORD lastSend = 0, lastHeard = 0, stateSince = 0, lastCells = 0, lastAuras = 0;
 	int sentEnabled = -1; // voice on/off last told to the server; -1 = not yet in this session
 	NetState prev = NET_OFF;
 	bool wasInGame = false;
@@ -336,6 +373,16 @@ static DWORD WINAPI net_thread(LPVOID) {
 				if (!g_cfg.enabled)
 					send_mode(); // again now and then, in case the first one got lost
 				lastSend = now;
+			}
+			// LGP: the skill cells around the player, twice a second
+			if (lgp_wants_cells() && now - lastCells >= 500) {
+				send_with_session(C_CELLS);
+				lastCells = now;
+			}
+			// auras of the players around, once a second
+			if (aura_wants() && now - lastAuras >= 1000) {
+				send_with_session(C_AURAS);
+				lastAuras = now;
 			}
 			if (sentEnabled != g_cfg.enabled) {
 				sentEnabled = g_cfg.enabled;

@@ -44,6 +44,22 @@ struct Config {
 	int stBtnRight, stBtnTop;     // Player Statistics button, the same way
 	char stBackground[MAX_PATH];  // Player Statistics background picture (file name in plugins\stats_backgrounds), "" = none
 	int stOpacity;                // how solid the text panels are over the picture, percent 30-100
+	// LGP (Graymap window, LGP tab): cells drawn on the ground around the player
+	int lgpEnabled;
+	int lgpAoe;    // skill cells on the ground, from the map-server
+	int lgpDead;   // cells you can't walk on, inside the shapes
+	int lgpGutter; // a gap between cells
+	int lgpSmooth; // the shapes glide with the camera instead of jumping cell by cell
+	int lgpTile;   // 0 box, 1 round
+	int lgpDepth;  // 0 flat (2D), 1 raised (3D)
+	struct LgpShape {
+		int on, color, fill, size, wave; // fill 0 = ring; size in cells; wave 0 flat, 1-5
+	} lgpSquare, lgpCircle;
+	// auras (Graymap window, Aura tab): Gepard-style auras drawn by the plugin
+	int auraEnabled;
+	int auraOwn;    // your own aura
+	int auraOthers; // the auras of the players around
+	int auraSize;   // percent, 50-150
 };
 
 extern Config g_cfg;
@@ -108,6 +124,34 @@ extern const int GM_DEFAULT_COLORS[GM_COLOR_COUNT];
 bool graymap_install(); // hooks the map drawing; false on an unknown game exe
 bool crashguard_install(); // catches a known null-actor crash in the game exe (crashguard.cpp)
 bool graymap_available();
+
+// ---- lgp.cpp: what LGP needs from other threads (graymap.cpp draws it) ----
+struct LgpCell {
+	uint16_t x, y, skill;
+	uint8_t kind; // 1 = it can hit you
+};
+enum LgpServer { LGP_SERVER_WAITING, LGP_SERVER_ON, LGP_SERVER_UNSUPPORTED, LGP_SERVER_NO_VOICE };
+static const int LGP_SQUARE_MAX = 10, LGP_CIRCLE_MAX = 14; // shape sizes in cells (half width / radius)
+void lgp_init();
+bool lgp_wants_cells();                      // net thread: ask the voice server for skill cells
+void lgp_set_cells(const LgpCell* c, int n); // net thread
+void lgp_set_no_cells();                     // net thread: the map-server can't answer
+std::vector<LgpCell> lgp_cells();
+LgpServer lgp_server_state(int* count);
+// graymap.cpp
+bool lgp_drawing(); // LGP drew something in the last second
+
+// ---- aura.cpp: the auras of the players around, drawn in 3D (graymap.cpp calls aura_draw) ----
+// The auras come from the map-server through the voice server.
+void aura_init();
+bool aura_install();  // false on an unknown game exe
+bool aura_available();
+bool aura_wants();                              // net thread: ask the voice server for the auras around
+void aura_set(const uint8_t* entries, int n);   // net thread: n * {account_id(4) part1 part2 part3}
+void aura_set_none();                           // net thread: the map-server can't answer
+void aura_draw(void* view);                     // game thread, from the ground drawing
+enum AuraServer { AURA_SERVER_WAITING, AURA_SERVER_ON, AURA_SERVER_UNSUPPORTED, AURA_SERVER_NO_VOICE };
+AuraServer aura_server_state(int* count);
 
 // ---- ui.cpp ----
 void ui_run(); // runs on the plugin's main thread, never returns

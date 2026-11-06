@@ -19,6 +19,8 @@ add_library(legacia_plugin SHARED
 	src/stats_ui.cpp
 	src/stats_button.cpp
 	src/crashguard.cpp
+	src/lgp.cpp
+	src/aura.cpp
 	src/gui_d3d.cpp
 	src/gui_windows.cpp
 	third_party/imgui/imgui.cpp

@@ -96,7 +96,7 @@ Every packet starts with `W cmd, W length` (length includes the 4 header bytes).
 
 | Cmd | Direction | Body |
 |-----|-----------|------|
-| `0x7600` HELLO | map -> voice | `S secret[32]` (zero padded), then `B features` (0x01: answers STATS_QUERY). Older map-servers send no feature byte, and the voice server then never sends them STATS_QUERY |
+| `0x7600` HELLO | map -> voice | `S secret[32]` (zero padded), then `B features` (0x01: answers STATS_QUERY, 0x02: answers CELLS_QUERY, 0x04: answers AURAS_QUERY). Older map-servers send no feature byte, and the voice server then never sends them STATS_QUERY |
 | `0x7680` HELLO_ACK | voice -> map | `B result` (0 ok, 1 wrong secret) |
 | `0x7601` PLAYER | map -> voice | `L account_id, L char_id, L party_id, L guild_id, W x, W y, B flags, S map[16], S name[24], L chat_id` (flags: 0x01 chat-banned, 0x02 blocks all whispers; older map-servers leave out `chat_id`) |
 | `0x7604` CLAIM | map -> voice | `B code[16], L char_id` |
@@ -107,6 +107,10 @@ Every packet starts with `W cmd, W length` (length includes the 4 header bytes).
 | `0x7607` CLAIM_AUTO | map -> voice | `S short_code[8], L char_id`, answer to AUTO_QUERY when exactly one player plays from that address |
 | `0x7684` STATS_QUERY | voice -> map | `L char_id, B page`: the plugin's Player Statistics window wants a page (0 overview, 1 attack, 2 magic, 3 defense, 4 skills, 5 healing, 6 procs, 7 EXP and drops: the `@statsview` sections) |
 | `0x7608` STATS | map -> voice | `L char_id, B page, text`: the page as `\n`-separated lines with `^RRGGBB` colours, the same text as `@statsview` (at most 6000 bytes) |
+| `0x7685` CELLS_QUERY | voice -> map | `L char_id`: the plugin's LGP wants the skill cells around the player |
+| `0x7609` CELLS | map -> voice | `L char_id, W count, count * {W x, W y, W skill_id, B kind}`: skill units within 14 cells (at most 200; kind 1 = it can hit the player). Hidden traps are left out unless the client would see them |
+| `0x7686` AURAS_QUERY | voice -> map | `L char_id`: the plugin wants the auras of the players around (it draws them) |
+| `0x760a` AURAS | map -> voice | `L char_id, W count, count * {L account_id, B part1, B part2, B part3}`: players within 14 cells wearing an aura (at most 200; part 0 = none). Hidden, cloaked and invisible players are left out except the player themself; `@show_auras` 1 sends only their own, 2 none |
 | `0x7602` LEAVE | map -> voice | `L char_id` |
 | `0x7603` PING | map -> voice | (none) |
 | `0x7681` PONG | voice -> map | (none) |
@@ -131,6 +135,12 @@ After HELLO_ACK the voice server forgets all players and the map-server sends ev
 | `0x05` STATS | client -> voice | `B type, L session, B page`: ask for a Player Statistics page (at most one every 250 ms) |
 | `0x87` STATS | voice -> client | `B type, B page, B seq, B part, B parts, text`: one piece (up to 1000 bytes) of the page; join parts 0..parts-1 with the same seq |
 | `0x88` NO_STATS | voice -> client | `B type, B page`: no map-server is linked, or it is too old to answer |
+| `0x07` CELLS | client -> voice | `B type, L session`: ask for the skill cells around the player (LGP, twice a second, at most one every 250 ms) |
+| `0x89` CELLS | voice -> client | `B type, W count, count * {W x, W y, W skill_id, B kind}` |
+| `0x8a` NO_CELLS | voice -> client | `B type`: no map-server is linked, or it is too old to answer |
+| `0x08` AURAS | client -> voice | `B type, L session`: ask for the auras of the players around (once a second, at most one every 400 ms) |
+| `0x8b` AURAS | voice -> client | `B type, W count, count * {L account_id, B part1, B part2, B part3}` |
+| `0x8c` NO_AURAS | voice -> client | `B type`: no map-server is linked, or it is too old to answer |
 
 Audio is 48 kHz mono Opus, 20 ms frames. A session only accepts packets from the address that sent HELLO. Muting a single player (the Players tab) is done in the client.
 

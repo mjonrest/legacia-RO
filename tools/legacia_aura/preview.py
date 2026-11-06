@@ -32,9 +32,10 @@ def state(keys, t):
         return a['pos'] + b['pos'] * dt, a['xy'] + b['xy'] * dt, a['color'] + b['color'] * dt
     return a['pos'], a['xy'], a['color']
 
+FOOT_LIFT = 65.0
 def draw(canvas, tex, pos, xy, color, ox, oy, scale):
     # quad corners TL TR BR BL
-    P = [(ox + (pos[0] - 320 + xy[i]) * scale, oy + (pos[1] - 320 + xy[4 + i]) * scale) for i in range(4)]
+    P = [(ox + (pos[0] - 320 + xy[i]) * scale, oy + (pos[1] - (320 - FOOT_LIFT) + xy[4 + i]) * scale) for i in range(4)]
     tw, th = tex.size
     # affine dest->src from TL, TR, BL
     import numpy.linalg as la

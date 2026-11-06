@@ -46,6 +46,31 @@ Pick a colour on the left, then choose it with the picker, the brightness slider
 
 Graymap hooks the client's own ground drawing, so it only works with the exe it was made for (the 2026-01-07 Ragexe the addresses were taken from, the same base exe Miracle uses). If the Legacia exe is a different build, Graymap and the crash guard stay off and log it, and voice chat and Player Statistics still work; the addresses at the top of `src/graymap.cpp` and `src/crashguard.cpp` would then need to be found again for that exe. It checks the code first, so a wrong exe can't crash; the Graymap window then says it isn't available. It draws each cell with the client's own ground-cursor function (the one that marks skill target cells), and skips the client's ground, water and map model drawing while it's on.
 
+
+## LGP
+
+The Graymap window has an **LGP** tab: coloured cells drawn on the ground around your character, with Graymap on or off (code in `src/graymap.cpp`, settings in the `[lgp]` section of `legacia.ini`).
+
+- **Square** and **Circle**: each can be on or off, a ring or filled, with its own colour (click the colour square), size, and wave (Flat, or 1 to 5 from slow swells to quick ripples moving outwards).
+- **AoE skill cells**: skills on the ground near you (Storm Gust, Lord of Vermilion, traps you can see, ...), red when they can hit you and blue when they can't. The map-server sends them through the voice server, so this layer needs the voice server running, like Player Statistics.
+- **Dead cells**: cells you can't walk on inside the shapes, in dark red. The shapes skip them.
+- **Gutter lines**: a gap between cells. **Smooth follow**: the shapes glide with you instead of jumping one cell at a time.
+- **Tile** Box or Round, **Depth** 2D flat or 3D raised.
+
+Where you stand comes from the camera (it always looks at your character), so no player data in the exe is read. The cells are drawn with the same cell function as Graymap, so LGP needs the same exe as Graymap.
+
+## Auras
+
+The Gepard client no longer draws Gepard's 3-part auras, so the plugin draws them (code in `src/aura.cpp`, settings in the `[aura]` section of `legacia.ini`, and the **Aura** tab of the Graymap window: on/off, my aura, other players, size 50-150%).
+
+- **Part 1, ground circle**: turns flat on the floor under the player.
+- **Part 2, rings**: three tilted rings round the player that start at the inner edge of the ground circle, grow and fade while their tilt turns round the player.
+- **Part 3, sparkles**: small sparkles shooting out from the feet across the floor.
+
+The server keeps each player's aura (`AURA_DATA`, set by the Aura Master NPC `npc/miracle/aura_master.txt`, `set_aura`, `@auras`) and sends the auras of the players around through the voice server about once a second, so auras need the voice server running, like Player Statistics (`@show_auras` still works). Each piece is one of the client's own polygons: projected with the game's camera and added to its sorted list of see-through polygons, so auras sit on the ground in 3D, turn with the camera and are drawn in the right order with the characters. Positions come from the client's actor list. Like Graymap it only works with the exe it was made for (addresses at the top of `src/aura.cpp`, checked before use).
+
+Textures: `plugins\auras\1\001.bmp` ... (`1` ground circles, `2` rings, `3` sparkles), 32-bit BMPs made from the Gepard aura textures with `python3 tools/legacia_aura/genplugin.py <gepard auras folder> <out>` (they are not in git). `test/aura_host.cpp` runs `src/aura.cpp` under Wine against a fake game (the exe's own projection code) and `test/render_faces.py` draws what it produced.
+
 ## Player Statistics
 
 A **Stats** button sits under the Graymap button, in the same style (code in `src/stats_button.cpp`). Click it, or press **Ctrl+Shift+S**, to open the Player Statistics window (`src/stats_ui.cpp`). Drag the button to move it; its spot is saved as `button_right`/`button_top` in the `[stats]` section of `legacia.ini`.
@@ -71,7 +96,8 @@ Gepard Shield hash-checks every DLL in the client folder, so each new plugin bui
 
 ```
 legacia.dll                  <- loader (~40 KB). The exe imports it; Gepard approves it once
-plugins/legacia_plugin.dll   <- the real plugin (voice + Graymap + Player Statistics)
+plugins/legacia_plugin.dll   <- the real plugin (voice + Graymap + Player Statistics + auras)
+plugins/auras/               <- aura textures (see Auras)
 legacia.ini                  <- settings (set host= before shipping)
 ```
 

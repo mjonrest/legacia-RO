@@ -765,52 +765,27 @@ bool switch_at(float x, float y, const char* id, bool on, bool enabled) {
 	return clicked;
 }
 
-void graymap_window() {
-	if (!g_graymap.open)
-		return;
-	const float W = 480, H = 372;
-	ImVec2 disp = ImGui::GetIO().DisplaySize;
-	begin_window("##graymap", "Graymap", g_graymap, ImVec2(W, H), ImVec2((disp.x - W) / 2, (disp.y - H) / 2));
-	bool avail = graymap_available();
-	label_at(16, 36, "Graymap", TEXT, g_guiBold);
-	label_at(16, 54, avail ? "Shows the map as flat coloured cells, so it's easy to see where you can walk."
-	                       : "Not available: this game exe isn't the one Graymap was made for.",
-	         avail ? HEADER : WAIT);
-	if (switch_at(W - 76, 33, "##gmswitch", g_cfg.gmEnabled && avail, avail))
-		set_graymap(!g_cfg.gmEnabled);
-	header(16, 80, "Colours");
+// the colour square in front of a Square/Circle row; click it to change the colour
+void swatch_at(float x, float y, const char* id, int c, bool* clicked) {
+	ImGui::SetCursorPos(ImVec2(x, y));
+	ImVec2 p = ImGui::GetCursorScreenPos();
+	*clicked = ImGui::InvisibleButton(id, ImVec2(22, 22));
+	ImDrawList* dl = ImGui::GetWindowDrawList();
+	dl->AddRectFilled(p, p + ImVec2(22, 22), rgb((c >> 16) & 255, (c >> 8) & 255, c & 255), 4.0f);
+	dl->AddRect(p, p + ImVec2(22, 22), ImGui::IsItemHovered() ? SEL_BORDER : BTN_BORDER, 4.0f);
+}
 
+// a colour picker with Hex/R/G/B boxes; true when a change is finished (save it)
+bool color_editor(const char* id, int& c, float x, float y) {
 	bool save = false;
-	for (int i = 0; i < GM_COLOR_COUNT; i++) {
-		char id[48];
-		snprintf(id, sizeof(id), "%s##gmc%d", GM_NAMES[i], i);
-		ImGui::SetCursorPos(ImVec2(16, 104 + i * 34.0f));
-		ImVec2 p = ImGui::GetCursorScreenPos();
-		if (button(id, ImVec2(152, 28), g_gmSel == i, true, 0, 30))
-			g_gmSel = i;
-		int c = g_cfg.gmColor[i];
-		ImGui::GetWindowDrawList()->AddRectFilled(p + ImVec2(8, 7), p + ImVec2(22, 21), rgb((c >> 16) & 255, (c >> 8) & 255, c & 255));
-		ImGui::GetWindowDrawList()->AddRect(p + ImVec2(8, 7), p + ImVec2(22, 21), BTN_BORDER);
-	}
-	if (button_at(16, 278, "Reset all colours", ImVec2(152, 26))) {
-		for (int i = 0; i < GM_COLOR_COUNT; i++)
-			g_cfg.gmColor[i] = GM_DEFAULT_COLORS[i];
-		save = true;
-	}
-
-	// Graymap picks a changed colour up on its next frame
-	int& c = g_cfg.gmColor[g_gmSel];
-	label_at(192, 104, GM_NAMES[g_gmSel], TEXT, g_guiBold);
-	char hex[8];
-	snprintf(hex, sizeof(hex), "#%06X", c & 0xffffff);
-	ImVec2 hs = text_size(hex);
-	label_at(W - 16 - hs.x, 104, hex, BLUE_TEXT);
 	float col[3] = {((c >> 16) & 255) / 255.0f, ((c >> 8) & 255) / 255.0f, (c & 255) / 255.0f};
-	ImGui::SetCursorPos(ImVec2(192, 124));
+	ImGui::SetCursorPos(ImVec2(x, y));
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 3));
 	// the picker square is as tall as it is wide: keep it short so the boxes fit below
 	ImGui::PushItemWidth(150);
-	if (ImGui::ColorPicker3("##gmpick", col,
+	char pid[48];
+	snprintf(pid, sizeof(pid), "##pick%s", id);
+	if (ImGui::ColorPicker3(pid, col,
 	                        ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_PickerHueBar |
 	                            ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel)) {
 		int r = (int)(col[0] * 255 + 0.5f), g = (int)(col[1] * 255 + 0.5f), b = (int)(col[2] * 255 + 0.5f);
@@ -819,40 +794,318 @@ void graymap_window() {
 	ImGui::PopItemWidth();
 	save |= ImGui::IsItemDeactivatedAfterEdit();
 	// preview swatch next to the picker
-	{
-		ImVec2 p = ImGui::GetWindowPos() + ImVec2(360, 124);
-		ImGui::GetWindowDrawList()->AddRectFilled(p, p + ImVec2(W - 16 - 360, 60), rgb((c >> 16) & 255, (c >> 8) & 255, c & 255));
-		ImGui::GetWindowDrawList()->AddRect(p, p + ImVec2(W - 16 - 360, 60), BTN_BORDER);
-		label_at(360, 190, "Hex", HEADER);
-		ImGui::SetCursorPos(ImVec2(360, 206));
-		ImGui::SetNextItemWidth(W - 16 - 360);
-		char edit[8];
-		snprintf(edit, sizeof(edit), "%06X", c & 0xffffff);
-		if (ImGui::InputText("##hex", edit, sizeof(edit), ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase) &&
-		    strlen(edit) == 6)
-			c = (int)strtoul(edit, nullptr, 16);
-		save |= ImGui::IsItemDeactivatedAfterEdit();
-		const char* names[3] = {"R", "G", "B"};
-		for (int k = 0; k < 3; k++) {
-			int shift = 16 - 8 * k, v = (c >> shift) & 255;
-			label_at(360, 236 + k * 24.0f, names[k], HEADER);
-			ImGui::SetCursorPos(ImVec2(376, 232 + k * 24.0f));
-			ImGui::SetNextItemWidth(W - 16 - 376);
-			char id[8];
-			snprintf(id, sizeof(id), "##%s", names[k]);
-			if (ImGui::InputInt(id, &v, 0, 0)) {
-				v = std::min(255, std::max(0, v));
-				c = (c & ~(255 << shift)) | (v << shift);
-			}
-			save |= ImGui::IsItemDeactivatedAfterEdit();
+	float bx = x + 168, bw = 104;
+	ImVec2 p = ImGui::GetWindowPos() + ImVec2(bx, y);
+	ImGui::GetWindowDrawList()->AddRectFilled(p, p + ImVec2(bw, 60), rgb((c >> 16) & 255, (c >> 8) & 255, c & 255));
+	ImGui::GetWindowDrawList()->AddRect(p, p + ImVec2(bw, 60), BTN_BORDER);
+	label_at(bx, y + 66, "Hex", HEADER);
+	ImGui::SetCursorPos(ImVec2(bx, y + 82));
+	ImGui::SetNextItemWidth(bw);
+	char edit[8], hid[48];
+	snprintf(edit, sizeof(edit), "%06X", c & 0xffffff);
+	snprintf(hid, sizeof(hid), "##hex%s", id);
+	if (ImGui::InputText(hid, edit, sizeof(edit), ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase) &&
+	    strlen(edit) == 6)
+		c = (int)strtoul(edit, nullptr, 16);
+	save |= ImGui::IsItemDeactivatedAfterEdit();
+	const char* names[3] = {"R", "G", "B"};
+	for (int k = 0; k < 3; k++) {
+		int shift = 16 - 8 * k, v = (c >> shift) & 255;
+		label_at(bx, y + 112 + k * 24.0f, names[k], HEADER);
+		ImGui::SetCursorPos(ImVec2(bx + 16, y + 108 + k * 24.0f));
+		ImGui::SetNextItemWidth(bw - 16);
+		char cid[48];
+		snprintf(cid, sizeof(cid), "##%s%s", names[k], id);
+		if (ImGui::InputInt(cid, &v, 0, 0)) {
+			v = std::min(255, std::max(0, v));
+			c = (c & ~(255 << shift)) | (v << shift);
 		}
+		save |= ImGui::IsItemDeactivatedAfterEdit();
 	}
 	ImGui::PopStyleVar();
+	return save;
+}
+
+int g_gmTab; // 0 Graymap, 1 LGP, 2 Aura
+int g_lgpEdit = -1; // colour being edited in the LGP tab: 0 square, 1 circle, -1 none
+
+// Graymap tab: the colours of the flat map
+bool graymap_tab(float W, float oy) {
+	bool avail = graymap_available();
+	label_at(16, oy + 4, "Graymap", TEXT, g_guiBold);
+	label_at(16, oy + 22, avail ? "The map as flat coloured cells, to see where you can walk."
+	                            : "Not available: this game exe isn't the one Graymap was made for.",
+	         avail ? HEADER : WAIT);
+	if (switch_at(W - 76, oy + 1, "##gmswitch", g_cfg.gmEnabled && avail, avail))
+		set_graymap(!g_cfg.gmEnabled);
+	header(16, oy + 48, "Colours");
+
+	bool save = false;
+	for (int i = 0; i < GM_COLOR_COUNT; i++) {
+		char id[48];
+		snprintf(id, sizeof(id), "%s##gmc%d", GM_NAMES[i], i);
+		ImGui::SetCursorPos(ImVec2(16, oy + 72 + i * 34.0f));
+		ImVec2 p = ImGui::GetCursorScreenPos();
+		if (button(id, ImVec2(152, 28), g_gmSel == i, true, 0, 30))
+			g_gmSel = i;
+		int c = g_cfg.gmColor[i];
+		ImGui::GetWindowDrawList()->AddRectFilled(p + ImVec2(8, 7), p + ImVec2(22, 21), rgb((c >> 16) & 255, (c >> 8) & 255, c & 255));
+		ImGui::GetWindowDrawList()->AddRect(p + ImVec2(8, 7), p + ImVec2(22, 21), BTN_BORDER);
+	}
+	if (button_at(16, oy + 246, "Reset all colours", ImVec2(152, 26))) {
+		for (int i = 0; i < GM_COLOR_COUNT; i++)
+			g_cfg.gmColor[i] = GM_DEFAULT_COLORS[i];
+		save = true;
+	}
+
+	// Graymap picks a changed colour up on its next frame
+	int& c = g_cfg.gmColor[g_gmSel];
+	label_at(192, oy + 72, GM_NAMES[g_gmSel], TEXT, g_guiBold);
+	char hex[8];
+	snprintf(hex, sizeof(hex), "#%06X", c & 0xffffff);
+	ImVec2 hs = text_size(hex);
+	label_at(W - 16 - hs.x, oy + 72, hex, BLUE_TEXT);
+	save |= color_editor("gm", c, 192, oy + 92);
+	return save;
+}
+
+// one ON/OFF layer row in the LGP tab
+bool layer_row(float x, float y, float w, const char* id, const char* title, const char* sub, int* v, bool enabled) {
+	ImDrawList* dl = ImGui::GetWindowDrawList();
+	ImVec2 p = ImGui::GetWindowPos() + ImVec2(x, y);
+	dl->AddRectFilled(p, p + ImVec2(w, 38), WHITE, 6.0f);
+	dl->AddRect(p, p + ImVec2(w, 38), RULE, 6.0f);
+	label_at(x + 10, y + 4, title, enabled ? TEXT : DISABLED, g_guiBold);
+	label_at(x + 10, y + 20, sub, enabled ? HEADER : DISABLED);
+	if (switch_at(x + w - 68, y + 8, id, *v && enabled, enabled)) {
+		*v = !*v;
+		return true;
+	}
+	return false;
+}
+
+// Square or Circle settings in the LGP tab
+bool shape_rows(float x, float y, float w, const char* name, Config::LgpShape& s, int maxSize, int which, bool enabled) {
+	bool save = false;
+	char id[48];
+	bool clicked;
+	snprintf(id, sizeof(id), "##sw%s", name);
+	swatch_at(x, y + 2, id, s.color, &clicked);
+	if (clicked && enabled)
+		g_lgpEdit = g_lgpEdit == which ? -1 : which;
+	label_at(x + 32, y + 6, name, enabled ? TEXT : DISABLED, g_guiBold);
+	snprintf(id, sizeof(id), "Ring##%s", name);
+	if (button_at(x + 100, y + 2, id, ImVec2(56, 24), !s.fill, enabled))
+		s.fill = 0, save = true;
+	snprintf(id, sizeof(id), "Fill##%s", name);
+	if (button_at(x + 160, y + 2, id, ImVec2(56, 24), s.fill != 0, enabled))
+		s.fill = 1, save = true;
+	snprintf(id, sizeof(id), "##on%s", name);
+	if (switch_at(x + w - 60, y + 3, id, s.on && enabled, enabled))
+		s.on = !s.on, save = true;
+
+	label_at(x, y + 38, "Size", enabled ? HEADER : DISABLED);
+	char cells[32];
+	snprintf(cells, sizeof(cells), "%d cells", s.size);
+	label_at(x + w - text_size(cells).x, y + 38, cells, enabled ? BLUE_TEXT : DISABLED);
+	snprintf(id, sizeof(id), "##size%s", name);
+	slider_at(x, y + 56, w, id, &s.size, which == 0 ? 1 : 2, maxSize, enabled);
+	save |= ImGui::IsItemDeactivatedAfterEdit();
+
+	label_at(x, y + 88, "Wave", enabled ? HEADER : DISABLED);
+	const char* waves[6] = {"Flat", "1", "2", "3", "4", "5"};
+	float bx = x + 44, bw = (w - 44 - 5 * 4) / 6;
+	for (int i = 0; i < 6; i++) {
+		snprintf(id, sizeof(id), "%s##wave%s%d", waves[i], name, i);
+		if (button_at(bx + i * (bw + 4), y + 84, id, ImVec2(bw, 24), s.wave == i, enabled))
+			s.wave = i, save = true;
+	}
+	return save;
+}
+
+// LGP tab: cells drawn on the ground around the player
+bool lgp_tab(float W, float H, float oy) {
+	bool avail = graymap_available(), on = g_cfg.lgpEnabled && avail;
+	bool save = false;
+	label_at(16, oy + 4, "LGP ground cells", TEXT, g_guiBold);
+	label_at(16, oy + 22,
+	         !avail ? "Not available: this game exe isn't the one LGP was made for."
+	         : on   ? "On - cells drawn on the ground around you"
+	                : "Off - nothing is drawn on the ground",
+	         !avail ? WAIT : on ? OK : HEADER);
+	if (switch_at(W - 76, oy + 1, "##lgpswitch", on, avail)) {
+		g_cfg.lgpEnabled = !g_cfg.lgpEnabled;
+		save = true;
+	}
+
+	// layers, on the left
+	float lx = 16, lw = 236, y = oy + 48;
+	header(lx, y, "Layers");
+	y += 20;
+	save |= layer_row(lx, y, lw, "##lgpaoe", "AoE skill cells", "skills on the ground", &g_cfg.lgpAoe, on);
+	save |= layer_row(lx, y + 44, lw, "##lgpdead", "Dead cells", "where you can't walk", &g_cfg.lgpDead, on);
+	save |= layer_row(lx, y + 88, lw, "##lgpgut", "Gutter lines", "gaps between cells", &g_cfg.lgpGutter, on);
+	save |= layer_row(lx, y + 132, lw, "##lgpsmooth", "Smooth follow", "glides as you walk", &g_cfg.lgpSmooth, on);
+
+	// what the skill cell colours mean
+	{
+		ImDrawList* dl = ImGui::GetWindowDrawList();
+		ImVec2 p = ImGui::GetWindowPos();
+		float ky = y + 186;
+		label_at(lx, ky, "Colours", HEADER);
+		float ry = floorf(p.y + ky + text_size("Colours").y / 2);
+		dl->AddLine(ImVec2(p.x + lx + text_size("Colours").x + 6, ry), ImVec2(p.x + lx + lw, ry), RULE);
+		const struct {
+			ImU32 c;
+			const char* t;
+		} keys[3] = {{rgb(255, 90, 60), "skill that can hit you"}, {rgb(60, 140, 255), "skill that can't hit you"},
+		             {rgb(176, 42, 42), "dead cell"}};
+		for (int k = 0; k < 3; k++) {
+			ImVec2 q = p + ImVec2(lx + 2, ky + 24 + k * 22.0f);
+			dl->AddRectFilled(q, q + ImVec2(14, 14), keys[k].c, 3.0f);
+			ImGui::PushClipRect(p + ImVec2(lx, 0), p + ImVec2(lx + lw, 2000), true);
+			label_at(lx + 22, ky + 24 + k * 22.0f, keys[k].t, on ? TEXT : DISABLED);
+			ImGui::PopClipRect();
+		}
+	}
+
+	// shapes, on the right
+	float rx = lx + lw + 14, rw = W - 16 - rx;
+	{
+		ImDrawList* dl = ImGui::GetWindowDrawList();
+		ImVec2 p = ImGui::GetWindowPos() + ImVec2(rx, oy + 68);
+		dl->AddRectFilled(p, p + ImVec2(rw, H - 46 - oy - 68 - 8), WHITE, 8.0f);
+		dl->AddRect(p, p + ImVec2(rw, H - 46 - oy - 68 - 8), RULE, 8.0f);
+	}
+	float ix = rx + 12, iw = rw - 24;
+	if (g_lgpEdit >= 0) {
+		// colour editor in place of the shape rows
+		Config::LgpShape& s = g_lgpEdit == 0 ? g_cfg.lgpSquare : g_cfg.lgpCircle;
+		label_at(ix, oy + 80, g_lgpEdit == 0 ? "Square colour" : "Circle colour", TEXT, g_guiBold);
+		save |= color_editor(g_lgpEdit == 0 ? "lgpsq" : "lgpci", s.color, ix, oy + 102);
+		if (button_at(ix + iw - 70, oy + 76, "Done##lgpcol", ImVec2(70, 24)))
+			g_lgpEdit = -1, save = true;
+	} else {
+		save |= shape_rows(ix, oy + 80, iw, "Square", g_cfg.lgpSquare, LGP_SQUARE_MAX, 0, on);
+		ImVec2 wp = ImGui::GetWindowPos();
+		ImGui::GetWindowDrawList()->AddLine(wp + ImVec2(ix, oy + 198), wp + ImVec2(ix + iw, oy + 198), RULE);
+		save |= shape_rows(ix, oy + 210, iw, "Circle", g_cfg.lgpCircle, LGP_CIRCLE_MAX, 1, on);
+		ImGui::GetWindowDrawList()->AddLine(wp + ImVec2(ix, oy + 328), wp + ImVec2(ix + iw, oy + 328), RULE);
+		float ty = oy + 340, bw = (iw - 52 - 4) / 2;
+		label_at(ix, ty + 4, "Tile", on ? HEADER : DISABLED);
+		if (button_at(ix + 52, ty, "Box##lgptile", ImVec2(bw, 24), g_cfg.lgpTile == 0, on))
+			g_cfg.lgpTile = 0, save = true;
+		if (button_at(ix + 56 + bw, ty, "Round##lgptile", ImVec2(bw, 24), g_cfg.lgpTile == 1, on))
+			g_cfg.lgpTile = 1, save = true;
+		label_at(ix, ty + 36, "Depth", on ? HEADER : DISABLED);
+		if (button_at(ix + 52, ty + 32, "2D flat##lgpdepth", ImVec2(bw, 24), g_cfg.lgpDepth == 0, on))
+			g_cfg.lgpDepth = 0, save = true;
+		if (button_at(ix + 56 + bw, ty + 32, "3D raised##lgpdepth", ImVec2(bw, 24), g_cfg.lgpDepth == 1, on))
+			g_cfg.lgpDepth = 1, save = true;
+	}
+	return save;
+}
+
+// Aura tab: the Gepard-style auras the plugin draws (aura.cpp)
+bool aura_tab(float W, float oy) {
+	bool avail = aura_available(), on = g_cfg.auraEnabled && avail;
+	bool save = false;
+	label_at(16, oy + 4, "Auras", TEXT, g_guiBold);
+	label_at(16, oy + 22,
+	         !avail ? "Not available: this game exe isn't the one auras were made for."
+	         : on   ? "On - auras drawn around you and other players"
+	                : "Off - no auras are drawn",
+	         !avail ? WAIT : on ? OK : HEADER);
+	if (switch_at(W - 76, oy + 1, "##auraswitch", on, avail)) {
+		g_cfg.auraEnabled = !g_cfg.auraEnabled;
+		save = true;
+	}
+	float x = 16, w = W - 32, y = oy + 48;
+	header(x, y, "Show");
+	y += 20;
+	save |= layer_row(x, y, w, "##auraown", "My aura", "the aura you wear", &g_cfg.auraOwn, on);
+	save |= layer_row(x, y + 44, w, "##auraothers", "Other players", "the auras of the players around", &g_cfg.auraOthers, on);
+	y += 100;
+	header(x, y, "Size");
+	char pct[16];
+	snprintf(pct, sizeof(pct), "%d%%", g_cfg.auraSize);
+	label_at(x + w - text_size(pct).x, y, pct, on ? BLUE_TEXT : DISABLED);
+	slider_at(x, y + 22, w, "##aurasize", &g_cfg.auraSize, 50, 150, on);
+	save |= ImGui::IsItemDeactivatedAfterEdit();
+	label_at(x, y + 60, "Get an aura from the Aura Master in Prontera, or type @aura.", on ? HEADER : DISABLED);
+	return save;
+}
+
+void graymap_window() {
+	if (!g_graymap.open)
+		return;
+	const float W = g_gmTab == 1 ? 620.0f : 480.0f, H = g_gmTab == 1 ? 524.0f : g_gmTab == 2 ? 360.0f : 402.0f;
+	ImVec2 disp = ImGui::GetIO().DisplaySize;
+	begin_window("##graymap", "Graymap", g_graymap, ImVec2(W, H), ImVec2((disp.x - W) / 2, (disp.y - H) / 2));
+	// tabs
+	if (button_at(12, 30, "Graymap##gmtab", ImVec2(100, 24), g_gmTab == 0))
+		g_gmTab = 0;
+	if (button_at(116, 30, "LGP##gmtab", ImVec2(100, 24), g_gmTab == 1))
+		g_gmTab = 1;
+	if (button_at(220, 30, "Aura##gmtab", ImVec2(100, 24), g_gmTab == 2))
+		g_gmTab = 2;
+	{
+		ImVec2 p = ImGui::GetWindowPos();
+		ImGui::GetWindowDrawList()->AddLine(p + ImVec2(10, 54), p + ImVec2(W - 10, 54), RULE);
+	}
+	const float oy = 64;
+	bool save = g_gmTab == 1 ? lgp_tab(W, H, oy) : g_gmTab == 2 ? aura_tab(W, oy) : graymap_tab(W, oy);
 
 	ImVec2 p = ImGui::GetWindowPos();
 	ImGui::GetWindowDrawList()->AddLine(p + ImVec2(10, H - 42), p + ImVec2(W - 10, H - 42), RULE);
 	ImGui::PushClipRect(ImGui::GetWindowPos(), ImGui::GetWindowPos() + ImVec2(W - 90, H), true);
-	label_at(16, H - 30, "Ctrl+Shift+G, or right-click the Graymap button.", HEADER);
+	if (g_gmTab == 1) {
+		int count = 0;
+		LgpServer st = lgp_server_state(&count);
+		char line[96];
+		ImU32 dot = OK;
+		if (!g_cfg.lgpEnabled || !g_cfg.lgpAoe) {
+			snprintf(line, sizeof(line), "Server: AoE skill cells are off");
+			dot = DISABLED;
+		} else if (st == LGP_SERVER_ON) {
+			snprintf(line, sizeof(line), "Server: on - %d skill cell%s around you", count, count == 1 ? "" : "s");
+		} else if (st == LGP_SERVER_WAITING) {
+			snprintf(line, sizeof(line), "Server: asking...");
+			dot = WAIT;
+		} else if (st == LGP_SERVER_UNSUPPORTED) {
+			snprintf(line, sizeof(line), "Server: this map-server doesn't send skill cells");
+			dot = WAIT;
+		} else {
+			snprintf(line, sizeof(line), "Server: needs the voice server (skill cells come through it)");
+			dot = WAIT;
+		}
+		ImGui::GetWindowDrawList()->AddCircleFilled(p + ImVec2(21, H - 23), 4.5f, dot);
+		label_at(32, H - 30, line, HEADER);
+	} else if (g_gmTab == 2) {
+		int count = 0;
+		AuraServer st = aura_server_state(&count);
+		char line[96];
+		ImU32 dot = OK;
+		if (!g_cfg.auraEnabled) {
+			snprintf(line, sizeof(line), "Server: auras are off");
+			dot = DISABLED;
+		} else if (st == AURA_SERVER_ON) {
+			snprintf(line, sizeof(line), "Server: on - %d aura%s around you", count, count == 1 ? "" : "s");
+		} else if (st == AURA_SERVER_WAITING) {
+			snprintf(line, sizeof(line), "Server: asking...");
+			dot = WAIT;
+		} else if (st == AURA_SERVER_UNSUPPORTED) {
+			snprintf(line, sizeof(line), "Server: this map-server doesn't send auras");
+			dot = WAIT;
+		} else {
+			snprintf(line, sizeof(line), "Server: needs the voice server (auras come through it)");
+			dot = WAIT;
+		}
+		ImGui::GetWindowDrawList()->AddCircleFilled(p + ImVec2(21, H - 23), 4.5f, dot);
+		label_at(32, H - 30, line, HEADER);
+	} else {
+		label_at(16, H - 30, "Ctrl+Shift+G, or right-click the Graymap button.", HEADER);
+	}
 	ImGui::PopClipRect();
 	if (button_at(W - 80, H - 34, "Close##gm", ImVec2(70, 24)))
 		g_graymap.open = false;
