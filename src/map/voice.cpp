@@ -413,7 +413,7 @@ static int32 voice_cells_sub( block_list* bl, va_list ap ){
 	if( unit->hidden ){
 		block_list* src = battle_get_master( unit );
 
-		if( src != &sd->bl ){
+		if( src != sd ){
 			uint32 party1 = src != nullptr ? status_get_party_id( src ) : 0;
 			uint32 party2 = sd->status.party_id;
 
@@ -424,7 +424,7 @@ static int32 voice_cells_sub( block_list* bl, va_list ap ){
 
 	uint16 skill_id = unit->group->skill_id;
 	// 1 = it can hit this player, 0 = it can't (own or friendly skills)
-	uint8 kind = battle_check_target( unit, &sd->bl, unit->group->target_flag ) > 0 && battle_check_target( unit, &sd->bl, BCT_ENEMY ) > 0 ? 1 : 0;
+	uint8 kind = battle_check_target( unit, sd, unit->group->target_flag ) > 0 && battle_check_target( unit, sd, BCT_ENEMY ) > 0 ? 1 : 0;
 	uint8 entry[VOICE_CELL_SIZE] = {
 		static_cast<uint8>( unit->x & 0xff ), static_cast<uint8>( unit->x >> 8 ),
 		static_cast<uint8>( unit->y & 0xff ), static_cast<uint8>( unit->y >> 8 ),
@@ -442,7 +442,7 @@ static void voice_cells_query( uint32 char_id ){
 	auto it = voice_players.find( char_id );
 	map_session_data* sd = map_charid2sd( char_id );
 
-	if( it == voice_players.end() || sd == nullptr || sd->bl.prev == nullptr )
+	if( it == voice_players.end() || sd == nullptr || sd->prev == nullptr )
 		return;
 
 	t_tick tick = gettick();
@@ -453,8 +453,8 @@ static void voice_cells_query( uint32 char_id ){
 
 	std::vector<uint8> cells;
 
-	map_foreachinallarea( voice_cells_sub, sd->bl.m, sd->bl.x - AREA_SIZE, sd->bl.y - AREA_SIZE,
-		sd->bl.x + AREA_SIZE, sd->bl.y + AREA_SIZE, BL_SKILL, sd, &cells );
+	map_foreachinallarea( voice_cells_sub, sd->m, sd->x - AREA_SIZE, sd->y - AREA_SIZE,
+		sd->x + AREA_SIZE, sd->y + AREA_SIZE, BL_SKILL, sd, &cells );
 
 	size_t count = cells.size() / VOICE_CELL_SIZE;
 	size_t len = 4 + 4 + 2 + cells.size();
@@ -504,7 +504,7 @@ static void voice_auras_query( uint32 char_id ){
 	auto it = voice_players.find( char_id );
 	map_session_data* sd = map_charid2sd( char_id );
 
-	if( it == voice_players.end() || sd == nullptr || sd->bl.prev == nullptr )
+	if( it == voice_players.end() || sd == nullptr || sd->prev == nullptr )
 		return;
 
 	t_tick tick = gettick();
@@ -517,8 +517,8 @@ static void voice_auras_query( uint32 char_id ){
 
 	// @show_auras 2: no auras at all
 	if( sd->state.show_auras != 2 )
-		map_foreachinallarea( voice_auras_sub, sd->bl.m, sd->bl.x - AREA_SIZE, sd->bl.y - AREA_SIZE,
-			sd->bl.x + AREA_SIZE, sd->bl.y + AREA_SIZE, BL_PC, sd, &auras );
+		map_foreachinallarea( voice_auras_sub, sd->m, sd->x - AREA_SIZE, sd->y - AREA_SIZE,
+			sd->x + AREA_SIZE, sd->y + AREA_SIZE, BL_PC, sd, &auras );
 
 	size_t count = auras.size() / VOICE_AURA_SIZE;
 	size_t len = 4 + 4 + 2 + auras.size();
