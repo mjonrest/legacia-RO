@@ -452,8 +452,71 @@ void aura_set_none() {
 }
 
 // From Graymap's ground hook, during the world drawing (game thread).
+// The server sends each aura as hat effects (pc_aura_apply in pc.cpp,
+// aura_hateffect: yes): part n of type 1/2/3 is hat effect 1000/1300/1600 + n.
+// The game keeps every actor's hat effects in a std::set<int> at +0x3fc
+// (CGameActor; 0xcac080 walks it to show or hide them all), so the auras come
+// with the normal game packets, for everyone in sight, and stay as long as
+// the character wears them. No voice server needed.
+const uintptr_t ACTOR_HAT_EFFECTS = 0x3fc;
+const int HAT_AURA_BASE = 1000, HAT_AURA_STEP = 300;
+
+bool hat_aura(const uint8_t* actor, Aura& out) {
+	out = Aura{};
+	if (!readable((uintptr_t)actor + ACTOR_HAT_EFFECTS, 4))
+		return false;
+	// MSVC tree node: left +0, parent +4, right +8, isnil +0xd, value +0x10
+	const uint8_t* head = *(const uint8_t* const*)(actor + ACTOR_HAT_EFFECTS);
+	if (!head || !readable((uintptr_t)head, 0x14))
+		return false;
+	const uint8_t* n = *(const uint8_t* const*)head; // leftmost = begin
+	bool any = false;
+	for (int guard = 0; guard < 64 && n && n != head; guard++) {
+		if (!readable((uintptr_t)n, 0x14) || n[0xd])
+			break;
+		int id = *(const int*)(n + 0x10);
+		int k = (id - HAT_AURA_BASE - 1) / HAT_AURA_STEP, num = id - HAT_AURA_BASE - k * HAT_AURA_STEP;
+		if (id > HAT_AURA_BASE && k >= 0 && k < 3 && num >= 1 && num < HAT_AURA_STEP) {
+			out.part[k] = (uint8_t)num;
+			any = true;
+		}
+		// in-order successor
+		const uint8_t* r = *(const uint8_t* const*)(n + 8);
+		if (readable((uintptr_t)r, 0x14) && !r[0xd]) {
+			n = r;
+			for (int g2 = 0; g2 < 64; g2++) {
+				const uint8_t* l = *(const uint8_t* const*)n;
+				if (!readable((uintptr_t)l, 0x14) || l[0xd])
+					break;
+				n = l;
+			}
+		} else {
+			const uint8_t* p = *(const uint8_t* const*)(n + 4);
+			for (int g2 = 0; g2 < 64 && readable((uintptr_t)p, 0x14) && !p[0xd] && n == *(const uint8_t* const*)(p + 8); g2++) {
+				n = p;
+				p = *(const uint8_t* const*)(n + 4);
+			}
+			n = p;
+		}
+	}
+	return any;
+}
+
+// an actor's aura: from its hat effects, else from the voice server's list
+bool actor_aura(const uint8_t* actor, uint32_t aid, Aura& out) {
+	if (aid < 2000000 || aid >= 100000000)
+		return false; // only players (account IDs); monsters and NPCs have other classes
+	if (hat_aura(actor, out))
+		return true;
+	auto a = g_frameAuras.find(aid);
+	if (a == g_frameAuras.end())
+		return false;
+	out = a->second;
+	return true;
+}
+
 void aura_draw(void* view) {
-	if (!g_ok || !g_cfg.auraEnabled || !view)
+	if (!g_ok || !view)
 		return;
 	uint8_t* r = *(uint8_t**)RENDERER_PTR;
 	if (!r)
@@ -470,8 +533,6 @@ void aura_draw(void* view) {
 			g_auras.clear();
 		g_frameAuras = g_auras;
 	}
-	if (g_frameAuras.empty())
-		return;
 
 	uint8_t* mm = (uint8_t*)MODE_MGR;
 	if (*(int*)(mm + 0x58) != 1)
@@ -485,17 +546,15 @@ void aura_draw(void* view) {
 
 	g_renderer = r;
 	g_view = view;
-	g_scale = 0.25f * g_cfg.auraSize / 100.0f;
+	g_scale = 0.25f;
 	float t = (float)(GetTickCount() % 3600000u) / 1000.0f;
 
 	uint32_t self = *(uint32_t*)SESSION_AID;
-	auto it = g_frameAuras.find(self);
 	uint8_t* player = *(uint8_t**)(world + 0x2c);
-	if (player && it != g_frameAuras.end() && g_cfg.auraOwn)
-		draw_actor(player, it->second, self, t);
+	Aura a;
+	if (player && actor_aura(player, self, a))
+		draw_actor(player, a, self, t);
 
-	if (!g_cfg.auraOthers)
-		return;
 	// std::list<CGameActor*>: head node at +0x10, size at +0x14; node = next, prev, value
 	uint8_t* head = *(uint8_t**)(world + 0x10);
 	int size = *(int*)(world + 0x14);
@@ -506,11 +565,10 @@ void aura_draw(void* view) {
 		if (!readable((uintptr_t)node, 12))
 			break;
 		uint8_t* actor = *(uint8_t**)(node + 8);
-		if (actor && readable((uintptr_t)actor + 0x110, 4)) {
+		if (actor && actor != player && readable((uintptr_t)actor + 0x110, 4)) {
 			uint32_t aid = *(uint32_t*)(actor + 0x110);
-			auto a = g_frameAuras.find(aid);
-			if (aid != self && a != g_frameAuras.end())
-				draw_actor(actor, a->second, aid, t);
+			if (aid != self && actor_aura(actor, aid, a))
+				draw_actor(actor, a, aid, t);
 		}
 		node = *(uint8_t**)node;
 	}
