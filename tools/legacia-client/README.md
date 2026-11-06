@@ -46,6 +46,19 @@ Pick a colour on the left, then choose it with the picker, the brightness slider
 
 Graymap hooks the client's own ground drawing, so it only works with the exe it was made for (the 2026-01-07 Ragexe the addresses were taken from, the same base exe Miracle uses). If the Legacia exe is a different build, Graymap and the crash guard stay off and log it, and voice chat and Player Statistics still work; the addresses at the top of `src/graymap.cpp` and `src/crashguard.cpp` would then need to be found again for that exe. It checks the code first, so a wrong exe can't crash; the Graymap window then says it isn't available. It draws each cell with the client's own ground-cursor function (the one that marks skill target cells), and skips the client's ground, water and map model drawing while it's on.
 
+
+## LGP
+
+The Graymap window has an **LGP** tab: coloured cells drawn on the ground around your character, with Graymap on or off (code in `src/graymap.cpp`, settings in the `[lgp]` section of `legacia.ini`).
+
+- **Square** and **Circle**: each can be on or off, a ring or filled, with its own colour (click the colour square), size, and wave (Flat, or 1 to 5 from slow swells to quick ripples moving outwards).
+- **AoE skill cells**: skills on the ground near you (Storm Gust, Lord of Vermilion, traps you can see, ...), red when they can hit you and blue when they can't. The map-server sends them through the voice server, so this layer needs the voice server running, like Player Statistics.
+- **Dead cells**: cells you can't walk on inside the shapes, in dark red. The shapes skip them.
+- **Gutter lines**: a gap between cells. **Smooth follow**: the shapes glide with you instead of jumping one cell at a time.
+- **Tile** Box or Round, **Depth** 2D flat or 3D raised.
+
+Where you stand comes from the camera (it always looks at your character), so no player data in the exe is read. The cells are drawn with the same cell function as Graymap, so LGP needs the same exe as Graymap.
+
 ## Player Statistics
 
 A **Stats** button sits under the Graymap button, in the same style (code in `src/stats_button.cpp`). Click it, or press **Ctrl+Shift+S**, to open the Player Statistics window (`src/stats_ui.cpp`). Drag the button to move it; its spot is saved as `button_right`/`button_top` in the `[stats]` section of `legacia.ini`.

@@ -36,6 +36,8 @@ func startServer(t *testing.T) (linkAddr string, udpAddr *net.UDPAddr, hub *Hub)
 	udp.OnHello = link.AutoQuery
 	udp.StatsQuery = link.StatsQuery
 	link.OnStats = udp.SendStats
+	udp.CellsQuery = link.CellsQuery
+	link.OnCells = udp.SendCells
 	go link.Serve(ln)
 	go udp.Serve()
 	return ln.Addr().String(), uc.LocalAddr().(*net.UDPAddr), hub
@@ -667,6 +669,60 @@ func TestStatsOldMapServer(t *testing.T) {
 		t.Fatalf("want no-stats answer, got %x", p)
 	}
 	if _, ok := m.next(linkStatsQuery, 100*time.Millisecond); ok {
+		t.Fatal("old map-server got a packet it doesn't know")
+	}
+}
+
+func (c *client) askCells() {
+	b := make([]byte, 5)
+	b[0] = cCells
+	binary.LittleEndian.PutUint32(b[1:], c.session)
+	c.conn.Write(b)
+}
+
+func TestCells(t *testing.T) {
+	linkAddr, udpAddr, hub := startServer(t)
+	m := connectMapWith(t, linkAddr, featureStats|featureCells)
+	m.player(1, 0, 0, "prontera", 100, 100, 0, "Alice")
+	m.player(2, 0, 0, "prontera", 100, 100, 0, "Bob")
+	waitPlayers(t, hub, 2)
+	a := dialClient(t, udpAddr)
+	b := dialClient(t, udpAddr)
+	a.join(m, 1)
+	b.join(m, 2)
+
+	a.askCells()
+	body, ok := m.next(linkCellsQuery, time.Second)
+	if !ok || binary.LittleEndian.Uint32(body) != 1 {
+		t.Fatalf("cells query: %x", body)
+	}
+	a.askCells()
+	if _, ok := m.next(linkCellsQuery, 100*time.Millisecond); ok {
+		t.Fatal("rate limit let a second query through")
+	}
+
+	// two cells: (100,101) Storm Gust (89) hostile, (102,103) Pneuma (25) friendly
+	reply := []byte{1, 0, 0, 0, 2, 0, 100, 0, 101, 0, 89, 0, 1, 102, 0, 103, 0, 25, 0, 0}
+	writePacket(m.conn, linkCells, reply)
+	p := a.read(time.Second)
+	if p == nil || p[0] != sCells || string(p[1:]) != string(reply[4:]) {
+		t.Fatalf("cells answer: %x", p)
+	}
+	b.expectNothing()
+}
+
+func TestCellsOldMapServer(t *testing.T) {
+	linkAddr, udpAddr, hub := startServer(t)
+	m := connectMapWith(t, linkAddr, featureStats) // knows stats, not cells
+	m.player(1, 0, 0, "prontera", 100, 100, 0, "Alice")
+	waitPlayers(t, hub, 1)
+	a := dialClient(t, udpAddr)
+	a.join(m, 1)
+	a.askCells()
+	if p := a.read(time.Second); p == nil || p[0] != sNoCells {
+		t.Fatalf("want no-cells answer, got %x", p)
+	}
+	if _, ok := m.next(linkCellsQuery, 100*time.Millisecond); ok {
 		t.Fatal("old map-server got a packet it doesn't know")
 	}
 }

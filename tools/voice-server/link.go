@@ -25,14 +25,17 @@ const (
 	linkOnline      = 0x7606 // ip(4): a player logged in from this address
 	linkClaimAuto   = 0x7607 // short_code(8) char_id(4), answer to linkAutoQuery
 	linkStats       = 0x7608 // char_id(4) page(1) text: a Player Statistics page
+	linkCells       = 0x7609 // char_id(4) count(2) count * {x(2) y(2) skill_id(2) kind(1)}: LGP skill cells
 	linkHelloAck    = 0x7680
 	linkPong        = 0x7681
 	linkClaimResult = 0x7682 // char_id(4) result(1): 0 linked, 1 unknown or expired code
 	linkAutoQuery   = 0x7683 // ip(4) short_code(8): claim this code if one player plays from ip
 	linkStatsQuery  = 0x7684 // char_id(4) page(1): only sent if the map-server said it knows it
+	linkCellsQuery  = 0x7685 // char_id(4): only sent if the map-server said it knows it
 
 	// features a map-server lists in the byte after the secret in HELLO
 	featureStats = 0x01
+	featureCells = 0x02
 
 	secretLength       = 32
 	nameLength         = 24
@@ -51,12 +54,15 @@ type LinkServer struct {
 	OnClaim func(*Session)
 	// called with a Player Statistics page from the map-server
 	OnStats func(charID uint32, page uint8, text []byte)
+	// called with the skill cells around a character from the map-server
+	OnCells func(charID uint32, cells []byte)
 
 	mu      sync.Mutex // guards current and writes to it
 	current net.Conn
 	// the current map-server answers linkStatsQuery (older ones close the
 	// link on packets they don't know)
 	statsOK bool
+	cellsOK bool
 	// last auto query per address, so UDP hellos can't flood the map-server
 	queried map[netip.Addr]time.Time
 	// and overall, since each query makes the map-server look at every player
@@ -188,6 +194,20 @@ func (ls *LinkServer) StatsQuery(charID uint32, page uint8) bool {
 	return ls.send(c, linkStatsQuery, b) == nil
 }
 
+// CellsQuery asks the map-server for the LGP skill cells around a
+// character. Returns false when no map-server is linked or it is too old.
+func (ls *LinkServer) CellsQuery(charID uint32) bool {
+	ls.mu.Lock()
+	c, ok := ls.current, ls.cellsOK
+	ls.mu.Unlock()
+	if c == nil || !ok {
+		return false
+	}
+	b := make([]byte, 4)
+	binary.LittleEndian.PutUint32(b, charID)
+	return ls.send(c, linkCellsQuery, b) == nil
+}
+
 func (ls *LinkServer) handle(c net.Conn) {
 	defer c.Close()
 	r := bufio.NewReader(c)
@@ -210,6 +230,7 @@ func (ls *LinkServer) handle(c net.Conn) {
 	}
 	ls.current = c
 	ls.statsOK = len(body) > secretLength && body[secretLength]&featureStats != 0
+	ls.cellsOK = len(body) > secretLength && body[secretLength]&featureCells != 0
 	ls.mu.Unlock()
 	defer func() {
 		ls.mu.Lock()
@@ -304,6 +325,18 @@ func (ls *LinkServer) handle(c net.Conn) {
 			}
 			if ls.OnStats != nil {
 				ls.OnStats(binary.LittleEndian.Uint32(body), body[4], body[5:])
+			}
+		case linkCells:
+			if len(body) < 6 {
+				return
+			}
+			n := int(binary.LittleEndian.Uint16(body[4:]))
+			if len(body) < 6+n*cellSize {
+				log.Printf("link: short cells packet")
+				return
+			}
+			if ls.OnCells != nil {
+				ls.OnCells(binary.LittleEndian.Uint32(body), body[4:6+n*cellSize])
 			}
 		case linkLeave:
 			if len(body) < 4 {

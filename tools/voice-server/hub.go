@@ -50,6 +50,8 @@ type Session struct {
 	// Player Statistics window requests
 	lastStats time.Time
 	statsSeq  uint8
+	// LGP skill cell requests
+	lastCells time.Time
 	// the player turned voice chat off: the client stays signed in only
 	// for the Player Statistics window, so it neither talks nor hears
 	Quiet bool
@@ -280,6 +282,35 @@ func (h *Hub) StatsRequest(id uint32, addr netip.AddrPort, now time.Time) (uint3
 	s.lastStats = now
 	s.LastSeen = now
 	return s.CharID, true
+}
+
+// cellsInterval is the shortest time between two LGP skill cell requests
+// from one client; it asks twice a second.
+const cellsInterval = 250 * time.Millisecond
+
+// CellsRequest checks an LGP skill cell request from a signed-in client and
+// returns its character. Requests faster than cellsInterval are dropped.
+func (h *Hub) CellsRequest(id uint32, addr netip.AddrPort, now time.Time) (uint32, bool) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	s, ok := h.sessions[id]
+	if !ok || s.Addr != addr || now.Sub(s.lastCells) < cellsInterval {
+		return 0, false
+	}
+	s.lastCells = now
+	s.LastSeen = now
+	return s.CharID, true
+}
+
+// CellsTarget returns where to send a character's skill cells.
+func (h *Hub) CellsTarget(charID uint32) (netip.AddrPort, bool) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	s := h.byChar[charID]
+	if s == nil {
+		return netip.AddrPort{}, false
+	}
+	return s.Addr, true
 }
 
 // StatsTarget returns where to send a character's statistics page, and a

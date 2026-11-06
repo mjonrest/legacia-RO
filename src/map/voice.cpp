@@ -15,10 +15,12 @@
 #include <common/timer.hpp>
 
 #include "atcommand.hpp"
+#include "battle.hpp"
 #include "clif.hpp"
 #include "map.hpp"
 #include "packets.hpp"
 #include "pc.hpp"
+#include "skill.hpp"
 
 // map-server <-> voice server link packets. Every packet starts with cmd(2) len(2).
 enum e_voice_link_cmd : uint16 {
@@ -31,17 +33,20 @@ enum e_voice_link_cmd : uint16 {
 	VOICE_LINK_ONLINE = 0x7606,    // map -> voice: ip[4], a player logged in from this address
 	VOICE_LINK_CLAIM_AUTO = 0x7607, // map -> voice: short_code[8] char_id(4), answer to AUTO_QUERY
 	VOICE_LINK_STATS = 0x7608,     // map -> voice: char_id(4) page(1) text, answer to STATS_QUERY
+	VOICE_LINK_CELLS = 0x7609,     // map -> voice: char_id(4) count(2) count * {x(2) y(2) skill_id(2) kind(1)}, answer to CELLS_QUERY
 	VOICE_LINK_HELLO_ACK = 0x7680, // voice -> map: result(1), 0 = ok
 	VOICE_LINK_PONG = 0x7681,      // voice -> map
 	VOICE_LINK_CLAIM_RESULT = 0x7682, // voice -> map: char_id(4) result(1), answer to CLAIM_SHORT
 	VOICE_LINK_AUTO_QUERY = 0x7683, // voice -> map: ip[4] short_code[8], a voice client from this address wants a code claimed
 	VOICE_LINK_STATS_QUERY = 0x7684, // voice -> map: char_id(4) page(1), the plugin's Player Statistics window wants a page
+	VOICE_LINK_CELLS_QUERY = 0x7685, // voice -> map: char_id(4), the plugin's LGP wants the skill cells around the player
 };
 
 // Sent after the secret in HELLO. Older voice servers ignore it; newer ones
 // only send packets the map-server said it understands.
 enum e_voice_feature : uint8 {
 	VOICE_FEATURE_STATS = 0x01, // answers STATS_QUERY
+	VOICE_FEATURE_CELLS = 0x02, // answers CELLS_QUERY
 };
 
 enum e_voice_flag : uint8 {
@@ -60,6 +65,9 @@ static const t_tick VOICE_CLAIM_INTERVAL = 1000;  // per character, for plugin c
 static const t_tick VOICE_COMMAND_INTERVAL = 3000; // per character, for @voice
 static const t_tick VOICE_STATS_INTERVAL = 250;    // per character, for the Player Statistics window
 static const size_t VOICE_STATS_MAX_TEXT = 6000;   // the voice server splits it into UDP packets
+static const t_tick VOICE_CELLS_INTERVAL = 250;    // per character, for LGP skill cells
+static const size_t VOICE_CELLS_MAX = 200;         // cells per answer, so it fits in one UDP packet
+static const size_t VOICE_CELL_SIZE = 7;           // x(2) y(2) skill_id(2) kind(1)
 
 struct s_voice_player {
 	uint32 account_id;
@@ -73,6 +81,7 @@ struct s_voice_player {
 	bool synced; // last state was sent to the voice server
 	t_tick last_claim;
 	t_tick last_stats;
+	t_tick last_cells;
 };
 
 static bool voice_enabled = false;
@@ -384,6 +393,75 @@ static void voice_stats_query( uint32 char_id, uint8 page ){
 	WFIFOSET( voice_fd, len );
 }
 
+/// One skill cell near the player, for voice_cells_query.
+static int32 voice_cells_sub( block_list* bl, va_list ap ){
+	skill_unit* unit = reinterpret_cast<skill_unit*>( bl );
+	map_session_data* sd = va_arg( ap, map_session_data* );
+	std::vector<uint8>* out = va_arg( ap, std::vector<uint8>* );
+
+	if( out->size() >= VOICE_CELLS_MAX * VOICE_CELL_SIZE || !unit->alive || unit->group == nullptr || unit->group->state.guildaura )
+		return 0;
+
+	// hidden traps stay hidden, the same way the game client is told about them
+	if( unit->hidden ){
+		block_list* src = battle_get_master( unit );
+
+		if( src != &sd->bl ){
+			uint32 party1 = src != nullptr ? status_get_party_id( src ) : 0;
+			uint32 party2 = sd->status.party_id;
+
+			if( party1 == 0 || party2 == 0 || party1 != party2 )
+				return 0;
+		}
+	}
+
+	uint16 skill_id = unit->group->skill_id;
+	// 1 = it can hit this player, 0 = it can't (own or friendly skills)
+	uint8 kind = battle_check_target( unit, &sd->bl, unit->group->target_flag ) > 0 && battle_check_target( unit, &sd->bl, BCT_ENEMY ) > 0 ? 1 : 0;
+	uint8 entry[VOICE_CELL_SIZE] = {
+		static_cast<uint8>( unit->x & 0xff ), static_cast<uint8>( unit->x >> 8 ),
+		static_cast<uint8>( unit->y & 0xff ), static_cast<uint8>( unit->y >> 8 ),
+		static_cast<uint8>( skill_id & 0xff ), static_cast<uint8>( skill_id >> 8 ),
+		kind,
+	};
+
+	out->insert( out->end(), entry, entry + VOICE_CELL_SIZE );
+	return 1;
+}
+
+/// LGP in the plugin: the skill cells on the ground around the player.
+/// Only answers for characters whose own voice client signed in this login.
+static void voice_cells_query( uint32 char_id ){
+	auto it = voice_players.find( char_id );
+	map_session_data* sd = map_charid2sd( char_id );
+
+	if( it == voice_players.end() || sd == nullptr || sd->bl.prev == nullptr )
+		return;
+
+	t_tick tick = gettick();
+
+	if( DIFF_TICK( tick, it->second.last_cells ) < VOICE_CELLS_INTERVAL )
+		return;
+	it->second.last_cells = tick;
+
+	std::vector<uint8> cells;
+
+	map_foreachinallarea( voice_cells_sub, sd->bl.m, sd->bl.x - AREA_SIZE, sd->bl.y - AREA_SIZE,
+		sd->bl.x + AREA_SIZE, sd->bl.y + AREA_SIZE, BL_SKILL, sd, &cells );
+
+	size_t count = cells.size() / VOICE_CELL_SIZE;
+	size_t len = 4 + 4 + 2 + cells.size();
+
+	WFIFOHEAD( voice_fd, len );
+	WFIFOW( voice_fd, 0 ) = VOICE_LINK_CELLS;
+	WFIFOW( voice_fd, 2 ) = static_cast<uint16>( len );
+	WFIFOL( voice_fd, 4 ) = char_id;
+	WFIFOW( voice_fd, 8 ) = static_cast<uint16>( count );
+	if( !cells.empty() )
+		memcpy( WFIFOP( voice_fd, 10 ), cells.data(), cells.size() );
+	WFIFOSET( voice_fd, len );
+}
+
 static int32 voice_parse( int32 fd ){
 	if( fd != voice_fd ){
 		do_close( fd );
@@ -456,6 +534,11 @@ static int32 voice_parse( int32 fd ){
 					break;
 				voice_stats_query( RFIFOL( fd, 4 ), RFIFOB( fd, 8 ) );
 				break;
+			case VOICE_LINK_CELLS_QUERY:
+				if( len < 8 )
+					break;
+				voice_cells_query( RFIFOL( fd, 4 ) );
+				break;
 			default:
 				ShowError( "voice_parse: unknown packet 0x%04x from voice server, disconnecting.\n", cmd );
 				set_eof( fd );
@@ -486,7 +569,7 @@ static TIMER_FUNC( voice_check_connect ){
 	WFIFOW( voice_fd, 2 ) = 4 + VOICE_SECRET_LENGTH + 1;
 	memset( WFIFOP( voice_fd, 4 ), 0, VOICE_SECRET_LENGTH );
 	memcpy( WFIFOP( voice_fd, 4 ), voice_secret, strnlen( voice_secret, VOICE_SECRET_LENGTH ) );
-	WFIFOB( voice_fd, 4 + VOICE_SECRET_LENGTH ) = VOICE_FEATURE_STATS;
+	WFIFOB( voice_fd, 4 + VOICE_SECRET_LENGTH ) = VOICE_FEATURE_STATS | VOICE_FEATURE_CELLS;
 	WFIFOSET( voice_fd, 4 + VOICE_SECRET_LENGTH + 1 );
 
 	return 0;

@@ -48,6 +48,8 @@ func main() {
 	udp.OnHello = link.AutoQuery
 	udp.StatsQuery = link.StatsQuery
 	link.OnStats = udp.SendStats
+	udp.CellsQuery = link.CellsQuery
+	link.OnCells = udp.SendCells
 	go func() {
 		log.Fatal(link.Serve(ln))
 	}()

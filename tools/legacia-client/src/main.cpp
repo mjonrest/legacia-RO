@@ -98,6 +98,26 @@ void config_load() {
 	g_cfg.stOpacity = GetPrivateProfileIntA("stats", "panel_opacity", 70, g_iniPath);
 	if (g_cfg.stOpacity < 30 || g_cfg.stOpacity > 100)
 		g_cfg.stOpacity = 70;
+	auto lgp = [](const char* key, int def) { return (int)GetPrivateProfileIntA("lgp", key, def, g_iniPath); };
+	auto lgp_color = [](const char* key, int def) {
+		char buf[16];
+		GetPrivateProfileStringA("lgp", key, "", buf, sizeof(buf), g_iniPath);
+		char* end;
+		long v = strtol(buf, &end, 16);
+		return buf[0] && !*end ? (int)(v & 0xffffff) : def;
+	};
+	auto clamp = [](int v, int lo, int hi) { return v < lo ? lo : v > hi ? hi : v; };
+	g_cfg.lgpEnabled = lgp("enabled", 0);
+	g_cfg.lgpAoe = lgp("aoe", 1);
+	g_cfg.lgpDead = lgp("dead", 1);
+	g_cfg.lgpGutter = lgp("gutter", 1);
+	g_cfg.lgpSmooth = lgp("smooth", 1);
+	g_cfg.lgpTile = clamp(lgp("tile", 1), 0, 1);
+	g_cfg.lgpDepth = clamp(lgp("depth", 1), 0, 1);
+	g_cfg.lgpSquare = {lgp("square", 1), lgp_color("square_color", 0xf2dc3c), lgp("square_fill", 1),
+	                   clamp(lgp("square_size", 4), 1, LGP_SQUARE_MAX), clamp(lgp("square_wave", 5), 0, 5)};
+	g_cfg.lgpCircle = {lgp("circle", 1), lgp_color("circle_color", 0x3fcf6e), lgp("circle_fill", 0),
+	                   clamp(lgp("circle_size", 9), 2, LGP_CIRCLE_MAX), clamp(lgp("circle_wave", 5), 0, 5)};
 	for (int i = 0; i < GM_COLOR_COUNT; i++) {
 		char buf[16];
 		GetPrivateProfileStringA("graymap", GM_COLOR_KEYS[i], "", buf, sizeof(buf), g_iniPath);
@@ -137,6 +157,33 @@ void config_save() {
 	WritePrivateProfileStringA("stats", "background", g_cfg.stBackground, g_iniPath);
 	snprintf(pos, sizeof(pos), "%d", g_cfg.stOpacity);
 	WritePrivateProfileStringA("stats", "panel_opacity", pos, g_iniPath);
+	auto lgp = [](const char* key, int v) {
+		char buf[16];
+		snprintf(buf, sizeof(buf), "%d", v);
+		WritePrivateProfileStringA("lgp", key, buf, g_iniPath);
+	};
+	auto lgp_color = [](const char* key, int v) {
+		char buf[16];
+		snprintf(buf, sizeof(buf), "%06X", v & 0xffffff);
+		WritePrivateProfileStringA("lgp", key, buf, g_iniPath);
+	};
+	lgp("enabled", g_cfg.lgpEnabled);
+	lgp("aoe", g_cfg.lgpAoe);
+	lgp("dead", g_cfg.lgpDead);
+	lgp("gutter", g_cfg.lgpGutter);
+	lgp("smooth", g_cfg.lgpSmooth);
+	lgp("tile", g_cfg.lgpTile);
+	lgp("depth", g_cfg.lgpDepth);
+	lgp("square", g_cfg.lgpSquare.on);
+	lgp_color("square_color", g_cfg.lgpSquare.color);
+	lgp("square_fill", g_cfg.lgpSquare.fill);
+	lgp("square_size", g_cfg.lgpSquare.size);
+	lgp("square_wave", g_cfg.lgpSquare.wave);
+	lgp("circle", g_cfg.lgpCircle.on);
+	lgp_color("circle_color", g_cfg.lgpCircle.color);
+	lgp("circle_fill", g_cfg.lgpCircle.fill);
+	lgp("circle_size", g_cfg.lgpCircle.size);
+	lgp("circle_wave", g_cfg.lgpCircle.wave);
 	for (int i = 0; i < GM_COLOR_COUNT; i++) {
 		char buf[16];
 		snprintf(buf, sizeof(buf), "%06X", g_cfg.gmColor[i] & 0xffffff);
@@ -162,6 +209,7 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE inst, DWORD reason, LPVOID) {
 		exe_dir_file(g_iniPath, "legacia.ini");
 		exe_dir_file(g_logPath, "legacia.log");
 		config_load();
+		lgp_init();
 		// the hooks must be in place before the client connects to the map-server
 		if (!hooks_install())
 			log_line("could not hook the game connection, signing in by address or @voice instead");
