@@ -61,7 +61,7 @@ Where you stand comes from the camera (it always looks at your character), so no
 
 ## Auras
 
-The Gepard client no longer draws Gepard's 3-part auras, so the plugin draws them (code in `src/aura.cpp`, settings in the `[aura]` section of `legacia.ini`, and the **Aura** tab of the Graymap window: on/off, my aura, other players, size 50-150%).
+The Gepard client no longer draws Gepard's 3-part auras, so the plugin draws them (code in `src/aura.cpp`). Auras are always shown, for every player, at one size: there are no settings, like the official level-99 aura.
 
 - **Part 1, ground circle**: turns flat on the floor under the player.
 - **Part 2, rings**: three tilted rings round the player that start at the inner edge of the ground circle, grow and fade while their tilt turns round the player.
