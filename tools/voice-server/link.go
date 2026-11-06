@@ -73,6 +73,8 @@ type LinkServer struct {
 	cellsOK bool
 	aurasOK bool
 	identOK bool // and linkIdentQuery
+	// last aura query and answer written to the log (one a minute each)
+	aurasAskLog, aurasAnswerLog time.Time
 	// last auto query per address, so UDP hellos can't flood the map-server
 	queried map[netip.Addr]time.Time
 	// last ident query per address
@@ -259,7 +261,14 @@ func (ls *LinkServer) AurasQuery(charID uint32) bool {
 	}
 	b := make([]byte, 4)
 	binary.LittleEndian.PutUint32(b, charID)
-	return ls.send(c, linkAurasQuery, b) == nil
+	err := ls.send(c, linkAurasQuery, b)
+	ls.mu.Lock()
+	if now := time.Now(); now.Sub(ls.aurasAskLog) >= time.Minute {
+		ls.aurasAskLog = now
+		log.Printf("auras: asked the map-server for char %d (err %v)", charID, err)
+	}
+	ls.mu.Unlock()
+	return err == nil
 }
 
 func (ls *LinkServer) handle(c net.Conn) {
@@ -300,7 +309,10 @@ func (ls *LinkServer) handle(c net.Conn) {
 	if err := ls.send(c, linkHelloAck, []byte{0}); err != nil {
 		return
 	}
-	log.Printf("link %s: map-server connected", c.RemoteAddr())
+	ls.mu.Lock()
+	log.Printf("link %s: map-server connected (stats %v, cells %v, auras %v, game login %v)",
+		c.RemoteAddr(), ls.statsOK, ls.cellsOK, ls.aurasOK, ls.identOK)
+	ls.mu.Unlock()
 
 	for {
 		// the map-server pings when the link is idle (stall_time, 60s by default)
@@ -422,6 +434,12 @@ func (ls *LinkServer) handle(c net.Conn) {
 				log.Printf("link: short auras packet")
 				return
 			}
+			ls.mu.Lock()
+			if now := time.Now(); now.Sub(ls.aurasAnswerLog) >= time.Minute {
+				ls.aurasAnswerLog = now
+				log.Printf("auras: map-server answered char %d with %d aura(s)", binary.LittleEndian.Uint32(body), n)
+			}
+			ls.mu.Unlock()
 			if ls.OnAuras != nil {
 				ls.OnAuras(binary.LittleEndian.Uint32(body), body[4:6+n*auraSize])
 			}

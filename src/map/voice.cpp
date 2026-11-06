@@ -34,8 +34,8 @@ enum e_voice_link_cmd : uint16 {
 	VOICE_LINK_CLAIM_AUTO = 0x7607, // map -> voice: short_code[8] char_id(4), answer to AUTO_QUERY
 	VOICE_LINK_STATS = 0x7608,     // map -> voice: char_id(4) page(1) text, answer to STATS_QUERY
 	VOICE_LINK_CELLS = 0x7609,     // map -> voice: char_id(4) count(2) count * {x(2) y(2) skill_id(2) kind(1)}, answer to CELLS_QUERY
-	VOICE_LINK_AURAS = 0x760a,
-	VOICE_LINK_CLAIM_IDENT = 0x760b, // map -> voice: short_code[8] char_id(4), answer to IDENT_QUERY when the login matched     // map -> voice: char_id(4) count(2) count * {account_id(4) part1(1) part2(1) part3(1)}, answer to AURAS_QUERY
+	VOICE_LINK_AURAS = 0x760a,     // map -> voice: char_id(4) count(2) count * {account_id(4) part1(1) part2(1) part3(1)}, answer to AURAS_QUERY
+	VOICE_LINK_CLAIM_IDENT = 0x760b, // map -> voice: short_code[8] char_id(4), answer to IDENT_QUERY when the login matched
 	VOICE_LINK_HELLO_ACK = 0x7680, // voice -> map: result(1), 0 = ok
 	VOICE_LINK_PONG = 0x7681,      // voice -> map
 	VOICE_LINK_CLAIM_RESULT = 0x7682, // voice -> map: char_id(4) result(1), answer to CLAIM_SHORT
@@ -524,10 +524,18 @@ static void voice_auras_query( uint32 char_id ){
 	auto it = voice_players.find( char_id );
 	map_session_data* sd = map_charid2sd( char_id );
 
-	if( it == voice_players.end() || sd == nullptr || sd->prev == nullptr )
-		return;
-
 	t_tick tick = gettick();
+
+	if( it == voice_players.end() || sd == nullptr || sd->prev == nullptr ){
+		static t_tick last_warn;
+
+		if( DIFF_TICK( tick, last_warn ) > 60000 ){
+			last_warn = tick;
+			ShowWarning( "voice: auras asked for char %u, but %s.\n", char_id,
+				sd == nullptr ? "that char is not online" : it == voice_players.end() ? "its voice client did not sign in" : "it is not on a map" );
+		}
+		return;
+	}
 
 	if( DIFF_TICK( tick, it->second.last_auras ) < VOICE_AURAS_INTERVAL )
 		return;
@@ -599,6 +607,9 @@ static int32 voice_parse( int32 fd ){
 				voice_send_all();
 				break;
 			case VOICE_LINK_PONG:
+				// the link answered: ping again after the next idle stall_time
+				// (left at 2, the link was closed 2 * stall_time later)
+				session[fd]->flag.ping = 0;
 				break;
 			case VOICE_LINK_CLAIM_RESULT: {
 				if( len < 9 )
