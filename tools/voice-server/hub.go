@@ -52,6 +52,8 @@ type Session struct {
 	statsSeq  uint8
 	// LGP skill cell requests
 	lastCells time.Time
+	// aura requests (the plugin draws the auras of the players around)
+	lastAuras time.Time
 	// the player turned voice chat off: the client stays signed in only
 	// for the Player Statistics window, so it neither talks nor hears
 	Quiet bool
@@ -311,6 +313,24 @@ func (h *Hub) CellsTarget(charID uint32) (netip.AddrPort, bool) {
 		return netip.AddrPort{}, false
 	}
 	return s.Addr, true
+}
+
+// aurasInterval is the shortest time between two aura requests from one
+// client; it asks once a second.
+const aurasInterval = 400 * time.Millisecond
+
+// AurasRequest checks an aura request from a signed-in client and returns its
+// character. Requests faster than aurasInterval are dropped.
+func (h *Hub) AurasRequest(id uint32, addr netip.AddrPort, now time.Time) (uint32, bool) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	s, ok := h.sessions[id]
+	if !ok || s.Addr != addr || now.Sub(s.lastAuras) < aurasInterval {
+		return 0, false
+	}
+	s.lastAuras = now
+	s.LastSeen = now
+	return s.CharID, true
 }
 
 // StatsTarget returns where to send a character's statistics page, and a

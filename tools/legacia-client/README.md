@@ -59,6 +59,18 @@ The Graymap window has an **LGP** tab: coloured cells drawn on the ground around
 
 Where you stand comes from the camera (it always looks at your character), so no player data in the exe is read. The cells are drawn with the same cell function as Graymap, so LGP needs the same exe as Graymap.
 
+## Auras
+
+The Gepard client no longer draws Gepard's 3-part auras, so the plugin draws them (code in `src/aura.cpp`, settings in the `[aura]` section of `legacia.ini`, and the **Aura** tab of the Graymap window: on/off, my aura, other players, size 50-150%).
+
+- **Part 1, ground circle**: turns flat on the floor under the player.
+- **Part 2, rings**: three tilted rings round the player that start at the inner edge of the ground circle, grow and fade while their tilt turns round the player.
+- **Part 3, sparkles**: small sparkles shooting out from the feet across the floor.
+
+The server keeps each player's aura (`AURA_DATA`, set by the Aura Master NPC `npc/miracle/aura_master.txt`, `set_aura`, `@auras`) and sends the auras of the players around through the voice server about once a second, so auras need the voice server running, like Player Statistics (`@show_auras` still works). Each piece is one of the client's own polygons: projected with the game's camera and added to its sorted list of see-through polygons, so auras sit on the ground in 3D, turn with the camera and are drawn in the right order with the characters. Positions come from the client's actor list. Like Graymap it only works with the exe it was made for (addresses at the top of `src/aura.cpp`, checked before use).
+
+Textures: `plugins\auras\1\001.bmp` ... (`1` ground circles, `2` rings, `3` sparkles), 32-bit BMPs made from the Gepard aura textures with `python3 tools/legacia_aura/genplugin.py <gepard auras folder> <out>` (they are not in git). `test/aura_host.cpp` runs `src/aura.cpp` under Wine against a fake game (the exe's own projection code) and `test/render_faces.py` draws what it produced.
+
 ## Player Statistics
 
 A **Stats** button sits under the Graymap button, in the same style (code in `src/stats_button.cpp`). Click it, or press **Ctrl+Shift+S**, to open the Player Statistics window (`src/stats_ui.cpp`). Drag the button to move it; its spot is saved as `button_right`/`button_top` in the `[stats]` section of `legacia.ini`.
@@ -84,7 +96,8 @@ Gepard Shield hash-checks every DLL in the client folder, so each new plugin bui
 
 ```
 legacia.dll                  <- loader (~40 KB). The exe imports it; Gepard approves it once
-plugins/legacia_plugin.dll   <- the real plugin (voice + Graymap + Player Statistics)
+plugins/legacia_plugin.dll   <- the real plugin (voice + Graymap + Player Statistics + auras)
+plugins/auras/               <- aura textures (see Auras)
 legacia.ini                  <- settings (set host= before shipping)
 ```
 

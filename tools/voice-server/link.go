@@ -26,16 +26,19 @@ const (
 	linkClaimAuto   = 0x7607 // short_code(8) char_id(4), answer to linkAutoQuery
 	linkStats       = 0x7608 // char_id(4) page(1) text: a Player Statistics page
 	linkCells       = 0x7609 // char_id(4) count(2) count * {x(2) y(2) skill_id(2) kind(1)}: LGP skill cells
+	linkAuras       = 0x760a // char_id(4) count(2) count * {account_id(4) part1(1) part2(1) part3(1)}: auras around the player
 	linkHelloAck    = 0x7680
 	linkPong        = 0x7681
 	linkClaimResult = 0x7682 // char_id(4) result(1): 0 linked, 1 unknown or expired code
 	linkAutoQuery   = 0x7683 // ip(4) short_code(8): claim this code if one player plays from ip
 	linkStatsQuery  = 0x7684 // char_id(4) page(1): only sent if the map-server said it knows it
 	linkCellsQuery  = 0x7685 // char_id(4): only sent if the map-server said it knows it
+	linkAurasQuery  = 0x7686 // char_id(4): only sent if the map-server said it knows it
 
 	// features a map-server lists in the byte after the secret in HELLO
 	featureStats = 0x01
 	featureCells = 0x02
+	featureAuras = 0x04
 
 	secretLength       = 32
 	nameLength         = 24
@@ -56,6 +59,8 @@ type LinkServer struct {
 	OnStats func(charID uint32, page uint8, text []byte)
 	// called with the skill cells around a character from the map-server
 	OnCells func(charID uint32, cells []byte)
+	// called with the auras of the players around a character from the map-server
+	OnAuras func(charID uint32, auras []byte)
 
 	mu      sync.Mutex // guards current and writes to it
 	current net.Conn
@@ -63,6 +68,7 @@ type LinkServer struct {
 	// link on packets they don't know)
 	statsOK bool
 	cellsOK bool
+	aurasOK bool
 	// last auto query per address, so UDP hellos can't flood the map-server
 	queried map[netip.Addr]time.Time
 	// and overall, since each query makes the map-server look at every player
@@ -208,6 +214,20 @@ func (ls *LinkServer) CellsQuery(charID uint32) bool {
 	return ls.send(c, linkCellsQuery, b) == nil
 }
 
+// AurasQuery asks the map-server for the auras of the players around a
+// character. Returns false when no map-server is linked or it is too old.
+func (ls *LinkServer) AurasQuery(charID uint32) bool {
+	ls.mu.Lock()
+	c, ok := ls.current, ls.aurasOK
+	ls.mu.Unlock()
+	if c == nil || !ok {
+		return false
+	}
+	b := make([]byte, 4)
+	binary.LittleEndian.PutUint32(b, charID)
+	return ls.send(c, linkAurasQuery, b) == nil
+}
+
 func (ls *LinkServer) handle(c net.Conn) {
 	defer c.Close()
 	r := bufio.NewReader(c)
@@ -231,6 +251,7 @@ func (ls *LinkServer) handle(c net.Conn) {
 	ls.current = c
 	ls.statsOK = len(body) > secretLength && body[secretLength]&featureStats != 0
 	ls.cellsOK = len(body) > secretLength && body[secretLength]&featureCells != 0
+	ls.aurasOK = len(body) > secretLength && body[secretLength]&featureAuras != 0
 	ls.mu.Unlock()
 	defer func() {
 		ls.mu.Lock()
@@ -337,6 +358,18 @@ func (ls *LinkServer) handle(c net.Conn) {
 			}
 			if ls.OnCells != nil {
 				ls.OnCells(binary.LittleEndian.Uint32(body), body[4:6+n*cellSize])
+			}
+		case linkAuras:
+			if len(body) < 6 {
+				return
+			}
+			n := int(binary.LittleEndian.Uint16(body[4:]))
+			if len(body) < 6+n*auraSize {
+				log.Printf("link: short auras packet")
+				return
+			}
+			if ls.OnAuras != nil {
+				ls.OnAuras(binary.LittleEndian.Uint32(body), body[4:6+n*auraSize])
 			}
 		case linkLeave:
 			if len(body) < 4 {

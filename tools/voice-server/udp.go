@@ -17,6 +17,7 @@ const (
 	cStats = 0x05 // session(4) page(1): Player Statistics window
 	cMode  = 0x06 // session(4) flags(1): modeQuiet = voice chat off, stay signed in for statistics only
 	cCells = 0x07 // session(4): LGP wants the skill cells on the ground around the player
+	cAuras = 0x08 // session(4): the plugin wants the auras of the players around
 
 	sWelcome   = 0x81 // session(4) char_id(4)
 	sDenied    = 0x82 // reason(1)
@@ -28,6 +29,8 @@ const (
 	sNoStats   = 0x88 // page(1): the map-server can't answer (offline or too old)
 	sCells     = 0x89 // count(2) count * {x(2) y(2) skill_id(2) kind(1)}: skill cells around the player
 	sNoCells   = 0x8a // the map-server can't answer (offline or too old)
+	sAuras     = 0x8b // count(2) count * {account_id(4) part1(1) part2(1) part3(1)}: auras around the player
+	sNoAuras   = 0x8c // the map-server can't answer (offline or too old)
 
 	modeQuiet = 0x01
 
@@ -36,6 +39,9 @@ const (
 
 	cellSize = 7   // x(2) y(2) skill_id(2) kind(1)
 	maxCells = 200 // per sCells packet, so it fits in one datagram
+
+	auraSize = 7   // account_id(4) part1(1) part2(1) part3(1)
+	maxAuras = 200 // per sAuras packet, so it fits in one datagram
 
 	deniedBusy           = 1
 	deniedUnknownSession = 2
@@ -53,6 +59,8 @@ type UDPServer struct {
 	StatsQuery func(charID uint32, page uint8) bool
 	// asks the map-server for the skill cells around a character; false if it can't
 	CellsQuery func(charID uint32) bool
+	// asks the map-server for the auras around a character; false if it can't
+	AurasQuery func(charID uint32) bool
 }
 
 func NewUDPServer(hub *Hub, conn *net.UDPConn) *UDPServer {
@@ -145,8 +153,37 @@ func (u *UDPServer) SendCells(charID uint32, cells []byte) {
 	u.send(addr, out)
 }
 
+// SendAuras passes the auras around a character from the map-server on to
+// its client. auras is count(2) and the entries, as the map-server sent them.
+func (u *UDPServer) SendAuras(charID uint32, auras []byte) {
+	addr, ok := u.hub.CellsTarget(charID)
+	if !ok {
+		return
+	}
+	if len(auras) > 2+maxAuras*auraSize {
+		auras = auras[:2+maxAuras*auraSize]
+		binary.LittleEndian.PutUint16(auras, maxAuras)
+	}
+	out := make([]byte, 1+len(auras))
+	out[0] = sAuras
+	copy(out[1:], auras)
+	u.send(addr, out)
+}
+
 func (u *UDPServer) handle(pkt []byte, addr netip.AddrPort, now time.Time) {
 	switch pkt[0] {
+	case cAuras:
+		if len(pkt) < 5 {
+			return
+		}
+		charID, ok := u.hub.AurasRequest(binary.LittleEndian.Uint32(pkt[1:]), addr, now)
+		if !ok {
+			return
+		}
+		if u.AurasQuery == nil || !u.AurasQuery(charID) {
+			u.send(addr, []byte{sNoAuras})
+		}
+
 	case cCells:
 		if len(pkt) < 5 {
 			return

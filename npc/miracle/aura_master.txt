@@ -10,11 +10,12 @@
 //  - The aura is still stored by the Gepard commands
 //    (set_aura_part / AURA_DATA), so old auras, @auras and the
 //    old Princess Mary NPC (npc/miracle/aura.txt) keep working.
-//  - pc_aura_apply() in src/map/pc.cpp shows it as hat effects:
-//    part 1 #n = 1000+n, part 2 #n = 1300+n, part 3 #n = 1600+n
-//    (battle config aura_hateffect in conf/battle/feature.conf).
-//  - Client: data/texture/effect/efst_legacia_aura/* and the
-//    entries added to HatEffectIDs.lub / HatEffectInfo.lub.
+//  - The client plugin legacia.dll draws it in 3D (ground circle,
+//    rings, sparkles); the map-server sends the auras around each
+//    player through the voice server (src/map/voice.cpp, AURAS).
+//    Textures: plugins/auras/ next to legacia_plugin.dll.
+//  - Old way, off by default: pc_aura_apply() in src/map/pc.cpp shows
+//    it as hat effects (aura_hateffect in conf/battle/feature.conf).
 //
 // Variables
 //  #AURA_OWN[n] : account bitmask of unlocked parts (31 per entry)

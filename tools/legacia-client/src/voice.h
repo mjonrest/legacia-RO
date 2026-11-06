@@ -55,6 +55,11 @@ struct Config {
 	struct LgpShape {
 		int on, color, fill, size, wave; // fill 0 = ring; size in cells; wave 0 flat, 1-5
 	} lgpSquare, lgpCircle;
+	// auras (Graymap window, Aura tab): Gepard-style auras drawn by the plugin
+	int auraEnabled;
+	int auraOwn;    // your own aura
+	int auraOthers; // the auras of the players around
+	int auraSize;   // percent, 50-150
 };
 
 extern Config g_cfg;
@@ -135,6 +140,18 @@ std::vector<LgpCell> lgp_cells();
 LgpServer lgp_server_state(int* count);
 // graymap.cpp
 bool lgp_drawing(); // LGP drew something in the last second
+
+// ---- aura.cpp: the auras of the players around, drawn in 3D (graymap.cpp calls aura_draw) ----
+// The auras come from the map-server through the voice server.
+void aura_init();
+bool aura_install();  // false on an unknown game exe
+bool aura_available();
+bool aura_wants();                              // net thread: ask the voice server for the auras around
+void aura_set(const uint8_t* entries, int n);   // net thread: n * {account_id(4) part1 part2 part3}
+void aura_set_none();                           // net thread: the map-server can't answer
+void aura_draw(void* view);                     // game thread, from the ground drawing
+enum AuraServer { AURA_SERVER_WAITING, AURA_SERVER_ON, AURA_SERVER_UNSUPPORTED, AURA_SERVER_NO_VOICE };
+AuraServer aura_server_state(int* count);
 
 // ---- ui.cpp ----
 void ui_run(); // runs on the plugin's main thread, never returns

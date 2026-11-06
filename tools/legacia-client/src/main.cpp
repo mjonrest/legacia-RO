@@ -118,6 +118,11 @@ void config_load() {
 	                   clamp(lgp("square_size", 4), 1, LGP_SQUARE_MAX), clamp(lgp("square_wave", 5), 0, 5)};
 	g_cfg.lgpCircle = {lgp("circle", 1), lgp_color("circle_color", 0x3fcf6e), lgp("circle_fill", 0),
 	                   clamp(lgp("circle_size", 9), 2, LGP_CIRCLE_MAX), clamp(lgp("circle_wave", 5), 0, 5)};
+	auto aura = [](const char* key, int def) { return (int)GetPrivateProfileIntA("aura", key, def, g_iniPath); };
+	g_cfg.auraEnabled = aura("enabled", 1);
+	g_cfg.auraOwn = aura("own", 1);
+	g_cfg.auraOthers = aura("others", 1);
+	g_cfg.auraSize = clamp(aura("size", 100), 50, 150);
 	for (int i = 0; i < GM_COLOR_COUNT; i++) {
 		char buf[16];
 		GetPrivateProfileStringA("graymap", GM_COLOR_KEYS[i], "", buf, sizeof(buf), g_iniPath);
@@ -184,6 +189,15 @@ void config_save() {
 	lgp("circle_fill", g_cfg.lgpCircle.fill);
 	lgp("circle_size", g_cfg.lgpCircle.size);
 	lgp("circle_wave", g_cfg.lgpCircle.wave);
+	auto aura = [](const char* key, int v) {
+		char buf[16];
+		snprintf(buf, sizeof(buf), "%d", v);
+		WritePrivateProfileStringA("aura", key, buf, g_iniPath);
+	};
+	aura("enabled", g_cfg.auraEnabled);
+	aura("own", g_cfg.auraOwn);
+	aura("others", g_cfg.auraOthers);
+	aura("size", g_cfg.auraSize);
 	for (int i = 0; i < GM_COLOR_COUNT; i++) {
 		char buf[16];
 		snprintf(buf, sizeof(buf), "%06X", g_cfg.gmColor[i] & 0xffffff);
@@ -210,10 +224,13 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE inst, DWORD reason, LPVOID) {
 		exe_dir_file(g_logPath, "legacia.log");
 		config_load();
 		lgp_init();
+		aura_init();
 		// the hooks must be in place before the client connects to the map-server
 		if (!hooks_install())
 			log_line("could not hook the game connection, signing in by address or @voice instead");
-		graymap_install();
+		// auras are drawn from Graymap's ground hook, so they need it too
+		if (graymap_install())
+			aura_install();
 		crashguard_install();
 		gui_install_early();
 		HANDLE t = CreateThread(nullptr, 0, plugin_main, nullptr, 0, nullptr);

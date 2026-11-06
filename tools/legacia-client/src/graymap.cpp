@@ -516,6 +516,7 @@ void draw_cells(void* ground, void* view, const int* area) {
 
 // thiscall hooks written as fastcall: this in ecx, edx unused, callee pops
 void __fastcall ground_hook(void* self, void*, void* view, int* area, int flag) {
+	aura_draw(view); // once a frame, see aura.cpp
 	if (active() && area) {
 		draw_cells(self, view, area);
 		if (g_cellTex[0])
