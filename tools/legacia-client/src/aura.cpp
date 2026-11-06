@@ -268,9 +268,9 @@ const float PI = 3.14159265f;
 const float GROUND_BRIGHTNESS = 165, GROUND_GLOW = 120;
 void draw_ground(const V3& foot, void* tex, float t) {
 	bool blended = g_alphaTex.count(tex) != 0;
-	// about 4.5 cells across at its widest, as in the Gepard recording, and it
+	// about 5 cells across at its widest, as in the Gepard recording, and it
 	// slowly breathes: 65% -> 100% -> 65% every 3 s
-	const float R = 46 * g_scale * (0.825f + 0.175f * sinf(2 * PI * t / 3.0f));
+	const float R = 52 * g_scale * (0.825f + 0.175f * sinf(2 * PI * t / 3.0f));
 	float th = 2 * PI * fmodf(t / 6.0f, 1.0f), c = cosf(th), s = sinf(th);
 	// corners in order around the square, with their texture corners
 	const float cx[4] = {-1, 1, 1, -1}, cz[4] = {-1, -1, 1, 1};
@@ -322,23 +322,16 @@ void draw_ground(const V3& foot, void* tex, float t) {
 // each ring, so its faded ends leave a gap that shows the spin.
 // Sizes: g_scale * 4 = 1 world unit; a cell is 5 units.
 void draw_rings(const V3& foot, void* tex, float t) {
-	const float CYCLE = 4.0f;            // one swirl: come in, open, turn, fade
+	const float CYCLE = 4.0f;            // one turn round the player
 	const int PETALS = 3, SEGS = 32;
 	const float R = 34 * g_scale;        // petal ring radius at full size (8.5 units)
 	const float BAND = 6 * g_scale;      // thin lines (the texture fades at its edges)
 	const float LIFT = 22 * g_scale;     // centre at the waist
 	const float OFF0 = 36 * g_scale, OFF1 = 14 * g_scale; // petal centres: come in from 9 units out to 3.5
 	const float TILT = 30 * PI / 180;
-	float u = fmodf(t / CYCLE, 1.0f);
-	float cyc = floorf(t / CYCLE);
-	float fade = fminf(1, u / 0.15f) * fminf(1, (1 - u) / 0.2f);
-	if (fade <= 0.01f)
-		return;
-	float k = fminf(1, u / 0.35f);
-	float ease = 1 - (1 - k) * (1 - k); // arrives and opens in the first 35%
-	// each swirl comes in from a different side, then turns once and a half
-	float side = 2 * PI * fmodf(cyc * 0.37f, 1.0f);
-	float turn = side + 3 * PI * u;
+	// the flower stays and keeps turning round the player (one turn per CYCLE)
+	const float fade = 1, ease = 1;
+	float turn = 2 * PI * fmodf(t / CYCLE, 1.0f);
 	float off = OFF0 + (OFF1 - OFF0) * ease;
 	float lift = LIFT * (0.4f + 0.6f * ease);
 	for (int pi = 0; pi < PETALS; pi++) {
@@ -374,7 +367,7 @@ void draw_rings(const V3& foot, void* tex, float t) {
 
 // part 3: small sparkles shooting out from the feet across the floor
 void draw_sparkles(const V3& foot, uint32_t aid, void* tex, float t) {
-	const float PERIOD = 4.0f, LIFE = 2.4f;
+	const float PERIOD = 5.0f, LIFE = 3.4f;
 	const int COUNT = 10; // about 6 on screen at once, drifting out slowly as in the Gepard recording
 	float hpc = fabsf(*(float*)(g_renderer + 4)), vpc = fabsf(*(float*)(g_renderer + 8));
 	for (int k = 0; k < COUNT; k++) {
