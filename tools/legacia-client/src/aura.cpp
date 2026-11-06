@@ -263,7 +263,7 @@ const float PI = 3.14159265f;
 const float GROUND_BRIGHTNESS = 165;
 void draw_ground(const V3& foot, void* tex, float t) {
 	bool blended = g_alphaTex.count(tex) != 0;
-	const float R = 62 * g_scale;
+	const float R = 40 * g_scale; // about 4 cells across, as in the Gepard recording
 	float th = 2 * PI * fmodf(t / 6.0f, 1.0f), c = cosf(th), s = sinf(th);
 	// corners in order around the square, with their texture corners
 	const float cx[4] = {-1, 1, 1, -1}, cz[4] = {-1, -1, 1, 1};
@@ -306,7 +306,7 @@ void draw_ground(const V3& foot, void* tex, float t) {
 // texture runs once round the ring, so its faded ends leave a gap that shows
 // the spin. They start LIFE/3 apart, so there are always rings going.
 void draw_rings(const V3& foot, void* tex, float t) {
-	const float LIFE = 2.4f, R0 = 14 * g_scale, R1 = 70 * g_scale, BAND = 10 * g_scale, LIFT = 24 * g_scale;
+	const float LIFE = 3.2f, R0 = 8 * g_scale, R1 = 48 * g_scale, BAND = 7 * g_scale, LIFT = 20 * g_scale;
 	const float TILT[3] = {12, 22, 6};
 	const int SEGS = 28;
 	for (int ri = 0; ri < 3; ri++) {
@@ -315,7 +315,7 @@ void draw_rings(const V3& foot, void* tex, float t) {
 		if (alpha < 2)
 			continue;
 		// the tilt leans a different way for each ring and slowly turns
-		float yaw = 2 * PI * fmodf(t / 4.0f + ri / 3.0f, 1.0f);
+		float yaw = 2 * PI * fmodf(t / 8.0f + ri / 3.0f, 1.0f);
 		float th = TILT[ri] * PI / 180;
 		V3 d = {cosf(yaw), 0, sinf(yaw)};
 		V3 e1 = {-d.z, 0, d.x};
@@ -323,8 +323,8 @@ void draw_rings(const V3& foot, void* tex, float t) {
 		float ease = 1 - (1 - u) * (1 - u); // grows fast, then slows down
 		float r = R0 + (R1 - R0) * ease;
 		V3 c = {foot.x, foot.y - LIFT * ease, foot.z};
-		// spin: one turn every 1.2 s, the middle ring the other way
-		float spin = fmodf(t / 1.2f + ri * 0.31f, 1.0f) * (ri == 1 ? -1.0f : 1.0f);
+		// spin: one turn every 3 s, the middle ring the other way
+		float spin = fmodf(t / 3.0f + ri * 0.31f, 1.0f) * (ri == 1 ? -1.0f : 1.0f);
 		auto at = [&](float rr, float ang) {
 			if (rr < 0.5f * g_scale)
 				rr = 0.5f * g_scale;
@@ -348,8 +348,8 @@ void draw_rings(const V3& foot, void* tex, float t) {
 
 // part 3: small sparkles shooting out from the feet across the floor
 void draw_sparkles(const V3& foot, uint32_t aid, void* tex, float t) {
-	const float PERIOD = 3.0f, LIFE = 1.5f;
-	const int COUNT = 24; // the user wanted more of them than the first 10
+	const float PERIOD = 4.0f, LIFE = 2.4f;
+	const int COUNT = 10; // about 6 on screen at once, drifting out slowly as in the Gepard recording
 	float hpc = fabsf(*(float*)(g_renderer + 4)), vpc = fabsf(*(float*)(g_renderer + 8));
 	for (int k = 0; k < COUNT; k++) {
 		uint32_t seed = hash(aid * 31u + (uint32_t)k);
@@ -361,7 +361,7 @@ void draw_sparkles(const V3& foot, uint32_t aid, void* tex, float t) {
 			continue;
 		float u = phase / LIFE;
 		uint32_t s = hash(seed ^ (uint32_t)(int)cyc);
-		float a = rnd(s, 0, 2 * PI), dist = 95 * g_scale * rnd(s, 0.75f, 1.15f);
+		float a = rnd(s, 0, 2 * PI), dist = 80 * g_scale * rnd(s, 0.75f, 1.15f);
 		float rise = 14 * g_scale * rnd(s, 0, 1), size = 10 * g_scale * rnd(s, 0.8f, 1.1f);
 		float alpha = 255 * fminf(1, u / 0.12f) * (1 - fmaxf(0, (u - 0.7f) / 0.3f));
 		V3 c = {foot.x + dist * u * cosf(a), foot.y - rise * u, foot.z + dist * u * sinf(a)};
