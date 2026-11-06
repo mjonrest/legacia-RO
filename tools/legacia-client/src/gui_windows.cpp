@@ -826,7 +826,7 @@ bool color_editor(const char* id, int& c, float x, float y) {
 	return save;
 }
 
-int g_gmTab; // 0 Graymap, 1 LGP, 2 Aura
+int g_gmTab; // 0 Graymap, 1 LGP
 int g_lgpEdit = -1; // colour being edited in the LGP tab: 0 square, 1 circle, -1 none
 
 // Graymap tab: the colours of the flat map
@@ -1006,40 +1006,10 @@ bool lgp_tab(float W, float H, float oy) {
 	return save;
 }
 
-// Aura tab: the Gepard-style auras the plugin draws (aura.cpp)
-bool aura_tab(float W, float oy) {
-	bool avail = aura_available(), on = g_cfg.auraEnabled && avail;
-	bool save = false;
-	label_at(16, oy + 4, "Auras", TEXT, g_guiBold);
-	label_at(16, oy + 22,
-	         !avail ? "Not available: this game exe isn't the one auras were made for."
-	         : on   ? "On - auras drawn around you and other players"
-	                : "Off - no auras are drawn",
-	         !avail ? WAIT : on ? OK : HEADER);
-	if (switch_at(W - 76, oy + 1, "##auraswitch", on, avail)) {
-		g_cfg.auraEnabled = !g_cfg.auraEnabled;
-		save = true;
-	}
-	float x = 16, w = W - 32, y = oy + 48;
-	header(x, y, "Show");
-	y += 20;
-	save |= layer_row(x, y, w, "##auraown", "My aura", "the aura you wear", &g_cfg.auraOwn, on);
-	save |= layer_row(x, y + 44, w, "##auraothers", "Other players", "the auras of the players around", &g_cfg.auraOthers, on);
-	y += 100;
-	header(x, y, "Size");
-	char pct[16];
-	snprintf(pct, sizeof(pct), "%d%%", g_cfg.auraSize);
-	label_at(x + w - text_size(pct).x, y, pct, on ? BLUE_TEXT : DISABLED);
-	slider_at(x, y + 22, w, "##aurasize", &g_cfg.auraSize, 50, 150, on);
-	save |= ImGui::IsItemDeactivatedAfterEdit();
-	label_at(x, y + 60, "Get an aura from the Aura Master in Prontera, or type @aura.", on ? HEADER : DISABLED);
-	return save;
-}
-
 void graymap_window() {
 	if (!g_graymap.open)
 		return;
-	const float W = g_gmTab == 1 ? 620.0f : 480.0f, H = g_gmTab == 1 ? 524.0f : g_gmTab == 2 ? 360.0f : 402.0f;
+	const float W = g_gmTab == 1 ? 620.0f : 480.0f, H = g_gmTab == 1 ? 524.0f : 402.0f;
 	ImVec2 disp = ImGui::GetIO().DisplaySize;
 	begin_window("##graymap", "Graymap", g_graymap, ImVec2(W, H), ImVec2((disp.x - W) / 2, (disp.y - H) / 2));
 	// tabs
@@ -1047,14 +1017,12 @@ void graymap_window() {
 		g_gmTab = 0;
 	if (button_at(116, 30, "LGP##gmtab", ImVec2(100, 24), g_gmTab == 1))
 		g_gmTab = 1;
-	if (button_at(220, 30, "Aura##gmtab", ImVec2(100, 24), g_gmTab == 2))
-		g_gmTab = 2;
 	{
 		ImVec2 p = ImGui::GetWindowPos();
 		ImGui::GetWindowDrawList()->AddLine(p + ImVec2(10, 54), p + ImVec2(W - 10, 54), RULE);
 	}
 	const float oy = 64;
-	bool save = g_gmTab == 1 ? lgp_tab(W, H, oy) : g_gmTab == 2 ? aura_tab(W, oy) : graymap_tab(W, oy);
+	bool save = g_gmTab == 1 ? lgp_tab(W, H, oy) : graymap_tab(W, oy);
 
 	ImVec2 p = ImGui::GetWindowPos();
 	ImGui::GetWindowDrawList()->AddLine(p + ImVec2(10, H - 42), p + ImVec2(W - 10, H - 42), RULE);
@@ -1077,28 +1045,6 @@ void graymap_window() {
 			dot = WAIT;
 		} else {
 			snprintf(line, sizeof(line), "Server: needs the voice server (skill cells come through it)");
-			dot = WAIT;
-		}
-		ImGui::GetWindowDrawList()->AddCircleFilled(p + ImVec2(21, H - 23), 4.5f, dot);
-		label_at(32, H - 30, line, HEADER);
-	} else if (g_gmTab == 2) {
-		int count = 0;
-		AuraServer st = aura_server_state(&count);
-		char line[96];
-		ImU32 dot = OK;
-		if (!g_cfg.auraEnabled) {
-			snprintf(line, sizeof(line), "Server: auras are off");
-			dot = DISABLED;
-		} else if (st == AURA_SERVER_ON) {
-			snprintf(line, sizeof(line), "Server: on - %d aura%s around you", count, count == 1 ? "" : "s");
-		} else if (st == AURA_SERVER_WAITING) {
-			snprintf(line, sizeof(line), "Server: asking...");
-			dot = WAIT;
-		} else if (st == AURA_SERVER_UNSUPPORTED) {
-			snprintf(line, sizeof(line), "Server: this map-server doesn't send auras");
-			dot = WAIT;
-		} else {
-			snprintf(line, sizeof(line), "Server: needs the voice server (auras come through it)");
 			dot = WAIT;
 		}
 		ImGui::GetWindowDrawList()->AddCircleFilled(p + ImVec2(21, H - 23), 4.5f, dot);

@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include <unordered_map>
+#include <unordered_set>
 
 namespace {
 
@@ -97,6 +98,7 @@ bool readable(uintptr_t at, int len) {
 // ---- textures ----
 std::unordered_map<int, void*> g_tex; // part * 1000 + number -> client texture, null = could not load
 bool g_texFailed;
+std::unordered_set<void*> g_alphaTex; // textures with a real alpha (ground circles)
 int g_loadsThisFrame;
 
 std::string tex_folder() {
@@ -157,6 +159,23 @@ void* texture(int part, int num) {
 		void* dev = ((GetDeviceFn)GET_DEVICE)();
 		if (dev) {
 			tex = ((CreateTextureFn)CREATE_TEXTURE)(dev, w, h, TEX_FORMAT_ARGB8888, 0, 0);
+			if (tex && part == 1) {
+				// ground circles are mixed by alpha (see emit): the brightness
+				// becomes the alpha (a bit stronger, so the circle reads clearly)
+				// and the colour is un-darkened to match
+				for (uint32_t& c : px) {
+					int r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
+					int m = r > g ? (r > b ? r : b) : (g > b ? g : b);
+					if (m == 0) {
+						c = 0;
+						continue;
+					}
+					int a = m * 3 / 2 > 255 ? 255 : m * 3 / 2;
+					r = r * 255 / m, g = g * 255 / m, b = b * 255 / m;
+					c = (uint32_t)a << 24 | (uint32_t)r << 16 | (uint32_t)g << 8 | (uint32_t)b;
+				}
+				g_alphaTex.insert(tex);
+			}
 			if (!tex) // the alpha isn't needed (drawn additively), so the format Graymap uses works too
 				tex = ((CreateTextureFn)CREATE_TEXTURE)(dev, w, h, TEX_FORMAT_ARGB1555, 0, 0);
 		}
@@ -182,15 +201,18 @@ float g_scale = 1.0f; // world units per Gepard "pixel" (the sizes below come fr
 // One polygon (strip order: top left, top right, bottom left, bottom right),
 // projected with the client's camera and added to its see-through list.
 // zbias lifts ground pieces off the ground, like the client's own ground cells.
-void emit(const TLV* v, void* tex) {
+// Blend: additive (D3DBLEND_ONE/ONE, black adds nothing) unless `blended`,
+// which mixes by the texture's alpha (SRCALPHA/INVSRCALPHA) so the colours
+// stay true on light floors instead of adding up to white.
+void emit(const TLV* v, void* tex, bool blended = false) {
 	uint8_t* face = ((BorrowFn)BORROW_RP)(g_renderer);
 	if (!face)
 		return;
 	TLV* out = *(TLV**)face;
 	memcpy(out, v, sizeof(TLV) * 4);
 	*(void**)(face + 8) = tex;
-	*(int*)(face + 0x18) = 2; // D3DBLEND_ONE: additive, black adds nothing
-	*(int*)(face + 0x1c) = 2;
+	*(int*)(face + 0x18) = blended ? 5 : 2;
+	*(int*)(face + 0x1c) = blended ? 6 : 2;
 	((AddRpFn)ADD_RP)(g_renderer, face, ADD_RP_EFFECT);
 }
 
@@ -235,8 +257,12 @@ float rnd(uint32_t& s, float lo, float hi) {
 
 const float PI = 3.14159265f;
 
-// part 1: the ground circle, turning flat on the floor once every 6 s
+// part 1: the ground circle, turning flat on the floor once every 6 s. Drawn
+// additively, so it is dimmed a little: at full strength light floors washed it
+// out to white.
+const float GROUND_BRIGHTNESS = 165;
 void draw_ground(const V3& foot, void* tex, float t) {
+	bool blended = g_alphaTex.count(tex) != 0;
 	const float R = 62 * g_scale;
 	float th = 2 * PI * fmodf(t / 6.0f, 1.0f), c = cosf(th), s = sinf(th);
 	// corners in order around the square, with their texture corners
@@ -266,46 +292,54 @@ void draw_ground(const V3& foot, void* tex, float t) {
 	for (int i = 0; i < 4; i++) {
 		out[i] = v[order[i]];
 		out[i].z -= 0.00003f; // the client's own ground cells lift themselves the same way
-		out[i].color = grey(230);
+		out[i].color = blended ? 0xffffffffu : grey(GROUND_BRIGHTNESS);
 		out[i].specular = 0xff000000u;
 		out[i].u = cu[order[i]];
 		out[i].v = cv[order[i]];
 	}
-	emit(out, tex);
+	emit(out, tex, blended);
 }
 
-// part 2: three rings round the player. Each one starts at the inner edge of
-// the ground circle, grows and fades, tilted, while its tilt turns round the
-// player; the texture runs once round each ring.
+// part 2: three rings round the player, as in the user's Gepard recording:
+// each one appears small at the feet, grows bigger as it rises to the waist,
+// spinning round the player the whole time, and fades out at full size. The
+// texture runs once round the ring, so its faded ends leave a gap that shows
+// the spin. They start LIFE/3 apart, so there are always rings going.
 void draw_rings(const V3& foot, void* tex, float t) {
-	const float LIFE = 2.0f, R0 = 36 * g_scale, R1 = 62 * g_scale, BAND = 9 * g_scale;
-	const float TILT[3] = {40, 25, 10};
-	const int SEGS = 20;
+	const float LIFE = 2.4f, R0 = 14 * g_scale, R1 = 70 * g_scale, BAND = 10 * g_scale, LIFT = 24 * g_scale;
+	const float TILT[3] = {12, 22, 6};
+	const int SEGS = 28;
 	for (int ri = 0; ri < 3; ri++) {
-		float u = fmodf(t / LIFE - ri / 3.0f + 3.0f, 1.0f);
-		float alpha = 230 * fminf(1, u / 0.15f) * fmaxf(0, 1 - fmaxf(0, (u - 0.55f) / 0.35f));
+		float u = fmodf(t / LIFE + ri / 3.0f, 1.0f);
+		float alpha = 230 * fminf(1, u / 0.12f) * fminf(1, (1 - u) / 0.3f);
 		if (alpha < 2)
 			continue;
-		float yaw = 2 * PI * fmodf(t / LIFE + ri / 3.0f, 1.0f);
+		// the tilt leans a different way for each ring and slowly turns
+		float yaw = 2 * PI * fmodf(t / 4.0f + ri / 3.0f, 1.0f);
 		float th = TILT[ri] * PI / 180;
 		V3 d = {cosf(yaw), 0, sinf(yaw)};
 		V3 e1 = {-d.z, 0, d.x};
 		V3 e2 = {cosf(th) * d.x, sinf(th), cosf(th) * d.z};
-		float r = R0 + (R1 - R0) * u;
-		auto at = [&](float rr, float a) {
+		float ease = 1 - (1 - u) * (1 - u); // grows fast, then slows down
+		float r = R0 + (R1 - R0) * ease;
+		V3 c = {foot.x, foot.y - LIFT * ease, foot.z};
+		// spin: one turn every 1.2 s, the middle ring the other way
+		float spin = fmodf(t / 1.2f + ri * 0.31f, 1.0f) * (ri == 1 ? -1.0f : 1.0f);
+		auto at = [&](float rr, float ang) {
 			if (rr < 0.5f * g_scale)
 				rr = 0.5f * g_scale;
-			float ca = cosf(a), sa = sinf(a);
+			float ca = cosf(ang), sa = sinf(ang);
 			float x = rr * (ca * e1.x + sa * e2.x);
-			float y = r * e2.y + rr * (sa * e2.y); // the lowest edge rests on the floor
+			float y = rr * (sa * e2.y);
 			float z = rr * (ca * e1.z + sa * e2.z);
-			return V3{foot.x + x, foot.y - y, foot.z + z}; // up is -y in the client
+			return V3{c.x + x, c.y - y, c.z + z}; // up is -y in the client
 		};
+		float band = BAND * (0.5f + 0.5f * ease);
 		uint32_t col = grey(alpha);
 		for (int k = 0; k < SEGS; k++) {
-			float a0 = 2 * PI * k / SEGS - PI / 2, a1 = a0 + 2 * PI / SEGS;
+			float a0 = 2 * PI * ((float)k / SEGS + spin), a1 = a0 + 2 * PI / SEGS;
 			float u0 = (float)k / SEGS, u1 = (float)(k + 1) / SEGS;
-			V3 p[4] = {at(r + BAND, a0), at(r + BAND, a1), at(r - BAND, a0), at(r - BAND, a1)};
+			V3 p[4] = {at(r + band, a0), at(r + band, a1), at(r - band, a0), at(r - band, a1)};
 			float uv[8] = {u0, 0, u1, 0, u0, 1, u1, 1};
 			quad(p, uv, col, tex);
 		}
@@ -314,8 +348,8 @@ void draw_rings(const V3& foot, void* tex, float t) {
 
 // part 3: small sparkles shooting out from the feet across the floor
 void draw_sparkles(const V3& foot, uint32_t aid, void* tex, float t) {
-	const float PERIOD = 4.0f, LIFE = 1.5f;
-	const int COUNT = 10;
+	const float PERIOD = 3.0f, LIFE = 1.5f;
+	const int COUNT = 24; // the user wanted more of them than the first 10
 	float hpc = fabsf(*(float*)(g_renderer + 4)), vpc = fabsf(*(float*)(g_renderer + 8));
 	for (int k = 0; k < COUNT; k++) {
 		uint32_t seed = hash(aid * 31u + (uint32_t)k);
@@ -418,8 +452,71 @@ void aura_set_none() {
 }
 
 // From Graymap's ground hook, during the world drawing (game thread).
+// The server sends each aura as hat effects (pc_aura_apply in pc.cpp,
+// aura_hateffect: yes): part n of type 1/2/3 is hat effect 1000/1300/1600 + n.
+// The game keeps every actor's hat effects in a std::set<int> at +0x3fc
+// (CGameActor; 0xcac080 walks it to show or hide them all), so the auras come
+// with the normal game packets, for everyone in sight, and stay as long as
+// the character wears them. No voice server needed.
+const uintptr_t ACTOR_HAT_EFFECTS = 0x3fc;
+const int HAT_AURA_BASE = 1000, HAT_AURA_STEP = 300;
+
+bool hat_aura(const uint8_t* actor, Aura& out) {
+	out = Aura{};
+	if (!readable((uintptr_t)actor + ACTOR_HAT_EFFECTS, 4))
+		return false;
+	// MSVC tree node: left +0, parent +4, right +8, isnil +0xd, value +0x10
+	const uint8_t* head = *(const uint8_t* const*)(actor + ACTOR_HAT_EFFECTS);
+	if (!head || !readable((uintptr_t)head, 0x14))
+		return false;
+	const uint8_t* n = *(const uint8_t* const*)head; // leftmost = begin
+	bool any = false;
+	for (int guard = 0; guard < 64 && n && n != head; guard++) {
+		if (!readable((uintptr_t)n, 0x14) || n[0xd])
+			break;
+		int id = *(const int*)(n + 0x10);
+		int k = (id - HAT_AURA_BASE - 1) / HAT_AURA_STEP, num = id - HAT_AURA_BASE - k * HAT_AURA_STEP;
+		if (id > HAT_AURA_BASE && k >= 0 && k < 3 && num >= 1 && num < HAT_AURA_STEP) {
+			out.part[k] = (uint8_t)num;
+			any = true;
+		}
+		// in-order successor
+		const uint8_t* r = *(const uint8_t* const*)(n + 8);
+		if (readable((uintptr_t)r, 0x14) && !r[0xd]) {
+			n = r;
+			for (int g2 = 0; g2 < 64; g2++) {
+				const uint8_t* l = *(const uint8_t* const*)n;
+				if (!readable((uintptr_t)l, 0x14) || l[0xd])
+					break;
+				n = l;
+			}
+		} else {
+			const uint8_t* p = *(const uint8_t* const*)(n + 4);
+			for (int g2 = 0; g2 < 64 && readable((uintptr_t)p, 0x14) && !p[0xd] && n == *(const uint8_t* const*)(p + 8); g2++) {
+				n = p;
+				p = *(const uint8_t* const*)(n + 4);
+			}
+			n = p;
+		}
+	}
+	return any;
+}
+
+// an actor's aura: from its hat effects, else from the voice server's list
+bool actor_aura(const uint8_t* actor, uint32_t aid, Aura& out) {
+	if (aid < 2000000 || aid >= 100000000)
+		return false; // only players (account IDs); monsters and NPCs have other classes
+	if (hat_aura(actor, out))
+		return true;
+	auto a = g_frameAuras.find(aid);
+	if (a == g_frameAuras.end())
+		return false;
+	out = a->second;
+	return true;
+}
+
 void aura_draw(void* view) {
-	if (!g_ok || !g_cfg.auraEnabled || !view)
+	if (!g_ok || !view)
 		return;
 	uint8_t* r = *(uint8_t**)RENDERER_PTR;
 	if (!r)
@@ -436,8 +533,6 @@ void aura_draw(void* view) {
 			g_auras.clear();
 		g_frameAuras = g_auras;
 	}
-	if (g_frameAuras.empty())
-		return;
 
 	uint8_t* mm = (uint8_t*)MODE_MGR;
 	if (*(int*)(mm + 0x58) != 1)
@@ -451,17 +546,15 @@ void aura_draw(void* view) {
 
 	g_renderer = r;
 	g_view = view;
-	g_scale = 0.25f * g_cfg.auraSize / 100.0f;
+	g_scale = 0.25f;
 	float t = (float)(GetTickCount() % 3600000u) / 1000.0f;
 
 	uint32_t self = *(uint32_t*)SESSION_AID;
-	auto it = g_frameAuras.find(self);
 	uint8_t* player = *(uint8_t**)(world + 0x2c);
-	if (player && it != g_frameAuras.end() && g_cfg.auraOwn)
-		draw_actor(player, it->second, self, t);
+	Aura a;
+	if (player && actor_aura(player, self, a))
+		draw_actor(player, a, self, t);
 
-	if (!g_cfg.auraOthers)
-		return;
 	// std::list<CGameActor*>: head node at +0x10, size at +0x14; node = next, prev, value
 	uint8_t* head = *(uint8_t**)(world + 0x10);
 	int size = *(int*)(world + 0x14);
@@ -472,11 +565,10 @@ void aura_draw(void* view) {
 		if (!readable((uintptr_t)node, 12))
 			break;
 		uint8_t* actor = *(uint8_t**)(node + 8);
-		if (actor && readable((uintptr_t)actor + 0x110, 4)) {
+		if (actor && actor != player && readable((uintptr_t)actor + 0x110, 4)) {
 			uint32_t aid = *(uint32_t*)(actor + 0x110);
-			auto a = g_frameAuras.find(aid);
-			if (aid != self && a != g_frameAuras.end())
-				draw_actor(actor, a->second, aid, t);
+			if (aid != self && actor_aura(actor, aid, a))
+				draw_actor(actor, a, aid, t);
 		}
 		node = *(uint8_t**)node;
 	}

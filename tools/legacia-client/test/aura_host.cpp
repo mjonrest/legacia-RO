@@ -169,7 +169,7 @@ int main(int argc, char** argv) {
 	*(int*)(renderer + 0x34) = 384;
 	*(uint8_t**)va(0x1382fa8) = renderer;
 	// world with our player at the centre and 2 more players + a monster
-	static uint8_t world[0x100], mode[0x100], actors[4][0x200];
+	static uint8_t world[0x100], mode[0x100], actors[4][0x500];
 	uint8_t* mm = va(0x1343108);
 	*(int*)(mm + 0x58) = 1;
 	*(uint8_t**)(mm + 4) = mode;
@@ -193,6 +193,36 @@ int main(int argc, char** argv) {
 	for (int i = 0; i < 4; i++) {
 		memcpy(actors[i] + 0x10, pos[i], 12);
 		*(uint32_t*)(actors[i] + 0x110) = aids[i];
+	}
+	// hat effects on player 3 (std::set<int> at +0x3fc), as the server sends
+	// auras with aura_hateffect: ground 5, ring 7, sparkle 2
+	{
+		struct TNode {
+			TNode *left, *parent, *right;
+			char color, isnil, pad[2];
+			int value;
+		};
+		static TNode th = {}, tn[3] = {};
+		const int ids[3] = {1005, 1307, 1602};
+		th.isnil = 1;
+		// a little balanced tree: tn[1] root, tn[0] left, tn[2] right
+		th.parent = &tn[1];
+		th.left = &tn[0];
+		th.right = &tn[2];
+		for (int i = 0; i < 3; i++) {
+			tn[i].left = tn[i].right = &th;
+			tn[i].value = ids[i];
+		}
+		tn[1].parent = &th;
+		tn[1].left = &tn[0];
+		tn[1].right = &tn[2];
+		tn[0].parent = tn[2].parent = &tn[1];
+		*(TNode**)(actors[2] + 0x3fc) = &th;
+		Aura a;
+		bool ok = hat_aura(actors[2], a);
+		fprintf(stderr, "hat aura: %d -> %d %d %d\n", ok, a.part[0], a.part[1], a.part[2]);
+		if (!ok || a.part[0] != 5 || a.part[1] != 7 || a.part[2] != 2)
+			return 1;
 	}
 	// auras from the "server": me 12/3/1, player 2 ground only, player 3 rings + sparkles
 	uint8_t entries[3 * 7] = {};
