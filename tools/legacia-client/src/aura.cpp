@@ -6,7 +6,7 @@
 //
 // Drawing uses the client's own 3D pipeline, like Graymap: each piece is one
 // of the client's polygons (projected with the client's own camera and added
-// to its sorted list of see-through polygons), so the aura sits on the ground
+// to its list of effect polygons), so the aura sits on the ground
 // in 3D, turns with the camera and is drawn in the right order with the
 // characters. It is drawn from Graymap's ground hook (graymap.cpp), once a
 // frame. Positions come from the client's actor list: account ID at +0x110,
@@ -30,7 +30,12 @@ namespace {
 const uintptr_t PROJECT_VERTEX = 0x55c750;
 // CRenderer::BorrowNullRP(): a 4-vertex polygon from the frame's pool
 const uintptr_t BORROW_RP = 0x543060;
-// CRenderer::AddRP(polygon, flags): flag 1 = sorted with the other see-through polygons
+// CRenderer::AddRP(polygon, flags). Flags 1 alone put it in the see-through
+// lists, which are drawn with SRCALPHA/INVSRCALPHA whatever the polygon says
+// (our black backgrounds showed as black boxes). Flags 1|4 put it in the
+// effect list (+0x1ec), drawn by 0x55a820 with each polygon's own blend
+// (+0x18 src, +0x1c dst), like skill effects.
+const int ADD_RP_EFFECT = 1 | 4;
 const uintptr_t ADD_RP = 0x558da0;
 const uintptr_t RENDERER_PTR = 0x1382fa8, MODE_MGR = 0x1343108;
 const uintptr_t SESSION_AID = 0x172d55c; // CSession: our own account ID
@@ -186,7 +191,7 @@ void emit(const TLV* v, void* tex) {
 	*(void**)(face + 8) = tex;
 	*(int*)(face + 0x18) = 2; // D3DBLEND_ONE: additive, black adds nothing
 	*(int*)(face + 0x1c) = 2;
-	((AddRpFn)ADD_RP)(g_renderer, face, 1);
+	((AddRpFn)ADD_RP)(g_renderer, face, ADD_RP_EFFECT);
 }
 
 bool project(const V3& p, TLV& out) {

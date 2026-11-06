@@ -85,7 +85,7 @@ static uint8_t* __fastcall fake_borrow(void*, void*) {
 	return (uint8_t*)f;
 }
 static void __fastcall fake_add(void*, void*, void* face, int flags) {
-	if (flags != 1)
+	if (flags != 5)
 		fprintf(stderr, "AddRP flags %d\n", flags);
 	g_added.push_back((Face*)face);
 }
