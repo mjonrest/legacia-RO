@@ -204,16 +204,21 @@ float g_scale = 1.0f; // world units per Gepard "pixel" (the sizes below come fr
 // Blend: additive (D3DBLEND_ONE/ONE, black adds nothing) unless `blended`,
 // which mixes by the texture's alpha (SRCALPHA/INVSRCALPHA) so the colours
 // stay true on light floors instead of adding up to white.
-void emit(const TLV* v, void* tex, bool blended = false) {
+// blend factors: 5 = SRCALPHA, 6 = INVSRCALPHA, 2 = ONE
+void emit_blend(const TLV* v, void* tex, int src, int dst) {
 	uint8_t* face = ((BorrowFn)BORROW_RP)(g_renderer);
 	if (!face)
 		return;
 	TLV* out = *(TLV**)face;
 	memcpy(out, v, sizeof(TLV) * 4);
 	*(void**)(face + 8) = tex;
-	*(int*)(face + 0x18) = blended ? 5 : 2;
-	*(int*)(face + 0x1c) = blended ? 6 : 2;
+	*(int*)(face + 0x18) = src;
+	*(int*)(face + 0x1c) = dst;
 	((AddRpFn)ADD_RP)(g_renderer, face, ADD_RP_EFFECT);
+}
+
+void emit(const TLV* v, void* tex, bool blended = false) {
+	emit_blend(v, tex, blended ? 5 : 2, blended ? 6 : 2);
 }
 
 bool project(const V3& p, TLV& out) {
@@ -260,10 +265,12 @@ const float PI = 3.14159265f;
 // part 1: the ground circle, turning flat on the floor once every 6 s. Drawn
 // additively, so it is dimmed a little: at full strength light floors washed it
 // out to white.
-const float GROUND_BRIGHTNESS = 165;
+const float GROUND_BRIGHTNESS = 165, GROUND_GLOW = 150;
 void draw_ground(const V3& foot, void* tex, float t) {
 	bool blended = g_alphaTex.count(tex) != 0;
-	const float R = 62 * g_scale;
+	// about 4.5 cells across at its widest, as in the Gepard recording, and it
+	// slowly breathes: 65% -> 100% -> 65% every 3 s
+	const float R = 46 * g_scale * (0.825f + 0.175f * sinf(2 * PI * t / 3.0f));
 	float th = 2 * PI * fmodf(t / 6.0f, 1.0f), c = cosf(th), s = sinf(th);
 	// corners in order around the square, with their texture corners
 	const float cx[4] = {-1, 1, 1, -1}, cz[4] = {-1, -1, 1, 1};
@@ -298,33 +305,46 @@ void draw_ground(const V3& foot, void* tex, float t) {
 		out[i].v = cv[order[i]];
 	}
 	emit(out, tex, blended);
+	// a second, added-light pass makes the circle glow brighter and whiter
+	if (blended) {
+		for (int i = 0; i < 4; i++)
+			out[i].color = grey(GROUND_GLOW);
+		emit_blend(out, tex, 5, 2); // light added, weighted by the circle's alpha
+	}
 }
 
-// part 2: three rings round the player, as in the user's Gepard recording:
-// each one appears small at the feet, grows bigger as it rises to the waist,
-// spinning round the player the whole time, and fades out at full size. The
-// texture runs once round the ring, so its faded ends leave a gap that shows
-// the spin. They start LIFE/3 apart, so there are always rings going.
+// part 2: rings, as in the user's Gepard recording: three ring layers like
+// flower petals. Each swirl comes in from one side as one ring, then the three
+// fan out 120 degrees apart, each one's centre a little off the player toward
+// its own side and leaning out that way, and the flower turns round the player
+// at waist height, the petals breathing bigger and smaller out of step, each
+// ring spinning (the middle one the other way). The texture runs once round
+// each ring, so its faded ends leave a gap that shows the spin.
+// Sizes: g_scale * 4 = 1 world unit; a cell is 5 units.
 void draw_rings(const V3& foot, void* tex, float t) {
-	const float LIFE = 2.4f, R0 = 14 * g_scale, R1 = 70 * g_scale, BAND = 10 * g_scale, LIFT = 24 * g_scale;
-	const float TILT[3] = {12, 22, 6};
-	const int SEGS = 28;
-	for (int ri = 0; ri < 3; ri++) {
-		float u = fmodf(t / LIFE + ri / 3.0f, 1.0f);
-		float alpha = 230 * fminf(1, u / 0.12f) * fminf(1, (1 - u) / 0.3f);
-		if (alpha < 2)
-			continue;
-		// the tilt leans a different way for each ring and slowly turns
-		float yaw = 2 * PI * fmodf(t / 4.0f + ri / 3.0f, 1.0f);
-		float th = TILT[ri] * PI / 180;
-		V3 d = {cosf(yaw), 0, sinf(yaw)};
+	const float CYCLE = 4.0f;            // one turn round the player
+	const int PETALS = 3, SEGS = 32;
+	const float R = 28 * g_scale;        // petal ring radius at full size (7 units): the flower is as wide as the ground circle
+	const float BAND = 6 * g_scale;      // thin lines (the texture fades at its edges)
+	const float LIFT = 22 * g_scale;     // centre at the waist
+	const float OFF0 = 36 * g_scale, OFF1 = 12 * g_scale; // petal centres 3 units off the player
+	const float TILT = 30 * PI / 180;
+	// the flower stays and keeps turning round the player (one turn per CYCLE)
+	const float fade = 1, ease = 1;
+	float turn = 2 * PI * fmodf(t / CYCLE, 1.0f);
+	float off = OFF0 + (OFF1 - OFF0) * ease;
+	float lift = LIFT * (0.4f + 0.6f * ease);
+	for (int pi = 0; pi < PETALS; pi++) {
+		float dir = turn + 2 * PI / 3 * pi * ease; // fan out to 120 degrees apart
+		float breathe = 0.85f + 0.15f * sinf(2 * PI * t / 1.6f + pi * 2.1f);
+		float r = R * (0.4f + 0.6f * ease) * breathe;
+		V3 c = {foot.x + off * cosf(dir), foot.y - lift, foot.z + off * sinf(dir)};
+		// the petal leans out, toward its own side
+		V3 d = {cosf(dir), 0, sinf(dir)};
 		V3 e1 = {-d.z, 0, d.x};
-		V3 e2 = {cosf(th) * d.x, sinf(th), cosf(th) * d.z};
-		float ease = 1 - (1 - u) * (1 - u); // grows fast, then slows down
-		float r = R0 + (R1 - R0) * ease;
-		V3 c = {foot.x, foot.y - LIFT * ease, foot.z};
-		// spin: one turn every 1.2 s, the middle ring the other way
-		float spin = fmodf(t / 1.2f + ri * 0.31f, 1.0f) * (ri == 1 ? -1.0f : 1.0f);
+		V3 e2 = {cosf(TILT) * d.x, sinf(TILT), cosf(TILT) * d.z};
+		float alpha = 240 * fade;
+		float spin = fmodf(t / 2.6f + pi * 0.31f, 1.0f) * (pi == 1 ? -1.0f : 1.0f);
 		auto at = [&](float rr, float ang) {
 			if (rr < 0.5f * g_scale)
 				rr = 0.5f * g_scale;
@@ -334,12 +354,11 @@ void draw_rings(const V3& foot, void* tex, float t) {
 			float z = rr * (ca * e1.z + sa * e2.z);
 			return V3{c.x + x, c.y - y, c.z + z}; // up is -y in the client
 		};
-		float band = BAND * (0.5f + 0.5f * ease);
 		uint32_t col = grey(alpha);
-		for (int k = 0; k < SEGS; k++) {
-			float a0 = 2 * PI * ((float)k / SEGS + spin), a1 = a0 + 2 * PI / SEGS;
-			float u0 = (float)k / SEGS, u1 = (float)(k + 1) / SEGS;
-			V3 p[4] = {at(r + band, a0), at(r + band, a1), at(r - band, a0), at(r - band, a1)};
+		for (int s = 0; s < SEGS; s++) {
+			float a0 = 2 * PI * ((float)s / SEGS + spin), a1 = a0 + 2 * PI / SEGS;
+			float u0 = (float)s / SEGS, u1 = (float)(s + 1) / SEGS;
+			V3 p[4] = {at(r + BAND, a0), at(r + BAND, a1), at(r - BAND, a0), at(r - BAND, a1)};
 			float uv[8] = {u0, 0, u1, 0, u0, 1, u1, 1};
 			quad(p, uv, col, tex);
 		}
@@ -348,8 +367,8 @@ void draw_rings(const V3& foot, void* tex, float t) {
 
 // part 3: small sparkles shooting out from the feet across the floor
 void draw_sparkles(const V3& foot, uint32_t aid, void* tex, float t) {
-	const float PERIOD = 3.0f, LIFE = 1.5f;
-	const int COUNT = 24; // the user wanted more of them than the first 10
+	const float PERIOD = 5.0f, LIFE = 3.4f;
+	const int COUNT = 10; // about 6 on screen at once, drifting out slowly as in the Gepard recording
 	float hpc = fabsf(*(float*)(g_renderer + 4)), vpc = fabsf(*(float*)(g_renderer + 8));
 	for (int k = 0; k < COUNT; k++) {
 		uint32_t seed = hash(aid * 31u + (uint32_t)k);
@@ -361,8 +380,8 @@ void draw_sparkles(const V3& foot, uint32_t aid, void* tex, float t) {
 			continue;
 		float u = phase / LIFE;
 		uint32_t s = hash(seed ^ (uint32_t)(int)cyc);
-		float a = rnd(s, 0, 2 * PI), dist = 95 * g_scale * rnd(s, 0.75f, 1.15f);
-		float rise = 14 * g_scale * rnd(s, 0, 1), size = 10 * g_scale * rnd(s, 0.8f, 1.1f);
+		float a = rnd(s, 0, 2 * PI), dist = 80 * g_scale * rnd(s, 0.75f, 1.15f);
+		float rise = 14 * g_scale * rnd(s, 0, 1), size = 4.5f * g_scale * rnd(s, 0.8f, 1.1f);
 		float alpha = 255 * fminf(1, u / 0.12f) * (1 - fmaxf(0, (u - 0.7f) / 0.3f));
 		V3 c = {foot.x + dist * u * cosf(a), foot.y - rise * u, foot.z + dist * u * sinf(a)};
 		TLV m;
@@ -454,12 +473,14 @@ void aura_set_none() {
 // From Graymap's ground hook, during the world drawing (game thread).
 // The server sends each aura as hat effects (pc_aura_apply in pc.cpp,
 // aura_hateffect: yes): part n of type 1/2/3 is hat effect 1000/1300/1600 + n.
-// The game keeps every actor's hat effects in a std::set<int> at +0x3fc
-// (CGameActor; 0xcac080 walks it to show or hide them all), so the auras come
+// The game keeps every actor's effects in a std::set<int> at +0x3fc
+// (CGameActor; 0xcac080 adds to it and walks it to show or hide them all).
+// Hat effects are stored there as hat ID + 0x9ac (ZC_HAT_EFFECT handler
+// 0xd6bb50 -> actor message 0x37f -> 0xcb9ea4 adds 0x9ac), so the auras come
 // with the normal game packets, for everyone in sight, and stay as long as
 // the character wears them. No voice server needed.
 const uintptr_t ACTOR_HAT_EFFECTS = 0x3fc;
-const int HAT_AURA_BASE = 1000, HAT_AURA_STEP = 300;
+const int HAT_EFFECT_OFFSET = 0x9ac, HAT_AURA_BASE = 1000, HAT_AURA_STEP = 300;
 
 bool hat_aura(const uint8_t* actor, Aura& out) {
 	out = Aura{};
@@ -474,7 +495,7 @@ bool hat_aura(const uint8_t* actor, Aura& out) {
 	for (int guard = 0; guard < 64 && n && n != head; guard++) {
 		if (!readable((uintptr_t)n, 0x14) || n[0xd])
 			break;
-		int id = *(const int*)(n + 0x10);
+		int id = *(const int*)(n + 0x10) - HAT_EFFECT_OFFSET;
 		int k = (id - HAT_AURA_BASE - 1) / HAT_AURA_STEP, num = id - HAT_AURA_BASE - k * HAT_AURA_STEP;
 		if (id > HAT_AURA_BASE && k >= 0 && k < 3 && num >= 1 && num < HAT_AURA_STEP) {
 			out.part[k] = (uint8_t)num;
@@ -502,12 +523,49 @@ bool hat_aura(const uint8_t* actor, Aura& out) {
 	return any;
 }
 
+// For your own character the game handles ZC_HAT_EFFECT in its status code
+// (0xd537a0, self branch) and keeps each hat effect in its own status list,
+// a std::vector of 0x1c-byte entries at 0x14a0258 (begin) / 0x14a025c (end):
+// +0 status 0x37f, +8 the hat ID. Right after the first login the effect does
+// not reach the character's effect set until a map change, so for yourself
+// the auras are read from this list.
+const uintptr_t SELF_STATUS_BEGIN = 0x14a0258, SELF_STATUS_END = 0x14a025c;
+const int STATUS_HAT_EFFECT = 0x37f;
+
+bool self_aura(Aura& out) {
+	out = Aura{};
+	const uint8_t* b = *(const uint8_t* const*)SELF_STATUS_BEGIN;
+	const uint8_t* e = *(const uint8_t* const*)SELF_STATUS_END;
+	if (!b || e < b || (e - b) % 0x1c != 0 || (e - b) / 0x1c > 2000 || !readable((uintptr_t)b, (size_t)(e - b)))
+		return false;
+	bool any = false;
+	for (const uint8_t* p = b; p < e; p += 0x1c) {
+		if (*(const int*)p != STATUS_HAT_EFFECT)
+			continue;
+		int id = *(const int*)(p + 8);
+		int k = (id - HAT_AURA_BASE - 1) / HAT_AURA_STEP, num = id - HAT_AURA_BASE - k * HAT_AURA_STEP;
+		if (id > HAT_AURA_BASE && k >= 0 && k < 3 && num >= 1 && num < HAT_AURA_STEP) {
+			out.part[k] = (uint8_t)num;
+			any = true;
+		}
+	}
+	return any;
+}
+
 // an actor's aura: from its hat effects, else from the voice server's list
-bool actor_aura(const uint8_t* actor, uint32_t aid, Aura& out) {
+bool actor_aura(const uint8_t* actor, uint32_t aid, Aura& out, bool self = false) {
 	if (aid < 2000000 || aid >= 100000000)
 		return false; // only players (account IDs); monsters and NPCs have other classes
-	if (hat_aura(actor, out))
+	if (self && readable(SELF_STATUS_BEGIN, 8) && self_aura(out))
+		return true; // the game's own list is current for you even right after login
+	if (hat_aura(actor, out)) {
+		static bool logged = false;
+		if (!logged) {
+			logged = true;
+			log_line("aura: first hat-effect aura seen (player %u: %d %d %d)", (unsigned)aid, out.part[0], out.part[1], out.part[2]);
+		}
 		return true;
+	}
 	auto a = g_frameAuras.find(aid);
 	if (a == g_frameAuras.end())
 		return false;
@@ -552,7 +610,7 @@ void aura_draw(void* view) {
 	uint32_t self = *(uint32_t*)SESSION_AID;
 	uint8_t* player = *(uint8_t**)(world + 0x2c);
 	Aura a;
-	if (player && actor_aura(player, self, a))
+	if (player && actor_aura(player, self, a, true))
 		draw_actor(player, a, self, t);
 
 	// std::list<CGameActor*>: head node at +0x10, size at +0x14; node = next, prev, value
