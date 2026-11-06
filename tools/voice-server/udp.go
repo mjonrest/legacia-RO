@@ -17,6 +17,7 @@ const (
 	cStats = 0x05 // session(4) page(1): Player Statistics window
 	cMode  = 0x06 // session(4) flags(1): modeQuiet = voice chat off, stay signed in for statistics only
 	cCells = 0x07 // session(4): LGP wants the skill cells on the ground around the player
+	cIdent = 0x09 // account_id(4) char_id(4) auth_code(4): the game's own login, read from the client, to sign in without @voice
 	cAuras = 0x08 // session(4): the plugin wants the auras of the players around
 
 	sWelcome   = 0x81 // session(4) char_id(4)
@@ -61,6 +62,9 @@ type UDPServer struct {
 	CellsQuery func(charID uint32) bool
 	// asks the map-server for the auras around a character; false if it can't
 	AurasQuery func(charID uint32) bool
+	// asks the map-server whether this login belongs to a player in game,
+	// and to claim short for them if so
+	IdentQuery func(ip netip.Addr, accountID, charID, authCode uint32, short string, now time.Time)
 }
 
 func NewUDPServer(hub *Hub, conn *net.UDPConn) *UDPServer {
@@ -213,6 +217,19 @@ func (u *UDPServer) handle(pkt []byte, addr netip.AddrPort, now time.Time) {
 		if u.StatsQuery == nil || !u.StatsQuery(charID, pkt[5]) {
 			u.send(addr, []byte{sNoStats, pkt[5]})
 		}
+
+	case cIdent:
+		if len(pkt) < 13 {
+			return
+		}
+		// only for an endpoint that is waiting for a claim; the map-server
+		// checks the login, so a wrong one only wastes this client's query
+		short, ok := u.hub.PendingShort(addr, now)
+		if !ok || u.IdentQuery == nil {
+			return
+		}
+		u.IdentQuery(addr.Addr(), binary.LittleEndian.Uint32(pkt[1:]), binary.LittleEndian.Uint32(pkt[5:]),
+			binary.LittleEndian.Uint32(pkt[9:]), short, now)
 
 	case cHello:
 		code, short, ok := u.hub.Hello(addr, randomCode, now)

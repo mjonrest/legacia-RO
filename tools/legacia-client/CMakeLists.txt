@@ -21,6 +21,7 @@ add_library(legacia_plugin SHARED
 	src/crashguard.cpp
 	src/lgp.cpp
 	src/aura.cpp
+	src/game_login.cpp
 	src/gui_d3d.cpp
 	src/gui_windows.cpp
 	third_party/imgui/imgui.cpp

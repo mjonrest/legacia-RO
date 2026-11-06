@@ -35,6 +35,7 @@ func startServer(t *testing.T) (linkAddr string, udpAddr *net.UDPAddr, hub *Hub)
 	link.OnClaim = udp.SendWelcome
 	udp.OnHello = link.AutoQuery
 	udp.StatsQuery = link.StatsQuery
+	udp.IdentQuery = link.IdentQuery
 	link.OnStats = udp.SendStats
 	udp.CellsQuery = link.CellsQuery
 	link.OnCells = udp.SendCells
@@ -821,4 +822,92 @@ func TestQuietSession(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 	a.talk(ChannelNormal, "again")
 	b.expectAudio(1, "again")
+}
+
+func (c *client) ident(accountID, charID, auth uint32) {
+	b := make([]byte, 13)
+	b[0] = cIdent
+	binary.LittleEndian.PutUint32(b[1:], accountID)
+	binary.LittleEndian.PutUint32(b[5:], charID)
+	binary.LittleEndian.PutUint32(b[9:], auth)
+	c.conn.Write(b)
+}
+
+func TestIdentSignIn(t *testing.T) {
+	linkAddr, udpAddr, hub := startServer(t)
+	m := connectMapWith(t, linkAddr, featureStats|featureIdent)
+	m.player(1, 0, 0, "prontera", 1, 1, 0, "Alice")
+	m.player(2, 0, 0, "prontera", 1, 1, 0, "Bob")
+	waitPlayers(t, hub, 2)
+
+	// two clients on one address: by-address linking can't tell them apart
+	a := dialClient(t, udpAddr)
+	b := dialClient(t, udpAddr)
+	a.conn.Write([]byte{cHello})
+	chA := a.read(time.Second)
+	m.next(linkAutoQuery, 200*time.Millisecond)
+	b.conn.Write([]byte{cHello})
+	chB := b.read(time.Second)
+	if chA == nil || chB == nil {
+		t.Fatal("no challenge")
+	}
+
+	// each client names its own login; the map-server checks it
+	b.ident(1002, 2, 0xdeadbeef)
+	body, ok := m.next(linkIdentQuery, time.Second)
+	if !ok || len(body) != 20 || binary.LittleEndian.Uint32(body[0:]) != 1002 ||
+		binary.LittleEndian.Uint32(body[4:]) != 2 || binary.LittleEndian.Uint32(body[8:]) != 0xdeadbeef ||
+		cstring(body[12:]) != string(chB[17:]) {
+		t.Fatalf("ident query: %x", body)
+	}
+	// limited per address
+	a.ident(1001, 1, 0x1234)
+	if _, ok := m.next(linkIdentQuery, 100*time.Millisecond); ok {
+		t.Fatal("ident query was not limited")
+	}
+
+	b2 := make([]byte, 12)
+	copy(b2, chB[17:])
+	binary.LittleEndian.PutUint32(b2[8:], 2)
+	writePacket(m.conn, linkClaimIdent, b2)
+	if id, res := m.claimResult(t); id != 2 || res != 0 {
+		t.Fatalf("ident claim: result %d for %d", res, id)
+	}
+	if w := b.read(time.Second); w == nil || w[0] != sWelcome || binary.LittleEndian.Uint32(w[5:]) != 2 {
+		t.Fatalf("no welcome: %x", w)
+	}
+
+	// a restarted client with the same login takes over the old session
+	c := dialClient(t, udpAddr)
+	c.conn.Write([]byte{cHello})
+	chC := c.read(time.Second)
+	copy(b2, chC[17:])
+	writePacket(m.conn, linkClaimIdent, b2)
+	if id, res := m.claimResult(t); id != 2 || res != 0 {
+		t.Fatalf("ident takeover: result %d for %d", res, id)
+	}
+	if w := c.read(time.Second); w == nil || w[0] != sWelcome {
+		t.Fatalf("no welcome after takeover: %x", w)
+	}
+
+	// clients that aren't waiting for a claim send no query
+	time.Sleep(autoQueryInterval)
+	c.ident(1002, 2, 0xdeadbeef)
+	if _, ok := m.next(linkIdentQuery, 200*time.Millisecond); ok {
+		t.Fatal("ident query for a signed-in client")
+	}
+}
+
+func TestIdentOldMapServer(t *testing.T) {
+	linkAddr, udpAddr, hub := startServer(t)
+	m := connectMapWith(t, linkAddr, featureStats)
+	m.player(1, 0, 0, "prontera", 1, 1, 0, "Alice")
+	waitPlayers(t, hub, 1)
+	a := dialClient(t, udpAddr)
+	a.conn.Write([]byte{cHello})
+	a.read(time.Second)
+	a.ident(1001, 1, 5)
+	if _, ok := m.next(linkIdentQuery, 200*time.Millisecond); ok {
+		t.Fatal("ident query sent to a map-server that doesn't know it")
+	}
 }

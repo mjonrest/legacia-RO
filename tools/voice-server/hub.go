@@ -198,6 +198,21 @@ func (h *Hub) ClaimShort(short string, charID uint32, newID func() uint32, now t
 	return h.Claim(code, charID, newID, now)
 }
 
+// PendingShort returns the short code of the claim this endpoint is waiting for.
+func (h *Hub) PendingShort(addr netip.AddrPort, now time.Time) (string, bool) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	code, ok := h.pendByAddr[addr]
+	if !ok {
+		return "", false
+	}
+	pd := h.pending[code]
+	if now.Sub(pd.created) > pendingTTL {
+		return "", false
+	}
+	return pd.short, true
+}
+
 // HasSession reports whether the character already has a voice client.
 func (h *Hub) HasSession(charID uint32) bool {
 	h.mu.Lock()

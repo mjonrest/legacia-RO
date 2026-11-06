@@ -26,6 +26,7 @@ const (
 	linkClaimAuto   = 0x7607 // short_code(8) char_id(4), answer to linkAutoQuery
 	linkStats       = 0x7608 // char_id(4) page(1) text: a Player Statistics page
 	linkCells       = 0x7609 // char_id(4) count(2) count * {x(2) y(2) skill_id(2) kind(1)}: LGP skill cells
+	linkClaimIdent  = 0x760b // short_code(8) char_id(4), answer to linkIdentQuery: the login matched
 	linkAuras       = 0x760a // char_id(4) count(2) count * {account_id(4) part1(1) part2(1) part3(1)}: auras around the player
 	linkHelloAck    = 0x7680
 	linkPong        = 0x7681
@@ -33,12 +34,14 @@ const (
 	linkAutoQuery   = 0x7683 // ip(4) short_code(8): claim this code if one player plays from ip
 	linkStatsQuery  = 0x7684 // char_id(4) page(1): only sent if the map-server said it knows it
 	linkCellsQuery  = 0x7685 // char_id(4): only sent if the map-server said it knows it
+	linkIdentQuery  = 0x7687 // account_id(4) char_id(4) auth_code(4) short_code(8): only sent if the map-server said it knows it
 	linkAurasQuery  = 0x7686 // char_id(4): only sent if the map-server said it knows it
 
 	// features a map-server lists in the byte after the secret in HELLO
 	featureStats = 0x01
 	featureCells = 0x02
 	featureAuras = 0x04
+	featureIdent = 0x08 // answers linkIdentQuery
 
 	secretLength       = 32
 	nameLength         = 24
@@ -69,15 +72,18 @@ type LinkServer struct {
 	statsOK bool
 	cellsOK bool
 	aurasOK bool
+	identOK bool // and linkIdentQuery
 	// last auto query per address, so UDP hellos can't flood the map-server
 	queried map[netip.Addr]time.Time
+	// last ident query per address
+	identQueried map[netip.Addr]time.Time
 	// and overall, since each query makes the map-server look at every player
 	queryTokens float64
 	queryRefill time.Time
 }
 
 func NewLinkServer(hub *Hub, secret string) *LinkServer {
-	ls := &LinkServer{hub: hub, queried: map[netip.Addr]time.Time{}}
+	ls := &LinkServer{hub: hub, queried: map[netip.Addr]time.Time{}, identQueried: map[netip.Addr]time.Time{}}
 	copy(ls.secret[:], secret)
 	return ls
 }
@@ -135,6 +141,56 @@ const (
 	autoQueryRate     = 20 // per second, for all addresses together
 )
 
+// allowQuery applies the per-address and overall limits shared by auto and
+// ident queries. Called with ls.mu held.
+func (ls *LinkServer) allowQueryLocked(seen map[netip.Addr]time.Time, ip netip.Addr, now time.Time) bool {
+	if now.Sub(seen[ip]) < autoQueryInterval {
+		return false
+	}
+	if len(seen) > maxPending {
+		for k, t := range seen {
+			if now.Sub(t) >= autoQueryInterval {
+				delete(seen, k)
+			}
+		}
+		if len(seen) > maxPending {
+			return false
+		}
+	}
+	ls.queryTokens += now.Sub(ls.queryRefill).Seconds() * autoQueryRate
+	if ls.queryTokens > autoQueryRate {
+		ls.queryTokens = autoQueryRate
+	}
+	ls.queryRefill = now
+	if ls.queryTokens < 1 {
+		return false
+	}
+	ls.queryTokens--
+	seen[ip] = now
+	return true
+}
+
+// IdentQuery asks the map-server whether accountID/charID is in game with
+// this login code (the game client's own, read by the plugin), and to claim
+// short for that character if so. Works when several players share an
+// address. Limited like AutoQuery, so a 32-bit login code can't be guessed.
+func (ls *LinkServer) IdentQuery(ip netip.Addr, accountID, charID, authCode uint32, short string, now time.Time) {
+	ip = ip.Unmap()
+	ls.mu.Lock()
+	if ls.current == nil || !ls.identOK || !ls.allowQueryLocked(ls.identQueried, ip, now) {
+		ls.mu.Unlock()
+		return
+	}
+	c := ls.current
+	ls.mu.Unlock()
+	b := make([]byte, 20)
+	binary.LittleEndian.PutUint32(b[0:], accountID)
+	binary.LittleEndian.PutUint32(b[4:], charID)
+	binary.LittleEndian.PutUint32(b[8:], authCode)
+	copy(b[12:], short)
+	ls.send(c, linkIdentQuery, b)
+}
+
 // AutoQuery asks the map-server to claim short for the player at ip, if
 // exactly one plays from there. Called for every new UDP hello, so it is
 // limited per address.
@@ -144,32 +200,10 @@ func (ls *LinkServer) AutoQuery(ip netip.Addr, short string, now time.Time) {
 		return
 	}
 	ls.mu.Lock()
-	if now.Sub(ls.queried[ip]) < autoQueryInterval {
+	if !ls.allowQueryLocked(ls.queried, ip, now) {
 		ls.mu.Unlock()
 		return
 	}
-	if len(ls.queried) > maxPending {
-		for k, t := range ls.queried {
-			if now.Sub(t) >= autoQueryInterval {
-				delete(ls.queried, k)
-			}
-		}
-		if len(ls.queried) > maxPending {
-			ls.mu.Unlock()
-			return
-		}
-	}
-	ls.queryTokens += now.Sub(ls.queryRefill).Seconds() * autoQueryRate
-	if ls.queryTokens > autoQueryRate {
-		ls.queryTokens = autoQueryRate
-	}
-	ls.queryRefill = now
-	if ls.queryTokens < 1 {
-		ls.mu.Unlock()
-		return
-	}
-	ls.queryTokens--
-	ls.queried[ip] = now
 	c := ls.current
 	ls.mu.Unlock()
 	if c != nil {
@@ -252,6 +286,7 @@ func (ls *LinkServer) handle(c net.Conn) {
 	ls.statsOK = len(body) > secretLength && body[secretLength]&featureStats != 0
 	ls.cellsOK = len(body) > secretLength && body[secretLength]&featureCells != 0
 	ls.aurasOK = len(body) > secretLength && body[secretLength]&featureAuras != 0
+	ls.identOK = len(body) > secretLength && body[secretLength]&featureIdent != 0
 	ls.mu.Unlock()
 	defer func() {
 		ls.mu.Lock()
@@ -329,6 +364,25 @@ func (ls *LinkServer) handle(c net.Conn) {
 			if !ok {
 				res[4] = 1
 			}
+			if err := ls.send(c, linkClaimResult, res); err != nil {
+				return
+			}
+		case linkClaimIdent:
+			if len(body) < 12 {
+				return
+			}
+			// the map-server matched the game's own login: this is the
+			// player's client, so it may replace an older session
+			charID := binary.LittleEndian.Uint32(body[8:])
+			sess, ok := ls.hub.ClaimShort(cstring(body[0:8]), charID, randomID, time.Now())
+			if !ok {
+				break
+			}
+			if ls.OnClaim != nil {
+				ls.OnClaim(sess)
+			}
+			res := make([]byte, 5)
+			binary.LittleEndian.PutUint32(res, charID)
 			if err := ls.send(c, linkClaimResult, res); err != nil {
 				return
 			}

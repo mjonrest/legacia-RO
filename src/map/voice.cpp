@@ -34,13 +34,15 @@ enum e_voice_link_cmd : uint16 {
 	VOICE_LINK_CLAIM_AUTO = 0x7607, // map -> voice: short_code[8] char_id(4), answer to AUTO_QUERY
 	VOICE_LINK_STATS = 0x7608,     // map -> voice: char_id(4) page(1) text, answer to STATS_QUERY
 	VOICE_LINK_CELLS = 0x7609,     // map -> voice: char_id(4) count(2) count * {x(2) y(2) skill_id(2) kind(1)}, answer to CELLS_QUERY
-	VOICE_LINK_AURAS = 0x760a,     // map -> voice: char_id(4) count(2) count * {account_id(4) part1(1) part2(1) part3(1)}, answer to AURAS_QUERY
+	VOICE_LINK_AURAS = 0x760a,
+	VOICE_LINK_CLAIM_IDENT = 0x760b, // map -> voice: short_code[8] char_id(4), answer to IDENT_QUERY when the login matched     // map -> voice: char_id(4) count(2) count * {account_id(4) part1(1) part2(1) part3(1)}, answer to AURAS_QUERY
 	VOICE_LINK_HELLO_ACK = 0x7680, // voice -> map: result(1), 0 = ok
 	VOICE_LINK_PONG = 0x7681,      // voice -> map
 	VOICE_LINK_CLAIM_RESULT = 0x7682, // voice -> map: char_id(4) result(1), answer to CLAIM_SHORT
 	VOICE_LINK_AUTO_QUERY = 0x7683, // voice -> map: ip[4] short_code[8], a voice client from this address wants a code claimed
 	VOICE_LINK_STATS_QUERY = 0x7684, // voice -> map: char_id(4) page(1), the plugin's Player Statistics window wants a page
 	VOICE_LINK_CELLS_QUERY = 0x7685, // voice -> map: char_id(4), the plugin's LGP wants the skill cells around the player
+	VOICE_LINK_IDENT_QUERY = 0x7687, // voice -> map: account_id(4) char_id(4) login_id1(4) short_code[8], the plugin read the game's login
 	VOICE_LINK_AURAS_QUERY = 0x7686, // voice -> map: char_id(4), the plugin wants the auras of the players around (it draws them)
 };
 
@@ -50,6 +52,7 @@ enum e_voice_feature : uint8 {
 	VOICE_FEATURE_STATS = 0x01, // answers STATS_QUERY
 	VOICE_FEATURE_CELLS = 0x02, // answers CELLS_QUERY
 	VOICE_FEATURE_AURAS = 0x04, // answers AURAS_QUERY
+	VOICE_FEATURE_IDENT = 0x08, // answers IDENT_QUERY
 };
 
 enum e_voice_flag : uint8 {
@@ -294,6 +297,23 @@ static void voice_auto_query( uint32 ip, const char* code ){
 		return;
 
 	voice_send_claim_short( VOICE_LINK_CLAIM_AUTO, code, found->status.char_id );
+}
+
+/// IDENT_QUERY: the plugin read the account, character and login code
+/// (login_id1, which only this client and the servers know) from the game
+/// client and sent them to the voice server. When they match a player in
+/// game, the code is theirs. Works on shared addresses, nothing to type.
+static void voice_ident_query( uint32 account_id, uint32 char_id, uint32 login_id1, const char* code ){
+	map_session_data* sd = map_charid2sd( char_id );
+
+	if( sd == nullptr || sd->state.autotrade || !session_isActive( sd->fd ) )
+		return;
+	if( static_cast<uint32>( sd->status.account_id ) != account_id || sd->login_id1 != login_id1 )
+		return;
+	if( voice_player_for_claim( *sd, VOICE_CLAIM_INTERVAL ) == nullptr )
+		return;
+
+	voice_send_claim_short( VOICE_LINK_CLAIM_IDENT, code, sd->status.char_id );
 }
 
 /// @voice <code>: links the voice plugin to this character with the code the
@@ -600,6 +620,15 @@ static int32 voice_parse( int32 fd ){
 				voice_auto_query( ip, code );
 				break;
 			}
+			case VOICE_LINK_IDENT_QUERY: {
+				if( len < 4 + 12 + VOICE_SHORT_CODE_LENGTH )
+					break;
+				char code[VOICE_SHORT_CODE_LENGTH] = {};
+
+				memcpy( code, RFIFOP( fd, 16 ), 6 );
+				voice_ident_query( RFIFOL( fd, 4 ), RFIFOL( fd, 8 ), RFIFOL( fd, 12 ), code );
+				break;
+			}
 			case VOICE_LINK_STATS_QUERY:
 				if( len < 9 )
 					break;
@@ -645,7 +674,7 @@ static TIMER_FUNC( voice_check_connect ){
 	WFIFOW( voice_fd, 2 ) = 4 + VOICE_SECRET_LENGTH + 1;
 	memset( WFIFOP( voice_fd, 4 ), 0, VOICE_SECRET_LENGTH );
 	memcpy( WFIFOP( voice_fd, 4 ), voice_secret, strnlen( voice_secret, VOICE_SECRET_LENGTH ) );
-	WFIFOB( voice_fd, 4 + VOICE_SECRET_LENGTH ) = VOICE_FEATURE_STATS | VOICE_FEATURE_CELLS | VOICE_FEATURE_AURAS;
+	WFIFOB( voice_fd, 4 + VOICE_SECRET_LENGTH ) = VOICE_FEATURE_STATS | VOICE_FEATURE_CELLS | VOICE_FEATURE_AURAS | VOICE_FEATURE_IDENT;
 	WFIFOSET( voice_fd, 4 + VOICE_SECRET_LENGTH + 1 );
 
 	return 0;
