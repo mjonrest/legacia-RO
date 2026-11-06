@@ -265,12 +265,12 @@ const float PI = 3.14159265f;
 // part 1: the ground circle, turning flat on the floor once every 6 s. Drawn
 // additively, so it is dimmed a little: at full strength light floors washed it
 // out to white.
-const float GROUND_BRIGHTNESS = 165, GROUND_GLOW = 120;
+const float GROUND_BRIGHTNESS = 165, GROUND_GLOW = 150;
 void draw_ground(const V3& foot, void* tex, float t) {
 	bool blended = g_alphaTex.count(tex) != 0;
-	// about 5 cells across at its widest, as in the Gepard recording, and it
+	// about 4.5 cells across at its widest, as in the Gepard recording, and it
 	// slowly breathes: 65% -> 100% -> 65% every 3 s
-	const float R = 52 * g_scale * (0.825f + 0.175f * sinf(2 * PI * t / 3.0f));
+	const float R = 46 * g_scale * (0.825f + 0.175f * sinf(2 * PI * t / 3.0f));
 	float th = 2 * PI * fmodf(t / 6.0f, 1.0f), c = cosf(th), s = sinf(th);
 	// corners in order around the square, with their texture corners
 	const float cx[4] = {-1, 1, 1, -1}, cz[4] = {-1, -1, 1, 1};
