@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include <unordered_map>
+#include <unordered_set>
 
 namespace {
 
@@ -97,6 +98,7 @@ bool readable(uintptr_t at, int len) {
 // ---- textures ----
 std::unordered_map<int, void*> g_tex; // part * 1000 + number -> client texture, null = could not load
 bool g_texFailed;
+std::unordered_set<void*> g_alphaTex; // textures with a real alpha (ground circles)
 int g_loadsThisFrame;
 
 std::string tex_folder() {
@@ -157,6 +159,23 @@ void* texture(int part, int num) {
 		void* dev = ((GetDeviceFn)GET_DEVICE)();
 		if (dev) {
 			tex = ((CreateTextureFn)CREATE_TEXTURE)(dev, w, h, TEX_FORMAT_ARGB8888, 0, 0);
+			if (tex && part == 1) {
+				// ground circles are mixed by alpha (see emit): the brightness
+				// becomes the alpha (a bit stronger, so the circle reads clearly)
+				// and the colour is un-darkened to match
+				for (uint32_t& c : px) {
+					int r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
+					int m = r > g ? (r > b ? r : b) : (g > b ? g : b);
+					if (m == 0) {
+						c = 0;
+						continue;
+					}
+					int a = m * 3 / 2 > 255 ? 255 : m * 3 / 2;
+					r = r * 255 / m, g = g * 255 / m, b = b * 255 / m;
+					c = (uint32_t)a << 24 | (uint32_t)r << 16 | (uint32_t)g << 8 | (uint32_t)b;
+				}
+				g_alphaTex.insert(tex);
+			}
 			if (!tex) // the alpha isn't needed (drawn additively), so the format Graymap uses works too
 				tex = ((CreateTextureFn)CREATE_TEXTURE)(dev, w, h, TEX_FORMAT_ARGB1555, 0, 0);
 		}
@@ -182,15 +201,18 @@ float g_scale = 1.0f; // world units per Gepard "pixel" (the sizes below come fr
 // One polygon (strip order: top left, top right, bottom left, bottom right),
 // projected with the client's camera and added to its see-through list.
 // zbias lifts ground pieces off the ground, like the client's own ground cells.
-void emit(const TLV* v, void* tex) {
+// Blend: additive (D3DBLEND_ONE/ONE, black adds nothing) unless `blended`,
+// which mixes by the texture's alpha (SRCALPHA/INVSRCALPHA) so the colours
+// stay true on light floors instead of adding up to white.
+void emit(const TLV* v, void* tex, bool blended = false) {
 	uint8_t* face = ((BorrowFn)BORROW_RP)(g_renderer);
 	if (!face)
 		return;
 	TLV* out = *(TLV**)face;
 	memcpy(out, v, sizeof(TLV) * 4);
 	*(void**)(face + 8) = tex;
-	*(int*)(face + 0x18) = 2; // D3DBLEND_ONE: additive, black adds nothing
-	*(int*)(face + 0x1c) = 2;
+	*(int*)(face + 0x18) = blended ? 5 : 2;
+	*(int*)(face + 0x1c) = blended ? 6 : 2;
 	((AddRpFn)ADD_RP)(g_renderer, face, ADD_RP_EFFECT);
 }
 
@@ -240,6 +262,7 @@ const float PI = 3.14159265f;
 // out to white.
 const float GROUND_BRIGHTNESS = 165;
 void draw_ground(const V3& foot, void* tex, float t) {
+	bool blended = g_alphaTex.count(tex) != 0;
 	const float R = 62 * g_scale;
 	float th = 2 * PI * fmodf(t / 6.0f, 1.0f), c = cosf(th), s = sinf(th);
 	// corners in order around the square, with their texture corners
@@ -269,75 +292,79 @@ void draw_ground(const V3& foot, void* tex, float t) {
 	for (int i = 0; i < 4; i++) {
 		out[i] = v[order[i]];
 		out[i].z -= 0.00003f; // the client's own ground cells lift themselves the same way
-		out[i].color = grey(GROUND_BRIGHTNESS);
+		out[i].color = blended ? 0xffffffffu : grey(GROUND_BRIGHTNESS);
 		out[i].specular = 0xff000000u;
 		out[i].u = cu[order[i]];
 		out[i].v = cv[order[i]];
 	}
-	emit(out, tex);
+	emit(out, tex, blended);
 }
 
-// part 2: three rings round the player, as Gepard draws them: each about as
-// wide as the ground circle, floating round the body (rising from the feet to
-// the waist and settling back), tilted 12-30 degrees with the tilt slowly
-// turning round the player, and the texture sliding along the ring. Each
-// ring lives 3 s and fades in and out; the three are a second apart.
+// part 2: three rings round the player, as in the user's Gepard recording:
+// each one appears small at the feet, grows bigger as it rises to the waist,
+// spinning round the player the whole time, and fades out at full size. The
+// texture runs once round the ring, so its faded ends leave a gap that shows
+// the spin. They start LIFE/3 apart, so there are always rings going.
 void draw_rings(const V3& foot, void* tex, float t) {
-	const float LIFE = 3.0f, R = 58 * g_scale, BAND = 7 * g_scale, LIFT = 26 * g_scale, DRIFT = 8 * g_scale;
+	const float LIFE = 2.4f, R0 = 14 * g_scale, R1 = 70 * g_scale, BAND = 10 * g_scale, LIFT = 24 * g_scale;
+	const float TILT[3] = {12, 22, 6};
 	const int SEGS = 28;
 	for (int ri = 0; ri < 3; ri++) {
 		float u = fmodf(t / LIFE + ri / 3.0f, 1.0f);
-		float alpha = 220 * fminf(1, u / 0.2f) * fminf(1, (1 - u) / 0.25f);
+		float alpha = 230 * fminf(1, u / 0.12f) * fminf(1, (1 - u) / 0.3f);
 		if (alpha < 2)
 			continue;
-		// tilt: size and direction both wander, different for each ring
-		float yaw = 2 * PI * fmodf(t / 5.0f + ri * 0.37f, 1.0f) * (ri == 1 ? -1.0f : 1.0f);
-		float th = (12 + 18 * (0.5f + 0.5f * sinf(t * 1.3f + ri * 2.1f))) * PI / 180;
+		// the tilt leans a different way for each ring and slowly turns
+		float yaw = 2 * PI * fmodf(t / 4.0f + ri / 3.0f, 1.0f);
+		float th = TILT[ri] * PI / 180;
 		V3 d = {cosf(yaw), 0, sinf(yaw)};
 		V3 e1 = {-d.z, 0, d.x};
 		V3 e2 = {cosf(th) * d.x, sinf(th), cosf(th) * d.z};
-		// centre: rises from the feet to the waist and back, drifting a little sideways
-		float h = LIFT * sinf(PI * u);
-		float da = t * 0.9f + ri * 2.0f;
-		V3 c = {foot.x + DRIFT * cosf(da), foot.y - h, foot.z + DRIFT * sinf(da)};
-		float slide = fmodf(t * 0.25f * (ri == 2 ? -1.0f : 1.0f) + ri * 0.33f, 1.0f);
+		float ease = 1 - (1 - u) * (1 - u); // grows fast, then slows down
+		float r = R0 + (R1 - R0) * ease;
+		V3 c = {foot.x, foot.y - LIFT * ease, foot.z};
+		// spin: one turn every 1.2 s, the middle ring the other way
+		float spin = fmodf(t / 1.2f + ri * 0.31f, 1.0f) * (ri == 1 ? -1.0f : 1.0f);
 		auto at = [&](float rr, float ang) {
+			if (rr < 0.5f * g_scale)
+				rr = 0.5f * g_scale;
 			float ca = cosf(ang), sa = sinf(ang);
 			float x = rr * (ca * e1.x + sa * e2.x);
 			float y = rr * (sa * e2.y);
 			float z = rr * (ca * e1.z + sa * e2.z);
 			return V3{c.x + x, c.y - y, c.z + z}; // up is -y in the client
 		};
+		float band = BAND * (0.5f + 0.5f * ease);
 		uint32_t col = grey(alpha);
 		for (int k = 0; k < SEGS; k++) {
-			// the texture slides by turning the ring itself (u stays in 0..1)
-			float a0 = 2 * PI * ((float)k / SEGS + slide), a1 = a0 + 2 * PI / SEGS;
+			float a0 = 2 * PI * ((float)k / SEGS + spin), a1 = a0 + 2 * PI / SEGS;
 			float u0 = (float)k / SEGS, u1 = (float)(k + 1) / SEGS;
-			V3 p[4] = {at(R + BAND, a0), at(R + BAND, a1), at(R - BAND, a0), at(R - BAND, a1)};
+			V3 p[4] = {at(r + band, a0), at(r + band, a1), at(r - band, a0), at(r - band, a1)};
 			float uv[8] = {u0, 0, u1, 0, u0, 1, u1, 1};
 			quad(p, uv, col, tex);
 		}
 	}
 }
 
-// part 3: small glowing sparkles (or bubbles) around the player, as Gepard
-// draws them: each pops up at a random spot round the body, from the floor
-// to above the head, floats slowly upwards and fades out again.
+// part 3: small sparkles shooting out from the feet across the floor
 void draw_sparkles(const V3& foot, uint32_t aid, void* tex, float t) {
-	const float LIFE = 1.4f;
-	const int COUNT = 9;
+	const float PERIOD = 3.0f, LIFE = 1.5f;
+	const int COUNT = 24; // the user wanted more of them than the first 10
 	float hpc = fabsf(*(float*)(g_renderer + 4)), vpc = fabsf(*(float*)(g_renderer + 8));
 	for (int k = 0; k < COUNT; k++) {
 		uint32_t seed = hash(aid * 31u + (uint32_t)k);
-		float since = t + LIFE * k / COUNT + rnd(seed, 0, 0.2f);
-		float cyc = floorf(since / LIFE);
-		float u = (since - cyc * LIFE) / LIFE;
+		float start = PERIOD * k / COUNT + rnd(seed, 0, 0.1f);
+		float since = t - start;
+		float cyc = floorf(since / PERIOD);
+		float phase = since - cyc * PERIOD;
+		if (phase > LIFE)
+			continue;
+		float u = phase / LIFE;
 		uint32_t s = hash(seed ^ (uint32_t)(int)cyc);
-		float a = rnd(s, 0, 2 * PI), dist = 70 * g_scale * sqrtf(rnd(s, 0.08f, 1.0f));
-		float h0 = 95 * g_scale * rnd(s, 0, 1), rise = 18 * g_scale * rnd(s, 0.5f, 1);
-		float size = 9 * g_scale * rnd(s, 0.75f, 1.15f);
-		float alpha = 240 * fminf(1, u / 0.2f) * fminf(1, (1 - u) / 0.35f);
-		V3 c = {foot.x + dist * cosf(a), foot.y - h0 - rise * u, foot.z + dist * sinf(a)};
+		float a = rnd(s, 0, 2 * PI), dist = 95 * g_scale * rnd(s, 0.75f, 1.15f);
+		float rise = 14 * g_scale * rnd(s, 0, 1), size = 10 * g_scale * rnd(s, 0.8f, 1.1f);
+		float alpha = 255 * fminf(1, u / 0.12f) * (1 - fmaxf(0, (u - 0.7f) / 0.3f));
+		V3 c = {foot.x + dist * u * cosf(a), foot.y - rise * u, foot.z + dist * u * sinf(a)};
 		TLV m;
 		if (!project(c, m) || alpha < 2)
 			continue;
