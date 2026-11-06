@@ -15,6 +15,7 @@
 // over a plugin window, and keys while a plugin text box is active, are kept
 // from the game; everything else passes through unchanged.
 #include "gui.h"
+#include "voice.h"
 
 #include "imgui_impl_dx9.h"
 #include "imgui_impl_win32.h"
@@ -412,6 +413,7 @@ void render(IDirect3DDevice9* dev) {
 }
 
 void before_reset(IDirect3DDevice9* dev) {
+	aura_device_reset();
 	if (g_inited && dev == g_dev) {
 		gui_windows_device_lost();
 		cursor_free_states();
@@ -420,12 +422,14 @@ void before_reset(IDirect3DDevice9* dev) {
 }
 
 HRESULT STDMETHODCALLTYPE hk_present(IDirect3DDevice9* dev, const RECT* a, const RECT* b, HWND w, const RGNDATA* r) {
+	aura_frame();
 	render(dev);
 	return g_realPresent(dev, a, b, w, r);
 }
 
 HRESULT STDMETHODCALLTYPE hk_present_ex(IDirect3DDevice9* dev, const RECT* a, const RECT* b, HWND w, const RGNDATA* r,
                                         DWORD f) {
+	aura_frame();
 	render(dev);
 	return g_realPresentEx(dev, a, b, w, r, f);
 }

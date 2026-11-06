@@ -558,24 +558,40 @@ bool actor_aura(const uint8_t* actor, uint32_t aid, Aura& out, bool self = false
 		return false; // only players (account IDs); monsters and NPCs have other classes
 	if (self && readable(SELF_STATUS_BEGIN, 8) && self_aura(out))
 		return true; // the game's own list is current for you even right after login
-	if (hat_aura(actor, out)) {
-		static bool logged = false;
-		if (!logged) {
-			logged = true;
-			log_line("aura: first hat-effect aura seen (player %u: %d %d %d)", (unsigned)aid, out.part[0], out.part[1], out.part[2]);
-		}
-		return true;
-	}
-	auto a = g_frameAuras.find(aid);
-	if (a == g_frameAuras.end())
-		return false;
-	out = a->second;
-	return true;
+	// Only the hat effects count. The voice server's old aura list is not used
+	// any more: it could hold a stale aura (e.g. 153 118 36) and show that instead.
+	return hat_aura(actor, out);
+}
+
+// The game drops its textures when it leaves the game for the character
+// select (and on a device reset), which left the cached aura textures dead:
+// the aura vanished after changing character. So the cache is emptied then
+// and the textures are loaded again on the way back in.
+bool g_dropTextures = false;
+
+void aura_frame() {
+	if (!g_ok)
+		return;
+	uint8_t* mm = (uint8_t*)MODE_MGR;
+	if (*(int*)(mm + 0x58) != 1)
+		g_dropTextures = true;
+}
+
+void aura_device_reset() {
+	g_dropTextures = true;
 }
 
 void aura_draw(void* view) {
 	if (!g_ok || !view)
 		return;
+	if (g_dropTextures) {
+		g_dropTextures = false;
+		if (!g_tex.empty())
+			log_line("aura: left the game or device reset, reloading %d aura textures", (int)g_tex.size());
+		g_tex.clear(); // the game freed them (char select / reset); not released here
+		g_alphaTex.clear();
+		g_texFailed = false;
+	}
 	uint8_t* r = *(uint8_t**)RENDERER_PTR;
 	if (!r)
 		return;
@@ -610,7 +626,17 @@ void aura_draw(void* view) {
 	uint32_t self = *(uint32_t*)SESSION_AID;
 	uint8_t* player = *(uint8_t**)(world + 0x2c);
 	Aura a;
-	if (player && actor_aura(player, self, a, true))
+	bool mine = player && actor_aura(player, self, a, true);
+	{
+		// log your own aura when it changes, to tell a missing packet from a drawing problem
+		static uint32_t last = 0xffffffffu;
+		uint32_t now = mine ? (uint32_t)a.part[0] | (uint32_t)a.part[1] << 8 | (uint32_t)a.part[2] << 16 : 0;
+		if (now != last) {
+			last = now;
+			log_line("aura: yours is now %u %u %u", now & 255, (now >> 8) & 255, now >> 16);
+		}
+	}
+	if (mine)
 		draw_actor(player, a, self, t);
 
 	// std::list<CGameActor*>: head node at +0x10, size at +0x14; node = next, prev, value

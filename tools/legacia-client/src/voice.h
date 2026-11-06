@@ -156,6 +156,8 @@ bool aura_wants();                              // net thread: ask the voice ser
 void aura_set(const uint8_t* entries, int n);   // net thread: n * {account_id(4) part1 part2 part3}
 void aura_set_none();                           // net thread: the map-server can't answer
 void aura_draw(void* view);                     // game thread, from the ground drawing
+void aura_frame();                              // game thread, every Present: notices leaving the game (char select)
+void aura_device_reset();                       // game thread, before the device resets
 enum AuraServer { AURA_SERVER_WAITING, AURA_SERVER_ON, AURA_SERVER_UNSUPPORTED, AURA_SERVER_NO_VOICE };
 AuraServer aura_server_state(int* count);
 
