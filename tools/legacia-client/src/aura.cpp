@@ -268,9 +268,9 @@ const float PI = 3.14159265f;
 const float GROUND_BRIGHTNESS = 165, GROUND_GLOW = 120;
 void draw_ground(const V3& foot, void* tex, float t) {
 	bool blended = g_alphaTex.count(tex) != 0;
-	// about 4 cells across at its widest, as in the Gepard recording, and it
+	// about 4.5 cells across at its widest, as in the Gepard recording, and it
 	// slowly breathes: 65% -> 100% -> 65% every 3 s
-	const float R = 40 * g_scale * (0.825f + 0.175f * sinf(2 * PI * t / 3.0f));
+	const float R = 46 * g_scale * (0.825f + 0.175f * sinf(2 * PI * t / 3.0f));
 	float th = 2 * PI * fmodf(t / 6.0f, 1.0f), c = cosf(th), s = sinf(th);
 	// corners in order around the square, with their texture corners
 	const float cx[4] = {-1, 1, 1, -1}, cz[4] = {-1, -1, 1, 1};
@@ -313,31 +313,42 @@ void draw_ground(const V3& foot, void* tex, float t) {
 	}
 }
 
-// part 2: three rings round the player, as in the user's Gepard recording:
-// each one appears small at the feet, grows bigger as it rises to the waist,
-// spinning round the player the whole time, and fades out at full size. The
-// texture runs once round the ring, so its faded ends leave a gap that shows
-// the spin. They start LIFE/3 apart, so there are always rings going.
+// part 2: rings, as in the user's Gepard recording: a swirl of four thin
+// concentric rings that comes in from one side, then circles round the player
+// at waist height, its centre a little off the player, breathing bigger and
+// smaller and spinning (neighbouring rings the other way). The texture runs
+// once round each ring, so its faded ends leave a gap that shows the spin.
+// Sizes: g_scale * 4 = 1 world unit; a cell is 5 units.
 void draw_rings(const V3& foot, void* tex, float t) {
-	const float LIFE = 3.2f, R0 = 8 * g_scale, R1 = 48 * g_scale, BAND = 7 * g_scale, LIFT = 20 * g_scale;
-	const float TILT[3] = {12, 22, 6};
-	const int SEGS = 28;
-	for (int ri = 0; ri < 3; ri++) {
-		float u = fmodf(t / LIFE + ri / 3.0f, 1.0f);
-		float alpha = 230 * fminf(1, u / 0.12f) * fminf(1, (1 - u) / 0.3f);
-		if (alpha < 2)
-			continue;
-		// the tilt leans a different way for each ring and slowly turns
-		float yaw = 2 * PI * fmodf(t / 8.0f + ri / 3.0f, 1.0f);
-		float th = TILT[ri] * PI / 180;
-		V3 d = {cosf(yaw), 0, sinf(yaw)};
-		V3 e1 = {-d.z, 0, d.x};
-		V3 e2 = {cosf(th) * d.x, sinf(th), cosf(th) * d.z};
-		float ease = 1 - (1 - u) * (1 - u); // grows fast, then slows down
-		float r = R0 + (R1 - R0) * ease;
-		V3 c = {foot.x, foot.y - LIFT * ease, foot.z};
-		// spin: one turn every 3 s, the middle ring the other way
-		float spin = fmodf(t / 3.0f + ri * 0.31f, 1.0f) * (ri == 1 ? -1.0f : 1.0f);
+	const float CYCLE = 4.0f;           // one swirl: come in, circle, fade
+	const int RINGS = 4, SEGS = 32;
+	const float R_IN = 20 * g_scale;     // inner ring radius at full size (5 units)
+	const float GAP = 9 * g_scale;       // between rings (outer ring ~11.75 units)
+	const float BAND = 6 * g_scale;      // thin lines (the texture fades at its edges)
+	const float LIFT = 22 * g_scale;     // centre at the waist
+	const float OFF0 = 40 * g_scale, OFF1 = 10 * g_scale; // centre offset: comes in from 10 units out to 2.5
+	const float TILT = 28 * PI / 180;
+	float u = fmodf(t / CYCLE, 1.0f);
+	float cyc = floorf(t / CYCLE);
+	float fade = fminf(1, u / 0.15f) * fminf(1, (1 - u) / 0.2f);
+	if (fade <= 0.01f)
+		return;
+	float ease = 1 - (1 - fminf(1, u / 0.35f)) * (1 - fminf(1, u / 0.35f)); // arrives in the first 35%
+	float breathe = 0.88f + 0.12f * sinf(2 * PI * t / 1.6f);
+	float grow = (0.35f + 0.65f * ease) * breathe;
+	// each swirl comes in from a different side, then circles once and a half
+	float side = 2 * PI * fmodf(cyc * 0.37f, 1.0f);
+	float orbit = side + 3 * PI * u;
+	float off = OFF0 + (OFF1 - OFF0) * ease;
+	V3 c = {foot.x + off * cosf(orbit), foot.y - LIFT * (0.4f + 0.6f * ease), foot.z + off * sinf(orbit)};
+	// the rings lean away from the player, toward the side the centre is on
+	V3 d = {cosf(orbit), 0, sinf(orbit)};
+	V3 e1 = {-d.z, 0, d.x};
+	V3 e2 = {cosf(TILT) * d.x, sinf(TILT), cosf(TILT) * d.z};
+	for (int ri = 0; ri < RINGS; ri++) {
+		float r = (R_IN + GAP * ri) * grow;
+		float alpha = 255 * fade * (1 - 0.1f * ri);
+		float spin = fmodf(t / (2.4f + 0.5f * ri) + ri * 0.27f, 1.0f) * ((ri & 1) ? -1.0f : 1.0f);
 		auto at = [&](float rr, float ang) {
 			if (rr < 0.5f * g_scale)
 				rr = 0.5f * g_scale;
@@ -347,12 +358,11 @@ void draw_rings(const V3& foot, void* tex, float t) {
 			float z = rr * (ca * e1.z + sa * e2.z);
 			return V3{c.x + x, c.y - y, c.z + z}; // up is -y in the client
 		};
-		float band = BAND * (0.5f + 0.5f * ease);
 		uint32_t col = grey(alpha);
 		for (int k = 0; k < SEGS; k++) {
 			float a0 = 2 * PI * ((float)k / SEGS + spin), a1 = a0 + 2 * PI / SEGS;
 			float u0 = (float)k / SEGS, u1 = (float)(k + 1) / SEGS;
-			V3 p[4] = {at(r + band, a0), at(r + band, a1), at(r - band, a0), at(r - band, a1)};
+			V3 p[4] = {at(r + BAND, a0), at(r + BAND, a1), at(r - BAND, a0), at(r - BAND, a1)};
 			float uv[8] = {u0, 0, u1, 0, u0, 1, u1, 1};
 			quad(p, uv, col, tex);
 		}
@@ -375,7 +385,7 @@ void draw_sparkles(const V3& foot, uint32_t aid, void* tex, float t) {
 		float u = phase / LIFE;
 		uint32_t s = hash(seed ^ (uint32_t)(int)cyc);
 		float a = rnd(s, 0, 2 * PI), dist = 80 * g_scale * rnd(s, 0.75f, 1.15f);
-		float rise = 14 * g_scale * rnd(s, 0, 1), size = 10 * g_scale * rnd(s, 0.8f, 1.1f);
+		float rise = 14 * g_scale * rnd(s, 0, 1), size = 4.5f * g_scale * rnd(s, 0.8f, 1.1f);
 		float alpha = 255 * fminf(1, u / 0.12f) * (1 - fmaxf(0, (u - 0.7f) / 0.3f));
 		V3 c = {foot.x + dist * u * cosf(a), foot.y - rise * u, foot.z + dist * u * sinf(a)};
 		TLV m;
