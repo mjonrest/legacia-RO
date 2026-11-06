@@ -204,16 +204,21 @@ float g_scale = 1.0f; // world units per Gepard "pixel" (the sizes below come fr
 // Blend: additive (D3DBLEND_ONE/ONE, black adds nothing) unless `blended`,
 // which mixes by the texture's alpha (SRCALPHA/INVSRCALPHA) so the colours
 // stay true on light floors instead of adding up to white.
-void emit(const TLV* v, void* tex, bool blended = false) {
+// blend factors: 5 = SRCALPHA, 6 = INVSRCALPHA, 2 = ONE
+void emit_blend(const TLV* v, void* tex, int src, int dst) {
 	uint8_t* face = ((BorrowFn)BORROW_RP)(g_renderer);
 	if (!face)
 		return;
 	TLV* out = *(TLV**)face;
 	memcpy(out, v, sizeof(TLV) * 4);
 	*(void**)(face + 8) = tex;
-	*(int*)(face + 0x18) = blended ? 5 : 2;
-	*(int*)(face + 0x1c) = blended ? 6 : 2;
+	*(int*)(face + 0x18) = src;
+	*(int*)(face + 0x1c) = dst;
 	((AddRpFn)ADD_RP)(g_renderer, face, ADD_RP_EFFECT);
+}
+
+void emit(const TLV* v, void* tex, bool blended = false) {
+	emit_blend(v, tex, blended ? 5 : 2, blended ? 6 : 2);
 }
 
 bool project(const V3& p, TLV& out) {
@@ -260,10 +265,12 @@ const float PI = 3.14159265f;
 // part 1: the ground circle, turning flat on the floor once every 6 s. Drawn
 // additively, so it is dimmed a little: at full strength light floors washed it
 // out to white.
-const float GROUND_BRIGHTNESS = 165;
+const float GROUND_BRIGHTNESS = 165, GROUND_GLOW = 120;
 void draw_ground(const V3& foot, void* tex, float t) {
 	bool blended = g_alphaTex.count(tex) != 0;
-	const float R = 40 * g_scale; // about 4 cells across, as in the Gepard recording
+	// about 4 cells across at its widest, as in the Gepard recording, and it
+	// slowly breathes: 65% -> 100% -> 65% every 3 s
+	const float R = 40 * g_scale * (0.825f + 0.175f * sinf(2 * PI * t / 3.0f));
 	float th = 2 * PI * fmodf(t / 6.0f, 1.0f), c = cosf(th), s = sinf(th);
 	// corners in order around the square, with their texture corners
 	const float cx[4] = {-1, 1, 1, -1}, cz[4] = {-1, -1, 1, 1};
@@ -298,6 +305,12 @@ void draw_ground(const V3& foot, void* tex, float t) {
 		out[i].v = cv[order[i]];
 	}
 	emit(out, tex, blended);
+	// a second, added-light pass makes the circle glow brighter and whiter
+	if (blended) {
+		for (int i = 0; i < 4; i++)
+			out[i].color = grey(GROUND_GLOW);
+		emit_blend(out, tex, 5, 2); // light added, weighted by the circle's alpha
+	}
 }
 
 // part 2: three rings round the player, as in the user's Gepard recording:
