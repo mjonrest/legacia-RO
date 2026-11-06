@@ -4,7 +4,7 @@
 
 ## What players get
 
-- **Signing in:** happens on its own when you log in, and the server says "Voice chat connected.". If two game clients run on the same connection, the server can't tell them apart, so the screen shows `Voice: click the mic, or type @voice K7Q2MA`. Click the mic on the voice bar (or type that in game chat) once in each client.
+- **Signing in:** happens on its own when you log in, and the server says "Voice chat connected.". The plugin reads the game's own login (account, character and login code, `src/game_login.cpp`) and the map-server checks it, so this works even when several game clients share one connection and after switching characters. Only on another exe, where that can't be read, the screen may show `Voice: click the mic, or type @voice K7Q2MA`; click the mic on the voice bar (or type that in game chat) once in each client.
 - A small **voice bar** sits at the bottom right of the game screen, like the chat tabs:
   - the speaker icon turns all voices off and on, and the mic icon mutes your mic (it turns green while you talk);
   - **Normal / Party / Guild / Room / Whisper** pick who you talk to. Room is the chat room you are sitting in. Whisper asks for a character name (click Whisper again, or right-click it, to change the name);

@@ -47,6 +47,7 @@ func main() {
 	link.OnClaim = udp.SendWelcome
 	udp.OnHello = link.AutoQuery
 	udp.StatsQuery = link.StatsQuery
+	udp.IdentQuery = link.IdentQuery
 	link.OnStats = udp.SendStats
 	udp.CellsQuery = link.CellsQuery
 	link.OnCells = udp.SendCells

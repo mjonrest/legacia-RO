@@ -85,6 +85,12 @@ void hooks_check(); // re-hook if something replaced ours; call now and then
 // queue a claim code to be sent through the game connection
 void hooks_queue_claim(const uint8_t code[16]);
 
+// ---- game_login.cpp: the game's own login, to sign in without @voice ----
+struct GameLogin {
+	uint32_t accountId, charId, authCode;
+};
+bool game_login(GameLogin& out); // false on other exes, or before a map was entered
+
 // ---- net.cpp: UDP link to the voice server ----
 enum NetState { NET_OFF, NET_WAIT_GAME, NET_HELLO, NET_CLAIMING, NET_CONNECTED };
 void net_start();

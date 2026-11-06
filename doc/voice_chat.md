@@ -96,7 +96,7 @@ Every packet starts with `W cmd, W length` (length includes the 4 header bytes).
 
 | Cmd | Direction | Body |
 |-----|-----------|------|
-| `0x7600` HELLO | map -> voice | `S secret[32]` (zero padded), then `B features` (0x01: answers STATS_QUERY, 0x02: answers CELLS_QUERY, 0x04: answers AURAS_QUERY). Older map-servers send no feature byte, and the voice server then never sends them STATS_QUERY |
+| `0x7600` HELLO | map -> voice | `S secret[32]` (zero padded), then `B features` (0x01: answers STATS_QUERY, 0x02: answers CELLS_QUERY, 0x04: answers AURAS_QUERY, 0x08: answers IDENT_QUERY). Older map-servers send no feature byte, and the voice server then never sends them STATS_QUERY |
 | `0x7680` HELLO_ACK | voice -> map | `B result` (0 ok, 1 wrong secret) |
 | `0x7601` PLAYER | map -> voice | `L account_id, L char_id, L party_id, L guild_id, W x, W y, B flags, S map[16], S name[24], L chat_id` (flags: 0x01 chat-banned, 0x02 blocks all whispers; older map-servers leave out `chat_id`) |
 | `0x7604` CLAIM | map -> voice | `B code[16], L char_id` |
@@ -111,6 +111,8 @@ Every packet starts with `W cmd, W length` (length includes the 4 header bytes).
 | `0x7609` CELLS | map -> voice | `L char_id, W count, count * {W x, W y, W skill_id, B kind}`: skill units within 14 cells (at most 200; kind 1 = it can hit the player). Hidden traps are left out unless the client would see them |
 | `0x7686` AURAS_QUERY | voice -> map | `L char_id`: the plugin wants the auras of the players around (it draws them) |
 | `0x760a` AURAS | map -> voice | `L char_id, W count, count * {L account_id, B part1, B part2, B part3}`: players within 14 cells wearing an aura (at most 200; part 0 = none). Hidden, cloaked and invisible players are left out except the player themself; `@show_auras` 1 sends only their own, 2 none |
+| `0x7687` IDENT_QUERY | voice -> map | `L account_id, L char_id, L login_id1, S short_code[8]`: the plugin read the game's own login; at most one per address every 2 s |
+| `0x760b` CLAIM_IDENT | map -> voice | `S short_code[8], L char_id`: answer to IDENT_QUERY when account, character and login code match a player in game. The voice server links the code and answers CLAIM_RESULT |
 | `0x7602` LEAVE | map -> voice | `L char_id` |
 | `0x7603` PING | map -> voice | (none) |
 | `0x7681` PONG | voice -> map | (none) |
@@ -138,6 +140,7 @@ After HELLO_ACK the voice server forgets all players and the map-server sends ev
 | `0x07` CELLS | client -> voice | `B type, L session`: ask for the skill cells around the player (LGP, twice a second, at most one every 250 ms) |
 | `0x89` CELLS | voice -> client | `B type, W count, count * {W x, W y, W skill_id, B kind}` |
 | `0x8a` NO_CELLS | voice -> client | `B type`: no map-server is linked, or it is too old to answer |
+| `0x09` IDENT | client -> voice | `B type, L account_id, L char_id, L login_id1`: the game's own login (read from the client, `game_login.cpp`), sent every 2.5 s while waiting for a claim. Signs in without `@voice`, also when several players share an address |
 | `0x08` AURAS | client -> voice | `B type, L session`: ask for the auras of the players around (once a second, at most one every 400 ms) |
 | `0x8b` AURAS | voice -> client | `B type, W count, count * {L account_id, B part1, B part2, B part3}` |
 | `0x8c` NO_AURAS | voice -> client | `B type`: no map-server is linked, or it is too old to answer |

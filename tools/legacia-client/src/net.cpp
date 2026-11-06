@@ -14,6 +14,7 @@ enum : uint8_t {
 	C_MODE = 0x06,
 	C_CELLS = 0x07,
 	C_AURAS = 0x08,
+	C_IDENT = 0x09,
 	S_WELCOME = 0x81,
 	S_DENIED = 0x82,
 	S_PONG = 0x83,
@@ -36,6 +37,9 @@ static uint32_t g_session;
 static uint32_t g_charId;
 static char g_shortCode[8]; // shown to the player for @voice while signing in
 static char g_statusText[64];
+// the session was signed in for the character the game says is playing, so a
+// different character there later means the player switched characters
+static bool g_loginMatched;
 
 NetState net_state() {
 	Lock l(g_netLock);
@@ -135,6 +139,21 @@ static void send_mode() {
 	send_raw(b, sizeof(b));
 }
 
+// Sends the game's own login (see game_login.cpp) while waiting for a claim:
+// the map-server checks it and links this client, also on shared addresses.
+static bool send_ident() {
+	GameLogin gl;
+	if (!game_login(gl))
+		return false;
+	uint8_t b[13];
+	b[0] = C_IDENT;
+	memcpy(b + 1, &gl.accountId, 4);
+	memcpy(b + 5, &gl.charId, 4);
+	memcpy(b + 9, &gl.authCode, 4);
+	send_raw(b, sizeof(b));
+	return true;
+}
+
 bool net_request_stats(uint8_t page) {
 	uint8_t b[6];
 	{
@@ -223,14 +242,18 @@ static void handle_packet(const uint8_t* p, int n, DWORD now, DWORD& lastHeard) 
 			// player types the short code with @voice
 			hooks_queue_claim(p + 1);
 			set_state(NET_CLAIMING);
+			send_ident();
 		}
 		break;
 	case S_WELCOME:
 		if (n >= 9) {
+			GameLogin gl;
+			bool haveLogin = game_login(gl);
 			Lock l(g_netLock);
 			memcpy(&g_session, p + 1, 4);
 			memcpy(&g_charId, p + 5, 4);
 			g_state = NET_CONNECTED;
+			g_loginMatched = haveLogin && gl.charId == g_charId;
 			log_line("voice: connected as char %u", g_charId);
 		}
 		break;
@@ -303,7 +326,7 @@ static void handle_packet(const uint8_t* p, int n, DWORD now, DWORD& lastHeard) 
 }
 
 static DWORD WINAPI net_thread(LPVOID) {
-	DWORD lastSend = 0, lastHeard = 0, stateSince = 0, lastCells = 0, lastAuras = 0;
+	DWORD lastSend = 0, lastHeard = 0, stateSince = 0, lastCells = 0, lastAuras = 0, lastIdent = 0;
 	int sentEnabled = -1; // voice on/off last told to the server; -1 = not yet in this session
 	NetState prev = NET_OFF;
 	bool wasInGame = false;
@@ -367,7 +390,30 @@ static DWORD WINAPI net_thread(LPVOID) {
 		} else if (st == NET_CLAIMING && now - stateSince > 9 * 60 * 1000) {
 			// codes last 10 minutes on the server: get a new one before it runs out
 			set_state(NET_HELLO);
+		} else if (st == NET_CLAIMING) {
+			// the game login is there once a map was entered; the voice
+			// server takes one query per address every 2 s
+			if (now - lastIdent > 2500) {
+				send_ident();
+				lastIdent = now;
+			}
 		} else if (st == NET_CONNECTED) {
+			GameLogin gl;
+			bool matched;
+			uint32_t charId;
+			{
+				Lock l(g_netLock);
+				matched = g_loginMatched;
+				charId = g_charId;
+			}
+			if (matched && game_login(gl) && gl.charId != charId) {
+				// switched characters: sign in again for the new one
+				log_line("voice: the game switched to char %u, signing in again", gl.charId);
+				send_with_session(C_BYE);
+				set_state(NET_HELLO);
+				lastSend = 0;
+				continue;
+			}
 			if (now - lastSend > 10000) {
 				send_with_session(C_PING);
 				if (!g_cfg.enabled)
