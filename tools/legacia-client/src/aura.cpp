@@ -454,12 +454,14 @@ void aura_set_none() {
 // From Graymap's ground hook, during the world drawing (game thread).
 // The server sends each aura as hat effects (pc_aura_apply in pc.cpp,
 // aura_hateffect: yes): part n of type 1/2/3 is hat effect 1000/1300/1600 + n.
-// The game keeps every actor's hat effects in a std::set<int> at +0x3fc
-// (CGameActor; 0xcac080 walks it to show or hide them all), so the auras come
+// The game keeps every actor's effects in a std::set<int> at +0x3fc
+// (CGameActor; 0xcac080 adds to it and walks it to show or hide them all).
+// Hat effects are stored there as hat ID + 0x9ac (ZC_HAT_EFFECT handler
+// 0xd6bb50 -> actor message 0x37f -> 0xcb9ea4 adds 0x9ac), so the auras come
 // with the normal game packets, for everyone in sight, and stay as long as
 // the character wears them. No voice server needed.
 const uintptr_t ACTOR_HAT_EFFECTS = 0x3fc;
-const int HAT_AURA_BASE = 1000, HAT_AURA_STEP = 300;
+const int HAT_EFFECT_OFFSET = 0x9ac, HAT_AURA_BASE = 1000, HAT_AURA_STEP = 300;
 
 bool hat_aura(const uint8_t* actor, Aura& out) {
 	out = Aura{};
@@ -474,7 +476,7 @@ bool hat_aura(const uint8_t* actor, Aura& out) {
 	for (int guard = 0; guard < 64 && n && n != head; guard++) {
 		if (!readable((uintptr_t)n, 0x14) || n[0xd])
 			break;
-		int id = *(const int*)(n + 0x10);
+		int id = *(const int*)(n + 0x10) - HAT_EFFECT_OFFSET;
 		int k = (id - HAT_AURA_BASE - 1) / HAT_AURA_STEP, num = id - HAT_AURA_BASE - k * HAT_AURA_STEP;
 		if (id > HAT_AURA_BASE && k >= 0 && k < 3 && num >= 1 && num < HAT_AURA_STEP) {
 			out.part[k] = (uint8_t)num;
@@ -506,8 +508,14 @@ bool hat_aura(const uint8_t* actor, Aura& out) {
 bool actor_aura(const uint8_t* actor, uint32_t aid, Aura& out) {
 	if (aid < 2000000 || aid >= 100000000)
 		return false; // only players (account IDs); monsters and NPCs have other classes
-	if (hat_aura(actor, out))
+	if (hat_aura(actor, out)) {
+		static bool logged = false;
+		if (!logged) {
+			logged = true;
+			log_line("aura: first hat-effect aura seen (player %u: %d %d %d)", (unsigned)aid, out.part[0], out.part[1], out.part[2]);
+		}
 		return true;
+	}
 	auto a = g_frameAuras.find(aid);
 	if (a == g_frameAuras.end())
 		return false;

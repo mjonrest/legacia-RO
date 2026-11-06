@@ -203,7 +203,7 @@ int main(int argc, char** argv) {
 			int value;
 		};
 		static TNode th = {}, tn[3] = {};
-		const int ids[3] = {1005, 1307, 1602};
+		const int ids[3] = {1005 + 0x9ac, 1307 + 0x9ac, 1602 + 0x9ac}; // stored as hat ID + 0x9ac
 		th.isnil = 1;
 		// a little balanced tree: tn[1] root, tn[0] left, tn[2] right
 		th.parent = &tn[1];
