@@ -37,9 +37,8 @@ OnCmd:
 
 OnInit:
 	// ---- settings ----
-	.Zeny = 5000000;	// zeny per aura part (0 = no zeny cost)
-	.ItemID = 0;		// optional item cost per part, e.g. 30012 (10 Cash Points). 0 = none
-	.ItemAmt = 0;
+	.Zeny = 50000000;	// zeny per aura part (0 = can't pay with zeny)
+	.Cash = 51;		// Cash Points (#CASHPOINTS) per aura part, the other way to pay (0 = off)
 	// ------------------
 	setarray .PartMax[1], 152, 117, 35;
 	setarray .PartName$[1], "Ground Circle", "Ring", "Sparkle";
@@ -47,8 +46,8 @@ OnInit:
 	.Price$ = "";
 	if (.Zeny)
 		.Price$ = callfunc("F_InsertComma", .Zeny) + " zeny";
-	if (.ItemID)
-		.Price$ += (.Price$ == "" ? "" : " + ") + .ItemAmt + "x " + getitemname(.ItemID);
+	if (.Cash)
+		.Price$ += (.Price$ == "" ? "" : " or ") + .Cash + " Cash Points";
 	if (.Price$ == "")
 		.Price$ = "free";
 	bindatcmd "aura", strnpcinfo(3) + "::OnCmd", 0, 99;
@@ -219,30 +218,36 @@ S_Mine:
 
 // ---------------- helpers ----------------
 S_Pay:
+	if (!.Zeny && !.Cash)
+		return 1;	// free
 	clear;
 	mes "[Aura Master]";
-	mes "Unlock " + .PartName$[getarg(0)] + " #" + getarg(1) + " for " + .Price$ + "?";
-	if (prompt("Yes:No") != 1)
-		return 0;
-	if (.Zeny) {
+	mes "Unlock " + .PartName$[getarg(0)] + " #" + getarg(1) + "?";
+	mes "Price: " + .Price$;
+	.@how = select(
+		(.Zeny ? "Pay " + callfunc("F_InsertComma", .Zeny) + " zeny" : ""),
+		(.Cash ? "Pay " + .Cash + " Cash Points (you have " + #CASHPOINTS + ")" : ""),
+		"No");
+	if (.@how == 1) {
 		if (Zeny < .Zeny) {
 			mes "You don't have enough zeny.";
 			next;
 			return 0;
 		}
+		Zeny -= .Zeny;
+		return 1;
 	}
-	if (.ItemID) {
-		if (countitem(.ItemID) < .ItemAmt) {
-			mes "You need " + .ItemAmt + "x " + getitemname(.ItemID) + ".";
+	if (.@how == 2) {
+		if (#CASHPOINTS < .Cash) {
+			mes "You don't have enough Cash Points.";
 			next;
 			return 0;
 		}
+		#CASHPOINTS -= .Cash;
+		dispbottom "Used " + .Cash + " Cash Points. Left: " + #CASHPOINTS + ".";
+		return 1;
 	}
-	if (.Zeny)
-		Zeny -= .Zeny;
-	if (.ItemID)
-		delitem .ItemID, .ItemAmt;
-	return 1;
+	return 0;
 
 // slot of (part, number), -1 if out of range
 S_Slot:
