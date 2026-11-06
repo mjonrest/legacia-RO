@@ -313,42 +313,45 @@ void draw_ground(const V3& foot, void* tex, float t) {
 	}
 }
 
-// part 2: rings, as in the user's Gepard recording: a swirl of four thin
-// concentric rings that comes in from one side, then circles round the player
-// at waist height, its centre a little off the player, breathing bigger and
-// smaller and spinning (neighbouring rings the other way). The texture runs
-// once round each ring, so its faded ends leave a gap that shows the spin.
+// part 2: rings, as in the user's Gepard recording: three ring layers like
+// flower petals. Each swirl comes in from one side as one ring, then the three
+// fan out 120 degrees apart, each one's centre a little off the player toward
+// its own side and leaning out that way, and the flower turns round the player
+// at waist height, the petals breathing bigger and smaller out of step, each
+// ring spinning (the middle one the other way). The texture runs once round
+// each ring, so its faded ends leave a gap that shows the spin.
 // Sizes: g_scale * 4 = 1 world unit; a cell is 5 units.
 void draw_rings(const V3& foot, void* tex, float t) {
-	const float CYCLE = 4.0f;           // one swirl: come in, circle, fade
-	const int RINGS = 4, SEGS = 32;
-	const float R_IN = 20 * g_scale;     // inner ring radius at full size (5 units)
-	const float GAP = 9 * g_scale;       // between rings (outer ring ~11.75 units)
+	const float CYCLE = 4.0f;            // one swirl: come in, open, turn, fade
+	const int PETALS = 3, SEGS = 32;
+	const float R = 34 * g_scale;        // petal ring radius at full size (8.5 units)
 	const float BAND = 6 * g_scale;      // thin lines (the texture fades at its edges)
 	const float LIFT = 22 * g_scale;     // centre at the waist
-	const float OFF0 = 40 * g_scale, OFF1 = 10 * g_scale; // centre offset: comes in from 10 units out to 2.5
-	const float TILT = 28 * PI / 180;
+	const float OFF0 = 36 * g_scale, OFF1 = 14 * g_scale; // petal centres: come in from 9 units out to 3.5
+	const float TILT = 30 * PI / 180;
 	float u = fmodf(t / CYCLE, 1.0f);
 	float cyc = floorf(t / CYCLE);
 	float fade = fminf(1, u / 0.15f) * fminf(1, (1 - u) / 0.2f);
 	if (fade <= 0.01f)
 		return;
-	float ease = 1 - (1 - fminf(1, u / 0.35f)) * (1 - fminf(1, u / 0.35f)); // arrives in the first 35%
-	float breathe = 0.88f + 0.12f * sinf(2 * PI * t / 1.6f);
-	float grow = (0.35f + 0.65f * ease) * breathe;
-	// each swirl comes in from a different side, then circles once and a half
+	float k = fminf(1, u / 0.35f);
+	float ease = 1 - (1 - k) * (1 - k); // arrives and opens in the first 35%
+	// each swirl comes in from a different side, then turns once and a half
 	float side = 2 * PI * fmodf(cyc * 0.37f, 1.0f);
-	float orbit = side + 3 * PI * u;
+	float turn = side + 3 * PI * u;
 	float off = OFF0 + (OFF1 - OFF0) * ease;
-	V3 c = {foot.x + off * cosf(orbit), foot.y - LIFT * (0.4f + 0.6f * ease), foot.z + off * sinf(orbit)};
-	// the rings lean away from the player, toward the side the centre is on
-	V3 d = {cosf(orbit), 0, sinf(orbit)};
-	V3 e1 = {-d.z, 0, d.x};
-	V3 e2 = {cosf(TILT) * d.x, sinf(TILT), cosf(TILT) * d.z};
-	for (int ri = 0; ri < RINGS; ri++) {
-		float r = (R_IN + GAP * ri) * grow;
-		float alpha = 255 * fade * (1 - 0.1f * ri);
-		float spin = fmodf(t / (2.4f + 0.5f * ri) + ri * 0.27f, 1.0f) * ((ri & 1) ? -1.0f : 1.0f);
+	float lift = LIFT * (0.4f + 0.6f * ease);
+	for (int pi = 0; pi < PETALS; pi++) {
+		float dir = turn + 2 * PI / 3 * pi * ease; // fan out to 120 degrees apart
+		float breathe = 0.85f + 0.15f * sinf(2 * PI * t / 1.6f + pi * 2.1f);
+		float r = R * (0.4f + 0.6f * ease) * breathe;
+		V3 c = {foot.x + off * cosf(dir), foot.y - lift, foot.z + off * sinf(dir)};
+		// the petal leans out, toward its own side
+		V3 d = {cosf(dir), 0, sinf(dir)};
+		V3 e1 = {-d.z, 0, d.x};
+		V3 e2 = {cosf(TILT) * d.x, sinf(TILT), cosf(TILT) * d.z};
+		float alpha = 240 * fade;
+		float spin = fmodf(t / 2.6f + pi * 0.31f, 1.0f) * (pi == 1 ? -1.0f : 1.0f);
 		auto at = [&](float rr, float ang) {
 			if (rr < 0.5f * g_scale)
 				rr = 0.5f * g_scale;
@@ -359,9 +362,9 @@ void draw_rings(const V3& foot, void* tex, float t) {
 			return V3{c.x + x, c.y - y, c.z + z}; // up is -y in the client
 		};
 		uint32_t col = grey(alpha);
-		for (int k = 0; k < SEGS; k++) {
-			float a0 = 2 * PI * ((float)k / SEGS + spin), a1 = a0 + 2 * PI / SEGS;
-			float u0 = (float)k / SEGS, u1 = (float)(k + 1) / SEGS;
+		for (int s = 0; s < SEGS; s++) {
+			float a0 = 2 * PI * ((float)s / SEGS + spin), a1 = a0 + 2 * PI / SEGS;
+			float u0 = (float)s / SEGS, u1 = (float)(s + 1) / SEGS;
 			V3 p[4] = {at(r + BAND, a0), at(r + BAND, a1), at(r - BAND, a0), at(r - BAND, a1)};
 			float uv[8] = {u0, 0, u1, 0, u0, 1, u1, 1};
 			quad(p, uv, col, tex);
