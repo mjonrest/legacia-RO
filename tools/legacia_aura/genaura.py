@@ -3,6 +3,11 @@ import os, sys, math, struct, json
 from PIL import Image
 
 SRC, OUT = sys.argv[1], sys.argv[2]
+# STR canvas point where the player's feet are. The canvas is 640x640 and (320,320) is the
+# hat effect anchor; with hatEffectPos -11 the anchor sits below the feet, so lift everything.
+# First in-game test (2026-11-06) showed the aura ~65px under the feet with FOOT_LIFT 0.
+FOOT_LIFT = float(sys.argv[3]) if len(sys.argv) > 3 else 65.0
+FOOT_X, FOOT_Y = 320.0, 320.0 - FOOT_LIFT
 FOLDER = 'efst_legacia_aura'
 EFF = os.path.join(OUT, 'data', 'texture', 'effect', FOLDER)
 os.makedirs(EFF, exist_ok=True)
@@ -96,7 +101,7 @@ def ground_states(alpha=230.0):
             x = cxs * G_R * math.cos(th) - cys * G_R * math.sin(th)
             z = cxs * G_R * math.sin(th) + cys * G_R * math.cos(th)
             pts.append(project(x, 0, z))
-        pos, xy = quad(320.0, 320.0, pts)
+        pos, xy = quad(FOOT_X, FOOT_Y, pts)
         st.append((f, pos, xy, (255.0, 255.0, 255.0, alpha)))
     return st, G_SPIN
 
@@ -132,7 +137,7 @@ def ring_layers(slices):
                     y = r * e2[1] + rr * (math.cos(aa) * e1[1] + math.sin(aa) * e2[1])
                     z = rr * (math.cos(aa) * e1[2] + math.sin(aa) * e2[2])
                     pts.append(project(x, y, z))
-                pos, xy = quad(320.0, 320.0, pts)
+                pos, xy = quad(FOOT_X, FOOT_Y, pts)
                 st.append((f, pos, xy, (255.0, 255.0, 255.0, alpha)))
             ls.append(layer(slices[k], st))
     return ls, R_LIFE
@@ -153,7 +158,7 @@ def sprite_layers(tex, size, seed):
             sx, sy = project(dist * u * math.cos(a), rise * u, dist * u * math.sin(a))
             alpha = 255.0 * min(1.0, u / 0.12) * (1.0 - max(0.0, (u - 0.7) / 0.3))
             h = sz
-            pos, xy = quad(320.0 + sx, 320.0 + sy, ((-h, -h), (h, -h), (h, h), (-h, h)))
+            pos, xy = quad(FOOT_X + sx, FOOT_Y + sy, ((-h, -h), (h, -h), (h, h), (-h, h)))
             return pos, xy, (255.0, 255.0, 255.0, alpha)
         marks = [0.0, 0.12, 0.7, 1.0]
         samples = [(start + u * S_LIFE, u) for u in marks]
