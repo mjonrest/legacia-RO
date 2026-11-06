@@ -300,13 +300,24 @@ static void handle_packet(const uint8_t* p, int n, DWORD now, DWORD& lastHeard) 
 		if (n >= 3) {
 			uint16_t count;
 			memcpy(&count, p + 1, 2);
+			static bool logged;
+			if (!logged) {
+				logged = true;
+				log_line("aura: first answer from the server, %u aura(s) around", count);
+			}
 			if (n >= 3 + count * 7)
 				aura_set(p + 3, count);
 		}
 		break;
-	case S_NO_AURAS:
+	case S_NO_AURAS: {
+		static bool logged;
+		if (!logged) {
+			logged = true;
+			log_line("aura: the server says the map-server can't send auras (link down or old map-server)");
+		}
 		aura_set_none();
 		break;
+	}
 	case S_NO_STATS:
 		if (n >= 2)
 			stats_ui_on_unavailable(p[1]);
@@ -427,6 +438,11 @@ static DWORD WINAPI net_thread(LPVOID) {
 			}
 			// auras of the players around, once a second
 			if (aura_wants() && now - lastAuras >= 1000) {
+				static bool logged;
+				if (!logged) {
+					logged = true;
+					log_line("aura: asking the server for the auras around");
+				}
 				send_with_session(C_AURAS);
 				lastAuras = now;
 			}
