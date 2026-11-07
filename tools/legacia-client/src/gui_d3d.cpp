@@ -538,13 +538,27 @@ bool learn_device_shape() {
 	return g_knownPresent != nullptr;
 }
 
+// Copies game memory without ever faulting. The search below runs on the
+// plugin's own thread while the game keeps allocating and freeing heap
+// memory, so a block that VirtualQuery called readable can be gone a moment
+// later; reading it directly then crashes the client (seen in Miracle's
+// plugin on the login screen, 2026-11-07). ReadProcessMemory on our own
+// process just fails instead.
+bool copy_game_mem(void* dst, uintptr_t src, size_t n) {
+	if (src < 0x10000)
+		return false;
+	SIZE_T got = 0;
+	return ReadProcessMemory(GetCurrentProcess(), (const void*)src, dst, n, &got) && got == n;
+}
+
 bool looks_like_device(uintptr_t p) {
-	if ((p & 3) || !readable((void*)p, sizeof(void*)))
+	void** vt = nullptr;
+	if ((p & 3) || !copy_game_mem(&vt, p, sizeof(vt)))
 		return false;
-	void** vt = *(void***)p;
-	if (!readable(vt, sizeof(void*) * (SLOT_PRESENT + 1)))
+	void* slots[SLOT_PRESENT + 1];
+	if (!copy_game_mem(slots, (uintptr_t)vt, sizeof(slots)))
 		return false;
-	return vt[0] == g_knownQI && (vt[SLOT_PRESENT] == g_knownPresent || vt == g_devVt);
+	return slots[0] == g_knownQI && (slots[SLOT_PRESENT] == g_knownPresent || vt == g_devVt);
 }
 
 // breadth-first through the pointers of the game's renderer, a few levels deep
@@ -553,16 +567,22 @@ IDirect3DDevice9* search_renderer() {
 	    memcmp((void*)GET_DEVICE_RET, GET_DEVICE_RET_BYTES, sizeof(GET_DEVICE_RET_BYTES)) != 0)
 		return nullptr; // not the exe this was made for
 	std::vector<uintptr_t> level = {RENDERER_OBJ}, next, seen;
+	uintptr_t block[0x400 / 4];
 	for (int depth = 0; depth < 4 && !level.empty(); depth++) {
 		next.clear();
 		for (uintptr_t obj : level) {
-			const size_t bytes = depth == 0 ? 0x40 : 0x400;
-			if (!readable((void*)obj, sizeof(uintptr_t)))
-				continue;
-			for (size_t off = 0; off < bytes; off += 4) {
-				if (!readable((void*)(obj + off), 4))
-					break;
-				uintptr_t p = *(uintptr_t*)(obj + off);
+			size_t bytes = depth == 0 ? 0x40 : 0x400;
+			// copy the whole block at once; near the end of a region take
+			// only what is left of its page
+			if (!copy_game_mem(block, obj, bytes)) {
+				bytes = 0x1000 - (obj & 0xfff);
+				if (bytes > sizeof(block))
+					bytes = sizeof(block);
+				if (!copy_game_mem(block, obj, bytes))
+					continue;
+			}
+			for (size_t i = 0; i < bytes / 4; i++) {
+				uintptr_t p = block[i];
 				if (p < 0x10000 || (p & 3))
 					continue;
 				if (looks_like_device(p))
