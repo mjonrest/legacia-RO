@@ -16204,6 +16204,41 @@ BUILDIN_FUNC(message)
  *   BC_AREA - Message is sent to players in the vicinity of the source (default).
  *   BC_SELF - Message is sent only to player attached.
  */
+/// Whether sd's client shows nd: on its screen area and not cloaked or hidden
+/// for sd. A talk balloon for an NPC the client doesn't draw floats at a stale
+/// spot on the screen (Ep21/Ch1 scenes talk from NPCs cloaked for the player).
+static bool npctalk_npc_shown(npc_data& nd, map_session_data& sd) {
+	if (nd.prev == nullptr || nd.m != sd.m || !check_distance_bl(&nd, &sd, AREA_SIZE))
+		return false;
+	if (nd.class_ == JT_INVISIBLE || nd.class_ == JT_HIDDEN_WARP_NPC || npc_is_cloaked(&nd, &sd) ||
+	    npc_is_hidden_dynamicnpc(nd, sd))
+		return false;
+	return !(nd.sc.option & (OPTION_HIDE | OPTION_INVISIBLE | OPTION_CHASEWALK));
+}
+
+/// npctalk to one player: a balloon over the NPC when sd can see it, otherwise
+/// the line goes to sd's chat window only, as "<NPC name> : <message>".
+static void npctalk_to(npc_data& nd, map_session_data& sd, int32 color, const char* message) {
+	if (npctalk_npc_shown(nd, sd)) {
+		clif_messagecolor_target(&nd, color, message, true, SELF, &sd);
+		return;
+	}
+	char line[CHAT_SIZE_MAX];
+	if (strstr(message, " : ") != nullptr || nd.name[0] == '\0')
+		safesnprintf(line, sizeof(line), "%s", message);
+	else
+		safesnprintf(line, sizeof(line), "%s : %s", nd.name, message); // nd.name is the shown name, without #
+	clif_displaymessage(sd.fd, line);
+}
+
+static int32 npctalk_sub(block_list* bl, va_list ap) {
+	npc_data* nd = va_arg(ap, npc_data*);
+	int32 color = va_arg(ap, int32);
+	const char* message = va_arg(ap, const char*);
+	npctalk_to(*nd, *(map_session_data*)bl, color, message);
+	return 1;
+}
+
 BUILDIN_FUNC(npctalk)
 {
 	npc_data* nd = nullptr;
@@ -16232,13 +16267,16 @@ BUILDIN_FUNC(npctalk)
 			}
 		}
 		safesnprintf(message, sizeof(message), "%s", str);
-		if (target != SELF)
+		if (target == AREA) {
+			// per player: a balloon only for players who can see the NPC
+			map_foreachinallrange(npctalk_sub, nd, AREA_SIZE, BL_PC, nd, color, message);
+		} else if (target != SELF)
 			clif_messagecolor(nd, color, message, true, target);
 		else {
 			TBL_PC *sd = map_id2sd(st->rid);
 			if (sd == nullptr)
 				return SCRIPT_CMD_FAILURE;
-			clif_messagecolor_target(nd, color, message, true, target, sd);
+			npctalk_to(*nd, *sd, color, message);
 		}
 	}
 	return SCRIPT_CMD_SUCCESS;
