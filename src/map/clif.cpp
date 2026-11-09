@@ -448,6 +448,9 @@ static bool clif_ally_only = false;
 // spot on the screen. Players with hiding detection (Maya Purple / intravision)
 // still get them, and so do the unit itself and the skill's target.
 static const block_list* clif_hidden_src = nullptr;
+// Units that hid and were taken off the screen of players who can't see them.
+static std::unordered_set<int32> clif_vanished_hidden;
+
 static int32 clif_hidden_exempt = 0;
 
 struct ClifHiddenSource {
@@ -1209,6 +1212,9 @@ void clif_clearunit_single( uint32 GID, clr_type type, const map_session_data& t
 ///     4 = trickdead
 void clif_clearunit_area( const block_list& bl, clr_type type ){
 	PACKET_ZC_NOTIFY_VANISH packet{};
+
+	if( type != CLR_OUTSIGHT )
+		clif_vanished_hidden.erase( bl.id ); // died, warped or logged out while hidden
 
 	packet.packetType = HEADER_ZC_NOTIFY_VANISH;
 	packet.gid = bl.id;
@@ -4643,6 +4649,45 @@ void clif_misceffect( const block_list& bl, e_notify_effect type ){
 /// Notifies clients in the area of a state change.
 /// 0119 <id>.L <body state>.W <health state>.W <effect state>.W <pk mode>.B (ZC_STATE_CHANGE)
 /// 0229 <id>.L <body state>.W <health state>.W <effect state>.L <pk mode>.B (ZC_STATE_CHANGE3)
+void clif_getareachar_unit( map_session_data* sd,block_list *bl );
+
+static int32 clif_hidden_unit_vanish_sub( block_list* bl, va_list ap ){
+	map_session_data* tsd = (map_session_data*)bl;
+	block_list* src = va_arg( ap, block_list* );
+	if( tsd->id != src->id && !tsd->special_state.intravision && tsd->sc.getSCE( SC_INTRAVISION ) == nullptr )
+		clif_clearunit_single( src->id, CLR_OUTSIGHT, *tsd );
+	return 1;
+}
+
+static int32 clif_hidden_unit_show_sub( block_list* bl, va_list ap ){
+	map_session_data* tsd = (map_session_data*)bl;
+	block_list* src = va_arg( ap, block_list* );
+	if( tsd->id != src->id && !tsd->special_state.intravision && tsd->sc.getSCE( SC_INTRAVISION ) == nullptr )
+		clif_getareachar_unit( tsd, src );
+	return 1;
+}
+
+/// When a unit hides (hiding, cloaking, chase walk, invisible, camouflage),
+/// players who can't see it get it removed from their screen, as if it had
+/// walked out of sight. The client then also drops the skill name, chat and
+/// cast bar it was showing for it, which otherwise floated around the screen
+/// until the unit came back. When it comes out, those players get it again.
+/// Players with hiding detection (Maya Purple / intravision) keep it as before.
+static void clif_hidden_unit_refresh( const block_list& cbl ){
+	block_list* bl = const_cast<block_list*>( &cbl );
+	if( bl->prev == nullptr )
+		return;
+	bool hidden = clif_unit_hidden( bl );
+	bool vanished = clif_vanished_hidden.count( bl->id ) != 0;
+	if( hidden && !vanished ){
+		clif_vanished_hidden.insert( bl->id );
+		map_foreachinallrange( clif_hidden_unit_vanish_sub, bl, AREA_SIZE, BL_PC, bl );
+	}else if( !hidden && vanished ){
+		clif_vanished_hidden.erase( bl->id );
+		map_foreachinallrange( clif_hidden_unit_show_sub, bl, AREA_SIZE, BL_PC, bl );
+	}
+}
+
 void clif_changeoption_target( const block_list* bl, const block_list* target ){
 	nullpo_retv( bl );
 
@@ -4683,6 +4728,8 @@ void clif_changeoption_target( const block_list* bl, const block_list* target ){
 
 			clif_status_change( bl, status_db.getIcon(SC_PROVOKE), 1, ( !td ? INFINITE_TICK : DIFF_TICK( td->tick, gettick() ) ), 0, 0, 0 );
 		}
+
+		clif_hidden_unit_refresh( *bl );
 	}else{
 		if( disguised( bl ) ){
 			p.AID = disguised_bl_id( p.AID );
