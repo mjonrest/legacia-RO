@@ -515,7 +515,10 @@ void draw_cells(void* ground, void* view, const int* area) {
 }
 
 // thiscall hooks written as fastcall: this in ecx, edx unused, callee pops
+void* volatile g_groundMap; // cell table of the map whose ground was drawn last
+
 void __fastcall ground_hook(void* self, void*, void* view, int* area, int flag) {
+	g_groundMap = world_attr();
 	aura_draw(view); // once a frame, see aura.cpp
 	if (active() && area) {
 		draw_cells(self, view, area);
@@ -577,6 +580,28 @@ bool graymap_install() {
 
 bool graymap_available() {
 	return g_ok;
+}
+
+// True once the current map's ground has been drawn: not on the login screen
+// or character select (no game mode), and not while a new map is loading (its
+// cell table is new and not drawn yet). The game doesn't draw the ground every
+// frame, so this doesn't look at how long ago it was drawn. On an exe where
+// the map drawing could not be hooked, say yes so the buttons still show.
+bool game_map_shown() {
+	if (!g_ok)
+		return true;
+	// may run off the game thread while the game swaps maps: read with
+	// ReadProcessMemory so a freed pointer fails instead of crashing
+	auto rd = [](uintptr_t at, void* out, size_t n) {
+		SIZE_T got = 0;
+		return ReadProcessMemory(GetCurrentProcess(), (void*)at, out, n, &got) && got == n;
+	};
+	int kind = 0;
+	uintptr_t mode = 0, world = 0, map = 0;
+	if (!rd(MODE_MGR + 0x58, &kind, 4) || kind != 1 || !rd(MODE_MGR + 4, &mode, 4) || !mode ||
+	    !rd(mode + 0xcc, &world, 4) || !world || !rd(world + 0x30, &map, 4) || !map)
+		return false;
+	return (void*)map == g_groundMap;
 }
 
 bool lgp_drawing() {

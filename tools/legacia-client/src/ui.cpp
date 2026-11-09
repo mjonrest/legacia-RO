@@ -437,7 +437,7 @@ static void update_overlay() {
 	}
 	HWND fg = GetForegroundWindow();
 	bool gameActive = fg == g_gameWnd || fg == g_settings || fg == g_prompt;
-	if (lines.empty() || !gameActive || IsIconic(g_gameWnd)) {
+	if (lines.empty() || !gameActive || IsIconic(g_gameWnd) || !game_map_shown()) {
 		if (IsWindowVisible(g_overlay))
 			ShowWindow(g_overlay, SW_HIDE);
 		return;
@@ -969,9 +969,10 @@ static void poll() {
 	update_overlay();
 
 	HWND fg = GetForegroundWindow();
-	update_bar(focus || fg == g_prompt);
-	graymap_button_update(focus || fg == g_prompt);
-	stats_button_update(focus || fg == g_prompt);
+	bool shown = (focus || fg == g_prompt) && game_map_shown(); // not on login, char select, loading
+	update_bar(shown);
+	graymap_button_update(shown);
+	stats_button_update(shown);
 	int micState = (audio_transmitting() ? 1 : 0) | (net_state() == NET_CONNECTED ? 2 : 0) | (g_cfg.enabled ? 4 : 0);
 	if (micState != lastMicState) {
 		lastMicState = micState;

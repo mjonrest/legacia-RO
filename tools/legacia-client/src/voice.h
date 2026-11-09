@@ -130,6 +130,7 @@ extern const int GM_DEFAULT_COLORS[GM_COLOR_COUNT];
 bool graymap_install(); // hooks the map drawing; false on an unknown game exe
 bool crashguard_install(); // catches a known null-actor crash in the game exe (crashguard.cpp)
 bool graymap_available();
+bool game_map_shown(); // the game is drawing a map now (not login, char select or loading)
 
 // ---- lgp.cpp: what LGP needs from other threads (graymap.cpp draws it) ----
 struct LgpCell {

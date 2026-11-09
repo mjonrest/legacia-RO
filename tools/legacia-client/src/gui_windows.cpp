@@ -1468,6 +1468,10 @@ void gui_windows_frame() {
 				toggle_stats_window();
 		}
 
+	// nothing is shown on the login screen, character select or a loading
+	// screen, only once the player is in a map (open windows come back then)
+	if (!game_map_shown())
+		return;
 	ImGui::PushFont(g_guiFont);
 	voice_bar();
 	int r = corner_button("##gmbutton", g_gmBtn, &g_cfg.gmBtnRight, &g_cfg.gmBtnTop, graymap_button_pixels);
