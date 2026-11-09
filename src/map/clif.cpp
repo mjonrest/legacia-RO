@@ -441,6 +441,44 @@ static uint32 map_ip;
 static uint32 bind_ip = INADDR_ANY;
 static uint16 map_port = 5121;
 static bool clif_ally_only = false;
+
+// While set, packets of this unit (skill casts and use, its chat, emotions)
+// are not sent to players who can't see it because it is hidden, cloaked or
+// invisible: the client drew their skill names, cast bars and chat at a stale
+// spot on the screen. Players with hiding detection (Maya Purple / intravision)
+// still get them, and so do the unit itself and the skill's target.
+static const block_list* clif_hidden_src = nullptr;
+static int32 clif_hidden_exempt = 0;
+
+struct ClifHiddenSource {
+	const block_list* old_src;
+	int32 old_exempt;
+	ClifHiddenSource(const block_list* src, int32 exempt = 0) : old_src(clif_hidden_src), old_exempt(clif_hidden_exempt) {
+		clif_hidden_src = src;
+		clif_hidden_exempt = exempt;
+	}
+	~ClifHiddenSource() {
+		clif_hidden_src = old_src;
+		clif_hidden_exempt = old_exempt;
+	}
+};
+
+static bool clif_unit_hidden(const block_list* bl) {
+	status_change* sc = status_get_sc(const_cast<block_list*>(bl));
+	if (sc == nullptr)
+		return false;
+	return (sc->option & (OPTION_HIDE | OPTION_CLOAK | OPTION_CHASEWALK | OPTION_INVISIBLE)) != 0 ||
+	       sc->getSCE(SC_CAMOUFLAGE) != nullptr;
+}
+
+static bool clif_hidden_from(const map_session_data* sd) {
+	const block_list* src = clif_hidden_src;
+	if (src == nullptr || src->id == sd->id || (clif_hidden_exempt != 0 && clif_hidden_exempt == sd->id))
+		return false;
+	if (sd->special_state.intravision || sd->sc.getSCE(SC_INTRAVISION) != nullptr)
+		return false;
+	return clif_unit_hidden(src);
+}
 int32 map_fd;
 
 static int32 clif_parse (int32 fd);
@@ -646,6 +684,9 @@ static int32 clif_send_sub(block_list *bl, va_list ap)
 		// Do not send anything
 		return 0;
 	}
+
+	if (clif_hidden_from(sd))
+		return 0; // a hidden unit's cast, skill or chat that sd can't see
 
 	/* unless visible, hold it here */
 	if (!battle_config.update_enemy_position && clif_ally_only && !sd->special_state.intravision &&
@@ -6236,6 +6277,7 @@ void clif_skillcasting( const block_list& src, const block_list* dst, uint16 dst
 	p.attackMT = 0;
 #endif
 
+	ClifHiddenSource hidden(&src);
 	if (disguised(&src)) {
 		clif_send(&p,sizeof(p), &src, AREA_WOS);
 
@@ -6333,6 +6375,7 @@ void clif_skill_damage( const block_list& src, const block_list& dst, t_tick tic
 	sdamage = clif_hallucination_damage( dst, sdamage );
 
 	PACKET_ZC_NOTIFY_SKILL packet{};
+	ClifHiddenSource hidden(&src, dst.id);
 
 	packet.PacketType = HEADER_ZC_NOTIFY_SKILL;
 	packet.SKID = skill_id;
@@ -6442,6 +6485,7 @@ int32 clif_skill_damage2(block_list *src,block_list *dst,t_tick tick,int32 sdela
 /// 09cb <skill id>.W <heal>.L <dst id>.L <src id>.L <result>.B (ZC_USE_SKILL2)
 bool clif_skill_nodamage( const block_list* src, const block_list& dst, uint16 skill_id, int32 heal, bool success ){
 	PACKET_ZC_USE_SKILL p{};
+	ClifHiddenSource hidden(src, dst.id);
 
 	p.PacketType = HEADER_ZC_USE_SKILL;
 	p.SKID = skill_id;
@@ -6476,6 +6520,7 @@ bool clif_skill_nodamage( const block_list* src, const block_list& dst, uint16 s
 /// 0117 <skill id>.W <src id>.L <level>.W <x>.W <y>.W <tick>.L (ZC_NOTIFY_GROUNDSKILL)
 void clif_skill_poseffect( block_list& bl, uint16 skill_id, uint16 skill_lv, uint16 x, uint16 y, t_tick tick ){
 	PACKET_ZC_NOTIFY_GROUNDSKILL packet{};
+	ClifHiddenSource hidden(&bl);
 
 	packet.PacketType = HEADER_ZC_NOTIFY_GROUNDSKILL;
 	packet.SKID = skill_id;
@@ -9691,6 +9736,7 @@ void clif_guild_position_selected( const map_session_data& sd )
 ///     enum emotion_type
 void clif_emotion( const block_list& bl, emotion_type type ){
 	PACKET_ZC_EMOTION p{};
+	ClifHiddenSource hidden(&bl);
 #if (PACKETVER_MAIN_NUM < 20230925)
 	p.packetType = HEADER_ZC_EMOTION;
 	p.GID = bl.id;
@@ -10076,6 +10122,7 @@ void clif_messagecolor_target(const block_list* bl, unsigned long color, const c
 	if (rgb2bgr)
 		color = (color & 0x0000FF) << 16 | (color & 0x00FF00) | (color & 0xFF0000) >> 16; // RGB to BGR
 
+	ClifHiddenSource hidden(bl);
 	WBUFW(buf,0) = 0x2C1;
 	WBUFW(buf,2) = msg_len + 12;
 	WBUFL(buf,4) = bl->id;
