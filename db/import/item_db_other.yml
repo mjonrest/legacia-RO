@@ -27218,9 +27218,9 @@ Body:
     Type: Weapon
     SubType: Bow
     Weight: 1000
-    Attack: 150
+    Attack: 135
     Range: 5
-    Slots: 4
+    Slots: 2
     Jobs:
       Archer: true
       BardDancer: true
@@ -27228,18 +27228,23 @@ Body:
       Rogue: true
       Thief: true
     Locations:
-      Right_Hand: true
+      Both_Hand: true
     WeaponLevel: 4
     Refineable: true
+    Script: |
+      // Copies Ixion Wings
+      autobonus "{ bonus bAspdRate,7; }",10+(getrefine()*2),7000,BF_WEAPON,"{ specialeffect2 EF_HASTEUP; }";
+      bonus2 bAddSkillBlow,"AC_CHARGEARROW",3;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60002
     AegisName: Bow_Of_Betrayer
     Name: Bow Of Betrayer
     Type: Weapon
     SubType: Bow
     Weight: 1000
-    Attack: 150
+    Attack: 135
     Range: 5
-    Slots: 4
+    Slots: 2
     Jobs:
       Archer: true
       BardDancer: true
@@ -27247,33 +27252,49 @@ Body:
       Rogue: true
       Thief: true
     Locations:
-      Right_Hand: true
+      Both_Hand: true
     WeaponLevel: 4
     Refineable: true
+    Script: |
+      // Copies Frozen Bow
+      bonus2 bAddEff,Eff_Freeze,1000;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60003
     AegisName: Blazeguard
     Name: Blazeguard
     Type: Weapon
     SubType: 1hAxe
     Weight: 1000
-    Attack: 150
+    Attack: 145
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Blacksmith: true
     Locations:
       Right_Hand: true
     WeaponLevel: 4
     Refineable: true
+    Script: |
+      // Copies Vecer Axe
+      if (readparam(bLuk)>=90) {
+         bonus bBaseAtk,20;
+      }
+      if (readparam(bDex)>=90) {
+         bonus bCritical,5;
+      }
+      if (readparam(bDex)>=90 || readparam(bLuk)>=90) {
+         bonus2 bSkillAtk,"MC_MAMMONITE",15;
+      }
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60004
     AegisName: Vengeful_Gladiator
     Name: Vengel Gladiator
     Type: Weapon
     SubType: 1hSword
     Weight: 1000
-    Attack: 60
+    Attack: 140
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Alchemist: true
       Assassin: true
@@ -27291,15 +27312,21 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 2
     Refineable: true
+    Script: |
+      // Copies Cutlus
+      skill "SM_BASH",5;
+      bonus bStr,2;
+      bonus bDef,1;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60005
     AegisName: Blinkstrike
     Name: Blinkstrike
     Type: Weapon
     SubType: Dagger
     Weight: 1000
-    Attack: 150
+    Attack: 115
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Alchemist: true
       Assassin: true
@@ -27316,15 +27343,22 @@ Body:
       Right_Hand: true
     WeaponLevel: 4
     Refineable: true
+    Script: |
+      // Copies Assassin Dagger
+      bonus bMaxHPrate,20;
+      bonus bMaxSPrate,15;
+      bonus bAspdRate,2;
+      bonus bAtkEle,Ele_Dark;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60006
     AegisName: White_Rabbit_Sword
     Name: White Rabbit Sword
     Type: Weapon
     SubType: 1hSword
     Weight: 1000
-    Attack: 150
+    Attack: 140
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Novice: true
       SuperNovice: true
@@ -27333,6 +27367,13 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 27
     Refineable: true
+    Script: |
+      // Copies Excalibur
+      bonus bInt,5;
+      bonus bLuk,10;
+      bonus bDex,-1;
+      bonus bAtkEle,Ele_Holy;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60007
     AegisName: Black_Rabbit_Shield
     Name: Black Rabbit Shield
@@ -27354,9 +27395,9 @@ Body:
     Type: Weapon
     SubType: 2hStaff
     Weight: 1000
-    Attack: 150
+    Attack: 80
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Acolyte: true
       Mage: true
@@ -27368,35 +27409,51 @@ Body:
       SuperNovice: true
       Wizard: true
     Locations:
-      Right_Hand: true
+      Both_Hand: true
     WeaponLevel: 4
     EquipLevelMin: 1
     Refineable: true
+    Script: |
+      // Copies Divine Cross
+      bonus bAtkEle,Ele_Holy;
+      bonus bMatkRate,15;
+      bonus bDex,4;
+      bonus2 bSubRace,RC_Demon,15;
+      bonus2 bSubRace,RC_Undead,15;
+      callfunc "F_LegaciaWeapon",1;
   - Id: 60009
     AegisName: Highness_Staff
     Name: Highness Staff
     Type: Weapon
     SubType: 2hStaff
     Weight: 1000
-    Attack: 150
+    Attack: 80
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Sage: true
     Locations:
-      Right_Hand: true
+      Both_Hand: true
     WeaponLevel: 4
     EquipLevelMin: 1
     Refineable: true
+    Script: |
+      // Copies Kronos
+      .@r = getrefine();
+      bonus bMatkRate,20;
+      bonus bInt,3+(.@r/2);
+      bonus bMaxHP,300+(50*.@r/2);
+      autobonus "{ bonus bMatkRate,12; bonus buseSPRate,20; }",1,5000,BF_MAGIC,"{ specialeffect2 EF_ENHANCE; }";
+      callfunc "F_LegaciaWeapon",1;
   - Id: 60010
     AegisName: Dorcus
     Name: Dorcus
     Type: Weapon
     SubType: Knuckle
     Weight: 1000
-    Attack: 150
+    Attack: 125
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Monk: true
     Locations:
@@ -27404,15 +27461,20 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 18
     Refineable: true
+    Script: |
+      // Copies Monk Knuckle
+      bonus bInt,2;
+      bonus2 bSkillAtk,"MO_FINGEROFFENSIVE",25;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60011
     AegisName: Cat_Paw
     Name: Cat Paw
     Type: Weapon
     SubType: Katar
     Weight: 1000
-    Attack: 150
+    Attack: 140
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Assassin: true
     Locations:
@@ -27420,31 +27482,46 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 18
     Refineable: true
+    Script: |
+      // Copies Krishna
+      bonus2 bSkillAtk,"AS_GRIMTOOTH",10;
+      if (getskilllv("AS_SONICBLOW")) {
+         bonus3 bAutoSpell,"AS_SONICBLOW",getskilllv("AS_SONICBLOW"),5;
+      }
+      else {
+         bonus3 bAutoSpell,"AS_SONICBLOW",1,5;
+      }
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60012
     AegisName: Vash_Revolver
     Name: Vash Revolver
     Type: Weapon
     SubType: Revolver
     Weight: 1000
-    Attack: 150
+    Attack: 90
     Range: 7
-    Slots: 4
+    Slots: 2
     Jobs:
       Gunslinger: true
     Locations:
-      Right_Hand: true
+      Both_Hand: true
     WeaponLevel: 4
     EquipLevelMin: 10
     Refineable: true
+    Script: |
+      // Copies Wasteland's Outlaw
+      bonus bHit,readparam(bAgi)/10;
+      bonus bAspdRate,readparam(bAgi)/14;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60013
     AegisName: Devil_Guitar
     Name: Devil Guitar
     Type: Weapon
     SubType: Musical
     Weight: 1000
-    Attack: 150
+    Attack: 125
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       BardDancer: true
     Gender: Male
@@ -27453,31 +27530,42 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 70
     Refineable: true
+    Script: |
+      // Copies Oriental Lute
+      bonus2 bSkillAtk,"CG_ARROWVULCAN",10;
+      bonus2 bSkillAtk,"BA_MUSICALSTRIKE",10;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60014
     AegisName: Gentleman_Staff
     Name: Gentleman Staff
     Type: Weapon
     SubType: 2hStaff
     Weight: 1000
-    Attack: 150
+    Attack: 80
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Wizard: true
     Locations:
-      Right_Hand: true
+      Both_Hand: true
     WeaponLevel: 4
     EquipLevelMin: 1
     Refineable: true
+    Script: |
+      // Copies Wizardry Staff
+      bonus bInt,6;
+      bonus bDex,2;
+      bonus bMatkRate,15;
+      callfunc "F_LegaciaWeapon",1;
   - Id: 60015
     AegisName: Chaos_Sword
     Name: Chaos Sword
     Type: Weapon
     SubType: 1hSword
     Weight: 1000
-    Attack: 150
+    Attack: 140
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Crusader: true
       Knight: true
@@ -27487,15 +27575,20 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 2
     Refineable: true
+    Script: |
+      // Copies Curved Sword
+      bonus bAspdRate,10;
+      bonus2 bAddEff,Eff_Curse,300;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60016
     AegisName: Black_Halberd
     Name: Black Halberd
     Type: Weapon
     SubType: 1hSpear
     Weight: 1000
-    Attack: 150
+    Attack: 140
     Range: 3
-    Slots: 4
+    Slots: 2
     Jobs:
       Crusader: true
       Knight: true
@@ -27505,15 +27598,21 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 80
     Refineable: true
+    Script: |
+      // Copies Gelerdria
+      bonus bAtkEle,Ele_Earth;
+      bonus bMaxHP,800;
+      bonus bMaxSP,-50;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60017
     AegisName: Book_Of_Battle
     Name: Book Of Battle
     Type: Weapon
     SubType: Book
     Weight: 1000
-    Attack: 150
+    Attack: 125
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Priest: true
       Sage: true
@@ -27523,15 +27622,23 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 27
     Refineable: true
+    Script: |
+      // Copies Sage's Diary
+      bonus bMatkRate,15;
+      if (readparam(bStr)>=50)
+         bonus bAspdRate,5;
+      if (readparam(bInt)>=70)
+         bonus bMatkRate,5;
+      callfunc "F_LegaciaWeapon",1;
   - Id: 60018
     AegisName: Chemical_Sword
     Name: Chemical Sword
     Type: Weapon
     SubType: Mace
     Weight: 1000
-    Attack: 150
+    Attack: 140
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Alchemist: true
     Locations:
@@ -27539,32 +27646,44 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 1
     Refineable: true
+    Script: |
+      // Copies Erde
+      bonus2 bSkillAtk,"AM_ACIDTERROR",20;
+      bonus2 bSkillAtk,"AM_DEMONSTRATION",20;
+      bonus bMaxSP,50;
+      bonus bHealPower,10;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60019
     AegisName: Siren_Whip
     Name: Siren Whip
     Type: Weapon
     SubType: Whip
     Weight: 1000
-    Attack: 150
+    Attack: 125
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       BardDancer: true
-    Gender: Female 	  
+    Gender: Female
     Locations:
       Right_Hand: true
     WeaponLevel: 4
     EquipLevelMin: 27
     Refineable: true
+    Script: |
+      // Copies Queen's Whip
+      bonus2 bSkillAtk,"CG_ARROWVULCAN",10;
+      bonus2 bSkillAtk,"DC_THROWARROW",10;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60020
     AegisName: Black_Devil_Spear
     Name: Black Devil Spear
     Type: Weapon
     SubType: 1hSpear
-    Weight: 5000
-    Attack: 150
+    Weight: 1500
+    Attack: 140
     Range: 3
-    Slots: 4
+    Slots: 2
     Jobs:
       Crusader: true
       Knight: true
@@ -27574,21 +27693,34 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 80
     Refineable: true
+    Script: |
+      // Copies Long Horn
+      bonus bAtkEle,Ele_Holy;
+      bonus2 bAddEff,Eff_Bleeding,500;
+      skill "TF_DETOXIFY",1;
+      bonus bUnbreakableWeapon;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60021
     AegisName: Senbon
     Name: Senbon
     Type: Weapon
     SubType: Dagger
     Weight: 1000
-    Attack: 150
+    Attack: 115
     Range: 4
-    Slots: 4
+    Slots: 2
     Jobs:
       Ninja: true
     Locations:
       Right_Hand: true
     WeaponLevel: 4
     Refineable: true
+    Script: |
+      // Copies Bazerald
+      bonus bAtkEle,Ele_Fire;
+      bonus bInt,5;
+      bonus bMatkRate,10;
+      callfunc "F_LegaciaWeapon",1;
 
 #//Red Dragon Weapon Set
   - Id: 60022

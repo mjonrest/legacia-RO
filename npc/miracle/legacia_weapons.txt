@@ -1,0 +1,105 @@
+//===== Legacia Script ========================================
+//= Legacia Classic Weapons (60001-60021)
+//===== Description: ==========================================
+//= Shared bonus for the Classic custom weapons, called from
+//= each weapon's item script:
+//=   callfunc "F_LegaciaWeapon",<caster>;
+//= <caster> 0 = physical weapon, 1 = caster weapon
+//= (staffs, Book of Battle, Senbon).
+//=
+//= 1) Refine bonus (renewal style, steps add up):
+//=    Refine  Physical                 Caster
+//=    +6      ATK +15                  MATK +3%
+//=    +7      HIT +10                  Cast time -5%
+//=    +8      ASPD +5%                 After-cast delay -5%
+//=    +9      +5% damage vs all class  +5% magic damage vs all class
+//=    +10     Critical damage +10%     MATK +5%
+//= 2) Class bonus by the wearer's job. 2nd jobs and baby jobs
+//=    get the same bonus as their transcendent job.
+//=
+//= Card combos for these weapons are in db/import/item_combos.yml.
+//=============================================================
+
+function	script	F_LegaciaWeapon	{
+	.@r = getrefine();
+
+	// Refine bonus
+	if (getarg(0, 0)) {
+		if (.@r >= 6)  bonus bMatkRate, 3;
+		if (.@r >= 7)  bonus bCastrate, -5;
+		if (.@r >= 8)  bonus bDelayrate, -5;
+		if (.@r >= 9)  bonus2 bMagicAddClass, Class_All, 5;
+		if (.@r >= 10) bonus bMatkRate, 5;
+	} else {
+		if (.@r >= 6)  bonus bBaseAtk, 15;
+		if (.@r >= 7)  bonus bHit, 10;
+		if (.@r >= 8)  bonus bAspdRate, 5;
+		if (.@r >= 9)  bonus2 bAddClass, Class_All, 5;
+		if (.@r >= 10) bonus bCritAtkRate, 10;
+	}
+
+	// Class bonus
+	switch (BaseJob) {
+	case Job_Knight:	// Lord Knight
+		bonus2 bAddClass, Class_All, 20;
+		break;
+	case Job_Crusader:	// Paladin
+		bonus bMaxHPrate, 25;
+		break;
+	case Job_Rogue:		// Stalker
+		bonus bMatkRate, 15;
+		bonus2 bAddClass, Class_All, 15;
+		break;
+	case Job_Wizard:	// High Wizard
+	case Job_Sage:		// Professor
+		bonus bCastrate, -20;
+		bonus bDelayrate, -10;
+		for (.@e = Ele_Neutral; .@e <= Ele_Undead; .@e++)
+			bonus2 bMagicAtkEle, .@e, 10;
+		break;
+	case Job_Assassin:	// Assassin Cross
+		bonus bCritAtkRate, 15;
+		break;
+	case Job_Blacksmith:	// Whitesmith
+		bonus bUseSPrate, -15;
+		bonus2 bAddClass, Class_All, 10;
+		break;
+	case Job_Alchemist:	// Creator
+		bonus2 bSkillAtk, "CR_ACIDDEMONSTRATION", 10;
+		break;
+	case Job_Bard:		// Clown
+	case Job_Dancer:	// Gypsy
+		bonus bUseSPrate, -15;
+		bonus bMaxHPrate, 15;
+		bonus bMaxSPrate, 15;
+		bonus bDelayrate, -10;
+		break;
+	case Job_Hunter:	// Sniper
+	case Job_Gunslinger:
+		bonus bCritAtkRate, 5;
+		bonus bLongAtkRate, 5;
+		bonus bAspdRate, 10;
+		break;
+	case Job_Ninja:
+	case Job_Soul_Linker:
+		bonus bAspdRate, 10;
+		bonus bMatkRate, 15;
+		break;
+	case Job_Star_Gladiator:
+		bonus bMaxHPrate, 10;
+		bonus bAspdRate, 10;
+		break;
+	case Job_Super_Novice:
+		bonus bAllStats, 20;
+		bonus bAtkRate, 10;
+		bonus bMatkRate, 10;
+		break;
+	case Job_Priest:	// High Priest (not in the owner's list yet)
+		bonus bHealPower, 10;
+		break;
+	case Job_Monk:		// Champion (not in the owner's list yet)
+		bonus2 bSkillAtk, "MO_EXTREMITYFIST", 10;
+		break;
+	}
+	return;
+}
