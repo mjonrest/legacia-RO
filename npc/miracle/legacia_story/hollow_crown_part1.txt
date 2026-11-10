@@ -10,7 +10,7 @@
 //= "echoes" of Legacia (the renewal instance maps).
 //=
 //= Chapter 1 - The Stone That Remembers
-//=   Archivist Sera (Prontera). Kill 100 monsters in Glast Heim
+//=   Archivist Sera (prt_castle 125,51). Kill 100 monsters in Glast Heim
 //=   and bring 100 Skel-Bone + 10 Cursed Ruby.
 //=   Reward: Echo Lens, Legacy Emblem Lv1, 10 Legacy Shards.
 //= Chapter 2 - Knights Without a King
@@ -36,7 +36,7 @@
 //= GM (level >= .gm_level) gets a test menu.
 //============================================================
 
-prontera,155,190,4	script	Archivist Sera	4_F_SARAH,{
+prt_castle,125,51,4	script	Archivist Sera	4_F_SARAH,{
 	.@n$ = "[Archivist Sera]";
 
 	if (getgmlevel() >= .gm_level) {
@@ -392,7 +392,7 @@ OnNPCKillEvent:
 	if (LGS_STEP != 1 || LGS_GHKILL >= .ghkills)
 		end;
 	.@map$ = strcharinfo(3);
-	if (left(.@map$, 3) != "gl_" && .@map$ != "glast_01")
+	if (substr(.@map$, 0, 2) != "gl_" && .@map$ != "glast_01")
 		end;
 	LGS_GHKILL++;
 	if (LGS_GHKILL >= .ghkills)
@@ -473,7 +473,7 @@ OnInit:
 		next;
 		mes .@n$;
 		mes "^0000FFObjective done.^000000 Talk to";
-		mes "Archivist Sera in Prontera.";
+		mes "Archivist Sera in Prontera Castle.";
 	} else if (LGS_STEP >= 4) {
 		.@today = atoi(gettimestr("%Y%m%d", 9));
 		if (LGS_DAILY != .@today) {
@@ -487,8 +487,8 @@ OnInit:
 		}
 	}
 	next;
-	if (select("Return to Prontera:Stay a while") == 1)
-		warp "prontera", 156, 183;
+	if (select("Return to Prontera Castle:Stay a while") == 1)
+		warp "prt_castle", 125, 47;
 	close;
 
 OnWave:
