@@ -27226,7 +27226,6 @@ Body:
       BardDancer: true
       Hunter: true
       Rogue: true
-      Thief: true
     Locations:
       Both_Hand: true
     WeaponLevel: 4
@@ -27250,7 +27249,6 @@ Body:
       BardDancer: true
       Hunter: true
       Rogue: true
-      Thief: true
     Locations:
       Both_Hand: true
     WeaponLevel: 4
@@ -27269,7 +27267,14 @@ Body:
     Range: 1
     Slots: 2
     Jobs:
+      Alchemist: true
+      Assassin: true
       Blacksmith: true
+      Crusader: true
+      Knight: true
+      Merchant: true
+      Swordman: true
+      Thief: true
     Locations:
       Right_Hand: true
     WeaponLevel: 4
@@ -27296,17 +27301,9 @@ Body:
     Range: 1
     Slots: 2
     Jobs:
-      Alchemist: true
       Assassin: true
-      Blacksmith: true
-      Crusader: true
       Knight: true
-      Merchant: true
-      Novice: true
-      Rogue: true
-      SuperNovice: true
       Swordman: true
-      Thief: true
     Locations:
       Right_Hand: true
     WeaponLevel: 4
@@ -27328,17 +27325,9 @@ Body:
     Range: 1
     Slots: 2
     Jobs:
-      Alchemist: true
       Assassin: true
-      Blacksmith: true
       Crusader: true
       Knight: true
-      Merchant: true
-      Novice: true
-      Rogue: true
-      SuperNovice: true
-      Swordman: true
-      Thief: true
     Locations:
       Right_Hand: true
     WeaponLevel: 4
@@ -27399,15 +27388,7 @@ Body:
     Range: 1
     Slots: 2
     Jobs:
-      Acolyte: true
-      Mage: true
-      Monk: true
-      Novice: true
       Priest: true
-      Sage: true
-      SoulLinker: true
-      SuperNovice: true
-      Wizard: true
     Locations:
       Both_Hand: true
     WeaponLevel: 4
@@ -27432,6 +27413,7 @@ Body:
     Slots: 2
     Jobs:
       Sage: true
+      Wizard: true
     Locations:
       Both_Hand: true
     WeaponLevel: 4
@@ -27567,9 +27549,7 @@ Body:
     Range: 1
     Slots: 2
     Jobs:
-      Crusader: true
       Knight: true
-      Swordman: true
     Locations:
       Right_Hand: true
     WeaponLevel: 4
@@ -27591,8 +27571,6 @@ Body:
     Slots: 2
     Jobs:
       Crusader: true
-      Knight: true
-      Swordman: true
     Locations:
       Right_Hand: true
     WeaponLevel: 4
@@ -27685,9 +27663,7 @@ Body:
     Range: 3
     Slots: 2
     Jobs:
-      Crusader: true
       Knight: true
-      Swordman: true
     Locations:
       Right_Hand: true
     WeaponLevel: 4
