@@ -1144,3 +1144,128 @@ Header:
 #      - Item: Zombie_Master_Card
 #        Rate: 1
 #        StealProtected: true
+
+Body:
+# Legacia RO - "The Hollow Crown" echo monsters (npc/miracle/legacia_story/).
+# Pre-renewal stats. Sprites come from existing monsters via db/import/mob_avail.yml.
+# No drops: story rewards come from the NPCs only.
+  - Id: 3900
+    AegisName: LGS_ECHO_KNIGHT
+    Name: Echo Knight
+    Level: 95
+    Hp: 28000
+    BaseExp: 9000
+    JobExp: 6000
+    Attack: 1100
+    Attack2: 1400
+    Defense: 45
+    MagicDefense: 20
+    Str: 70
+    Agi: 70
+    Vit: 60
+    Int: 20
+    Dex: 90
+    Luk: 40
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Large
+    Race: Undead
+    Element: Ghost
+    ElementLevel: 1
+    WalkSpeed: 200
+    AttackDelay: 528
+    AttackMotion: 1000
+    ClientAttackMotion: 240
+    DamageMotion: 396
+    Ai: 21
+  - Id: 3901
+    AegisName: LGS_ECHO_ARCHER
+    Name: Echo Archer
+    Level: 93
+    Hp: 18000
+    BaseExp: 7000
+    JobExp: 5000
+    Attack: 900
+    Attack2: 1150
+    Defense: 30
+    MagicDefense: 30
+    Str: 50
+    Agi: 80
+    Vit: 40
+    Int: 30
+    Dex: 120
+    Luk: 40
+    AttackRange: 9
+    SkillRange: 9
+    ChaseRange: 12
+    Size: Medium
+    Race: Undead
+    Element: Ghost
+    ElementLevel: 1
+    WalkSpeed: 200
+    AttackDelay: 1152
+    AttackMotion: 1152
+    DamageMotion: 192
+    Ai: 05
+  - Id: 3902
+    AegisName: LGS_ECHO_ABYSS
+    Name: Echo of the Abyss
+    Level: 98
+    Hp: 45000
+    BaseExp: 14000
+    JobExp: 10000
+    Attack: 1500
+    Attack2: 1900
+    Defense: 55
+    MagicDefense: 35
+    Str: 75
+    Agi: 70
+    Vit: 70
+    Int: 30
+    Dex: 120
+    Luk: 50
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 12
+    Size: Large
+    Race: Demihuman
+    Element: Dark
+    ElementLevel: 2
+    WalkSpeed: 200
+    AttackDelay: 1500
+    AttackMotion: 500
+    ClientAttackMotion: 720
+    DamageMotion: 1000
+    Ai: 21
+  - Id: 3903
+    AegisName: LGS_OATHBREAKER
+    Name: Oathbreaker Valen
+    Level: 99
+    Hp: 500000
+    BaseExp: 150000
+    JobExp: 100000
+    Attack: 2200
+    Attack2: 3000
+    Defense: 60
+    MagicDefense: 45
+    Str: 90
+    Agi: 80
+    Vit: 90
+    Int: 60
+    Dex: 140
+    Luk: 60
+    AttackRange: 1
+    SkillRange: 10
+    ChaseRange: 16
+    Size: Large
+    Race: Demihuman
+    Element: Dark
+    ElementLevel: 3
+    WalkSpeed: 150
+    AttackDelay: 828
+    AttackMotion: 528
+    ClientAttackMotion: 240
+    DamageMotion: 192
+    Class: Boss
+    Ai: 21

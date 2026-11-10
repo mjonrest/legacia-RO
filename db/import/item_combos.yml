@@ -329,3 +329,74 @@ Body:
           - Falconer_Glove    # 28322
     Script: |
       bonus bUseSPrate,-(getskilllv("HT_BEASTBANE") * 2);
+  # Legacia set (The Hollow Crown storyline, npc/miracle/legacia_story/)
+  - Combos:
+      - Combo:
+          - Legacia_Armor     # 300034
+          - Legacia_Manteau     # 300032
+          - Legacia_Boots     # 300033
+    Script: |
+      // every job
+      bonus bDef,5;
+      bonus bMdef,5;
+      bonus bMaxHPrate,5;
+      // job bonus (BaseJob: trans and baby jobs use their 2nd job)
+      if (BaseJob == Job_Knight) {
+         bonus2 bAddRace,RC_All,20;
+      } else if (BaseJob == Job_Crusader) {
+         bonus bMaxHPrate,25;
+      } else if (BaseJob == Job_Rogue) {
+         bonus bMatkRate,15;
+         bonus2 bAddRace,RC_All,15;
+      } else if (BaseJob == Job_Wizard || BaseJob == Job_Sage) {
+         bonus bCastrate,-20;
+         bonus bDelayrate,-10;
+         bonus2 bMagicAtkEle,Ele_All,10;
+      } else if (BaseJob == Job_Assassin) {
+         bonus bCritAtkRate,15;
+      } else if (BaseJob == Job_Blacksmith) {
+         bonus bUseSPrate,-15;
+         bonus2 bAddRace,RC_All,10;
+      } else if (BaseJob == Job_Alchemist) {
+         bonus2 bSkillAtk,CR_ACIDDEMONSTRATION,10;
+      } else if (BaseJob == Job_Bard || BaseJob == Job_Dancer) {
+         bonus2 bSkillUseSPrate,BA_WHISTLE,15;
+         bonus2 bSkillUseSPrate,BA_ASSASSINCROSS,15;
+         bonus2 bSkillUseSPrate,BA_POEMBRAGI,15;
+         bonus2 bSkillUseSPrate,BA_APPLEIDUN,15;
+         bonus2 bSkillUseSPrate,BA_DISSONANCE,15;
+         bonus2 bSkillUseSPrate,DC_HUMMING,15;
+         bonus2 bSkillUseSPrate,DC_DONTFORGETME,15;
+         bonus2 bSkillUseSPrate,DC_FORTUNEKISS,15;
+         bonus2 bSkillUseSPrate,DC_SERVICEFORYOU,15;
+         bonus2 bSkillUseSPrate,DC_UGLYDANCE,15;
+         bonus2 bSkillUseSPrate,BD_LULLABY,15;
+         bonus2 bSkillUseSPrate,BD_RICHMANKIM,15;
+         bonus2 bSkillUseSPrate,BD_ETERNALCHAOS,15;
+         bonus2 bSkillUseSPrate,BD_DRUMBATTLEFIELD,15;
+         bonus2 bSkillUseSPrate,BD_RINGNIBELUNGEN,15;
+         bonus2 bSkillUseSPrate,BD_ROKISWEIL,15;
+         bonus2 bSkillUseSPrate,BD_INTOABYSS,15;
+         bonus2 bSkillUseSPrate,BD_SIEGFRIED,15;
+         bonus bMaxHPrate,15;
+         bonus bMaxSPrate,15;
+         bonus bDelayrate,-10;
+      } else if (BaseJob == Job_Hunter || BaseJob == Job_Gunslinger) {
+         bonus bCritAtkRate,5;
+         bonus bLongAtkRate,5;
+         bonus bAspdRate,10;
+      } else if (BaseJob == Job_Ninja || BaseJob == Job_Soul_Linker) {
+         bonus bAspdRate,10;
+         bonus bMatkRate,15;
+      } else if (BaseJob == Job_Star_Gladiator) {
+         bonus bMaxHPrate,10;
+         bonus bAspdRate,10;
+      } else if (BaseJob == Job_SuperNovice) {
+         bonus bAllStats,20;
+         bonus bAtkRate,10;
+         bonus bMatkRate,10;
+      } else if (BaseJob == Job_Priest) {
+         bonus bHealPower,10;
+      } else if (BaseJob == Job_Monk) {
+         bonus2 bSkillAtk,MO_EXTREMITYFIST,10;
+      }

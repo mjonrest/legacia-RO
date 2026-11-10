@@ -102,3 +102,4 @@ Footer:
   - Path: db/import/item_db_other.yml
   - Path: db/import/item_db_costume.yml
   - Path: db/import/item_headgear.yml
+  - Path: db/import/item_db_legacia.yml

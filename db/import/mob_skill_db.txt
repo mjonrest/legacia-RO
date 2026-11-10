@@ -140,3 +140,25 @@
 //3014,Halloween Whisper@NPC_EMOTION,chase,197,1,200,0,5000,yes,self,always,0,19,0x81,,,,,
 
 // Here you can place your custom mob skills
+
+// Legacia story echo monsters (copied from Khalitzburg 1132, Raydric Archer 1276, Abysmal Knight 1219, Bloody Knight 1268)
+3900,Echo Knight@AS_GRIMTOOTH,chase,137,5,2000,0,5000,yes,target,always,0,,,,,,,
+3900,Echo Knight@BS_MAXIMIZE,attack,114,5,500,1000,5000,no,self,always,0,,,,,,,
+3900,Echo Knight@BS_MAXIMIZE,chase,114,5,500,1000,5000,no,self,always,0,,,,,,,
+3900,Echo Knight@NPC_SPLASHATTACK,attack,174,1,2000,0,5000,yes,target,attackpcge,2,,,,,,9,
+3900,Echo Knight@NPC_STUNATTACK,attack,179,3,500,1500,5000,no,target,always,0,,,,,,9,
+3901,Echo Archer@AC_CHARGEARROW,attack,148,1,500,0,5000,yes,target,always,0,,,,,,9,
+3901,Echo Archer@NPC_DARKNESSATTACK,attack,190,3,500,500,5000,no,target,always,0,,,,,,9,
+3901,Echo Archer@CR_AUTOGUARD,chase,249,2,2000,0,300000,yes,self,longrangeattacked,,,,,,,,
+3901,Echo Archer@CR_AUTOGUARD,attack,249,2,500,0,300000,yes,self,always,0,,,,,,,
+3902,Echo of the Abyss@AC_CHARGEARROW,chase,148,1,500,0,5000,yes,target,always,0,,,,,,,
+3902,Echo of the Abyss@KN_BRANDISHSPEAR,attack,57,10,500,1000,5000,no,target,always,0,,,,,,9,
+3902,Echo of the Abyss@NPC_DARKNESSATTACK,attack,190,5,500,500,5000,no,target,always,0,,,,,,9,
+3902,Echo of the Abyss@CR_AUTOGUARD,chase,249,10,2000,0,300000,yes,self,longrangeattacked,,,,,,,,
+3902,Echo of the Abyss@CR_AUTOGUARD,attack,249,10,500,0,300000,yes,self,always,0,,,,,,,
+3903,Oathbreaker Valen@KN_BRANDISHSPEAR,attack,57,5,500,1000,5000,no,target,always,0,,,,,,9,
+3903,Oathbreaker Valen@NPC_CHANGEFIRE,attack,164,1,10000,2000,600000,no,self,myhpltmaxrate,20,,,,,,,
+3903,Oathbreaker Valen@NPC_DARKNESSATTACK,attack,190,2,500,500,5000,no,target,always,0,,,,,,9,
+3903,Oathbreaker Valen@CR_SHIELDCHARGE,attack,250,5,500,0,5000,yes,target,always,0,,,,,,9,
+3903,Oathbreaker Valen@WZ_METEOR,attack,83,5,2000,1500,5000,no,target,myhpltmaxrate,20,,,,,,,
+3903,Oathbreaker Valen@WZ_METEOR,chase,83,5,2000,1500,5000,no,target,myhpltmaxrate,20,,,,,,,
