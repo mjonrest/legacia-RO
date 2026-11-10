@@ -65,7 +65,7 @@ function	script	F_LegaciaWeapon	{
 		bonus2 bAddClass, Class_All, 10;
 		break;
 	case Job_Alchemist:	// Creator
-		bonus2 bSkillAtk, "CR_ACIDDEMONSTRATION", 10;
+		bonus2 bSkillAtk, "CR_ACIDDEMONSTRATION", 5;
 		break;
 	case Job_Bard:		// Clown
 	case Job_Dancer:	// Gypsy
@@ -98,7 +98,7 @@ function	script	F_LegaciaWeapon	{
 		bonus bHealPower, 10;
 		break;
 	case Job_Monk:		// Champion (not in the owner's list yet)
-		bonus2 bSkillAtk, "MO_EXTREMITYFIST", 10;
+		bonus2 bSkillAtk, "MO_EXTREMITYFIST", 5;
 		break;
 	}
 	return;

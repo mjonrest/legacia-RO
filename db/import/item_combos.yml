@@ -576,7 +576,7 @@ Body:
     Script: |
       .@r = getequiprefinerycnt(EQI_HAND_R);
       .@b = (.@r > 5) ? .@r - 5 : 0;
-      bonus2 bSkillAtk,"MO_EXTREMITYFIST",10+.@b;
+      bonus2 bSkillAtk,"MO_EXTREMITYFIST",5+.@b;
   - Combos:
       - Combo:
           - Cat_Paw    # 60011
@@ -787,7 +787,7 @@ Body:
     Script: |
       .@r = getequiprefinerycnt(EQI_HAND_R);
       .@b = (.@r > 5) ? .@r - 5 : 0;
-      bonus2 bSkillAtk,"CR_ACIDDEMONSTRATION",10+.@b;
+      bonus2 bSkillAtk,"CR_ACIDDEMONSTRATION",5+.@b;
   - Combos:
       - Combo:
           - Chemical_Sword    # 60018
