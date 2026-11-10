@@ -40,7 +40,7 @@ Body:
     Type: Armor
     Weight: 100
     Locations:
-      Both_Accessory: true
+      Right_Accessory: true
     ArmorLevel: 1
     EquipLevelMin: 99
     Script: |
@@ -52,7 +52,7 @@ Body:
     Type: Armor
     Weight: 100
     Locations:
-      Both_Accessory: true
+      Right_Accessory: true
     ArmorLevel: 1
     EquipLevelMin: 99
     Script: |
@@ -65,7 +65,7 @@ Body:
     Type: Armor
     Weight: 100
     Locations:
-      Both_Accessory: true
+      Right_Accessory: true
     ArmorLevel: 1
     EquipLevelMin: 99
     Script: |
@@ -78,7 +78,7 @@ Body:
     Type: Armor
     Weight: 100
     Locations:
-      Both_Accessory: true
+      Right_Accessory: true
     ArmorLevel: 1
     EquipLevelMin: 99
     Script: |
@@ -91,7 +91,7 @@ Body:
     Type: Armor
     Weight: 100
     Locations:
-      Both_Accessory: true
+      Right_Accessory: true
     ArmorLevel: 1
     EquipLevelMin: 99
     Script: |
