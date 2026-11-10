@@ -18,13 +18,17 @@
 //=   solo or party). 3 waves of echoes, boss Oathbreaker Valen.
 //=   Reward: 30 Legacy Shards.
 //=
-//= Sera also upgrades the Legacy Emblem with Legacy Shards.
+//= Sera also upgrades the Legacy Emblem and runs the Legacy Shard
+//= Exchange (custom weapons 60001-60058 and Legacia utility
+//= mid/lower headgears 300032-300038).
+//= After chapter 2, clearing the rift again pays .daily_shards once a day.
 //= Emblem is character bound. Shards can't be traded.
 //=
 //= Character variables:
 //=   LGS_STEP   0 new, 1 ch1 taken, 2 ch1 done, 3 ch2 boss down,
 //=              4 ch2 done (chapter 3 comes in part 2)
 //=   LGS_GHKILL Glast Heim kills for chapter 1
+//=   LGS_DAILY  last day (YYYYMMDD) the chapter 2 daily shards were paid
 //= Items 300025-300034: db/import/item_db_legacia.yml
 //= Monsters 3900-3903: db/import/mob_db.yml + mob_avail.yml
 //= Instance: db/import/instance_db.yml (Id 101)
@@ -173,7 +177,7 @@ prontera,155,190,4	script	Archivist Sera	4_F_SARAH,{
 	mes "The Chronicle Stone hums softly.";
 	mes "What can I do for you?";
 	next;
-	switch (select("Open the rift to the echo:Legacy Emblem upgrade:About Legacia:Leave")) {
+	switch (select("Open the rift to the echo:Legacy Shard Exchange:Legacy Emblem upgrade:About Legacia:Leave")) {
 	case 1:
 		if (!countitem(.lens)) {
 			mes .@n$;
@@ -194,10 +198,10 @@ prontera,155,190,4	script	Archivist Sera	4_F_SARAH,{
 			mes "(the party leader opens it).";
 		} else {
 			mes .@n$;
-			mes "You've already freed those knights.";
-			mes "You can still go back to help";
-			mes "your friends, but there's nothing";
-			mes "more for you in there.";
+			mes "The echo keeps coming back.";
+			mes "Clear it again and Corvin will give";
+			mes "you ^0000FF" + .daily_shards + " Legacy Shards^000000, once a day.";
+			mes "You can also help your friends.";
 		}
 		next;
 		if (select("Enter the rift:Not yet") == 2)
@@ -232,10 +236,14 @@ prontera,155,190,4	script	Archivist Sera	4_F_SARAH,{
 		close;
 
 	case 2:
-		callsub S_Emblem;
+		callsub S_Exchange;
 		close;
 
 	case 3:
+		callsub S_Emblem;
+		close;
+
+	case 4:
 		mes .@n$;
 		mes "King ^8A2BE2Aldric the Unending^000000 wanted";
 		mes "Legacia to live forever. He bound it";
@@ -277,6 +285,61 @@ S_Chapter2Done:
 	mes "Corvin's echo faded into the stone.";
 	mes "He's waiting for us further in.";
 	mes "^0000FFThe next chapter is coming soon.^000000";
+	return;
+
+S_Exchange:
+	mes .@n$;
+	mes "Shards of the stone remember the";
+	mes "arms of Legacia. I can call them";
+	mes "back for you.";
+	mes "You have ^0000FF" + countitem(.shard) + " Legacy Shards^000000.";
+	next;
+	.@c = select(
+		"Classic weapons (" + .price[0] + " shards each)",
+		"Dragon weapons (" + .price[1] + " shards each)",
+		"Divine weapons (" + .price[2] + " shards each)",
+		"Legacia mid/lower headgears (" + .price[3] + " shards each)",
+		"Cancel") - 1;
+	if (.@c == 4)
+		return;
+	switch (.@c) {
+	case 0: copyarray .@ids[0], .ex_classic[0], getarraysize(.ex_classic); break;
+	case 1: copyarray .@ids[0], .ex_dragon[0], getarraysize(.ex_dragon); break;
+	case 2: copyarray .@ids[0], .ex_divine[0], getarraysize(.ex_divine); break;
+	case 3: copyarray .@ids[0], .ex_heads[0], getarraysize(.ex_heads); break;
+	}
+	.@price = .price[.@c];
+	.@size = getarraysize(.@ids);
+	.@menu$ = "";
+	for (.@i = 0; .@i < .@size; .@i++)
+		.@menu$ += getitemname(.@ids[.@i]) + ":";
+	.@s = select(.@menu$ + "Cancel") - 1;
+	if (.@s >= .@size)
+		return;
+	.@id = .@ids[.@s];
+	mes .@n$;
+	mes "<ITEM>" + getitemname(.@id) + "<INFO>" + .@id + "</INFO></ITEM>";
+	mes "Cost: ^0000FF" + .@price + " Legacy Shards^000000";
+	mes "You have: " + countitem(.shard) + ".";
+	next;
+	if (select("Exchange:Cancel") == 2)
+		return;
+	if (countitem(.shard) < .@price) {
+		mes .@n$;
+		mes "You need more Legacy Shards.";
+		return;
+	}
+	if (!checkweight(.@id, 1)) {
+		mes .@n$;
+		mes "You can't carry it. Make some room.";
+		return;
+	}
+	delitem .shard, .@price;
+	getitem .@id, 1;
+	specialeffect2 EF_REFINEOK;
+	mes .@n$;
+	mes "The shards glow and take shape...";
+	mes "^0000FF" + getitemname(.@id) + "^000000 is yours.";
 	return;
 
 S_Emblem:
@@ -348,6 +411,16 @@ OnInit:
 	// shards to go from Lv(index) to Lv(index+1); index 0 unused
 	setarray .emblem_cost[0], 0, 10, 20, 30, 50;
 	.ch2$ = "Legacia - Knights Without a King";
+	// daily shards for clearing chapter 2 again (after the story step)
+	.daily_shards = 10;
+	// Legacy Shard Exchange: price per item for Classic, Dragon, Divine, headgears
+	setarray .price[0], 100, 150, 250, 150;
+	// custom weapons (db/import/item_db_other.yml), 60007 is a shield
+	for (.@i = 60001; .@i <= 60021; .@i++) .ex_classic[getarraysize(.ex_classic)] = .@i;
+	for (.@i = 60022; .@i <= 60037; .@i++) .ex_dragon[getarraysize(.ex_dragon)] = .@i;
+	for (.@i = 60038; .@i <= 60058; .@i++) .ex_divine[getarraysize(.ex_divine)] = .@i;
+	// Legacia utility mid/lower headgears (db/import/item_db_legacia.yml)
+	setarray .ex_heads[0], 300032, 300033, 300034, 300035, 300036, 300037, 300038;
 	end;
 }
 
@@ -390,12 +463,30 @@ OnInit:
 	mes "It is done. Valen is at peace, and";
 	mes "so is my oath. Take it back to the";
 	mes "Archivist. She will know what to do.";
-	if (LGS_STEP == 2) {
+	// only players who were inside when Valen fell get credit
+	if (!compare('lgs_ok$, "|" + getcharid(3) + "|")) {
+		next;
+		mes .@n$;
+		mes "You came after the battle, friend.";
+		mes "Only those who fought Valen";
+		mes "may carry the oath.";
+	} else if (LGS_STEP == 2) {
 		LGS_STEP = 3;
 		next;
 		mes .@n$;
 		mes "^0000FFObjective done.^000000 Talk to";
 		mes "Archivist Sera in Prontera.";
+	} else if (LGS_STEP >= 4) {
+		.@today = atoi(gettimestr("%Y%m%d", 9));
+		if (LGS_DAILY != .@today) {
+			LGS_DAILY = .@today;
+			.@shards = getvariableofnpc(.daily_shards, "Archivist Sera");
+			getitem 300025, .@shards;
+			next;
+			mes .@n$;
+			mes "Take these shards of the stone.";
+			mes "(^0000FF" + .@shards + " Legacy Shards^000000, daily clear)";
+		}
 	}
 	next;
 	if (select("Return to Prontera:Stay a while") == 1)
@@ -436,6 +527,10 @@ OnWaveDead:
 
 OnBossDead:
 	'lgs_wave = 9;
+	.@c = getmapunits(BL_PC, instance_mapname("1@gl_k"), .@ids);
+	'lgs_ok$ = "|";
+	for (.@i = 0; .@i < .@c; .@i++)
+		'lgs_ok$ += .@ids[.@i] + "|";
 	killmonster instance_mapname("1@gl_k"), instance_npcname("Ser Corvin#lgs2") + "::OnWaveDead";
 	instance_announce 0, "Ser Corvin: Valen has fallen. Come to me, friends.", bc_map, 0xFFCC66;
 	end;

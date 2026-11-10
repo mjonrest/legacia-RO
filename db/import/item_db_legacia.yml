@@ -1,6 +1,6 @@
 # Legacia RO - "The Hollow Crown" storyline items
 # Story scripts: npc/miracle/legacia_story/
-# IDs 300025-300031.
+# IDs 300025-300038.
 
 Header:
   Type: ITEM_DB
@@ -98,3 +98,105 @@ Body:
       bonus bAllStats,4;
       bonus bMaxHPrate,5;
       bonus bMaxSPrate,5;
+
+  # Legacia utility headgears (Legacy Shard Exchange at Archivist Sera).
+  # Utility bonuses only: no damage, stats or resistances.
+  - Id: 300032
+    AegisName: Archivists_Monocle
+    Name: Archivist's Monocle
+    Type: Armor
+    Weight: 100
+    Defense: 1
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    EquipLevelMin: 99
+    Refineable: false
+    View: 23
+    Script: |
+      bonus2 bExpAddRace,RC_All,10;
+  - Id: 300033
+    AegisName: Wanderers_Glasses
+    Name: Wanderer's Glasses
+    Type: Armor
+    Weight: 100
+    Defense: 1
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    EquipLevelMin: 99
+    Refineable: false
+    View: 3
+    Script: |
+      bonus bSpeedRate,25;
+  - Id: 300034
+    AegisName: Echo_Masquerade
+    Name: Echo Masquerade
+    Type: Armor
+    Weight: 100
+    Defense: 1
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    EquipLevelMin: 99
+    Refineable: false
+    View: 78
+    Script: |
+      bonus bUseSPrate,-10;
+  - Id: 300035
+    AegisName: Corvins_Elven_Ears
+    Name: Corvin's Elven Ears
+    Type: Armor
+    Weight: 100
+    Defense: 1
+    Locations:
+      Head_Mid: true
+    ArmorLevel: 1
+    EquipLevelMin: 99
+    Refineable: false
+    View: 73
+    Script: |
+      bonus bHPrecovRate,50;
+      bonus bSPrecovRate,50;
+  - Id: 300036
+    AegisName: Porters_Pipe
+    Name: Porter's Pipe
+    Type: Armor
+    Weight: 100
+    Defense: 1
+    Locations:
+      Head_Low: true
+    ArmorLevel: 1
+    EquipLevelMin: 99
+    Refineable: false
+    View: 55
+    Script: |
+      bonus bAddMaxWeight,10000;
+  - Id: 300037
+    AegisName: Healers_Leaf
+    Name: Healer's Leaf
+    Type: Armor
+    Weight: 100
+    Defense: 1
+    Locations:
+      Head_Low: true
+    ArmorLevel: 1
+    EquipLevelMin: 99
+    Refineable: false
+    View: 57
+    Script: |
+      bonus bAddItemHealRate,25;
+  - Id: 300038
+    AegisName: Gemless_Rose
+    Name: Gemless Rose
+    Type: Armor
+    Weight: 100
+    Defense: 1
+    Locations:
+      Head_Low: true
+    ArmorLevel: 1
+    EquipLevelMin: 99
+    Refineable: false
+    View: 56
+    Script: |
+      bonus bNoGemStone;
