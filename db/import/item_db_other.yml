@@ -27218,9 +27218,9 @@ Body:
     Type: Weapon
     SubType: Bow
     Weight: 1000
-    Attack: 150
+    Attack: 135
     Range: 5
-    Slots: 4
+    Slots: 2
     Jobs:
       Archer: true
       BardDancer: true
@@ -27228,18 +27228,23 @@ Body:
       Rogue: true
       Thief: true
     Locations:
-      Right_Hand: true
+      Both_Hand: true
     WeaponLevel: 4
     Refineable: true
+    Script: |
+      // Copies Ixion Wings
+      autobonus "{ bonus bAspdRate,7; }",10+(getrefine()*2),7000,BF_WEAPON,"{ specialeffect2 EF_HASTEUP; }";
+      bonus2 bAddSkillBlow,"AC_CHARGEARROW",3;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60002
     AegisName: Bow_Of_Betrayer
     Name: Bow Of Betrayer
     Type: Weapon
     SubType: Bow
     Weight: 1000
-    Attack: 150
+    Attack: 135
     Range: 5
-    Slots: 4
+    Slots: 2
     Jobs:
       Archer: true
       BardDancer: true
@@ -27247,33 +27252,49 @@ Body:
       Rogue: true
       Thief: true
     Locations:
-      Right_Hand: true
+      Both_Hand: true
     WeaponLevel: 4
     Refineable: true
+    Script: |
+      // Copies Frozen Bow
+      bonus2 bAddEff,Eff_Freeze,1000;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60003
     AegisName: Blazeguard
     Name: Blazeguard
     Type: Weapon
     SubType: 1hAxe
     Weight: 1000
-    Attack: 150
+    Attack: 145
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Blacksmith: true
     Locations:
       Right_Hand: true
     WeaponLevel: 4
     Refineable: true
+    Script: |
+      // Copies Vecer Axe
+      if (readparam(bLuk)>=90) {
+         bonus bBaseAtk,20;
+      }
+      if (readparam(bDex)>=90) {
+         bonus bCritical,5;
+      }
+      if (readparam(bDex)>=90 || readparam(bLuk)>=90) {
+         bonus2 bSkillAtk,"MC_MAMMONITE",15;
+      }
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60004
     AegisName: Vengeful_Gladiator
     Name: Vengel Gladiator
     Type: Weapon
     SubType: 1hSword
     Weight: 1000
-    Attack: 60
+    Attack: 140
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Alchemist: true
       Assassin: true
@@ -27291,15 +27312,21 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 2
     Refineable: true
+    Script: |
+      // Copies Cutlus
+      skill "SM_BASH",5;
+      bonus bStr,2;
+      bonus bDef,1;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60005
     AegisName: Blinkstrike
     Name: Blinkstrike
     Type: Weapon
     SubType: Dagger
     Weight: 1000
-    Attack: 150
+    Attack: 115
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Alchemist: true
       Assassin: true
@@ -27316,15 +27343,22 @@ Body:
       Right_Hand: true
     WeaponLevel: 4
     Refineable: true
+    Script: |
+      // Copies Assassin Dagger
+      bonus bMaxHPrate,20;
+      bonus bMaxSPrate,15;
+      bonus bAspdRate,2;
+      bonus bAtkEle,Ele_Dark;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60006
     AegisName: White_Rabbit_Sword
     Name: White Rabbit Sword
     Type: Weapon
     SubType: 1hSword
     Weight: 1000
-    Attack: 150
+    Attack: 140
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Novice: true
       SuperNovice: true
@@ -27333,6 +27367,13 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 27
     Refineable: true
+    Script: |
+      // Copies Excalibur
+      bonus bInt,5;
+      bonus bLuk,10;
+      bonus bDex,-1;
+      bonus bAtkEle,Ele_Holy;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60007
     AegisName: Black_Rabbit_Shield
     Name: Black Rabbit Shield
@@ -27354,9 +27395,9 @@ Body:
     Type: Weapon
     SubType: 2hStaff
     Weight: 1000
-    Attack: 150
+    Attack: 80
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Acolyte: true
       Mage: true
@@ -27368,35 +27409,51 @@ Body:
       SuperNovice: true
       Wizard: true
     Locations:
-      Right_Hand: true
+      Both_Hand: true
     WeaponLevel: 4
     EquipLevelMin: 1
     Refineable: true
+    Script: |
+      // Copies Divine Cross
+      bonus bAtkEle,Ele_Holy;
+      bonus bMatkRate,15;
+      bonus bDex,4;
+      bonus2 bSubRace,RC_Demon,15;
+      bonus2 bSubRace,RC_Undead,15;
+      callfunc "F_LegaciaWeapon",1;
   - Id: 60009
     AegisName: Highness_Staff
     Name: Highness Staff
     Type: Weapon
     SubType: 2hStaff
     Weight: 1000
-    Attack: 150
+    Attack: 80
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Sage: true
     Locations:
-      Right_Hand: true
+      Both_Hand: true
     WeaponLevel: 4
     EquipLevelMin: 1
     Refineable: true
+    Script: |
+      // Copies Kronos
+      .@r = getrefine();
+      bonus bMatkRate,20;
+      bonus bInt,3+(.@r/2);
+      bonus bMaxHP,300+(50*.@r/2);
+      autobonus "{ bonus bMatkRate,12; bonus buseSPRate,20; }",1,5000,BF_MAGIC,"{ specialeffect2 EF_ENHANCE; }";
+      callfunc "F_LegaciaWeapon",1;
   - Id: 60010
     AegisName: Dorcus
     Name: Dorcus
     Type: Weapon
     SubType: Knuckle
     Weight: 1000
-    Attack: 150
+    Attack: 125
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Monk: true
     Locations:
@@ -27404,15 +27461,20 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 18
     Refineable: true
+    Script: |
+      // Copies Monk Knuckle
+      bonus bInt,2;
+      bonus2 bSkillAtk,"MO_FINGEROFFENSIVE",25;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60011
     AegisName: Cat_Paw
     Name: Cat Paw
     Type: Weapon
     SubType: Katar
     Weight: 1000
-    Attack: 150
+    Attack: 140
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Assassin: true
     Locations:
@@ -27420,31 +27482,46 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 18
     Refineable: true
+    Script: |
+      // Copies Krishna
+      bonus2 bSkillAtk,"AS_GRIMTOOTH",10;
+      if (getskilllv("AS_SONICBLOW")) {
+         bonus3 bAutoSpell,"AS_SONICBLOW",getskilllv("AS_SONICBLOW"),5;
+      }
+      else {
+         bonus3 bAutoSpell,"AS_SONICBLOW",1,5;
+      }
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60012
     AegisName: Vash_Revolver
     Name: Vash Revolver
     Type: Weapon
     SubType: Revolver
     Weight: 1000
-    Attack: 150
+    Attack: 90
     Range: 7
-    Slots: 4
+    Slots: 2
     Jobs:
       Gunslinger: true
     Locations:
-      Right_Hand: true
+      Both_Hand: true
     WeaponLevel: 4
     EquipLevelMin: 10
     Refineable: true
+    Script: |
+      // Copies Wasteland's Outlaw
+      bonus bHit,readparam(bAgi)/10;
+      bonus bAspdRate,readparam(bAgi)/14;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60013
     AegisName: Devil_Guitar
     Name: Devil Guitar
     Type: Weapon
     SubType: Musical
     Weight: 1000
-    Attack: 150
+    Attack: 125
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       BardDancer: true
     Gender: Male
@@ -27453,31 +27530,42 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 70
     Refineable: true
+    Script: |
+      // Copies Oriental Lute
+      bonus2 bSkillAtk,"CG_ARROWVULCAN",10;
+      bonus2 bSkillAtk,"BA_MUSICALSTRIKE",10;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60014
     AegisName: Gentleman_Staff
     Name: Gentleman Staff
     Type: Weapon
     SubType: 2hStaff
     Weight: 1000
-    Attack: 150
+    Attack: 80
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Wizard: true
     Locations:
-      Right_Hand: true
+      Both_Hand: true
     WeaponLevel: 4
     EquipLevelMin: 1
     Refineable: true
+    Script: |
+      // Copies Wizardry Staff
+      bonus bInt,6;
+      bonus bDex,2;
+      bonus bMatkRate,15;
+      callfunc "F_LegaciaWeapon",1;
   - Id: 60015
     AegisName: Chaos_Sword
     Name: Chaos Sword
     Type: Weapon
     SubType: 1hSword
     Weight: 1000
-    Attack: 150
+    Attack: 140
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Crusader: true
       Knight: true
@@ -27487,15 +27575,20 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 2
     Refineable: true
+    Script: |
+      // Copies Curved Sword
+      bonus bAspdRate,10;
+      bonus2 bAddEff,Eff_Curse,300;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60016
     AegisName: Black_Halberd
     Name: Black Halberd
     Type: Weapon
     SubType: 1hSpear
     Weight: 1000
-    Attack: 150
+    Attack: 140
     Range: 3
-    Slots: 4
+    Slots: 2
     Jobs:
       Crusader: true
       Knight: true
@@ -27505,15 +27598,21 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 80
     Refineable: true
+    Script: |
+      // Copies Gelerdria
+      bonus bAtkEle,Ele_Earth;
+      bonus bMaxHP,800;
+      bonus bMaxSP,-50;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60017
     AegisName: Book_Of_Battle
     Name: Book Of Battle
     Type: Weapon
     SubType: Book
     Weight: 1000
-    Attack: 150
+    Attack: 125
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Priest: true
       Sage: true
@@ -27523,15 +27622,23 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 27
     Refineable: true
+    Script: |
+      // Copies Sage's Diary
+      bonus bMatkRate,15;
+      if (readparam(bStr)>=50)
+         bonus bAspdRate,5;
+      if (readparam(bInt)>=70)
+         bonus bMatkRate,5;
+      callfunc "F_LegaciaWeapon",1;
   - Id: 60018
     AegisName: Chemical_Sword
     Name: Chemical Sword
     Type: Weapon
     SubType: Mace
     Weight: 1000
-    Attack: 150
+    Attack: 140
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Alchemist: true
     Locations:
@@ -27539,32 +27646,44 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 1
     Refineable: true
+    Script: |
+      // Copies Erde
+      bonus2 bSkillAtk,"AM_ACIDTERROR",20;
+      bonus2 bSkillAtk,"AM_DEMONSTRATION",20;
+      bonus bMaxSP,50;
+      bonus bHealPower,10;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60019
     AegisName: Siren_Whip
     Name: Siren Whip
     Type: Weapon
     SubType: Whip
     Weight: 1000
-    Attack: 150
+    Attack: 125
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       BardDancer: true
-    Gender: Female 	  
+    Gender: Female
     Locations:
       Right_Hand: true
     WeaponLevel: 4
     EquipLevelMin: 27
     Refineable: true
+    Script: |
+      // Copies Queen's Whip
+      bonus2 bSkillAtk,"CG_ARROWVULCAN",10;
+      bonus2 bSkillAtk,"DC_THROWARROW",10;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60020
     AegisName: Black_Devil_Spear
     Name: Black Devil Spear
     Type: Weapon
     SubType: 1hSpear
-    Weight: 5000
-    Attack: 150
+    Weight: 1500
+    Attack: 140
     Range: 3
-    Slots: 4
+    Slots: 2
     Jobs:
       Crusader: true
       Knight: true
@@ -27574,21 +27693,34 @@ Body:
     WeaponLevel: 4
     EquipLevelMin: 80
     Refineable: true
+    Script: |
+      // Copies Long Horn
+      bonus bAtkEle,Ele_Holy;
+      bonus2 bAddEff,Eff_Bleeding,500;
+      skill "TF_DETOXIFY",1;
+      bonus bUnbreakableWeapon;
+      callfunc "F_LegaciaWeapon",0;
   - Id: 60021
     AegisName: Senbon
     Name: Senbon
     Type: Weapon
     SubType: Dagger
     Weight: 1000
-    Attack: 150
+    Attack: 115
     Range: 4
-    Slots: 4
+    Slots: 2
     Jobs:
       Ninja: true
     Locations:
       Right_Hand: true
     WeaponLevel: 4
     Refineable: true
+    Script: |
+      // Copies Bazerald
+      bonus bAtkEle,Ele_Fire;
+      bonus bInt,5;
+      bonus bMatkRate,10;
+      callfunc "F_LegaciaWeapon",1;
 
 #//Red Dragon Weapon Set
   - Id: 60022
@@ -27597,9 +27729,9 @@ Body:
     Type: Weapon
     SubType: Bow
     Weight: 500
-    Attack: 200
+    Attack: 145
     Range: 5
-    Slots: 4
+    Slots: 2
     Jobs:
       Archer: true
       BardDancer: true
@@ -27608,7 +27740,7 @@ Body:
       Thief: true
     Locations:
       Both_Hand: true
-    WeaponLevel: 3
+    WeaponLevel: 4
     EquipLevelMin: 4
     Refineable: true
   - Id: 60023
@@ -27617,14 +27749,14 @@ Body:
     Type: Weapon
     SubType: 1hAxe
     Weight: 500
-    Attack: 200
+    Attack: 160
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Blacksmith: true
     Locations:
       Right_Hand: true
-    WeaponLevel: 3
+    WeaponLevel: 4
     EquipLevelMin: 27
     Refineable: true
   - Id: 60024
@@ -27633,14 +27765,14 @@ Body:
     Type: Weapon
     SubType: Mace
     Weight: 500
-    Attack: 200
+    Attack: 155
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Alchemist: true
     Locations:
       Right_Hand: true
-    WeaponLevel: 3
+    WeaponLevel: 4
     EquipLevelMin: 1
     Refineable: true
   - Id: 60025
@@ -27649,14 +27781,14 @@ Body:
     Type: Weapon
     SubType: 1hSword
     Weight: 500
-    Attack: 200
+    Attack: 155
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Knight: true
     Locations:
       Right_Hand: true
-    WeaponLevel: 3
+    WeaponLevel: 4
     EquipLevelMin: 2
     Refineable: true
   - Id: 60026
@@ -27664,15 +27796,15 @@ Body:
     Name: Dragon Spear
     Type: Weapon
     SubType: 1hSpear
-    Weight: 5000
-    Attack: 200
+    Weight: 1500
+    Attack: 155
     Range: 3
-    Slots: 4
+    Slots: 2
     Jobs:
       Knight: true
     Locations:
       Right_Hand: true
-    WeaponLevel: 3
+    WeaponLevel: 4
     EquipLevelMin: 80
     Refineable: true
   - Id: 60027
@@ -27681,14 +27813,14 @@ Body:
     Type: Weapon
     SubType: 1hSpear
     Weight: 500
-    Attack: 200
+    Attack: 155
     Range: 3
-    Slots: 4
+    Slots: 2
     Jobs:
       Crusader: true
     Locations:
       Right_Hand: true
-    WeaponLevel: 3
+    WeaponLevel: 4
     EquipLevelMin: 80
     Refineable: true
   - Id: 60028
@@ -27697,14 +27829,14 @@ Body:
     Type: Weapon
     SubType: Dagger
     Weight: 500
-    Attack: 100
+    Attack: 130
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Assassin: true
     Locations:
       Right_Hand: true
-    WeaponLevel: 3
+    WeaponLevel: 4
     EquipLevelMin: 2
     Refineable: true
   - Id: 60029
@@ -27713,14 +27845,14 @@ Body:
     Type: Weapon
     SubType: 1hSword
     Weight: 500
-    Attack: 100
+    Attack: 155
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Assassin: true
     Locations:
       Right_Hand: true
-    WeaponLevel: 3
+    WeaponLevel: 4
     EquipLevelMin: 2
     Refineable: true
   - Id: 60030
@@ -27729,14 +27861,14 @@ Body:
     Type: Weapon
     SubType: Katar
     Weight: 500
-    Attack: 200
+    Attack: 155
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Assassin: true
     Locations:
       Both_Hand: true
-    WeaponLevel: 3
+    WeaponLevel: 4
     EquipLevelMin: 18
     Refineable: true
   - Id: 60031
@@ -27745,14 +27877,14 @@ Body:
     Type: Weapon
     SubType: Knuckle
     Weight: 500
-    Attack: 200
+    Attack: 140
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Monk: true
     Locations:
       Right_Hand: true
-    WeaponLevel: 3
+    WeaponLevel: 4
     EquipLevelMin: 18
     Refineable: true
   - Id: 60032
@@ -27761,9 +27893,9 @@ Body:
     Type: Weapon
     SubType: Musical
     Weight: 500
-    Attack: 200
+    Attack: 140
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       BardDancer: true
     Gender: Male
@@ -27778,15 +27910,15 @@ Body:
     Type: Weapon
     SubType: Whip
     Weight: 500
-    Attack: 200
+    Attack: 140
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       BardDancer: true
-    Gender: Female 	  
+    Gender: Female
     Locations:
       Right_Hand: true
-    WeaponLevel: 3
+    WeaponLevel: 4
     EquipLevelMin: 27
     Refineable: true
   - Id: 60034
@@ -27795,13 +27927,13 @@ Body:
     Type: Weapon
     SubType: Huuma
     Weight: 500
-    Attack: 200
+    Attack: 155
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Ninja: true
     Locations:
-      Right_Hand: true
+      Both_Hand: true
     WeaponLevel: 4
     EquipLevelMin: 65
     Refineable: true
@@ -27811,14 +27943,14 @@ Body:
     Type: Weapon
     SubType: Revolver
     Weight: 500
-    Attack: 200
+    Attack: 100
     Range: 7
-    Slots: 4
+    Slots: 2
     Jobs:
       Gunslinger: true
     Locations:
-      Right_Hand: true
-    WeaponLevel: 3
+      Both_Hand: true
+    WeaponLevel: 4
     EquipLevelMin: 10
     Refineable: true
   - Id: 60036
@@ -27827,14 +27959,14 @@ Body:
     Type: Weapon
     SubType: Book
     Weight: 500
-    Attack: 200
+    Attack: 140
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       StarGladiator: true
     Locations:
       Right_Hand: true
-    WeaponLevel: 3
+    WeaponLevel: 4
     EquipLevelMin: 27
     Refineable: true
   - Id: 60037
@@ -27843,19 +27975,21 @@ Body:
     Type: Weapon
     SubType: 2hStaff
     Weight: 500
-    Attack: 200
+    Attack: 90
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Priest: true
       Sage: true
       SoulLinker: true
       Wizard: true
     Locations:
-      Right_Hand: true
-    WeaponLevel: 3
+      Both_Hand: true
+    WeaponLevel: 4
     EquipLevelMin: 1
     Refineable: true
+    Script: |
+      bonus bMatkRate,18;
 
 #//***CLASSIC FREEBIES WEAPON***
   - Id: 60038
@@ -27863,9 +27997,9 @@ Body:
     Name: Divine Bow
     Type: Weapon
     SubType: Bow
-    Attack: 0
+    Attack: 155
     Range: 5
-    Slots: 4
+    Slots: 2
     Jobs:
       Archer: true
       BardDancer: true
@@ -27876,16 +28010,16 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus bHit,250; bonus bAtk,200; bonus2 bSkillAtk,"AC_DOUBLE",5; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; 
+      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus bHit,250; bonus2 bSkillAtk,"AC_DOUBLE",5; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10;
       bonus2 bIgnoreDefRaceRate,RC_Player_Human,10; bonus2 bSubRace,RC_DemiHuman,10; bonus2 bSubRace,RC_Player_Human,10;
   - Id: 60039
     AegisName: Divine_Cleaver
     Name: Divine Cleaver
     Type: Weapon
     SubType: 1hAxe
-    Attack: 0
+    Attack: 170
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Blacksmith: true
     Locations:
@@ -27894,16 +28028,16 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus bHit,250; bonus bAtk,150; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10; 
+      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus bHit,250; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10;
       bonus2 bAddRace,RC_DemiHuman,5; bonus2 bAddRace,RC_Player_Human,5; bonus2 bSkillAtk,"WS_CARTTERMINATION",5;
   - Id: 60040
     AegisName: Divine_Morning_Star
     Name: Divine Morning Star
     Type: Weapon
     SubType: Mace
-    Attack: 100
+    Attack: 165
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Alchemist: true
     Locations:
@@ -27912,16 +28046,16 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10; 
+      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10;
       bonus2 bSkillAtk,"CR_ACIDDEMONSTRATION",5; bonus2 bSkillHeal,"AM_POTIONPITCHER",20; skill "MG_FIREBOLT",10;
   - Id: 60041
     AegisName: Divine_Claymore
     Name: Divine Claymore
     Type: Weapon
     SubType: 2hSword
-    Attack: 0
+    Attack: 220
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Knight: true
     Locations:
@@ -27930,17 +28064,17 @@ Body:
     EquipLevelMin: 2
     Refineable: true
     Script: |
-      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus2 bSubRace,RC_DemiHuman,10; bonus2 bSubRace,RC_Player_Human,10; bonus bHit,250; bonus bAtk,150; 
+      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus2 bSubRace,RC_DemiHuman,10; bonus2 bSubRace,RC_Player_Human,10; bonus bHit,250;
       bonus2 bAddRace,RC_DemiHuman,20; bonus2 bAddRace,RC_Player_Human,20; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10;
   - Id: 60042
     AegisName: Divine_Spear
     Name: Divine Spear
     Type: Weapon
     SubType: 1hSpear
-    Weight: 5000
-    Attack: 0
+    Weight: 1500
+    Attack: 165
     Range: 3
-    Slots: 4
+    Slots: 2
     Jobs:
       Knight: true
     Locations:
@@ -27949,16 +28083,16 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus bHit,250; bonus bAtk,150; bonus2 bSkillAtk,"KN_BRANDISHSPEAR",5; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; 
+      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus bHit,250; bonus2 bSkillAtk,"KN_BRANDISHSPEAR",5; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10;
       bonus2 bIgnoreDefRaceRate,RC_Player_Human,10;
   - Id: 60043
     AegisName: Divine_Lance
     Name: Divine Lance
     Type: Weapon
     SubType: 1hSpear
-    Attack: 100
+    Attack: 165
     Range: 3
-    Slots: 4
+    Slots: 2
     Jobs:
       Crusader: true
     Locations:
@@ -27967,16 +28101,16 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus bHit,250; bonus bAtk,150; bonus2 bSkillAtk,"CR_SHIELDBOOMERANG",5; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10;
+      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus bHit,250; bonus2 bSkillAtk,"CR_SHIELDBOOMERANG",5; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10;
       bonus2 bIgnoreDefRaceRate,RC_Player_Human,10;
   - Id: 60044
     AegisName: Divine_Gladius
     Name: Divine Gladius
     Type: Weapon
     SubType: Dagger
-    Attack: 0
+    Attack: 140
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Rogue: true
     Locations:
@@ -27985,17 +28119,17 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-70; bonus bDef2Rate,-70; bonus bHit,250; bonus bAtk,150; bonus2 bIgnoreMDefRaceRate,RC_DemiHuman,20; 
-      bonus2 bIgnoreMDefRaceRate,RC_Player_Human,20;  bonus2 bAddRace,RC_DemiHuman,5; bonus2 bAddRace,RC_Player_Human,5; 
+      bonus bDefRate,-70; bonus bDef2Rate,-70; bonus bHit,250; bonus2 bIgnoreMDefRaceRate,RC_DemiHuman,20;
+      bonus2 bIgnoreMDefRaceRate,RC_Player_Human,20;  bonus2 bAddRace,RC_DemiHuman,5; bonus2 bAddRace,RC_Player_Human,5;
       bonus2 bMagicAddRace,RC_DemiHuman,5; bonus2 bMagicAddRace,RC_Player_Human,5;
   - Id: 60045
     AegisName: Divine_Rapier
     Name: Divine Rapier
     Type: Weapon
     SubType: 1hSword
-    Attack: 0
+    Attack: 165
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Knight: true
     Locations:
@@ -28004,16 +28138,16 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus bHit,250; bonus bAtk,150; bonus2 bAddRace,RC_DemiHuman,5; bonus2 bAddRace,RC_Player_Human,5; 
+      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus bHit,250; bonus2 bAddRace,RC_DemiHuman,5; bonus2 bAddRace,RC_Player_Human,5;
       bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10;
   - Id: 60046
     AegisName: Divine_Bloody_Roar
     Name: Divine Bloody Roar
     Type: Weapon
     SubType: Katar
-    Attack: 0
+    Attack: 165
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Assassin: true
     Locations:
@@ -28022,16 +28156,16 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-50; bonus bDef2Rate,-50; bonus bHit,250; bonus bAtk,150; bonus2 bAddRace,RC_DemiHuman,20; bonus2 bAddRace,RC_Player_Human,20; 
+      bonus bDefRate,-50; bonus bDef2Rate,-50; bonus bHit,250; bonus2 bAddRace,RC_DemiHuman,20; bonus2 bAddRace,RC_Player_Human,20;
       bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10;
   - Id: 60047
     AegisName: Divine_Waghnak
     Name: Divine Waghnak
     Type: Weapon
     SubType: Knuckle
-    Attack: 0
+    Attack: 150
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Monk: true
     Locations:
@@ -28040,16 +28174,16 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-60; bonus bDef2Rate,-60; bonus bHit,250; bonus bAtk,150; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10; 
+      bonus bDefRate,-60; bonus bDef2Rate,-60; bonus bHit,250; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10;
       bonus2 bAddRace,RC_DemiHuman,5; bonus2 bAddRace,RC_Player_Human,5;
   - Id: 60048
     AegisName: Divine_Guitar
     Name: Divine Guitar
     Type: Weapon
     SubType: Musical
-    Attack: 0
+    Attack: 150
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       BardDancer: true
     Gender: Male
@@ -28059,16 +28193,16 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-50; bonus bDef2Rate,-50; bonus bHit,250; bonus bAtk,150; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10; 
+      bonus bDefRate,-50; bonus bDef2Rate,-50; bonus bHit,250; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10;
       bonus2 bSkillAtk,"CG_ARROWVULCAN",5;
   - Id: 60049
     AegisName: Divine_Whip
     Name: Divine Whip
     Type: Weapon
     SubType: Whip
-    Attack: 0
+    Attack: 150
     Range: 2
-    Slots: 4
+    Slots: 2
     Jobs:
       BardDancer: true
     Gender: Female
@@ -28078,35 +28212,35 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-50; bonus bDef2Rate,-50; bonus bHit,250; bonus bAtk,150; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10; 
+      bonus bDefRate,-50; bonus bDef2Rate,-50; bonus bHit,250; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10;
       bonus2 bSkillAtk,"CG_ARROWVULCAN",5;
   - Id: 60050
     AegisName: Divine_Shuriken
     Name: Divine Shuriken
     Type: Weapon
     SubType: Huuma
-    Attack: 0
+    Attack: 165
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Ninja: true
     Locations:
-      Right_Hand: true
+      Both_Hand: true
     WeaponLevel: 4
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-70; bonus bDef2Rate,-70; bonus2 bIgnoreMDefRaceRate,RC_DemiHuman,20; bonus2 bIgnoreMDefRaceRate,RC_Player_Human,20; 
-      bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10; bonus2 bAddRace,RC_DemiHuman,5; 
+      bonus bDefRate,-70; bonus bDef2Rate,-70; bonus2 bIgnoreMDefRaceRate,RC_DemiHuman,20; bonus2 bIgnoreMDefRaceRate,RC_Player_Human,20;
+      bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10; bonus2 bAddRace,RC_DemiHuman,5;
       bonus2 bAddRace,RC_Player_Human,5; bonus2 bMagicAddRace,RC_DemiHuman,5; bonus2 bMagicAddRace,RC_Player_Human,5;
   - Id: 60051
     AegisName: Divine_Pistol
     Name: Divine Pistol
     Type: Weapon
     SubType: Revolver
-    Attack: 0
+    Attack: 110
     Range: 9
-    Slots: 4
+    Slots: 2
     Jobs:
       Gunslinger: true
     Locations:
@@ -28115,16 +28249,16 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-70; bonus bDef2Rate,-70; bonus bHit,250; bonus bAtk,150; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10; 
+      bonus bDefRate,-70; bonus bDef2Rate,-70; bonus bHit,250; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10;
       bonus2 bAddRace,RC_DemiHuman,5; bonus2 bAddRace,RC_Player_Human,5;  bonus2 bSkillAtk,"GS_DESPERADO",5;
   - Id: 60052
     AegisName: Divine_Apocalypes
     Name: Divine Apocalypse
     Type: Weapon
     SubType: Book
-    Attack: 0
+    Attack: 150
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       StarGladiator: true
     Locations:
@@ -28133,16 +28267,16 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-70; bonus bDef2Rate,-70; bonus bHit,250; bonus bAtk,150; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10; 
+      bonus bDefRate,-70; bonus bDef2Rate,-70; bonus bHit,250; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10;
       bonus2 bAddRace,RC_DemiHuman,5; bonus2 bAddRace,RC_Player_Human,5;  bonus2 bSkillAtk,"TK_JUMPKICK",5;
   - Id: 60053
     AegisName: Divine_Destruction_Staff
     Name: Divine Destruction Staff
     Type: Weapon
     SubType: Staff
-    Attack: 0
+    Attack: 100
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Sage: true
       SoulLinker: true
@@ -28154,16 +28288,16 @@ Body:
     Refineable: true
     Script: |
       bonus bDefRate,-70; bonus bDef2Rate,-70; if(BaseJob==Job_Sage) {bonus2 bIgnoreMDefRaceRate,RC_DemiHuman,20; bonus2 bIgnoreMDefRaceRate,RC_Player_Human,20;}
-      if(BaseJob==Job_Wizard || BaseJob==Job_Soul_Linker) {bonus2 bIgnoreMDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreMDefRaceRate,RC_Player_Human,10;} 
-      bonus2 bMagicAddRace,RC_DemiHuman,5; bonus2 bMagicAddRace,RC_Player_Human,5; bonus bMatkRate,5;
+      if(BaseJob==Job_Wizard || BaseJob==Job_Soul_Linker) {bonus2 bIgnoreMDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreMDefRaceRate,RC_Player_Human,10;}
+      bonus2 bMagicAddRace,RC_DemiHuman,5; bonus2 bMagicAddRace,RC_Player_Human,5; bonus bMatkRate,20;
   - Id: 60054
     AegisName: Divine_Gakkung
     Name: Divine Gakkung Bow
     Type: Weapon
     SubType: Bow
-    Attack: 0
+    Attack: 155
     Range: 5
-    Slots: 4
+    Slots: 2
     Jobs:
       Rogue: true
       Thief: true
@@ -28173,16 +28307,16 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus bHit,250; bonus bAtk,200; bonus2 bSkillAtk,"AC_DOUBLE",10; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; 
+      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus bHit,250; bonus2 bSkillAtk,"AC_DOUBLE",10; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10;
       bonus2 bIgnoreDefRaceRate,RC_Player_Human,10; bonus2 bSubRace,RC_DemiHuman,10; bonus2 bSubRace,RC_Player_Human,10;
   - Id: 60055
     AegisName: Divine_Infiltrator
     Name: Divine Infiltrator
     Type: Weapon
     SubType: Katar
-    Attack: 0
+    Attack: 165
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Assassin: true
     Locations:
@@ -28191,16 +28325,16 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bHit,250; bonus bAtk,150; bonus2 bAddRace,RC_DemiHuman,55; bonus2 bAddRace,RC_Player_Human,55; 
-      bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10; bonus2 bMagicSubSize,Size_All,5; 
+      bonus bHit,250; bonus2 bAddRace,RC_DemiHuman,55; bonus2 bAddRace,RC_Player_Human,55;
+      bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10; bonus2 bMagicSubSize,Size_All,5;
   - Id: 60056
     AegisName: Divine_Dagger
     Name: Divine Dagger
     Type: Weapon
     SubType: Dagger
-    Attack: 0
+    Attack: 140
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Assassin: true
     Locations:
@@ -28209,16 +28343,16 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-50; bonus bDef2Rate,-50; bonus bHit,250; bonus bAtk,150; bonus2 bSkillAtk,"ASC_METEORASSAULT",5;  bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; 
+      bonus bDefRate,-50; bonus bDef2Rate,-50; bonus bHit,250; bonus2 bSkillAtk,"ASC_METEORASSAULT",5;  bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10;
       bonus2 bIgnoreDefRaceRate,RC_Player_Human,10; bonus2 bSkillAtk,"ASC_BREAKER",5;
   - Id: 60057
     AegisName: Divine_Recovery
     Name: Divine Recovery Staff
     Type: Weapon
     SubType: Staff
-    Attack: 0
+    Attack: 100
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Priest: true
     Locations:
@@ -28227,16 +28361,17 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus bHealPower,650; bonus bHit,250; bonus bAtk,150; bonus2 bSkillAtk,"AL_HOLYLIGHT",100; bonus2 bIgnoreMDefRaceRate,RC_DemiHuman,10; 
+      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus bHealPower,650; bonus bHit,250; bonus2 bSkillAtk,"AL_HOLYLIGHT",100; bonus2 bIgnoreMDefRaceRate,RC_DemiHuman,10;
       bonus2 bIgnoreMDefRaceRate,RC_Player_Human,10; skill "SM_BASH",10;
+      bonus bMatkRate,20;
   - Id: 60058
     AegisName: Divine_Novice_Axe
     Name: Divine Novice Axe
     Type: Weapon
     SubType: 1hAxe
-    Attack: 0
+    Attack: 170
     Range: 1
-    Slots: 4
+    Slots: 2
     Jobs:
       Novice: true
       SuperNovice: true
@@ -28246,7 +28381,7 @@ Body:
     EquipLevelMin: 80
     Refineable: true
     Script: |
-      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus bHit,250; bonus bAtk,150; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10; 
-      bonus2 bSkillAtk,"MC_MAMMONITE",10; bonus2 bSkillAtk,"MC_CARTREVOLUTION",70;  bonus2 bIgnoreMDefRaceRate,RC_DemiHuman,20; 
-      bonus2 bIgnoreMDefRaceRate,RC_Player_Human,20; bonus2 bAddRace,RC_DemiHuman,5; bonus2 bAddRace,RC_Player_Human,5; 
+      bonus bDefRate,-100; bonus bDef2Rate,-100; bonus bHit,250; bonus2 bIgnoreDefRaceRate,RC_DemiHuman,10; bonus2 bIgnoreDefRaceRate,RC_Player_Human,10;
+      bonus2 bSkillAtk,"MC_MAMMONITE",10; bonus2 bSkillAtk,"MC_CARTREVOLUTION",70;  bonus2 bIgnoreMDefRaceRate,RC_DemiHuman,20;
+      bonus2 bIgnoreMDefRaceRate,RC_Player_Human,20; bonus2 bAddRace,RC_DemiHuman,5; bonus2 bAddRace,RC_Player_Human,5;
       bonus2 bMagicAddRace,RC_DemiHuman,5; bonus2 bMagicAddRace,RC_Player_Human,5; skill "MC_CARTREVOLUTION",1;

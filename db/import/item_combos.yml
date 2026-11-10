@@ -329,3 +329,575 @@ Body:
           - Falconer_Glove    # 28322
     Script: |
       bonus bUseSPrate,-(getskilllv("HT_BEASTBANE") * 2);
+
+# Legacia Classic custom weapons (60001-60021): 4 card combos each.
+# Skill combos get +1% per weapon refine above +5.
+  - Combos:
+      - Combo:
+          - Skyfire_Hawk_Bow    # 60001
+          - Wootan_Shooter_Card    # 4260
+    Script: |
+      bonus bDex,2;
+  - Combos:
+      - Combo:
+          - Skyfire_Hawk_Bow    # 60001
+          - Venatu_Card    # 4369
+    Script: |
+      bonus bHit,10;
+  - Combos:
+      - Combo:
+          - Skyfire_Hawk_Bow    # 60001
+          - Ferus__Card    # 4381
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"AC_DOUBLE",5+.@b;
+  - Combos:
+      - Combo:
+          - Skyfire_Hawk_Bow    # 60001
+          - Raydric_Archer_Card    # 4187
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"AC_SHOWER",5+.@b;
+  - Combos:
+      - Combo:
+          - Bow_Of_Betrayer    # 60002
+          - Gibbet_Card    # 4278
+    Script: |
+      bonus bCritical,3;
+  - Combos:
+      - Combo:
+          - Bow_Of_Betrayer    # 60002
+          - Wander_Man_Card    # 4210
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"AC_DOUBLE",5+.@b;
+  - Combos:
+      - Combo:
+          - Bow_Of_Betrayer    # 60002
+          - Wild_Rose_Card    # 4257
+    Script: |
+      bonus bAgi,2;
+  - Combos:
+      - Combo:
+          - Bow_Of_Betrayer    # 60002
+          - Shinobi_Card    # 4230
+    Script: |
+      bonus bFlee,5;
+  - Combos:
+      - Combo:
+          - Blazeguard    # 60003
+          - Majoruros_Card    # 4201
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"MC_MAMMONITE",10+.@b;
+  - Combos:
+      - Combo:
+          - Blazeguard    # 60003
+          - Teddy_Bear_Card    # 4340
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"MC_CARTREVOLUTION",10+.@b;
+  - Combos:
+      - Combo:
+          - Blazeguard    # 60003
+          - Magmaring_Card    # 4432
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"WS_CARTTERMINATION",5+.@b;
+  - Combos:
+      - Combo:
+          - Blazeguard    # 60003
+          - Heater_Card    # 4331
+    Script: |
+      bonus bAspdRate,3;
+  - Combos:
+      - Combo:
+          - Vengeful_Gladiator    # 60004
+          - Stainer_Card    # 4039
+    Script: |
+      bonus bStr,1;
+      bonus bHit,5;
+  - Combos:
+      - Combo:
+          - Vengeful_Gladiator    # 60004
+          - Executioner_Card    # 4250
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"KN_BOWLINGBASH",10+.@b;
+  - Combos:
+      - Combo:
+          - Vengeful_Gladiator    # 60004
+          - Vagabond_Wolf_Card    # 4183
+    Script: |
+      bonus bStr,2;
+  - Combos:
+      - Combo:
+          - Vengeful_Gladiator    # 60004
+          - Mantis_Card    # 4079
+    Script: |
+      bonus bBaseAtk,10;
+  - Combos:
+      - Combo:
+          - Blinkstrike    # 60005
+          - Leaf_Cat_Card    # 4195
+    Script: |
+      bonus bFlee,5;
+  - Combos:
+      - Combo:
+          - Blinkstrike    # 60005
+          - Baby_Leopard_Card    # 4233
+    Script: |
+      bonus bCritical,3;
+  - Combos:
+      - Combo:
+          - Blinkstrike    # 60005
+          - Baphomet__Card    # 4129
+    Script: |
+      bonus bCritical,3;
+      bonus bAspdRate,3;
+  - Combos:
+      - Combo:
+          - Blinkstrike    # 60005
+          - Thief_Bug_Male_Card    # 4050
+    Script: |
+      bonus bAgi,2;
+  - Combos:
+      - Combo:
+          - White_Rabbit_Sword    # 60006
+          - Poring_Card    # 4001
+    Script: |
+      bonus bAllStats,1;
+  - Combos:
+      - Combo:
+          - White_Rabbit_Sword    # 60006
+          - Eclipse_Card    # 4266
+    Script: |
+      bonus bAllStats,2;
+  - Combos:
+      - Combo:
+          - White_Rabbit_Sword    # 60006
+          - Verit_Card    # 4107
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"MC_MAMMONITE",10+.@b;
+  - Combos:
+      - Combo:
+          - White_Rabbit_Sword    # 60006
+          - Spring_Rabbit_Card    # 4227
+    Script: |
+      bonus bLuk,5;
+  - Combos:
+      - Combo:
+          - Strike_Eagle    # 60008
+          - Rideword_Card    # 4185
+    Script: |
+      bonus bMatkRate,3;
+  - Combos:
+      - Combo:
+          - Strike_Eagle    # 60008
+          - Evil_Druid_Card    # 4141
+    Script: |
+      bonus bHealPower,5;
+  - Combos:
+      - Combo:
+          - Strike_Eagle    # 60008
+          - Chung_E_Card    # 4373
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"AL_HOLYLIGHT",10+.@b;
+  - Combos:
+      - Combo:
+          - Strike_Eagle    # 60008
+          - Sohee_Card    # 4100
+    Script: |
+      bonus bUseSPrate,-5;
+  - Combos:
+      - Combo:
+          - Highness_Staff    # 60009
+          - Elder_Wilow_Card    # 4052
+    Script: |
+      bonus bInt,2;
+  - Combos:
+      - Combo:
+          - Highness_Staff    # 60009
+          - Shelter_Card    # 4393
+    Script: |
+      bonus bMatkRate,3;
+  - Combos:
+      - Combo:
+          - Highness_Staff    # 60009
+          - Noxious_Card    # 4334
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"WZ_EARTHSPIKE",10+.@b;
+      bonus2 bSkillAtk,"WZ_HEAVENDRIVE",10+.@b;
+  - Combos:
+      - Combo:
+          - Highness_Staff    # 60009
+          - Sageworm_Card    # 4219
+    Script: |
+      bonus bCastrate,-5;
+  - Combos:
+      - Combo:
+          - Dorcus    # 60010
+          - Killer_Mantis_Card    # 4301
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"MO_COMBOFINISH",10+.@b;
+  - Combos:
+      - Combo:
+          - Dorcus    # 60010
+          - Horn_Card    # 4045
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"MO_CHAINCOMBO",10+.@b;
+  - Combos:
+      - Combo:
+          - Dorcus    # 60010
+          - Merman_Card    # 4199
+    Script: |
+      bonus bUseSPrate,-5;
+  - Combos:
+      - Combo:
+          - Dorcus    # 60010
+          - Mantis_Card    # 4079
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"MO_EXTREMITYFIST",10+.@b;
+  - Combos:
+      - Combo:
+          - Cat_Paw    # 60011
+          - Gibbet_Card    # 4278
+    Script: |
+      bonus bCritical,3;
+  - Combos:
+      - Combo:
+          - Cat_Paw    # 60011
+          - Venomous_Card    # 4333
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"AS_GRIMTOOTH",10+.@b;
+  - Combos:
+      - Combo:
+          - Cat_Paw    # 60011
+          - Baphomet__Card    # 4129
+    Script: |
+      bonus bCritical,5;
+      bonus bAspdRate,3;
+  - Combos:
+      - Combo:
+          - Cat_Paw    # 60011
+          - Shinobi_Card    # 4230
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"AS_SONICBLOW",10+.@b;
+  - Combos:
+      - Combo:
+          - Vash_Revolver    # 60012
+          - Antonio_Card    # 4243
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"GS_TRACKING",5+.@b;
+  - Combos:
+      - Combo:
+          - Vash_Revolver    # 60012
+          - Myst_Card    # 4108
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"GS_RAPIDSHOWER",5+.@b;
+  - Combos:
+      - Combo:
+          - Vash_Revolver    # 60012
+          - Antique_Firelock_Card    # 4160
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"GS_DESPERADO",5+.@b;
+  - Combos:
+      - Combo:
+          - Vash_Revolver    # 60012
+          - Galion_Card    # 4423
+    Script: |
+      bonus bDex,2;
+  - Combos:
+      - Combo:
+          - Devil_Guitar    # 60013
+          - Banshee_Card    # 4438
+    Script: |
+      bonus bUseSPrate,-5;
+  - Combos:
+      - Combo:
+          - Devil_Guitar    # 60013
+          - Karakasa_Card    # 4286
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"BA_MUSICALSTRIKE",10+.@b;
+  - Combos:
+      - Combo:
+          - Devil_Guitar    # 60013
+          - Harpy_Card    # 4325
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"CG_ARROWVULCAN",10+.@b;
+  - Combos:
+      - Combo:
+          - Devil_Guitar    # 60013
+          - Miyabi_Ningyo_Card    # 4208
+    Script: |
+      bonus bAgi,2;
+  - Combos:
+      - Combo:
+          - Gentleman_Staff    # 60014
+          - Carat_Card    # 4288
+    Script: |
+      bonus bInt,2;
+  - Combos:
+      - Combo:
+          - Gentleman_Staff    # 60014
+          - Kasa_Card    # 4431
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"WZ_FIREPILLAR",10+.@b;
+      bonus2 bSkillAtk,"WZ_METEOR",10+.@b;
+  - Combos:
+      - Combo:
+          - Gentleman_Staff    # 60014
+          - Freezer_Card    # 4319
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"WZ_STORMGUST",10+.@b;
+  - Combos:
+      - Combo:
+          - Gentleman_Staff    # 60014
+          - Plasma_Card    # 4389
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"WZ_JUPITEL",10+.@b;
+      bonus2 bSkillAtk,"WZ_VERMILION",10+.@b;
+  - Combos:
+      - Combo:
+          - Chaos_Sword    # 60015
+          - Echio_Card    # 4410
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"KN_BOWLINGBASH",10+.@b;
+  - Combos:
+      - Combo:
+          - Chaos_Sword    # 60015
+          - Khalitzburg_Card    # 4136
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"CR_HOLYCROSS",10+.@b;
+  - Combos:
+      - Combo:
+          - Chaos_Sword    # 60015
+          - Daydric_Card    # 4133
+    Script: |
+      bonus bMaxHPrate,5;
+  - Combos:
+      - Combo:
+          - Chaos_Sword    # 60015
+          - Skeleton_General_Card    # 4221
+    Script: |
+      bonus bHit,10;
+  - Combos:
+      - Combo:
+          - Black_Halberd    # 60016
+          - Wootan_Fighter_Card    # 4261
+    Script: |
+      bonus bMaxHPrate,5;
+  - Combos:
+      - Combo:
+          - Black_Halberd    # 60016
+          - Wooden_Golem_Card    # 4259
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"KN_PIERCE",10+.@b;
+  - Combos:
+      - Combo:
+          - Black_Halberd    # 60016
+          - Munak_Card    # 4090
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"KN_BRANDISHSPEAR",10+.@b;
+  - Combos:
+      - Combo:
+          - Black_Halberd    # 60016
+          - Greatest_General_Card    # 4283
+    Script: |
+      bonus bStr,2;
+  - Combos:
+      - Combo:
+          - Book_Of_Battle    # 60017
+          - Rideword_Card    # 4185
+    Script: |
+      bonus bHealPower,5;
+  - Combos:
+      - Combo:
+          - Book_Of_Battle    # 60017
+          - Flame_Skull_Card    # 4439
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"AL_HOLYLIGHT",10+.@b;
+  - Combos:
+      - Combo:
+          - Book_Of_Battle    # 60017
+          - Roween_Card    # 4422
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"TK_JUMPKICK",10+.@b;
+  - Combos:
+      - Combo:
+          - Book_Of_Battle    # 60017
+          - Wild_Ginseng_Card    # 4232
+    Script: |
+      bonus bCastrate,-3;
+  - Combos:
+      - Combo:
+          - Chemical_Sword    # 60018
+          - Geographer_Card    # 4280
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"CR_ACIDDEMONSTRATION",10+.@b;
+  - Combos:
+      - Combo:
+          - Chemical_Sword    # 60018
+          - Rafflesia_Card    # 4083
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"AM_ACIDTERROR",10+.@b;
+  - Combos:
+      - Combo:
+          - Chemical_Sword    # 60018
+          - Explosion_Card    # 4267
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"AM_DEMONSTRATION",10+.@b;
+  - Combos:
+      - Combo:
+          - Chemical_Sword    # 60018
+          - Stem_Worm_Card    # 4224
+    Script: |
+      bonus bInt,2;
+  - Combos:
+      - Combo:
+          - Siren_Whip    # 60019
+          - Wicked_Nymph_Card    # 4258
+    Script: |
+      bonus bUseSPrate,-5;
+  - Combos:
+      - Combo:
+          - Siren_Whip    # 60019
+          - Cremy_Fear_Card    # 4298
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"DC_THROWARROW",10+.@b;
+  - Combos:
+      - Combo:
+          - Siren_Whip    # 60019
+          - Hyegun_Card    # 4328
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"CG_ARROWVULCAN",10+.@b;
+  - Combos:
+      - Combo:
+          - Siren_Whip    # 60019
+          - Marin_Card    # 4196
+    Script: |
+      bonus bDex,2;
+  - Combos:
+      - Combo:
+          - Black_Devil_Spear    # 60020
+          - Cramp_Card    # 4296
+    Script: |
+      bonus bBaseAtk,10;
+  - Combos:
+      - Combo:
+          - Black_Devil_Spear    # 60020
+          - Pest_Card    # 4315
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"KN_BRANDISHSPEAR",10+.@b;
+  - Combos:
+      - Combo:
+          - Black_Devil_Spear    # 60020
+          - Draco_Card    # 4444
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"KN_PIERCE",10+.@b;
+  - Combos:
+      - Combo:
+          - Black_Devil_Spear    # 60020
+          - Dustiness_Card    # 4056
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"LK_SPIRALPIERCE",5+.@b;
+  - Combos:
+      - Combo:
+          - Senbon    # 60021
+          - Permeter_Card    # 4311
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"NJ_KUNAI",10+.@b;
+      bonus2 bSkillAtk,"NJ_SYURIKEN",10+.@b;
+  - Combos:
+      - Combo:
+          - Senbon    # 60021
+          - Removal_Card    # 4353
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"NJ_KOUENKA",10+.@b;
+  - Combos:
+      - Combo:
+          - Senbon    # 60021
+          - Aqua_Elemental_Card    # 4443
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"NJ_HYOUSENSOU",10+.@b;
+  - Combos:
+      - Combo:
+          - Senbon    # 60021
+          - Kavac_Card    # 4351
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"NJ_HUUJIN",10+.@b;
