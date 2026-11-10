@@ -45,9 +45,11 @@ Body:
   # Legacia RO - "The Hollow Crown" storyline (npc/miracle/legacia_story/)
   - Id: 101
     Name: Legacia - Knights Without a King
-    TimeLimit: 3600
+    TimeLimit: 7200
     IdleTimeOut: 300
     Enter:
       Map: 1@gl_k
       X: 150
       Y: 20
+    AdditionalMaps:
+      2@gl_k: true
