@@ -342,6 +342,16 @@ OnBuyItem:
 	}
 	if (BaseLevel < .min_lv)
 		end;
+	// weapons: only the classes that can wear them (and get the class bonus)
+	.@k = .@id - 60000;
+	if (.@c == 0 && .ex_jobs$[.@k] != "" && !compare(.ex_jobs$[.@k], "|" + BaseJob + "|")) {
+		mes .@n$;
+		mes "<ITEM>" + getitemname(.@id) + "<INFO>" + .@id + "</INFO></ITEM>";
+		mes "This echo won't answer your class.";
+		mes "Usable by: ^0000FF" + .ex_who$[.@k] + "^000000";
+		mes "(transcendent and baby jobs too).";
+		close;
+	}
 	.@price = .price[.@c];
 	// headgears can be tried on (look only), like the Quest Shop
 	.@loc = getiteminfo(.@id, ITEMINFO_LOCATIONS);
@@ -351,6 +361,8 @@ OnBuyItem:
 	addtimer 1000, strnpcinfo(0) + "::OnPreviewEnd";
 	mes .@n$;
 	mes "<ITEM>" + getitemname(.@id) + "<INFO>" + .@id + "</INFO></ITEM>";
+	if (.@c == 0 && .ex_who$[.@k] != "")
+		mes "Usable by: ^0000FF" + .ex_who$[.@k] + "^000000";
 	mes "Cost: ^0000FF" + .@price + " Legacy Shards^000000";
 	mes "You have: " + countitem(.shard) + ".";
 	mes "It comes ^FF0000unidentified^000000 with";
@@ -480,6 +492,29 @@ OnInit:
 	setarray .price[0], 50, 150;
 	// classic custom weapons (db/import/item_db_other.yml), 60007 is a shield
 	for (.@i = 60001; .@i <= 60021; .@i++) .ex_weapons[getarraysize(.ex_weapons)] = .@i;
+	// who can use each one (BaseJob, so transcendent and baby jobs count too);
+	// keep in sync with Jobs in db/import/item_db_other.yml
+	callsub S_ExJobs, 60001, "Archer, Hunter, Bard, Dancer, Rogue", Job_Archer, Job_Hunter, Job_Bard, Job_Dancer, Job_Rogue;
+	callsub S_ExJobs, 60002, "Archer, Hunter, Bard, Dancer, Rogue", Job_Archer, Job_Hunter, Job_Bard, Job_Dancer, Job_Rogue;
+	callsub S_ExJobs, 60003, "Swordman, Knight, Crusader, Thief, Assassin, Merchant, Blacksmith, Alchemist", Job_Swordman, Job_Knight, Job_Crusader, Job_Thief, Job_Assassin, Job_Merchant, Job_Blacksmith, Job_Alchemist;
+	callsub S_ExJobs, 60004, "Swordman, Knight, Assassin", Job_Swordman, Job_Knight, Job_Assassin;
+	callsub S_ExJobs, 60005, "Knight, Crusader, Assassin", Job_Knight, Job_Crusader, Job_Assassin;
+	callsub S_ExJobs, 60006, "Novice, Super Novice", Job_Novice, Job_Super_Novice;
+	callsub S_ExJobs, 60007, "Novice, Super Novice", Job_Novice, Job_Super_Novice;
+	callsub S_ExJobs, 60008, "Priest", Job_Priest;
+	callsub S_ExJobs, 60009, "Wizard, Sage", Job_Wizard, Job_Sage;
+	callsub S_ExJobs, 60010, "Monk", Job_Monk;
+	callsub S_ExJobs, 60011, "Assassin", Job_Assassin;
+	callsub S_ExJobs, 60012, "Gunslinger", Job_Gunslinger;
+	callsub S_ExJobs, 60013, "Bard", Job_Bard;
+	callsub S_ExJobs, 60014, "Wizard", Job_Wizard;
+	callsub S_ExJobs, 60015, "Knight", Job_Knight;
+	callsub S_ExJobs, 60016, "Crusader", Job_Crusader;
+	callsub S_ExJobs, 60017, "Priest, Sage, Star Gladiator", Job_Priest, Job_Sage, Job_Star_Gladiator;
+	callsub S_ExJobs, 60018, "Alchemist", Job_Alchemist;
+	callsub S_ExJobs, 60019, "Dancer", Job_Dancer;
+	callsub S_ExJobs, 60020, "Knight", Job_Knight;
+	callsub S_ExJobs, 60021, "Ninja", Job_Ninja;
 	// Legacia utility mid/lower headgears (db/import/item_db_legacia.yml)
 	setarray .ex_heads[0], 300032, 300033, 300034, 300035, 300036, 300037, 300038;
 	// preview shops (lgs_shop_w / lgs_shop_h below), price shown as 0
@@ -491,6 +526,15 @@ OnInit:
 	for (.@i = 0; .@i < getarraysize(.ex_heads); .@i++)
 		npcshopadditem .shop$[1], .ex_heads[.@i], 0;
 	end;
+
+// callsub S_ExJobs, <item id>, "<names shown>", <BaseJob>, ...;
+S_ExJobs:
+	.@k = getarg(0) - 60000;
+	.ex_who$[.@k] = getarg(1);
+	.ex_jobs$[.@k] = "|";
+	for (.@i = 2; .@i < getargcount(); .@i++)
+		.ex_jobs$[.@k] = .ex_jobs$[.@k] + getarg(.@i) + "|";
+	return;
 }
 
 // dummy shops filled by Archivist Sera's OnInit
