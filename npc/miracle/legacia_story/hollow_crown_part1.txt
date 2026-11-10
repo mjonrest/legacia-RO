@@ -25,7 +25,7 @@
 //= mid/lower headgears 300032-300038), given unidentified so they
 //= roll random options; exchanging again is a reroll.
 //= After chapter 2, clearing the rift again pays .daily_shards once per reset
-//= (cooldown quest 300100, 04:00). Entering the rift itself is free (help friends).
+//= (cooldown quest 300100, 04:00). While it runs, the player can't enter the rift.
 //= Emblem is character bound. Shards can't be traded.
 //=
 //= Character variables:
@@ -209,11 +209,24 @@ prt_castle,125,51,4	script	Archivist Sera	4_F_SARAH,{
 			mes "Clear it again and Corvin will give";
 			mes "you ^0000FF" + .daily_shards[0] + "~" + .daily_shards[1] + " Legacy Shards^000000 once a day";
 			mes "(resets 04:00, see your quest window).";
-			mes "You can also help your friends.";
 		}
 		next;
 		if (select("Enter the rift:Not yet") == 2)
 			close;
+		// after the story, one clear per reset: cooldown quest 300100 (set when Corvin pays)
+		if (LGS_STEP >= 4) {
+			.@cd = checkquest(300100, PLAYTIME);
+			if (.@cd == 2) {
+				erasequest 300100;
+			} else if (.@cd != -1) {
+				mes .@n$;
+				mes "The echo is still settling after";
+				mes "your last clear. Come back after";
+				mes "the reset (^0000FF04:00^000000). Your cooldown";
+				mes "is in the quest window.";
+				close;
+			}
+		}
 		.@mode = getcharid(1) ? IM_PARTY : IM_CHAR;
 		.@iid = instance_id(.@mode);
 		if (.@iid <= 0) {
