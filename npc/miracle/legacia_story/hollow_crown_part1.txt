@@ -20,7 +20,8 @@
 //=
 //= Sera also upgrades the Legacy Emblem and runs the Legacy Shard
 //= Exchange (classic custom weapons 60001-60021 and Legacia utility
-//= mid/lower headgears 300032-300038).
+//= mid/lower headgears 300032-300038), given unidentified so they
+//= roll random options; exchanging again is a reroll.
 //= After chapter 2, clearing the rift again pays .daily_shards once a day.
 //= Emblem is character bound. Shards can't be traded.
 //=
@@ -331,11 +332,14 @@ S_Exchange:
 		return;
 	}
 	delitem .shard, .@price;
-	getitem .@id, 1;
+	// unidentified: rolls random options (pc_apply_random_option), so repeat exchanges are rerolls
+	getitem2 .@id, 1, 0, 0, 0, 0, 0, 0, 0;
 	specialeffect2 EF_REFINEOK;
 	mes .@n$;
 	mes "The shards glow and take shape...";
 	mes "^0000FF" + getitemname(.@id) + "^000000 is yours.";
+	mes "Appraise it with a Magnifier to";
+	mes "see what the echo gave it.";
 	return;
 
 S_Emblem:
