@@ -711,7 +711,7 @@ Body:
     Script: |
       .@r = getequiprefinerycnt(EQI_HAND_R);
       .@b = (.@r > 5) ? .@r - 5 : 0;
-      bonus2 bSkillAtk,"CR_HOLYCROSS",10+.@b;
+      bonus2 bSkillAtk,"KN_CHARGEATK",10+.@b;
   - Combos:
       - Combo:
           - Chaos_Sword    # 60015
@@ -737,7 +737,7 @@ Body:
     Script: |
       .@r = getequiprefinerycnt(EQI_HAND_R);
       .@b = (.@r > 5) ? .@r - 5 : 0;
-      bonus2 bSkillAtk,"KN_PIERCE",10+.@b;
+      bonus2 bSkillAtk,"CR_HOLYCROSS",10+.@b;
   - Combos:
       - Combo:
           - Black_Halberd    # 60016
@@ -745,7 +745,7 @@ Body:
     Script: |
       .@r = getequiprefinerycnt(EQI_HAND_R);
       .@b = (.@r > 5) ? .@r - 5 : 0;
-      bonus2 bSkillAtk,"KN_BRANDISHSPEAR",10+.@b;
+      bonus2 bSkillAtk,"CR_GRANDCROSS",10+.@b;
   - Combos:
       - Combo:
           - Black_Halberd    # 60016
