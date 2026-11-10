@@ -16,10 +16,10 @@
 //= Chapter 2 - Knights Without a King
 //=   Rift to 1@gl_k (instance "Legacia - Knights Without a King",
 //=   solo or party). 3 waves of echoes, boss Oathbreaker Valen.
-//=   Reward: Legacia Manteau, 20 Legacy Shards.
+//=   Reward: 30 Legacy Shards.
 //=
 //= Sera also upgrades the Legacy Emblem with Legacy Shards.
-//= Story gear is character bound. Shards can't be traded.
+//= Emblem is character bound. Shards can't be traded.
 //=
 //= Character variables:
 //=   LGS_STEP   0 new, 1 ch1 taken, 2 ch1 done, 3 ch2 boss down,
@@ -267,12 +267,11 @@ S_Chapter2Done:
 	mes "^8A2BE2[Echo of Ser Corvin]^000000";
 	mes "Archivist. I swore to guard my King.";
 	mes "I did not know what he would become.";
-	mes "Let this cloak guard the one who";
-	mes "freed me instead.";
+	mes "Take what is left of my oath.";
+	mes "Let it serve the one who freed me.";
 	next;
 	LGS_STEP = 4;
-	getitembound .manteau, 1, Bound_Char;
-	getitem .shard, 20;
+	getitem .shard, 30;
 	mes .@n$;
 	mes "^0000FFChapter 2 complete!^000000";
 	mes "Corvin's echo faded into the stone.";
@@ -348,7 +347,6 @@ OnInit:
 	setarray .emblem[0], 300027, 300028, 300029, 300030, 300031;
 	// shards to go from Lv(index) to Lv(index+1); index 0 unused
 	setarray .emblem_cost[0], 0, 10, 20, 30, 50;
-	.manteau = 300032;
 	.ch2$ = "Legacia - Knights Without a King";
 	end;
 }

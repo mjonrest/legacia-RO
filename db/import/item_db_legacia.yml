@@ -1,7 +1,6 @@
 # Legacia RO - "The Hollow Crown" storyline items
 # Story scripts: npc/miracle/legacia_story/
-# Set bonus (Armor + Manteau + Boots): db/import/item_combos.yml
-# IDs 300025-300034 (300035 reserved for Crown of the Hollow King).
+# IDs 300025-300031.
 
 Header:
   Type: ITEM_DB
@@ -99,51 +98,3 @@ Body:
       bonus bAllStats,4;
       bonus bMaxHPrate,5;
       bonus bMaxSPrate,5;
-  - Id: 300032
-    AegisName: Legacia_Manteau
-    Name: Legacia Manteau
-    Type: Armor
-    Weight: 600
-    Defense: 3
-    Slots: 1
-    Locations:
-      Garment: true
-    ArmorLevel: 1
-    EquipLevelMin: 99
-    Refineable: true
-    Script: |
-      bonus bMdef,3;
-      bonus2 bSubEle,Ele_Neutral,10;
-      bonus bUnbreakableGarment;
-  - Id: 300033
-    AegisName: Legacia_Boots
-    Name: Legacia Boots
-    Type: Armor
-    Weight: 600
-    Defense: 4
-    Slots: 1
-    Locations:
-      Shoes: true
-    ArmorLevel: 1
-    EquipLevelMin: 99
-    Refineable: true
-    Script: |
-      bonus bMaxHP,BaseLevel*5;
-      bonus bAgi,getrefine()/2;
-      bonus bUnbreakableShoes;
-  - Id: 300034
-    AegisName: Legacia_Armor
-    Name: Legacia Armor
-    Type: Armor
-    Weight: 2000
-    Defense: 7
-    Slots: 1
-    Locations:
-      Armor: true
-    ArmorLevel: 1
-    EquipLevelMin: 99
-    Refineable: true
-    Script: |
-      bonus bMdef,3;
-      bonus bAllStats,1;
-      bonus bUnbreakableArmor;

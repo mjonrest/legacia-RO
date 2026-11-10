@@ -329,14 +329,3 @@ Body:
           - Falconer_Glove    # 28322
     Script: |
       bonus bUseSPrate,-(getskilllv("HT_BEASTBANE") * 2);
-  # Legacia set (The Hollow Crown storyline, npc/miracle/legacia_story/)
-  - Combos:
-      - Combo:
-          - Legacia_Armor     # 300034
-          - Legacia_Manteau     # 300032
-          - Legacia_Boots     # 300033
-    Script: |
-      bonus2 bSubEle,Ele_All,10;
-      bonus bDef,20;
-      bonus bMdef,20;
-      bonus bNoKnockback;
