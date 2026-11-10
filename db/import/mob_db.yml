@@ -1153,13 +1153,13 @@ Body:
     AegisName: LGS_ECHO_KNIGHT
     Name: Echo Knight
     Level: 95
-    Hp: 28000
+    Hp: 84000
     BaseExp: 9000
     JobExp: 6000
-    Attack: 1100
-    Attack2: 1400
-    Defense: 45
-    MagicDefense: 20
+    Attack: 1650
+    Attack2: 2100
+    Defense: 65
+    MagicDefense: 40
     Str: 70
     Agi: 70
     Vit: 60
@@ -1183,13 +1183,13 @@ Body:
     AegisName: LGS_ECHO_ARCHER
     Name: Echo Archer
     Level: 93
-    Hp: 18000
+    Hp: 54000
     BaseExp: 7000
     JobExp: 5000
-    Attack: 900
-    Attack2: 1150
-    Defense: 30
-    MagicDefense: 30
+    Attack: 1350
+    Attack2: 1725
+    Defense: 50
+    MagicDefense: 50
     Str: 50
     Agi: 80
     Vit: 40
@@ -1212,13 +1212,13 @@ Body:
     AegisName: LGS_ECHO_ABYSS
     Name: Echo of the Abyss
     Level: 98
-    Hp: 45000
+    Hp: 135000
     BaseExp: 14000
     JobExp: 10000
-    Attack: 1500
-    Attack2: 1900
-    Defense: 55
-    MagicDefense: 35
+    Attack: 2250
+    Attack2: 2850
+    Defense: 75
+    MagicDefense: 55
     Str: 75
     Agi: 70
     Vit: 70
@@ -1242,13 +1242,13 @@ Body:
     AegisName: LGS_OATHBREAKER
     Name: Oathbreaker Valen
     Level: 99
-    Hp: 500000
+    Hp: 1500000
     BaseExp: 150000
     JobExp: 100000
-    Attack: 2200
-    Attack2: 3000
-    Defense: 60
-    MagicDefense: 45
+    Attack: 3300
+    Attack2: 4500
+    Defense: 80
+    MagicDefense: 65
     Str: 90
     Agi: 80
     Vit: 90

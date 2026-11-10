@@ -15,7 +15,9 @@
 //=   Reward: Echo Lens, Legacy Emblem Lv1, 10 Legacy Shards.
 //= Chapter 2 - Knights Without a King
 //=   Rift to 1@gl_k (instance "Legacia - Knights Without a King",
-//=   solo or party). 3 waves of echoes, boss Oathbreaker Valen.
+//=   solo or party). Old Glast Heim style run: great hall (3 waves),
+//=   west chapel, east forge, north barracks, then Oathbreaker Valen
+//=   in the throne hall upstairs (2@gl_k).
 //=   Reward: 30 Legacy Shards.
 //=
 //= Sera also upgrades the Legacy Emblem and runs the Legacy Shard
@@ -513,8 +515,29 @@ OnInit:
 	}
 	if ('lgs_wave < 9) {
 		mes .@n$;
-		mes "Fight on! The echoes are coming";
-		mes "down the great hall. (Wave " + 'lgs_wave + "/3)";
+		switch ('lgs_wave) {
+		case 1: case 2: case 3:
+			mes "Fight on! The echoes are coming";
+			mes "down the great hall. (Wave " + 'lgs_wave + "/3)";
+			break;
+		case 4:
+			mes "The chapel is in the ^0000FFwest wing^000000.";
+			mes "Take the west door of the hall.";
+			break;
+		case 5:
+			mes "The forge is in the ^0000FFeast wing^000000.";
+			mes "Take the east door of the hall.";
+			break;
+		case 6:
+			mes "The barracks are ^0000FFnorth^000000, past";
+			mes "the east wing.";
+			break;
+		default:
+			mes "Valen waits upstairs in the";
+			mes "^FF0000throne hall^000000. Go up from the";
+			mes "north courtyard.";
+		}
+		mes "(Stage " + ('lgs_wave < 4 ? 1 : 'lgs_wave - 2) + "/5)";
 		close;
 	}
 	mes .@n$;
@@ -563,11 +586,14 @@ OnInit:
 	close;
 
 OnWave:
+	// stage list: 1-3 great hall waves, 4 west wing (chapel), 5 east wing (forge),
+	// 6 north courtyard (barracks), 7 Valen in the throne hall (2@gl_k). 9 = done.
+	// Areas and doors follow the official Old Glast Heim layout of these maps.
 	.@map$ = instance_mapname("1@gl_k");
 	.@lbl$ = instance_npcname("Ser Corvin#lgs2") + "::OnWaveDead";
 	switch ('lgs_wave) {
 	case 1:
-		instance_announce 0, "Ser Corvin: Here they come! Wave 1 of 3.", bc_map, 0xFFCC66;
+		instance_announce 0, "Ser Corvin: Here they come! Great hall, wave 1 of 3.", bc_map, 0xFFCC66;
 		areamonster .@map$, 140, 55, 159, 104, "Echo Knight", 3900, 10, .@lbl$;
 		areamonster .@map$, 140, 55, 159, 104, "Echo Archer", 3901, 6, .@lbl$;
 		break;
@@ -578,15 +604,54 @@ OnWave:
 		areamonster .@map$, 140, 55, 159, 104, "Echo of the Abyss", 3902, 4, .@lbl$;
 		break;
 	case 3:
-		instance_announce 0, "Oathbreaker Valen: You kneel before the Hollow Crown, or you fall!", bc_map, 0xFF6666;
-		monster .@map$, 150, 100, "Oathbreaker Valen", 3903, 1, instance_npcname("Ser Corvin#lgs2") + "::OnBossDead";
-		areamonster .@map$, 140, 85, 159, 104, "Echo of the Abyss", 3902, 4, .@lbl$;
+		instance_announce 0, "Ser Corvin: Hold the hall! Wave 3 of 3.", bc_map, 0xFFCC66;
+		areamonster .@map$, 140, 55, 159, 104, "Echo Knight", 3900, 8, .@lbl$;
+		areamonster .@map$, 140, 55, 159, 104, "Echo of the Abyss", 3902, 6, .@lbl$;
+		break;
+	case 4:
+		enablenpc instance_npcname("#lgs_w_in");
+		enablenpc instance_npcname("#lgs_w_out");
+		instance_announce 0, "Ser Corvin: The hall is clear. The west door is open: free the chapel!", bc_map, 0xFFCC66;
+		areamonster .@map$, 76, 10, 87, 99, "Echo Knight", 3900, 8, .@lbl$;
+		areamonster .@map$, 12, 6, 67, 39, "Echo Knight", 3900, 6, .@lbl$;
+		areamonster .@map$, 12, 6, 67, 39, "Echo Archer", 3901, 4, .@lbl$;
+		areamonster .@map$, 32, 58, 51, 75, "Echo Archer", 3901, 6, .@lbl$;
+		areamonster .@map$, 6, 84, 45, 137, "Echo Knight", 3900, 4, .@lbl$;
+		areamonster .@map$, 6, 84, 45, 137, "Echo Archer", 3901, 4, .@lbl$;
+		break;
+	case 5:
+		enablenpc instance_npcname("#lgs_e_in");
+		enablenpc instance_npcname("#lgs_e_out");
+		instance_announce 0, "Ser Corvin: The chapel is quiet. The east door is open: the forge still burns!", bc_map, 0xFFCC66;
+		areamonster .@map$, 236, 12, 288, 52, "Echo Knight", 3900, 8, .@lbl$;
+		areamonster .@map$, 236, 12, 288, 52, "Echo of the Abyss", 3902, 6, .@lbl$;
+		areamonster .@map$, 242, 71, 286, 145, "Echo Knight", 3900, 8, .@lbl$;
+		areamonster .@map$, 242, 71, 286, 145, "Echo of the Abyss", 3902, 8, .@lbl$;
+		break;
+	case 6:
+		enablenpc instance_npcname("#lgs_n_in");
+		enablenpc instance_npcname("#lgs_n_out");
+		instance_announce 0, "Ser Corvin: The forge is cold. Go north from the east wing to the barracks!", bc_map, 0xFFCC66;
+		areamonster .@map$, 115, 215, 188, 273, "Echo Knight", 3900, 10, .@lbl$;
+		areamonster .@map$, 108, 232, 193, 281, "Echo of the Abyss", 3902, 6, .@lbl$;
+		areamonster .@map$, 158, 236, 230, 250, "Echo Archer", 3901, 8, .@lbl$;
+		areamonster .@map$, 65, 231, 155, 256, "Echo Archer", 3901, 6, .@lbl$;
+		areamonster .@map$, 65, 231, 155, 256, "Echo Knight", 3900, 6, .@lbl$;
+		break;
+	case 7:
+		enablenpc instance_npcname("#lgs_2f_in");
+		enablenpc instance_npcname("#lgs_2f_out");
+		enablenpc instance_npcname("Ser Corvin#lgs2b");
+		.@map2$ = instance_mapname("2@gl_k");
+		instance_announce 0, "Oathbreaker Valen: You came this far? Climb to my throne hall, and kneel or fall!", bc_map, 0xFF6666;
+		monster .@map2$, 150, 95, "Oathbreaker Valen", 3903, 1, instance_npcname("Ser Corvin#lgs2") + "::OnBossDead";
+		areamonster .@map2$, 144, 60, 156, 100, "Echo of the Abyss", 3902, 6, instance_npcname("Ser Corvin#lgs2") + "::OnGuardDead";
 		break;
 	}
 	end;
 
 OnWaveDead:
-	if ('lgs_wave >= 3)
+	if ('lgs_wave >= 7)
 		end;
 	if (mobcount(instance_mapname("1@gl_k"), instance_npcname("Ser Corvin#lgs2") + "::OnWaveDead") > 0)
 		end;
@@ -594,14 +659,51 @@ OnWaveDead:
 	donpcevent instance_npcname("Ser Corvin#lgs2") + "::OnWave";
 	end;
 
+OnGuardDead:
+	end;
+
 OnBossDead:
 	'lgs_wave = 9;
-	.@c = getmapunits(BL_PC, instance_mapname("1@gl_k"), .@ids);
+	// everyone in the instance (either floor) when Valen falls gets credit
 	'lgs_ok$ = "|";
+	.@c = getmapunits(BL_PC, instance_mapname("1@gl_k"), .@ids);
+	for (.@i = 0; .@i < .@c; .@i++)
+		'lgs_ok$ += .@ids[.@i] + "|";
+	deletearray .@ids;
+	.@c = getmapunits(BL_PC, instance_mapname("2@gl_k"), .@ids);
 	for (.@i = 0; .@i < .@c; .@i++)
 		'lgs_ok$ += .@ids[.@i] + "|";
 	killmonster instance_mapname("1@gl_k"), instance_npcname("Ser Corvin#lgs2") + "::OnWaveDead";
+	killmonster instance_mapname("2@gl_k"), instance_npcname("Ser Corvin#lgs2") + "::OnGuardDead";
 	instance_announce 0, "Ser Corvin: Valen has fallen. Come to me, friends.", bc_map, 0xFFCC66;
+	end;
+}
+
+// Corvin waits in the throne hall for the reward talk once the barracks are clear
+2@gl_k,146,52,4	duplicate(Ser Corvin#lgs2)	Ser Corvin#lgs2b	4_WHITEKNIGHT
+
+// doors between the areas, closed until the area before is clear
+1@gl_k,96,80,0	warp	#lgs_w_in	2,2,1@gl_k,80,80
+1@gl_k,90,80,0	warp	#lgs_w_out	2,2,1@gl_k,105,80
+1@gl_k,202,79,0	warp	#lgs_e_in	2,2,1@gl_k,215,79
+1@gl_k,206,79,0	warp	#lgs_e_out	2,2,1@gl_k,195,79
+1@gl_k,227,216,0	warp	#lgs_n_in	2,2,1@gl_k,215,216
+1@gl_k,222,216,0	warp	#lgs_n_out	2,2,1@gl_k,233,216
+1@gl_k,150,284,0	warp	#lgs_2f_in	2,2,2@gl_k,150,46
+2@gl_k,149,32,0	warp	#lgs_2f_out	2,2,1@gl_k,150,270
+
+1@gl_k,1,1,0	script	#lgs_rift_init	HIDDEN_WARP_NPC,{
+	end;
+OnInstanceInit:
+	disablenpc instance_npcname("#lgs_w_in");
+	disablenpc instance_npcname("#lgs_w_out");
+	disablenpc instance_npcname("#lgs_e_in");
+	disablenpc instance_npcname("#lgs_e_out");
+	disablenpc instance_npcname("#lgs_n_in");
+	disablenpc instance_npcname("#lgs_n_out");
+	disablenpc instance_npcname("#lgs_2f_in");
+	disablenpc instance_npcname("#lgs_2f_out");
+	disablenpc instance_npcname("Ser Corvin#lgs2b");
 	end;
 }
 
@@ -611,3 +713,9 @@ OnBossDead:
 1@gl_k	mapflag	nobranch
 1@gl_k	mapflag	monster_noteleport
 1@gl_k	mapflag	nowarpto
+2@gl_k	mapflag	nomemo
+2@gl_k	mapflag	noteleport
+2@gl_k	mapflag	nosave	SavePoint
+2@gl_k	mapflag	nobranch
+2@gl_k	mapflag	monster_noteleport
+2@gl_k	mapflag	nowarpto
