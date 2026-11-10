@@ -22,14 +22,15 @@
 //= Exchange (classic custom weapons 60001-60021 and Legacia utility
 //= mid/lower headgears 300032-300038), given unidentified so they
 //= roll random options; exchanging again is a reroll.
-//= After chapter 2, clearing the rift again pays .daily_shards once a day.
+//= After chapter 2, clearing the rift again pays .daily_shards once per reset
+//= (cooldown quest 300100, 04:00). Entering the rift itself is free (help friends).
 //= Emblem is character bound. Shards can't be traded.
 //=
 //= Character variables:
 //=   LGS_STEP   0 new, 1 ch1 taken, 2 ch1 done, 3 ch2 boss down,
 //=              4 ch2 done (chapter 3 comes in part 2)
 //=   LGS_GHKILL Glast Heim kills for chapter 1
-//=   LGS_DAILY  last day (YYYYMMDD) the chapter 2 daily shards were paid
+//=   (old LGS_DAILY char var is no longer used; quest 300100 is the cooldown)
 //= Items 300025-300034: db/import/item_db_legacia.yml
 //= Monsters 3900-3903: db/import/mob_db.yml + mob_avail.yml
 //= Instance: db/import/instance_db.yml (Id 101)
@@ -63,8 +64,11 @@ prt_castle,125,51,4	script	Archivist Sera	4_F_SARAH,{
 		case 5:
 			LGS_STEP = 0;
 			LGS_GHKILL = 0;
+			if (checkquest(300100) != -1)
+				erasequest 300100;
 			mes .@n$;
-			mes "Story reset (items not removed).";
+			mes "Story reset, rift cooldown cleared";
+			mes "(items not removed).";
 			close;
 		}
 	}
@@ -201,7 +205,8 @@ prt_castle,125,51,4	script	Archivist Sera	4_F_SARAH,{
 			mes .@n$;
 			mes "The echo keeps coming back.";
 			mes "Clear it again and Corvin will give";
-			mes "you ^0000FF" + .daily_shards + " Legacy Shards^000000, once a day.";
+			mes "you ^0000FF" + .daily_shards + " Legacy Shards^000000 once a day";
+			mes "(resets 04:00, see your quest window).";
 			mes "You can also help your friends.";
 		}
 		next;
@@ -529,9 +534,20 @@ OnInit:
 		mes "^0000FFObjective done.^000000 Talk to";
 		mes "Archivist Sera in Prontera Castle.";
 	} else if (LGS_STEP >= 4) {
-		.@today = atoi(gettimestr("%Y%m%d", 9));
-		if (LGS_DAILY != .@today) {
-			LGS_DAILY = .@today;
+		// cooldown quest 300100 (db/import/quest_db.yml, resets 04:00), shown in the quest window
+		.@cd = checkquest(300100, PLAYTIME);
+		if (.@cd == 2) {
+			erasequest 300100;
+			.@cd = -1;
+		}
+		if (.@cd != -1) {
+			next;
+			mes .@n$;
+			mes "The stone has given you all it";
+			mes "can for today. Your cooldown is in";
+			mes "the quest window (resets 04:00).";
+		} else {
+			setquest 300100;
 			.@shards = getvariableofnpc(.daily_shards, "Archivist Sera");
 			getitem 300025, .@shards;
 			next;
