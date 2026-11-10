@@ -48,3 +48,10 @@
 Header:
   Type: QUEST_DB
   Version: 3
+
+Body:
+  # Legacia story (npc/miracle/legacia_story/hollow_crown_part1.txt):
+  # daily shard reward cooldown for clearing the chapter 2 rift again, resets at 04:00
+  - Id: 300100
+    Title: Legacia - Echo of Glast Heim Cooldown
+    TimeLimit: 4h
