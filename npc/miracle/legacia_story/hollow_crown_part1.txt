@@ -20,7 +20,6 @@
 //=
 //= Sera also upgrades the Legacy Emblem with Legacy Shards.
 //= Story gear is character bound. Shards can't be traded.
-//= Set pieces are given unidentified, so they roll random options.
 //=
 //= Character variables:
 //=   LGS_STEP   0 new, 1 ch1 taken, 2 ch1 done, 3 ch2 boss down,
@@ -272,8 +271,7 @@ S_Chapter2Done:
 	mes "freed me instead.";
 	next;
 	LGS_STEP = 4;
-	// unidentified so it rolls random options (pc_apply_random_option)
-	getitembound2 .manteau, 1, 0, 0, 0, 0, 0, 0, 0, Bound_Char;
+	getitembound .manteau, 1, Bound_Char;
 	getitem .shard, 20;
 	mes .@n$;
 	mes "^0000FFChapter 2 complete!^000000";
