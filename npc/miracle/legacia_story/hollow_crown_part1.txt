@@ -19,7 +19,7 @@
 //=   Reward: 30 Legacy Shards.
 //=
 //= Sera also upgrades the Legacy Emblem and runs the Legacy Shard
-//= Exchange (custom weapons 60001-60058 and Legacia utility
+//= Exchange (classic custom weapons 60001-60021 and Legacia utility
 //= mid/lower headgears 300032-300038).
 //= After chapter 2, clearing the rift again pays .daily_shards once a day.
 //= Emblem is character bound. Shards can't be traded.
@@ -295,19 +295,15 @@ S_Exchange:
 	mes "You have ^0000FF" + countitem(.shard) + " Legacy Shards^000000.";
 	next;
 	.@c = select(
-		"Classic weapons (" + .price[0] + " shards each)",
-		"Dragon weapons (" + .price[1] + " shards each)",
-		"Divine weapons (" + .price[2] + " shards each)",
-		"Legacia mid/lower headgears (" + .price[3] + " shards each)",
+		"Legacia weapons (" + .price[0] + " shards each)",
+		"Legacia mid/lower headgears (" + .price[1] + " shards each)",
 		"Cancel") - 1;
-	if (.@c == 4)
+	if (.@c == 2)
 		return;
-	switch (.@c) {
-	case 0: copyarray .@ids[0], .ex_classic[0], getarraysize(.ex_classic); break;
-	case 1: copyarray .@ids[0], .ex_dragon[0], getarraysize(.ex_dragon); break;
-	case 2: copyarray .@ids[0], .ex_divine[0], getarraysize(.ex_divine); break;
-	case 3: copyarray .@ids[0], .ex_heads[0], getarraysize(.ex_heads); break;
-	}
+	if (.@c == 0)
+		copyarray .@ids[0], .ex_weapons[0], getarraysize(.ex_weapons);
+	else
+		copyarray .@ids[0], .ex_heads[0], getarraysize(.ex_heads);
 	.@price = .price[.@c];
 	.@size = getarraysize(.@ids);
 	.@menu$ = "";
@@ -413,12 +409,10 @@ OnInit:
 	.ch2$ = "Legacia - Knights Without a King";
 	// daily shards for clearing chapter 2 again (after the story step)
 	.daily_shards = 10;
-	// Legacy Shard Exchange: price per item for Classic, Dragon, Divine, headgears
-	setarray .price[0], 100, 150, 250, 150;
-	// custom weapons (db/import/item_db_other.yml), 60007 is a shield
-	for (.@i = 60001; .@i <= 60021; .@i++) .ex_classic[getarraysize(.ex_classic)] = .@i;
-	for (.@i = 60022; .@i <= 60037; .@i++) .ex_dragon[getarraysize(.ex_dragon)] = .@i;
-	for (.@i = 60038; .@i <= 60058; .@i++) .ex_divine[getarraysize(.ex_divine)] = .@i;
+	// Legacy Shard Exchange: price per item for weapons, headgears
+	setarray .price[0], 100, 150;
+	// classic custom weapons (db/import/item_db_other.yml), 60007 is a shield
+	for (.@i = 60001; .@i <= 60021; .@i++) .ex_weapons[getarraysize(.ex_weapons)] = .@i;
 	// Legacia utility mid/lower headgears (db/import/item_db_legacia.yml)
 	setarray .ex_heads[0], 300032, 300033, 300034, 300035, 300036, 300037, 300038;
 	end;
