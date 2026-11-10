@@ -205,7 +205,7 @@ prt_castle,125,51,4	script	Archivist Sera	4_F_SARAH,{
 			mes .@n$;
 			mes "The echo keeps coming back.";
 			mes "Clear it again and Corvin will give";
-			mes "you ^0000FF" + .daily_shards + " Legacy Shards^000000 once a day";
+			mes "you ^0000FF" + .daily_shards[0] + "~" + .daily_shards[1] + " Legacy Shards^000000 once a day";
 			mes "(resets 04:00, see your quest window).";
 			mes "You can also help your friends.";
 		}
@@ -456,12 +456,13 @@ OnInit:
 	.lens = 300026;
 	setarray .emblem[0], 300027, 300028, 300029, 300030, 300031;
 	// shards to go from Lv(index) to Lv(index+1); index 0 unused
-	setarray .emblem_cost[0], 0, 100, 200, 300, 500;
+	setarray .emblem_cost[0], 0, 20, 40, 60, 100;
 	.ch2$ = "Legacia - Knights Without a King";
 	// daily shards for clearing chapter 2 again (after the story step)
-	.daily_shards = 10;
+	// random min,max per daily clear
+	setarray .daily_shards[0], 10, 20;
 	// Legacy Shard Exchange: price per item for weapons, headgears
-	setarray .price[0], 500, 750;
+	setarray .price[0], 50, 150;
 	// classic custom weapons (db/import/item_db_other.yml), 60007 is a shield
 	for (.@i = 60001; .@i <= 60021; .@i++) .ex_weapons[getarraysize(.ex_weapons)] = .@i;
 	// Legacia utility mid/lower headgears (db/import/item_db_legacia.yml)
@@ -548,7 +549,7 @@ OnInit:
 			mes "the quest window (resets 04:00).";
 		} else {
 			setquest 300100;
-			.@shards = getvariableofnpc(.daily_shards, "Archivist Sera");
+			.@shards = rand(getvariableofnpc(.daily_shards[0], "Archivist Sera"), getvariableofnpc(.daily_shards[1], "Archivist Sera"));
 			getitem 300025, .@shards;
 			next;
 			mes .@n$;
