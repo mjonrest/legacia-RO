@@ -187,8 +187,8 @@ Body:
     Script: |
       bonus bAddItemHealRate,25;
   - Id: 300038
-    AegisName: Gemless_Rose
-    Name: Gemless Rose
+    AegisName: Fortune_Rose
+    Name: Fortune Rose
     Type: Armor
     Weight: 100
     Defense: 1
@@ -199,4 +199,4 @@ Body:
     Refineable: false
     View: 56
     Script: |
-      bonus bNoGemStone;
+      bonus2 bDropAddRace,RC_All,10;

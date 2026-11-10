@@ -409,12 +409,12 @@ OnInit:
 	.lens = 300026;
 	setarray .emblem[0], 300027, 300028, 300029, 300030, 300031;
 	// shards to go from Lv(index) to Lv(index+1); index 0 unused
-	setarray .emblem_cost[0], 0, 10, 20, 30, 50;
+	setarray .emblem_cost[0], 0, 100, 200, 300, 500;
 	.ch2$ = "Legacia - Knights Without a King";
 	// daily shards for clearing chapter 2 again (after the story step)
 	.daily_shards = 10;
 	// Legacy Shard Exchange: price per item for weapons, headgears
-	setarray .price[0], 100, 150;
+	setarray .price[0], 500, 750;
 	// classic custom weapons (db/import/item_db_other.yml), 60007 is a shield
 	for (.@i = 60001; .@i <= 60021; .@i++) .ex_weapons[getarraysize(.ex_weapons)] = .@i;
 	// Legacia utility mid/lower headgears (db/import/item_db_legacia.yml)
