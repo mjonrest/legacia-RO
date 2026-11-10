@@ -301,35 +301,66 @@ S_Exchange:
 		"Cancel") - 1;
 	if (.@c == 2)
 		return;
-	if (.@c == 0)
-		copyarray .@ids[0], .ex_weapons[0], getarraysize(.ex_weapons);
-	else
-		copyarray .@ids[0], .ex_heads[0], getarraysize(.ex_heads);
+	// open a preview shop (right-click an item to read it), the pick comes back in OnBuyItem
+	dispbottom "[Legacia] Right-click an item to see its stats. Buy one to choose it, the shard cost comes next.";
+	close2;
+	callshop .shop$[.@c], 1;
+	npcshopattach .shop$[.@c];
+	end;
+
+OnBuyItem:
+	.@n$ = "[Archivist Sera]";
+	.@id = @bought_nameid[0];
+	.@c = -1;
+	for (.@i = 0; .@i < getarraysize(.ex_weapons); .@i++)
+		if (.ex_weapons[.@i] == .@id) .@c = 0;
+	for (.@i = 0; .@i < getarraysize(.ex_heads); .@i++)
+		if (.ex_heads[.@i] == .@id) .@c = 1;
+	if (.@c < 0 || getarraysize(@bought_nameid) != 1) {
+		dispbottom "[Legacia] Pick one item at a time.";
+		end;
+	}
+	if (BaseLevel < .min_lv)
+		end;
 	.@price = .price[.@c];
-	.@size = getarraysize(.@ids);
-	.@menu$ = "";
-	for (.@i = 0; .@i < .@size; .@i++)
-		.@menu$ += getitemname(.@ids[.@i]) + ":";
-	.@s = select(.@menu$ + "Cancel") - 1;
-	if (.@s >= .@size)
-		return;
-	.@id = .@ids[.@s];
+	// headgears can be tried on (look only), like the Quest Shop
+	.@loc = getiteminfo(.@id, ITEMINFO_LOCATIONS);
+	.@view = getiteminfo(.@id, ITEMINFO_VIEW);
+	.@preview = (.@c == 1 && .@view > 0);
+	deltimer strnpcinfo(0) + "::OnPreviewEnd";
+	addtimer 1000, strnpcinfo(0) + "::OnPreviewEnd";
 	mes .@n$;
 	mes "<ITEM>" + getitemname(.@id) + "<INFO>" + .@id + "</INFO></ITEM>";
 	mes "Cost: ^0000FF" + .@price + " Legacy Shards^000000";
 	mes "You have: " + countitem(.shard) + ".";
+	mes "It comes ^FF0000unidentified^000000 with";
+	mes "random options.";
+	while (1) {
+		.@s = select("Exchange (" + .@price + " shards)", (.@preview && !@lgs_prev[4]) ? "Preview on me" : "", "Cancel");
+		if (.@s == 3)
+			close;
+		if (.@s == 2) {
+			setarray @lgs_prev[0], getlook(LOOK_HEAD_BOTTOM), getlook(LOOK_HEAD_TOP), getlook(LOOK_HEAD_MID), getlook(LOOK_ROBE), 1;
+			if (.@loc & EQP_HEAD_LOW)
+				changelook LOOK_HEAD_BOTTOM, .@view;
+			else if (.@loc & EQP_HEAD_MID)
+				changelook LOOK_HEAD_MID, .@view;
+			else if (.@loc & EQP_HEAD_TOP)
+				changelook LOOK_HEAD_TOP, .@view;
+			continue;
+		}
+		break;
+	}
 	next;
-	if (select("Exchange:Cancel") == 2)
-		return;
 	if (countitem(.shard) < .@price) {
 		mes .@n$;
 		mes "You need more Legacy Shards.";
-		return;
+		close;
 	}
 	if (!checkweight(.@id, 1)) {
 		mes .@n$;
 		mes "You can't carry it. Make some room.";
-		return;
+		close;
 	}
 	delitem .shard, .@price;
 	// unidentified: rolls random options (pc_apply_random_option), so repeat exchanges are rerolls
@@ -340,7 +371,18 @@ S_Exchange:
 	mes "^0000FF" + getitemname(.@id) + "^000000 is yours.";
 	mes "Appraise it with a Magnifier to";
 	mes "see what the echo gave it.";
-	return;
+	close;
+
+OnPreviewEnd:
+	// runs once the dialog closes: put the real look back
+	if (@lgs_prev[4]) {
+		changelook LOOK_HEAD_BOTTOM, @lgs_prev[0];
+		changelook LOOK_HEAD_TOP, @lgs_prev[1];
+		changelook LOOK_HEAD_MID, @lgs_prev[2];
+		changelook LOOK_ROBE, @lgs_prev[3];
+	}
+	deletearray @lgs_prev[0], 5;
+	end;
 
 S_Emblem:
 	.@lv = 0;
@@ -419,8 +461,20 @@ OnInit:
 	for (.@i = 60001; .@i <= 60021; .@i++) .ex_weapons[getarraysize(.ex_weapons)] = .@i;
 	// Legacia utility mid/lower headgears (db/import/item_db_legacia.yml)
 	setarray .ex_heads[0], 300032, 300033, 300034, 300035, 300036, 300037, 300038;
+	// preview shops (lgs_shop_w / lgs_shop_h below), price shown as 0
+	setarray .shop$[0], "lgs_shop_w", "lgs_shop_h";
+	npcshopdelitem .shop$[0], 909;
+	npcshopdelitem .shop$[1], 909;
+	for (.@i = 0; .@i < getarraysize(.ex_weapons); .@i++)
+		npcshopadditem .shop$[0], .ex_weapons[.@i], 0;
+	for (.@i = 0; .@i < getarraysize(.ex_heads); .@i++)
+		npcshopadditem .shop$[1], .ex_heads[.@i], 0;
 	end;
 }
+
+// dummy shops filled by Archivist Sera's OnInit
+-	shop	lgs_shop_w	-1,909:-1
+-	shop	lgs_shop_h	-1,909:-1
 
 //------------------------------------------------------------
 // Chapter 2 instance: 1@gl_k (echo of Glast Heim)
