@@ -125,3 +125,12 @@ Body:
 #    Sprite: DARK_LORD
   - Mob: THIEF_BUG_LARVA
     Sprite: MH_BAKONAWA_1
+  # Legacia story echo monsters (db/import/mob_db.yml 3900-3903)
+  - Mob: LGS_ECHO_KNIGHT
+    Sprite: KHALITZBURG
+  - Mob: LGS_ECHO_ARCHER
+    Sprite: RAYDRIC_ARCHER
+  - Mob: LGS_ECHO_ABYSS
+    Sprite: KNIGHT_OF_ABYSS
+  - Mob: LGS_OATHBREAKER
+    Sprite: BLOODY_KNIGHT

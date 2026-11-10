@@ -1,0 +1,542 @@
+//===== Legacia RO Script ====================================
+//= The Hollow Crown - Part 1: Prologue, Chapter 1 and 2
+//===== Description: =========================================
+//= Legacia's own storyline. Base Level 99 only.
+//=
+//= Lore: a thousand years ago the kingdom of Legacia stood where
+//= Prontera is now. King Aldric tried to make it eternal with a
+//= shard of Ymir's Heart and tore it out of time. The Chronicle
+//= Stones that seal it are cracking, and rifts open into
+//= "echoes" of Legacia (the renewal instance maps).
+//=
+//= Chapter 1 - The Stone That Remembers
+//=   Archivist Sera (Prontera). Kill 100 monsters in Glast Heim
+//=   and bring 100 Skel-Bone + 10 Cursed Ruby.
+//=   Reward: Echo Lens, Legacy Emblem Lv1, 10 Legacy Shards.
+//= Chapter 2 - Knights Without a King
+//=   Rift to 1@gl_k (instance "Legacia - Knights Without a King",
+//=   solo or party). 3 waves of echoes, boss Oathbreaker Valen.
+//=   Reward: 30 Legacy Shards.
+//=
+//= Sera also upgrades the Legacy Emblem and runs the Legacy Shard
+//= Exchange (classic custom weapons 60001-60021 and Legacia utility
+//= mid/lower headgears 300032-300038), given unidentified so they
+//= roll random options; exchanging again is a reroll.
+//= After chapter 2, clearing the rift again pays .daily_shards once a day.
+//= Emblem is character bound. Shards can't be traded.
+//=
+//= Character variables:
+//=   LGS_STEP   0 new, 1 ch1 taken, 2 ch1 done, 3 ch2 boss down,
+//=              4 ch2 done (chapter 3 comes in part 2)
+//=   LGS_GHKILL Glast Heim kills for chapter 1
+//=   LGS_DAILY  last day (YYYYMMDD) the chapter 2 daily shards were paid
+//= Items 300025-300034: db/import/item_db_legacia.yml
+//= Monsters 3900-3903: db/import/mob_db.yml + mob_avail.yml
+//= Instance: db/import/instance_db.yml (Id 101)
+//= GM (level >= .gm_level) gets a test menu.
+//============================================================
+
+prontera,155,190,4	script	Archivist Sera	4_F_SARAH,{
+	.@n$ = "[Archivist Sera]";
+
+	if (getgmlevel() >= .gm_level) {
+		mes .@n$;
+		mes "GM tools. My step: " + LGS_STEP + ", GH kills: " + LGS_GHKILL + ".";
+		next;
+		switch (select("Normal menu:Set my story step:Fill chapter 1 kills:Give 50 Legacy Shards:Reset my story")) {
+		case 2:
+			mes .@n$;
+			mes "0 new, 1 ch1 taken, 2 ch1 done,";
+			mes "3 ch2 boss down, 4 ch2 done.";
+			input .@s, 0, 4;
+			LGS_STEP = .@s;
+			mes "Step is now " + LGS_STEP + ".";
+			close;
+		case 3:
+			LGS_GHKILL = .ghkills;
+			mes .@n$;
+			mes "Kills set to " + .ghkills + ".";
+			close;
+		case 4:
+			getitem .shard, 50;
+			close;
+		case 5:
+			LGS_STEP = 0;
+			LGS_GHKILL = 0;
+			mes .@n$;
+			mes "Story reset (items not removed).";
+			close;
+		}
+	}
+
+	mes .@n$;
+	if (BaseLevel < .min_lv) {
+		mes "Oh, an adventurer... Forgive me,";
+		mes "I'm buried in these old records.";
+		mes "What I'm chasing is dangerous.";
+		mes "Come back when you reach";
+		mes "^0000FFBase Level " + .min_lv + "^000000.";
+		close;
+	}
+
+	switch (LGS_STEP) {
+	case 0:
+		mes "Have you ever heard the name";
+		mes "^8A2BE2Legacia^000000?";
+		mes "No? Nobody has. That's the point.";
+		next;
+		mes .@n$;
+		mes "A thousand years ago a kingdom stood";
+		mes "right where Prontera stands now.";
+		mes "Every book about it is gone.";
+		mes "Every statue, every grave. Gone.";
+		next;
+		mes .@n$;
+		mes "But this stone remembers.";
+		mes "I found it under the old cathedral.";
+		mes "Lately it ^FF0000whispers^000000 at night...";
+		mes "and the ground near Glast Heim";
+		mes "has started to tremble.";
+		next;
+		mes .@n$;
+		mes "I think the dead of Glast Heim";
+		mes "feel it too. Will you help me?";
+		next;
+		if (select("I'll help you.:Not now.") == 2) {
+			mes .@n$;
+			mes "I understand. I'll be here,";
+			mes "listening to the stone.";
+			close;
+		}
+		LGS_STEP = 1;
+		LGS_GHKILL = 0;
+		mes .@n$;
+		mes "Thank you! Here is what I need:";
+		mes "- Defeat ^0000FF" + .ghkills + "^000000 monsters in any";
+		mes "  ^0000FFGlast Heim^000000 map.";
+		mes "- Bring ^0000FF100 Skel-Bone^000000 and";
+		mes "  ^0000FF10 Cursed Ruby^000000.";
+		mes "The bones and rubies of the old";
+		mes "knights still hold their memories.";
+		close;
+
+	case 1:
+		mes "How is the hunt going?";
+		mes "Glast Heim kills: ^0000FF" + LGS_GHKILL + "/" + .ghkills + "^000000";
+		mes "Skel-Bone: ^0000FF" + countitem(932) + "/100^000000";
+		mes "Cursed Ruby: ^0000FF" + countitem(724) + "/10^000000";
+		if (LGS_GHKILL < .ghkills || countitem(932) < 100 || countitem(724) < 10)
+			close;
+		next;
+		mes .@n$;
+		mes "You have everything! Quickly,";
+		mes "place them around the stone...";
+		next;
+		delitem 932, 100;
+		delitem 724, 10;
+		LGS_STEP = 2;
+		specialeffect2 EF_BEGINSPELL6;
+		mes "^8A2BE2[Chronicle Stone]^000000";
+		mes "...Legacia... remembers...";
+		mes "...the knights... still keep";
+		mes "their oath... in the echo...";
+		mes "...the Crown... is hollow...";
+		next;
+		mes .@n$;
+		mes "It spoke! It really spoke!";
+		mes "And look, a piece of it broke off";
+		mes "and turned into a ^0000FFlens^000000.";
+		mes "Through it you can see the rifts.";
+		next;
+		mes .@n$;
+		mes "Take this too. It's the emblem";
+		mes "of Legacia's royal guard. It was";
+		mes "inside the stone all along.";
+		mes "Shards of the stone can make it";
+		mes "stronger. Bring them to me.";
+		getitembound .lens, 1, Bound_Char;
+		getitembound .emblem[0], 1, Bound_Char;
+		getitem .shard, 10;
+		next;
+		mes .@n$;
+		mes "^0000FFChapter 1 complete!^000000";
+		mes "When you're ready, I'll open";
+		mes "the rift the stone showed us.";
+		close;
+
+	case 2:
+	case 3:
+	case 4:
+		break;
+	}
+
+	// Chapter 2 and later
+	if (LGS_STEP == 3) {
+		callsub S_Chapter2Done;
+		close;
+	}
+	mes "The Chronicle Stone hums softly.";
+	mes "What can I do for you?";
+	next;
+	switch (select("Open the rift to the echo:Legacy Shard Exchange:Legacy Emblem upgrade:About Legacia:Leave")) {
+	case 1:
+		if (!countitem(.lens)) {
+			mes .@n$;
+			mes "You need your ^0000FFEcho Lens^000000";
+			mes "to see the rift.";
+			close;
+		}
+		if (LGS_STEP == 2) {
+			mes .@n$;
+			mes "The stone keeps showing a castle";
+			mes "full of knights who kneel to nobody.";
+			mes "An ^8A2BE2echo of Glast Heim^000000 as it was";
+			mes "when it served Legacia.";
+			next;
+			mes .@n$;
+			mes "Find out who they guard.";
+			mes "You can go alone or with your party";
+			mes "(the party leader opens it).";
+		} else {
+			mes .@n$;
+			mes "The echo keeps coming back.";
+			mes "Clear it again and Corvin will give";
+			mes "you ^0000FF" + .daily_shards + " Legacy Shards^000000, once a day.";
+			mes "You can also help your friends.";
+		}
+		next;
+		if (select("Enter the rift:Not yet") == 2)
+			close;
+		.@mode = getcharid(1) ? IM_PARTY : IM_CHAR;
+		.@iid = instance_id(.@mode);
+		if (.@iid <= 0) {
+			if (.@mode == IM_PARTY && getcharid(0) != getpartyleader(getcharid(1), 2)) {
+				mes .@n$;
+				mes "Your party leader has to open";
+				mes "the rift first.";
+				close;
+			}
+			.@iid = instance_create(.ch2$, .@mode);
+			if (.@iid < 0) {
+				mes .@n$;
+				if (.@iid == -3)
+					mes "Your party is already inside another instance. Finish or destroy it first.";
+				else
+					mes "The rift won't open right now (error " + .@iid + "). Please try again.";
+				close;
+			}
+		}
+		.@r = instance_enter(.ch2$);
+		if (.@r == IE_OK)
+			end;
+		mes .@n$;
+		if (.@r == IE_OTHER)
+			mes "Your party is inside a different instance.";
+		else
+			mes "The rift isn't open for you. Ask the party leader to open it.";
+		close;
+
+	case 2:
+		callsub S_Exchange;
+		close;
+
+	case 3:
+		callsub S_Emblem;
+		close;
+
+	case 4:
+		mes .@n$;
+		mes "King ^8A2BE2Aldric the Unending^000000 wanted";
+		mes "Legacia to live forever. He bound it";
+		mes "to a shard of Ymir's Heart.";
+		mes "The ritual tore the kingdom out of";
+		mes "time. Now he is only a crown with";
+		mes "no kingdom. ^FF0000The Hollow King^000000.";
+		next;
+		mes .@n$;
+		mes "The Chronicle Stones keep Legacia";
+		mes "sealed. If they break, it comes";
+		mes "back over Midgard... and Midgard";
+		mes "is erased in its place.";
+		if (LGS_STEP >= 4) {
+			next;
+			mes .@n$;
+			mes "Ser Corvin's oath is free now.";
+			mes "The stone is quiet... for now.";
+			mes "^0000FFThe next chapter is coming soon.^000000";
+		}
+		close;
+	}
+	close;
+
+S_Chapter2Done:
+	mes "You're back! And that light around";
+	mes "you... is that a knight's oath?";
+	next;
+	mes "^8A2BE2[Echo of Ser Corvin]^000000";
+	mes "Archivist. I swore to guard my King.";
+	mes "I did not know what he would become.";
+	mes "Take what is left of my oath.";
+	mes "Let it serve the one who freed me.";
+	next;
+	LGS_STEP = 4;
+	getitem .shard, 30;
+	mes .@n$;
+	mes "^0000FFChapter 2 complete!^000000";
+	mes "Corvin's echo faded into the stone.";
+	mes "He's waiting for us further in.";
+	mes "^0000FFThe next chapter is coming soon.^000000";
+	return;
+
+S_Exchange:
+	mes .@n$;
+	mes "Shards of the stone remember the";
+	mes "arms of Legacia. I can call them";
+	mes "back for you.";
+	mes "You have ^0000FF" + countitem(.shard) + " Legacy Shards^000000.";
+	next;
+	.@c = select(
+		"Legacia weapons (" + .price[0] + " shards each)",
+		"Legacia mid/lower headgears (" + .price[1] + " shards each)",
+		"Cancel") - 1;
+	if (.@c == 2)
+		return;
+	if (.@c == 0)
+		copyarray .@ids[0], .ex_weapons[0], getarraysize(.ex_weapons);
+	else
+		copyarray .@ids[0], .ex_heads[0], getarraysize(.ex_heads);
+	.@price = .price[.@c];
+	.@size = getarraysize(.@ids);
+	.@menu$ = "";
+	for (.@i = 0; .@i < .@size; .@i++)
+		.@menu$ += getitemname(.@ids[.@i]) + ":";
+	.@s = select(.@menu$ + "Cancel") - 1;
+	if (.@s >= .@size)
+		return;
+	.@id = .@ids[.@s];
+	mes .@n$;
+	mes "<ITEM>" + getitemname(.@id) + "<INFO>" + .@id + "</INFO></ITEM>";
+	mes "Cost: ^0000FF" + .@price + " Legacy Shards^000000";
+	mes "You have: " + countitem(.shard) + ".";
+	next;
+	if (select("Exchange:Cancel") == 2)
+		return;
+	if (countitem(.shard) < .@price) {
+		mes .@n$;
+		mes "You need more Legacy Shards.";
+		return;
+	}
+	if (!checkweight(.@id, 1)) {
+		mes .@n$;
+		mes "You can't carry it. Make some room.";
+		return;
+	}
+	delitem .shard, .@price;
+	// unidentified: rolls random options (pc_apply_random_option), so repeat exchanges are rerolls
+	getitem2 .@id, 1, 0, 0, 0, 0, 0, 0, 0;
+	specialeffect2 EF_REFINEOK;
+	mes .@n$;
+	mes "The shards glow and take shape...";
+	mes "^0000FF" + getitemname(.@id) + "^000000 is yours.";
+	mes "Appraise it with a Magnifier to";
+	mes "see what the echo gave it.";
+	return;
+
+S_Emblem:
+	.@lv = 0;
+	for (.@i = 0; .@i < 5; .@i++) {
+		if (countitem(.emblem[.@i]))
+			.@lv = .@i + 1;
+	}
+	mes .@n$;
+	if (!.@lv) {
+		mes "You don't have a Legacy Emblem";
+		mes "with you. Bring it in your";
+		mes "inventory (take it off first).";
+		return;
+	}
+	if (.@lv >= 5) {
+		mes "Your emblem is at its full power,";
+		mes "^0000FFLv5^000000. Nothing more I can do.";
+		return;
+	}
+	.@cost = .emblem_cost[.@lv];
+	mes "Legacy Emblem ^0000FFLv" + .@lv + "^000000 -> ^0000FFLv" + (.@lv + 1) + "^000000";
+	mes "Cost: ^0000FF" + .@cost + " Legacy Shards^000000";
+	mes "You have: " + countitem(.shard) + ".";
+	if (isequipped(.emblem[.@lv - 1]))
+		mes "^FF0000Take the emblem off first.^000000";
+	next;
+	if (select("Upgrade:Cancel") == 2)
+		return;
+	if (isequipped(.emblem[.@lv - 1])) {
+		mes .@n$;
+		mes "Please take the emblem off first.";
+		return;
+	}
+	if (countitem(.shard) < .@cost) {
+		mes .@n$;
+		mes "You need more Legacy Shards.";
+		return;
+	}
+	delitem .shard, .@cost;
+	delitem .emblem[.@lv - 1], 1;
+	getitembound .emblem[.@lv], 1, Bound_Char;
+	specialeffect2 EF_REFINEOK;
+	mes .@n$;
+	mes "The emblem glows. It's now";
+	mes "^0000FFLv" + (.@lv + 1) + "^000000!";
+	return;
+
+OnNPCKillEvent:
+	if (LGS_STEP != 1 || LGS_GHKILL >= .ghkills)
+		end;
+	.@map$ = strcharinfo(3);
+	if (left(.@map$, 3) != "gl_" && .@map$ != "glast_01")
+		end;
+	LGS_GHKILL++;
+	if (LGS_GHKILL >= .ghkills)
+		dispbottom "[Legacia] Glast Heim kills done (" + .ghkills + "/" + .ghkills + "). Return to Archivist Sera.";
+	else if (LGS_GHKILL % 10 == 0)
+		dispbottom "[Legacia] Glast Heim kills: " + LGS_GHKILL + "/" + .ghkills;
+	end;
+
+OnInit:
+	.gm_level = 99;
+	.min_lv = 99;
+	.ghkills = 100;
+	.shard = 300025;
+	.lens = 300026;
+	setarray .emblem[0], 300027, 300028, 300029, 300030, 300031;
+	// shards to go from Lv(index) to Lv(index+1); index 0 unused
+	setarray .emblem_cost[0], 0, 100, 200, 300, 500;
+	.ch2$ = "Legacia - Knights Without a King";
+	// daily shards for clearing chapter 2 again (after the story step)
+	.daily_shards = 10;
+	// Legacy Shard Exchange: price per item for weapons, headgears
+	setarray .price[0], 500, 750;
+	// classic custom weapons (db/import/item_db_other.yml), 60007 is a shield
+	for (.@i = 60001; .@i <= 60021; .@i++) .ex_weapons[getarraysize(.ex_weapons)] = .@i;
+	// Legacia utility mid/lower headgears (db/import/item_db_legacia.yml)
+	setarray .ex_heads[0], 300032, 300033, 300034, 300035, 300036, 300037, 300038;
+	end;
+}
+
+//------------------------------------------------------------
+// Chapter 2 instance: 1@gl_k (echo of Glast Heim)
+//------------------------------------------------------------
+1@gl_k,149,41,4	script	Ser Corvin#lgs2	4_WHITEKNIGHT,{
+	.@n$ = "[Ser Corvin]";
+	if ('lgs_wave == 0) {
+		mes .@n$;
+		mes "You... can see me? Then the stone";
+		mes "has sent someone at last.";
+		mes "I am Corvin, knight of Legacia.";
+		next;
+		mes .@n$;
+		mes "My brothers still guard these halls";
+		mes "for a king who is no longer a king.";
+		mes "Their captain, ^FF0000Valen^000000, broke his";
+		mes "oath to serve the Hollow Crown.";
+		next;
+		mes .@n$;
+		mes "Put my brothers to rest.";
+		mes "Then face Valen. I will guide you.";
+		next;
+		if (select("We're ready.:Wait a moment.") == 2)
+			close;
+		if ('lgs_wave != 0)
+			close;
+		'lgs_wave = 1;
+		donpcevent instance_npcname("Ser Corvin#lgs2") + "::OnWave";
+		close;
+	}
+	if ('lgs_wave < 9) {
+		mes .@n$;
+		mes "Fight on! The echoes are coming";
+		mes "down the great hall. (Wave " + 'lgs_wave + "/3)";
+		close;
+	}
+	mes .@n$;
+	mes "It is done. Valen is at peace, and";
+	mes "so is my oath. Take it back to the";
+	mes "Archivist. She will know what to do.";
+	// only players who were inside when Valen fell get credit
+	if (!compare('lgs_ok$, "|" + getcharid(3) + "|")) {
+		next;
+		mes .@n$;
+		mes "You came after the battle, friend.";
+		mes "Only those who fought Valen";
+		mes "may carry the oath.";
+	} else if (LGS_STEP == 2) {
+		LGS_STEP = 3;
+		next;
+		mes .@n$;
+		mes "^0000FFObjective done.^000000 Talk to";
+		mes "Archivist Sera in Prontera.";
+	} else if (LGS_STEP >= 4) {
+		.@today = atoi(gettimestr("%Y%m%d", 9));
+		if (LGS_DAILY != .@today) {
+			LGS_DAILY = .@today;
+			.@shards = getvariableofnpc(.daily_shards, "Archivist Sera");
+			getitem 300025, .@shards;
+			next;
+			mes .@n$;
+			mes "Take these shards of the stone.";
+			mes "(^0000FF" + .@shards + " Legacy Shards^000000, daily clear)";
+		}
+	}
+	next;
+	if (select("Return to Prontera:Stay a while") == 1)
+		warp "prontera", 156, 183;
+	close;
+
+OnWave:
+	.@map$ = instance_mapname("1@gl_k");
+	.@lbl$ = instance_npcname("Ser Corvin#lgs2") + "::OnWaveDead";
+	switch ('lgs_wave) {
+	case 1:
+		instance_announce 0, "Ser Corvin: Here they come! Wave 1 of 3.", bc_map, 0xFFCC66;
+		areamonster .@map$, 140, 55, 159, 104, "Echo Knight", 3900, 10, .@lbl$;
+		areamonster .@map$, 140, 55, 159, 104, "Echo Archer", 3901, 6, .@lbl$;
+		break;
+	case 2:
+		instance_announce 0, "Ser Corvin: The old guard rises. Wave 2 of 3.", bc_map, 0xFFCC66;
+		areamonster .@map$, 140, 55, 159, 104, "Echo Knight", 3900, 8, .@lbl$;
+		areamonster .@map$, 140, 55, 159, 104, "Echo Archer", 3901, 4, .@lbl$;
+		areamonster .@map$, 140, 55, 159, 104, "Echo of the Abyss", 3902, 4, .@lbl$;
+		break;
+	case 3:
+		instance_announce 0, "Oathbreaker Valen: You kneel before the Hollow Crown, or you fall!", bc_map, 0xFF6666;
+		monster .@map$, 150, 100, "Oathbreaker Valen", 3903, 1, instance_npcname("Ser Corvin#lgs2") + "::OnBossDead";
+		areamonster .@map$, 140, 85, 159, 104, "Echo of the Abyss", 3902, 4, .@lbl$;
+		break;
+	}
+	end;
+
+OnWaveDead:
+	if ('lgs_wave >= 3)
+		end;
+	if (mobcount(instance_mapname("1@gl_k"), instance_npcname("Ser Corvin#lgs2") + "::OnWaveDead") > 0)
+		end;
+	'lgs_wave++;
+	donpcevent instance_npcname("Ser Corvin#lgs2") + "::OnWave";
+	end;
+
+OnBossDead:
+	'lgs_wave = 9;
+	.@c = getmapunits(BL_PC, instance_mapname("1@gl_k"), .@ids);
+	'lgs_ok$ = "|";
+	for (.@i = 0; .@i < .@c; .@i++)
+		'lgs_ok$ += .@ids[.@i] + "|";
+	killmonster instance_mapname("1@gl_k"), instance_npcname("Ser Corvin#lgs2") + "::OnWaveDead";
+	instance_announce 0, "Ser Corvin: Valen has fallen. Come to me, friends.", bc_map, 0xFFCC66;
+	end;
+}
+
+1@gl_k	mapflag	nomemo
+1@gl_k	mapflag	noteleport
+1@gl_k	mapflag	nosave	SavePoint
+1@gl_k	mapflag	nobranch
+1@gl_k	mapflag	monster_noteleport
+1@gl_k	mapflag	nowarpto
