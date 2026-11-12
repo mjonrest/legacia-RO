@@ -27235,6 +27235,10 @@ Body:
       autobonus "{ bonus bAspdRate,7; }",10+(getrefine()*2),7000,BF_WEAPON,"{ specialeffect2 EF_HASTEUP; }";
       bonus2 bAddSkillBlow,"AC_CHARGEARROW",3;
       callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60002
     AegisName: Bow_Of_Betrayer
     Name: Bow Of Betrayer
@@ -27257,6 +27261,10 @@ Body:
       // Copies Frozen Bow
       bonus2 bAddEff,Eff_Freeze,1000;
       callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60003
     AegisName: Blazeguard
     Name: Blazeguard
@@ -27291,6 +27299,10 @@ Body:
          bonus2 bSkillAtk,"MC_MAMMONITE",15;
       }
       callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60004
     AegisName: Vengeful_Gladiator
     Name: Vengel Gladiator
@@ -27315,6 +27327,10 @@ Body:
       bonus bStr,2;
       bonus bDef,1;
       callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60005
     AegisName: Blinkstrike
     Name: Blinkstrike
@@ -27339,6 +27355,10 @@ Body:
       bonus bAspdRate,2;
       bonus bAtkEle,Ele_Dark;
       callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60006
     AegisName: White_Rabbit_Sword
     Name: White Rabbit Sword
@@ -27363,6 +27383,10 @@ Body:
       bonus bDex,-1;
       bonus bAtkEle,Ele_Holy;
       callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60007
     AegisName: Black_Rabbit_Shield
     Name: Black Rabbit Shield
@@ -27402,6 +27426,10 @@ Body:
       bonus2 bSubRace,RC_Demon,15;
       bonus2 bSubRace,RC_Undead,15;
       callfunc "F_LegaciaWeapon",1;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60009
     AegisName: Highness_Staff
     Name: Highness Staff
@@ -27427,6 +27455,10 @@ Body:
       bonus bMaxHP,300+(50*.@r/2);
       autobonus "{ bonus bMatkRate,12; bonus buseSPRate,20; }",1,5000,BF_MAGIC,"{ specialeffect2 EF_ENHANCE; }";
       callfunc "F_LegaciaWeapon",1;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60010
     AegisName: Dorcus
     Name: Dorcus
@@ -27448,6 +27480,10 @@ Body:
       bonus bInt,2;
       bonus2 bSkillAtk,"MO_FINGEROFFENSIVE",25;
       callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60011
     AegisName: Cat_Paw
     Name: Cat Paw
@@ -27474,6 +27510,10 @@ Body:
          bonus3 bAutoSpell,"AS_SONICBLOW",1,5;
       }
       callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60012
     AegisName: Vash_Revolver
     Name: Vash Revolver
@@ -27495,6 +27535,10 @@ Body:
       bonus bHit,readparam(bAgi)/10;
       bonus bAspdRate,readparam(bAgi)/14;
       callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60013
     AegisName: Devil_Guitar
     Name: Devil Guitar
@@ -27517,6 +27561,10 @@ Body:
       bonus2 bSkillAtk,"CG_ARROWVULCAN",10;
       bonus2 bSkillAtk,"BA_MUSICALSTRIKE",10;
       callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60014
     AegisName: Gentleman_Staff
     Name: Gentleman Staff
@@ -27539,6 +27587,10 @@ Body:
       bonus bDex,2;
       bonus bMatkRate,15;
       callfunc "F_LegaciaWeapon",1;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60015
     AegisName: Chaos_Sword
     Name: Chaos Sword
@@ -27560,6 +27612,10 @@ Body:
       bonus bAspdRate,10;
       bonus2 bAddEff,Eff_Curse,300;
       callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60016
     AegisName: Black_Halberd
     Name: Black Halberd
@@ -27582,6 +27638,10 @@ Body:
       bonus bMaxHP,800;
       bonus bMaxSP,-50;
       callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60017
     AegisName: Book_Of_Battle
     Name: Book Of Battle
@@ -27608,6 +27668,10 @@ Body:
       if (readparam(bInt)>=70)
          bonus bMatkRate,5;
       callfunc "F_LegaciaWeapon",1;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60018
     AegisName: Chemical_Sword
     Name: Chemical Sword
@@ -27631,6 +27695,10 @@ Body:
       bonus bMaxSP,50;
       bonus bHealPower,10;
       callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60019
     AegisName: Siren_Whip
     Name: Siren Whip
@@ -27653,6 +27721,10 @@ Body:
       bonus2 bSkillAtk,"CG_ARROWVULCAN",10;
       bonus2 bSkillAtk,"DC_THROWARROW",10;
       callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60020
     AegisName: Black_Devil_Spear
     Name: Black Devil Spear
@@ -27676,6 +27748,10 @@ Body:
       skill "TF_DETOXIFY",1;
       bonus bUnbreakableWeapon;
       callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
   - Id: 60021
     AegisName: Senbon
     Name: Senbon
@@ -27697,6 +27773,10 @@ Body:
       bonus bInt,5;
       bonus bMatkRate,10;
       callfunc "F_LegaciaWeapon",1;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
 
 #//Red Dragon Weapon Set
   - Id: 60022
