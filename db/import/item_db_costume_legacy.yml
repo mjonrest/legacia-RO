@@ -3279,7 +3279,7 @@ Body:
       Baby: true
       All_Upper: true
     Locations:
-      Head_Low: true 
+      Costume_Head_Low: true 
     ArmorLevel: 1
     View: 6680
   - Id: 50477
@@ -3321,7 +3321,7 @@ Body:
       Baby: true
       All_Upper: true
     Locations:
-      Head_Low: true 
+      Costume_Head_Low: true 
     ArmorLevel: 1
     View: 6683
   - Id: 50496
@@ -3391,7 +3391,7 @@ Body:
       Baby: true
       All_Upper: true
     Locations:
-      Head_Low: true 
+      Costume_Head_Low: true 
     ArmorLevel: 1
     View: 6717
   - Id: 50517
