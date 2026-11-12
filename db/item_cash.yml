@@ -38,11 +38,11 @@ Body:
   - Tab: Consumables
     Items:
       - Item: Autohunt_Time_1H
-        Price: 17
+        Price: 10
       - Item: Autohunt_Time_5H
-        Price: 85
+        Price: 35
       - Item: Autohunt_Time_24H
-        Price: 408
+        Price: 150
 
 Footer:
   Imports:
