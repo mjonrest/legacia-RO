@@ -269,8 +269,8 @@ const float GROUND_BRIGHTNESS = 165, GROUND_GLOW = 150;
 void draw_ground(const V3& foot, void* tex, float t) {
 	bool blended = g_alphaTex.count(tex) != 0;
 	// about 4.5 cells across at its widest, as in the Gepard recording, and it
-	// slowly breathes: 65% -> 100% -> 65% every 3 s
-	const float R = 46 * g_scale * (0.825f + 0.175f * sinf(2 * PI * t / 3.0f));
+	// slowly breathes: 82% -> 100% -> 82% every 3 s (a small change, user 2026-11-13)
+	const float R = 46 * g_scale * (0.91f + 0.09f * sinf(2 * PI * t / 3.0f));
 	float th = 2 * PI * fmodf(t / 6.0f, 1.0f), c = cosf(th), s = sinf(th);
 	// corners in order around the square, with their texture corners
 	const float cx[4] = {-1, 1, 1, -1}, cz[4] = {-1, -1, 1, 1};
@@ -343,7 +343,7 @@ void draw_rings(const V3& foot, void* tex, float t) {
 		V3 d = {cosf(dir), 0, sinf(dir)};
 		V3 e1 = {-d.z, 0, d.x};
 		V3 e2 = {cosf(TILT) * d.x, sinf(TILT), cosf(TILT) * d.z};
-		float alpha = 240 * fade;
+		float alpha = 150 * fade; // dimmer: 240 read too bright/white (user 2026-11-13)
 		float spin = fmodf(t / 2.6f + pi * 0.31f, 1.0f) * (pi == 1 ? -1.0f : 1.0f);
 		auto at = [&](float rr, float ang) {
 			if (rr < 0.5f * g_scale)
@@ -381,7 +381,7 @@ void draw_sparkles(const V3& foot, uint32_t aid, void* tex, float t) {
 		float u = phase / LIFE;
 		uint32_t s = hash(seed ^ (uint32_t)(int)cyc);
 		float a = rnd(s, 0, 2 * PI), dist = 80 * g_scale * rnd(s, 0.75f, 1.15f);
-		float rise = 14 * g_scale * rnd(s, 0, 1), size = 4.5f * g_scale * rnd(s, 0.8f, 1.1f);
+		float rise = 14 * g_scale * rnd(s, 0, 1), size = 6.0f * g_scale * rnd(s, 0.8f, 1.1f);
 		float alpha = 255 * fminf(1, u / 0.12f) * (1 - fmaxf(0, (u - 0.7f) / 0.3f));
 		V3 c = {foot.x + dist * u * cosf(a), foot.y - rise * u, foot.z + dist * u * sinf(a)};
 		TLV m;
