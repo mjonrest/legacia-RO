@@ -377,30 +377,36 @@ bool ring_is_pillar(int num) {
 	return false;
 }
 
-// a flame bloom: two layers that start at a ring round the feet and open outward
-// like a flower / fire (a flared cup, not a straight pillar), the top edge
-// waving in petal tongues; the layers turn slowly in opposite directions and
-// the flames gently rise and settle. Texture bottom at the feet.
+// a flame bloom, matched to the owner's video (2026-11-13): a ring of flame
+// round the feet about 2 cells across that bulges out to about 3 cells like a
+// bowl and rises to about head height. Each of the two layers burns on two
+// arcs (not the whole way round) that circle the player, the layers turning
+// opposite ways, so the flames move from side to side round the body. The
+// whole bloom slowly breathes smaller and bigger, like the ground circle.
+// Texture bottom at the feet.
 void draw_pillar(const V3& foot, void* tex, float t) {
-	const int SEGS = 30, REP = 3, ROWS = 4; // texture runs three times round
-	// matched to the owner's screenshot: a ring of flame round the feet about
-	// 2 cells across that bulges out to about 3 cells at the waist like a bowl,
-	// fading out at about two thirds of the character's height
-	const float R0 = 19 * g_scale, R1 = 33 * g_scale, H = 40 * g_scale;
+	const int SEGS = 36, REP = 3, ROWS = 4; // texture runs three times round
+	const float R0 = 19 * g_scale, R1 = 33 * g_scale, H = 58 * g_scale;
+	float grow = 0.88f + 0.12f * sinf(2 * PI * t / 3.0f); // breathes like the ground circle
 	for (int layer = 0; layer < 2; layer++) {
 		float open = layer ? 1.1f : 0.95f;   // outer layer opens wider and lower
-		float hh = H * (layer ? 0.8f : 1.0f) * (0.9f + 0.1f * sinf(2 * PI * t / 2.2f + layer * 1.7f));
-		float turn = 2 * PI * fmodf(t / (layer ? 9.0f : 6.0f), 1.0f) * (layer ? -1.0f : 1.0f);
-		uint32_t col = grey(layer ? 70.0f : 110.0f);
+		float hh = H * grow * (layer ? 0.8f : 1.0f) * (0.92f + 0.08f * sinf(2 * PI * t / 1.3f + layer * 1.7f));
+		float turn = 2 * PI * fmodf(t / (layer ? 4.5f : 3.5f), 1.0f) * (layer ? -1.0f : 1.0f) + layer * PI / 2;
+		float bright = layer ? 80.0f : 120.0f;
 		auto at = [&](float ang, float f) {
-			// petal tongues: 5 round the cup, swaying with time
 			float tongue = 1 + 0.08f * sinf(5 * ang + 2 * PI * t / 1.7f + layer * 2.0f);
 			float h = hh * f * (0.75f + 0.25f * tongue);
-			float r = R0 + (R1 * open - R0) * sqrtf(f) * tongue; // bulges out quickly, then rises (bowl / tulip)
+			float r = grow * (R0 + (R1 * open - R0) * sqrtf(f) * tongue); // bulges out quickly, then rises
 			return V3{foot.x + r * cosf(ang), foot.y - h, foot.z + r * sinf(ang)}; // up is -y
 		};
 		for (int s = 0; s < SEGS; s++) {
-			float a0 = turn + 2 * PI * s / SEGS, a1 = a0 + 2 * PI / SEGS;
+			float a0 = 2 * PI * s / SEGS, a1 = a0 + 2 * PI / SEGS;
+			// two burning arcs that circle the player, fading at their ends
+			float m = 0.35f + 0.9f * cosf(2 * ((a0 + a1) / 2 - turn));
+			m = m < 0 ? 0 : m > 1 ? 1 : m;
+			if (m < 0.02f)
+				continue;
+			uint32_t col = grey(bright * m);
 			int k = s % (SEGS / REP);
 			float u0 = (float)k / (SEGS / REP), u1 = (float)(k + 1) / (SEGS / REP);
 			for (int row = 0; row < ROWS; row++) {
