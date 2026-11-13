@@ -324,10 +324,10 @@ void draw_ground(const V3& foot, void* tex, float t) {
 void draw_rings(const V3& foot, void* tex, float t) {
 	const float CYCLE = 4.0f;            // one turn round the player
 	const int PETALS = 3, SEGS = 32;
-	const float R = 28 * g_scale;        // petal ring radius at full size (7 units): the flower is as wide as the ground circle
+	const float R = 21 * g_scale;        // petal ring radius: the flower is no wider than the ground circle (owner 2026-11-13)
 	const float BAND = 6 * g_scale;      // thin lines (the texture fades at its edges)
 	const float LIFT = 22 * g_scale;     // centre at the waist
-	const float OFF0 = 36 * g_scale, OFF1 = 12 * g_scale; // petal centres 3 units off the player
+	const float OFF0 = 36 * g_scale, OFF1 = 9 * g_scale; // petal centres a little off the player
 	const float TILT = 30 * PI / 180;
 	// the flower stays and keeps turning round the player (one turn per CYCLE)
 	const float fade = 1, ease = 1;
@@ -343,7 +343,7 @@ void draw_rings(const V3& foot, void* tex, float t) {
 		V3 d = {cosf(dir), 0, sinf(dir)};
 		V3 e1 = {-d.z, 0, d.x};
 		V3 e2 = {cosf(TILT) * d.x, sinf(TILT), cosf(TILT) * d.z};
-		float alpha = 150 * fade; // dimmer: 240 read too bright/white (user 2026-11-13)
+		float alpha = 100 * fade; // dim like the ground circle: 240/150 read too bright/white (owner 2026-11-13)
 		float spin = fmodf(t / 2.6f + pi * 0.31f, 1.0f) * (pi == 1 ? -1.0f : 1.0f);
 		auto at = [&](float rr, float ang) {
 			if (rr < 0.5f * g_scale)
@@ -359,6 +359,42 @@ void draw_rings(const V3& foot, void* tex, float t) {
 			float a0 = 2 * PI * ((float)s / SEGS + spin), a1 = a0 + 2 * PI / SEGS;
 			float u0 = (float)s / SEGS, u1 = (float)(s + 1) / SEGS;
 			V3 p[4] = {at(r + BAND, a0), at(r + BAND, a1), at(r - BAND, a0), at(r - BAND, a1)};
+			float uv[8] = {u0, 0, u1, 0, u0, 1, u1, 1};
+			quad(p, uv, col, tex);
+		}
+	}
+}
+
+// Ring textures that are flame / spike strips (bright at the bottom, fading
+// up). Like a skill effect, these rise round the body as a glowing pillar
+// instead of the flower rings (owner 2026-11-13, see draw_pillar).
+bool ring_is_pillar(int num) {
+	static const unsigned char list[] = {1, 5, 9, 11, 14, 15, 16, 18, 19, 22, 23, 24, 25, 29, 30, 34, 35, 39, 43, 47,
+		54, 59, 64, 68, 69, 70, 71, 72, 76, 78, 81, 82, 86, 96, 97, 98, 100, 103, 107, 113};
+	for (unsigned char n : list)
+		if (n == num)
+			return true;
+	return false;
+}
+
+// a flame pillar: two thin cylinders round the body, texture bottom at the
+// feet, turning slowly in opposite directions, the flames gently rising and
+// settling. Inside the ground circle.
+void draw_pillar(const V3& foot, void* tex, float t) {
+	const int SEGS = 24, REP = 2;          // texture runs twice round
+	const float R = 15 * g_scale, H = 34 * g_scale;
+	for (int layer = 0; layer < 2; layer++) {
+		float r = R * (layer ? 1.25f : 1.0f);
+		float h = H * (layer ? 0.8f : 1.0f) * (0.9f + 0.1f * sinf(2 * PI * t / 2.2f + layer * 1.7f));
+		float turn = 2 * PI * fmodf(t / (layer ? 7.0f : 5.0f), 1.0f) * (layer ? -1.0f : 1.0f);
+		uint32_t col = grey(layer ? 70.0f : 110.0f);
+		for (int s = 0; s < SEGS; s++) {
+			float a0 = turn + 2 * PI * s / SEGS, a1 = a0 + 2 * PI / SEGS;
+			int k = s % (SEGS / REP);
+			float u0 = (float)k / (SEGS / REP), u1 = (float)(k + 1) / (SEGS / REP);
+			V3 b0 = {foot.x + r * cosf(a0), foot.y, foot.z + r * sinf(a0)};
+			V3 b1 = {foot.x + r * cosf(a1), foot.y, foot.z + r * sinf(a1)};
+			V3 p[4] = {{b0.x, b0.y - h, b0.z}, {b1.x, b1.y - h, b1.z}, b0, b1}; // up is -y
 			float uv[8] = {u0, 0, u1, 0, u0, 1, u1, 1};
 			quad(p, uv, col, tex);
 		}
@@ -415,8 +451,12 @@ void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 	void* tex;
 	if (a.part[0] && (tex = texture(1, a.part[0])))
 		draw_ground(foot, tex, t);
-	if (a.part[1] && (tex = texture(2, a.part[1])))
-		draw_rings(foot, tex, t);
+	if (a.part[1] && (tex = texture(2, a.part[1]))) {
+		if (ring_is_pillar(a.part[1]))
+			draw_pillar(foot, tex, t);
+		else
+			draw_rings(foot, tex, t);
+	}
 	if (a.part[2] && (tex = texture(3, a.part[2])))
 		draw_sparkles(foot, aid, tex, t);
 }
