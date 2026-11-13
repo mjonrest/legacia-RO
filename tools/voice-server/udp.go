@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"net"
 	"net/netip"
+	"sync"
 	"time"
 )
 
@@ -19,6 +20,7 @@ const (
 	cCells = 0x07 // session(4): LGP wants the skill cells on the ground around the player
 	cIdent = 0x09 // account_id(4) char_id(4) auth_code(4): the game's own login, read from the client, to sign in without @voice
 	cAuras = 0x08 // session(4): the plugin wants the auras of the players around
+	cSnap  = 0x0a // account_id(4) char_id(4) auth_code(4) nonce(4): every statistics page at once, no sign-in needed
 
 	sWelcome   = 0x81 // session(4) char_id(4)
 	sDenied    = 0x82 // reason(1)
@@ -32,6 +34,14 @@ const (
 	sNoCells   = 0x8a // the map-server can't answer (offline or too old)
 	sAuras     = 0x8b // count(2) count * {account_id(4) part1(1) part2(1) part3(1)}: auras around the player
 	sNoAuras   = 0x8c // the map-server can't answer (offline or too old)
+	sSnap      = 0x8d // nonce(4) page(1) part(1) parts(1) text...: one piece of a snapshot page
+	sSnapNo    = 0x8e // nonce(4) reason(1): snapNotInGame or snapUnavailable
+
+	snapNotInGame   = 1 // the login didn't match a player in game
+	snapUnavailable = 2 // the map-server can't answer (offline or too old)
+
+	snapTicketLife = 20 * time.Second
+	maxSnapTickets = 10000
 
 	modeQuiet = 0x01
 
@@ -65,10 +75,101 @@ type UDPServer struct {
 	// asks the map-server whether this login belongs to a player in game,
 	// and to claim short for them if so
 	IdentQuery func(ip netip.Addr, accountID, charID, authCode uint32, short string, now time.Time)
+	// asks the map-server for every statistics page of a game login under
+	// ticket; false if it didn't send the query
+	SnapQuery func(ip netip.Addr, ticket, accountID, charID, authCode uint32, now time.Time) bool
+	// the map-server answers SnapQuery at all
+	SnapAvailable func() bool
+
+	snapMu      sync.Mutex
+	snapTickets map[uint32]snapTicket // ticket -> who asked
+}
+
+// snapTicket remembers where to send a snapshot the map-server answers.
+type snapTicket struct {
+	addr  netip.AddrPort
+	nonce uint32
+	until time.Time
 }
 
 func NewUDPServer(hub *Hub, conn *net.UDPConn) *UDPServer {
-	return &UDPServer{hub: hub, conn: conn}
+	return &UDPServer{hub: hub, conn: conn, snapTickets: map[uint32]snapTicket{}}
+}
+
+// newSnapTicket stores where a snapshot goes and returns its ticket, or false
+// when too many are open.
+func (u *UDPServer) newSnapTicket(addr netip.AddrPort, nonce uint32, now time.Time) (uint32, bool) {
+	u.snapMu.Lock()
+	defer u.snapMu.Unlock()
+	if len(u.snapTickets) >= maxSnapTickets/2 {
+		for k, t := range u.snapTickets {
+			if now.After(t.until) {
+				delete(u.snapTickets, k)
+			}
+		}
+	}
+	if len(u.snapTickets) >= maxSnapTickets {
+		return 0, false
+	}
+	for {
+		id := randomID()
+		if _, used := u.snapTickets[id]; id != 0 && !used {
+			u.snapTickets[id] = snapTicket{addr: addr, nonce: nonce, until: now.Add(snapTicketLife)}
+			return id, true
+		}
+	}
+}
+
+func (u *UDPServer) dropSnapTicket(ticket uint32) {
+	u.snapMu.Lock()
+	delete(u.snapTickets, ticket)
+	u.snapMu.Unlock()
+}
+
+// SendSnap passes one page of a statistics snapshot from the map-server on to
+// the client that asked, split into packets that fit in one datagram.
+func (u *UDPServer) SendSnap(ticket uint32, page uint8, text []byte) {
+	u.snapMu.Lock()
+	t, ok := u.snapTickets[ticket]
+	if ok && time.Now().After(t.until) {
+		delete(u.snapTickets, ticket)
+		ok = false
+	}
+	u.snapMu.Unlock()
+	if !ok {
+		return
+	}
+	if page == snapDenied {
+		u.dropSnapTicket(ticket)
+		out := make([]byte, 6)
+		out[0] = sSnapNo
+		binary.LittleEndian.PutUint32(out[1:], t.nonce)
+		out[5] = snapNotInGame
+		u.send(t.addr, out)
+		return
+	}
+	parts := (len(text) + statsPart - 1) / statsPart
+	if parts == 0 {
+		parts = 1
+	}
+	if parts > statsMaxParts {
+		parts = statsMaxParts
+		text = text[:statsMaxParts*statsPart]
+	}
+	for i := 0; i < parts; i++ {
+		chunk := text[i*statsPart:]
+		if len(chunk) > statsPart {
+			chunk = chunk[:statsPart]
+		}
+		out := make([]byte, 8+len(chunk))
+		out[0] = sSnap
+		binary.LittleEndian.PutUint32(out[1:], t.nonce)
+		out[5] = page
+		out[6] = byte(i)
+		out[7] = byte(parts)
+		copy(out[8:], chunk)
+		u.send(t.addr, out)
+	}
 }
 
 func randomCode() (c [16]byte) {
@@ -176,6 +277,29 @@ func (u *UDPServer) SendAuras(charID uint32, auras []byte) {
 
 func (u *UDPServer) handle(pkt []byte, addr netip.AddrPort, now time.Time) {
 	switch pkt[0] {
+	case cSnap:
+		if len(pkt) < 17 {
+			return
+		}
+		nonce := binary.LittleEndian.Uint32(pkt[13:])
+		if u.SnapQuery == nil || u.SnapAvailable == nil || !u.SnapAvailable() {
+			out := make([]byte, 6)
+			out[0] = sSnapNo
+			binary.LittleEndian.PutUint32(out[1:], nonce)
+			out[5] = snapUnavailable
+			u.send(addr, out)
+			return
+		}
+		ticket, ok := u.newSnapTicket(addr, nonce, now)
+		if !ok {
+			return
+		}
+		// over the query limits: say nothing, the plugin asks again shortly
+		if !u.SnapQuery(addr.Addr(), ticket, binary.LittleEndian.Uint32(pkt[1:]), binary.LittleEndian.Uint32(pkt[5:]),
+			binary.LittleEndian.Uint32(pkt[9:]), now) {
+			u.dropSnapTicket(ticket)
+		}
+
 	case cAuras:
 		if len(pkt) < 5 {
 			return

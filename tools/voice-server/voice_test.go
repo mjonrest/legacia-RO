@@ -41,6 +41,9 @@ func startServer(t *testing.T) (linkAddr string, udpAddr *net.UDPAddr, hub *Hub)
 	link.OnCells = udp.SendCells
 	udp.AurasQuery = link.AurasQuery
 	link.OnAuras = udp.SendAuras
+	udp.SnapQuery = link.SnapQuery
+	udp.SnapAvailable = link.SnapQueryAvailable
+	link.OnSnap = udp.SendSnap
 	go link.Serve(ln)
 	go udp.Serve()
 	return ln.Addr().String(), uc.LocalAddr().(*net.UDPAddr), hub
@@ -909,5 +912,87 @@ func TestIdentOldMapServer(t *testing.T) {
 	a.ident(1001, 1, 5)
 	if _, ok := m.next(linkIdentQuery, 200*time.Millisecond); ok {
 		t.Fatal("ident query sent to a map-server that doesn't know it")
+	}
+}
+
+func (c *client) snap(accountID, charID, auth, nonce uint32) {
+	b := make([]byte, 17)
+	b[0] = cSnap
+	binary.LittleEndian.PutUint32(b[1:], accountID)
+	binary.LittleEndian.PutUint32(b[5:], charID)
+	binary.LittleEndian.PutUint32(b[9:], auth)
+	binary.LittleEndian.PutUint32(b[13:], nonce)
+	c.conn.Write(b)
+}
+
+func TestSnapshotWithoutSignIn(t *testing.T) {
+	linkAddr, udpAddr, _ := startServer(t)
+	m := connectMapWith(t, linkAddr, featureStats|featureCells|featureAuras|featureIdent|featureSnap)
+	// no hello, no session: the game login alone is enough
+	a := dialClient(t, udpAddr)
+	b := dialClient(t, udpAddr)
+	a.snap(1001, 1, 0xabcd, 77)
+	body, ok := m.next(linkSnapQuery, time.Second)
+	if !ok || len(body) != 16 || binary.LittleEndian.Uint32(body[4:]) != 1001 ||
+		binary.LittleEndian.Uint32(body[8:]) != 1 || binary.LittleEndian.Uint32(body[12:]) != 0xabcd {
+		t.Fatalf("snap query: %x", body)
+	}
+	ticket := binary.LittleEndian.Uint32(body)
+	// limited per address
+	b.snap(1002, 2, 0x1111, 5)
+	if _, ok := m.next(linkSnapQuery, 100*time.Millisecond); ok {
+		t.Fatal("snap query was not limited")
+	}
+
+	text := strings.Repeat("abcdefghij", 150) // 1500 bytes -> 2 packets
+	for page := byte(0); page < 2; page++ {
+		reply := make([]byte, 5+len(text))
+		binary.LittleEndian.PutUint32(reply, ticket)
+		reply[4] = page
+		copy(reply[5:], text)
+		writePacket(m.conn, linkSnap, reply)
+	}
+	got := map[byte][]string{0: make([]string, 2), 1: make([]string, 2)}
+	for i := 0; i < 4; i++ {
+		p := a.read(time.Second)
+		if p == nil || p[0] != sSnap || binary.LittleEndian.Uint32(p[1:]) != 77 || p[7] != 2 {
+			t.Fatalf("snap part: %x", p)
+		}
+		got[p[5]][p[6]] = string(p[8:])
+	}
+	if strings.Join(got[0], "") != text || strings.Join(got[1], "") != text {
+		t.Fatal("snap text mangled")
+	}
+	b.expectNothing()
+
+	// a login that doesn't match: the map-server says so, the client hears it
+	time.Sleep(snapQueryInterval)
+	b.snap(1002, 2, 0x1111, 5)
+	body, ok = m.next(linkSnapQuery, time.Second)
+	if !ok {
+		t.Fatal("no second snap query")
+	}
+	deny := make([]byte, 5)
+	binary.LittleEndian.PutUint32(deny, binary.LittleEndian.Uint32(body))
+	deny[4] = snapDenied
+	writePacket(m.conn, linkSnap, deny)
+	if p := b.read(time.Second); p == nil || p[0] != sSnapNo || binary.LittleEndian.Uint32(p[1:]) != 5 || p[5] != snapNotInGame {
+		t.Fatalf("want not-in-game, got %x", p)
+	}
+	// the ticket is gone: a late page goes nowhere
+	writePacket(m.conn, linkSnap, append(deny[:4:4], 0, 'x'))
+	b.expectNothing()
+}
+
+func TestSnapshotOldMapServer(t *testing.T) {
+	linkAddr, udpAddr, _ := startServer(t)
+	m := connectMapWith(t, linkAddr, featureStats|featureCells|featureAuras|featureIdent)
+	a := dialClient(t, udpAddr)
+	a.snap(1001, 1, 5, 9)
+	if p := a.read(time.Second); p == nil || p[0] != sSnapNo || binary.LittleEndian.Uint32(p[1:]) != 9 || p[5] != snapUnavailable {
+		t.Fatalf("want unavailable, got %x", p)
+	}
+	if _, ok := m.next(linkSnapQuery, 100*time.Millisecond); ok {
+		t.Fatal("snap query sent to a map-server that doesn't know it")
 	}
 }

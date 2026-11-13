@@ -15,6 +15,7 @@ enum : uint8_t {
 	C_CELLS = 0x07,
 	C_AURAS = 0x08,
 	C_IDENT = 0x09,
+	C_SNAP = 0x0a,
 	S_WELCOME = 0x81,
 	S_DENIED = 0x82,
 	S_PONG = 0x83,
@@ -27,7 +28,12 @@ enum : uint8_t {
 	S_NO_CELLS = 0x8a,
 	S_AURAS = 0x8b,
 	S_NO_AURAS = 0x8c,
+	S_SNAP = 0x8d,
+	S_SNAP_NO = 0x8e,
 };
+
+// S_SNAP_NO reasons
+enum : uint8_t { SNAP_NO_NOT_IN_GAME = 1, SNAP_NO_UNAVAILABLE = 2 };
 
 static CRITICAL_SECTION g_netLock;
 static SOCKET g_sock = INVALID_SOCKET;
@@ -168,6 +174,120 @@ bool net_request_stats(uint8_t page) {
 	return true;
 }
 
+// ---- Player Statistics snapshot ----
+// Opening the window asks once for every page. The request carries the game's
+// own login (see game_login.cpp), so it works without signing in to voice
+// chat: one packet out, the pages come back, nothing stays connected. To see
+// new numbers the player opens the window again (or presses Recalculate).
+// With an older voice server or map-server, or a game exe the plugin can't
+// read the login from, the pages are asked one by one over the voice session.
+static const int SNAP_PAGES = 8;
+static const DWORD SNAP_RESEND_MS = 2000, SNAP_GIVE_UP_MS = 12000, SNAP_SESSION_AFTER_MS = 3000;
+static SnapState g_snapState = SNAP_IDLE;
+static uint32_t g_snapNonce;
+static unsigned g_snapGot;   // bit per page
+static DWORD g_snapStarted, g_snapDoneAt;
+static bool g_snapUseSession; // fall back to asking page by page over the voice session
+
+void net_snapshot_start() {
+	Lock l(g_netLock);
+	g_snapState = SNAP_LOADING;
+	g_snapNonce = (GetTickCount() * 2654435761u) ^ (uint32_t)GetCurrentProcessId() ^ (g_snapNonce + 0x9e3779b9u);
+	g_snapGot = 0;
+	g_snapStarted = GetTickCount();
+	g_snapDoneAt = 0;
+	g_snapUseSession = false;
+}
+
+SnapState net_snapshot_state(DWORD* doneAt) {
+	Lock l(g_netLock);
+	// also when the net thread can't get to it (no server set, no socket)
+	if (g_snapState == SNAP_LOADING && GetTickCount() - g_snapStarted > SNAP_GIVE_UP_MS + 1000)
+		g_snapState = SNAP_NO_ANSWER;
+	if (doneAt)
+		*doneAt = g_snapDoneAt;
+	return g_snapState;
+}
+
+// a page of the snapshot (or a session page while one is loading) arrived
+static void snap_got_page(int page) {
+	Lock l(g_netLock);
+	if (g_snapState != SNAP_LOADING || page < 0 || page >= SNAP_PAGES)
+		return;
+	g_snapGot |= 1u << page;
+	if (g_snapGot == (1u << SNAP_PAGES) - 1) {
+		g_snapState = SNAP_DONE;
+		g_snapDoneAt = GetTickCount();
+		if (!g_snapDoneAt)
+			g_snapDoneAt = 1;
+	}
+}
+
+static void send_snap_request(uint32_t nonce) {
+	GameLogin gl;
+	if (!game_login(gl))
+		return;
+	uint8_t b[17];
+	b[0] = C_SNAP;
+	memcpy(b + 1, &gl.accountId, 4);
+	memcpy(b + 5, &gl.charId, 4);
+	memcpy(b + 9, &gl.authCode, 4);
+	memcpy(b + 13, &nonce, 4);
+	send_raw(b, sizeof(b));
+}
+
+// called by the net thread every pass: sends, resends and gives up
+static void snap_tick(DWORD now, DWORD& lastSnapSend) {
+	uint32_t nonce;
+	unsigned got;
+	DWORD started;
+	bool useSession;
+	{
+		Lock l(g_netLock);
+		if (g_snapState != SNAP_LOADING)
+			return;
+		nonce = g_snapNonce;
+		got = g_snapGot;
+		started = g_snapStarted;
+		useSession = g_snapUseSession;
+	}
+	bool connected = net_state() == NET_CONNECTED;
+	GameLogin gl;
+	bool haveLogin = game_login(gl);
+	// no reply to the snapshot request yet (older voice server): ask over the session
+	if (!useSession && connected && (!haveLogin || (got == 0 && now - started > SNAP_SESSION_AFTER_MS))) {
+		Lock l(g_netLock);
+		g_snapUseSession = useSession = true;
+	}
+	if (!haveLogin && !useSession && now - started > SNAP_SESSION_AFTER_MS) {
+		// not in a map yet (or an exe the plugin can't read), and no voice session either
+		Lock l(g_netLock);
+		g_snapState = SNAP_NO_LOGIN;
+		return;
+	}
+	if (now - started > SNAP_GIVE_UP_MS) {
+		Lock l(g_netLock);
+		g_snapState = SNAP_NO_ANSWER;
+		return;
+	}
+	if (useSession) {
+		// the map-server takes one page per 250 ms from a session
+		if (now - lastSnapSend >= 300) {
+			for (int i = 0; i < SNAP_PAGES; i++)
+				if (!(got & (1u << i))) {
+					net_request_stats((uint8_t)i);
+					break;
+				}
+			lastSnapSend = now;
+		}
+		return;
+	}
+	if (haveLogin && (lastSnapSend == 0 || now - lastSnapSend >= SNAP_RESEND_MS)) {
+		send_snap_request(nonce);
+		lastSnapSend = now;
+	}
+}
+
 // a statistics page arrives in up to 16 pieces; only the net thread uses this
 struct StatsAssembly {
 	int page = -1, seq = -1, parts = 0, got = 0;
@@ -198,6 +318,55 @@ static void on_stats_part(const uint8_t* p, int n) {
 		text += a.piece[i];
 	a = StatsAssembly();
 	stats_ui_on_page((uint8_t)page, text);
+	snap_got_page(page);
+}
+
+// snapshot pages come all at once and may interleave, so one assembly each
+static StatsAssembly g_snapAsm[SNAP_PAGES];
+
+static void on_snap_part(const uint8_t* p, int n) {
+	uint32_t nonce;
+	memcpy(&nonce, p + 1, 4);
+	int page = p[5], part = p[6], parts = p[7];
+	{
+		Lock l(g_netLock);
+		if (g_snapState != SNAP_LOADING || nonce != g_snapNonce)
+			return;
+	}
+	if (page >= SNAP_PAGES || parts < 1 || parts > 16 || part >= parts)
+		return;
+	StatsAssembly& a = g_snapAsm[page];
+	if (a.seq != (int)(nonce & 0x7fffffff) || a.parts != parts) {
+		a = StatsAssembly();
+		a.page = page;
+		a.seq = (int)(nonce & 0x7fffffff);
+		a.parts = parts;
+	}
+	if (a.have[part])
+		return;
+	a.have[part] = true;
+	a.piece[part].assign((const char*)p + 8, n - 8);
+	if (++a.got < a.parts)
+		return;
+	std::string text;
+	for (int i = 0; i < a.parts; i++)
+		text += a.piece[i];
+	a = StatsAssembly();
+	stats_ui_on_page((uint8_t)page, text);
+	snap_got_page(page);
+}
+
+static void on_snap_no(const uint8_t* p) {
+	uint32_t nonce;
+	memcpy(&nonce, p + 1, 4);
+	bool connected = net_state() == NET_CONNECTED;
+	Lock l(g_netLock);
+	if (g_snapState != SNAP_LOADING || nonce != g_snapNonce || g_snapUseSession)
+		return;
+	if (p[5] == SNAP_NO_UNAVAILABLE && connected)
+		g_snapUseSession = true; // the map-server is too old for snapshots
+	else
+		g_snapState = p[5] == SNAP_NO_NOT_IN_GAME ? SNAP_NOT_IN_GAME : SNAP_UNAVAILABLE;
 }
 
 static bool open_socket() {
@@ -276,6 +445,14 @@ static void handle_packet(const uint8_t* p, int n, DWORD now, DWORD& lastHeard) 
 		if (n >= 5)
 			on_stats_part(p, n);
 		break;
+	case S_SNAP:
+		if (n >= 8)
+			on_snap_part(p, n);
+		break;
+	case S_SNAP_NO:
+		if (n >= 6)
+			on_snap_no(p);
+		break;
 	case S_CELLS:
 		if (n >= 3) {
 			uint16_t count;
@@ -337,7 +514,8 @@ static void handle_packet(const uint8_t* p, int n, DWORD now, DWORD& lastHeard) 
 }
 
 static DWORD WINAPI net_thread(LPVOID) {
-	DWORD lastSend = 0, lastHeard = 0, stateSince = 0, lastCells = 0, lastAuras = 0, lastIdent = 0;
+	DWORD lastSend = 0, lastHeard = 0, stateSince = 0, lastCells = 0, lastAuras = 0, lastIdent = 0, lastSnapSend = 0;
+	SnapState prevSnap = SNAP_IDLE;
 	int sentEnabled = -1; // voice on/off last told to the server; -1 = not yet in this session
 	NetState prev = NET_OFF;
 	bool wasInGame = false;
@@ -453,6 +631,13 @@ static DWORD WINAPI net_thread(LPVOID) {
 			if (now - lastHeard > 35000)
 				set_state(NET_HELLO);
 		}
+
+		// Player Statistics snapshot, independent of the voice sign-in above
+		SnapState snap = net_snapshot_state(nullptr);
+		if (snap == SNAP_LOADING && prevSnap != SNAP_LOADING)
+			lastSnapSend = 0;
+		prevSnap = snap;
+		snap_tick(now, lastSnapSend);
 
 		fd_set rd;
 		FD_ZERO(&rd);
