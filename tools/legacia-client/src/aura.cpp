@@ -343,7 +343,7 @@ void draw_rings(const V3& foot, void* tex, float t) {
 		V3 d = {cosf(dir), 0, sinf(dir)};
 		V3 e1 = {-d.z, 0, d.x};
 		V3 e2 = {cosf(TILT) * d.x, sinf(TILT), cosf(TILT) * d.z};
-		float alpha = 50 * fade; // owner 2026-11-13: brightness 50 (240/150/100 read too bright/white)
+		float alpha = 90 * fade; // owner 2026-11-13: 240/150 too bright/white, 50 could not be seen
 		float spin = fmodf(t / 2.6f + pi * 0.31f, 1.0f) * (pi == 1 ? -1.0f : 1.0f);
 		auto at = [&](float rr, float ang) {
 			if (rr < 0.5f * g_scale)
@@ -387,13 +387,15 @@ bool ring_is_pillar(int num) {
 void draw_pillar(const V3& foot, void* tex, float t) {
 	const int SEGS = 36, REP = 3, ROWS = 4; // texture runs three times round
 	// width matches the player and stays inside the ground circle (R 37), owner 2026-11-13
-	const float R0 = 13 * g_scale, R1 = 24 * g_scale, H = 58 * g_scale;
+	// measured against the owner's two videos: the ring at the feet is about as
+	// wide as the player, the flames flare out to about 3.5 player widths
+	const float R0 = 14 * g_scale, R1 = 36 * g_scale, H = 58 * g_scale;
 	float grow = 0.88f + 0.12f * sinf(2 * PI * t / 3.0f); // breathes like the ground circle
 	for (int layer = 0; layer < 2; layer++) {
 		float open = layer ? 1.1f : 0.95f;   // outer layer opens wider and lower
 		float hh = H * grow * (layer ? 0.8f : 1.0f) * (0.92f + 0.08f * sinf(2 * PI * t / 1.3f + layer * 1.7f));
 		float turn = 2 * PI * fmodf(t / (layer ? 4.5f : 3.5f), 1.0f) * (layer ? -1.0f : 1.0f) + layer * PI / 2;
-		float bright = layer ? 35.0f : 50.0f; // owner: brightness 50
+		float bright = layer ? 120.0f : 190.0f; // 50/35 was invisible in game (owner's video); the reference glows blue-white
 		auto at = [&](float ang, float f) {
 			float tongue = 1 + 0.08f * sinf(5 * ang + 2 * PI * t / 1.7f + layer * 2.0f);
 			float h = hh * f * (0.75f + 0.25f * tongue);
@@ -403,7 +405,7 @@ void draw_pillar(const V3& foot, void* tex, float t) {
 		for (int s = 0; s < SEGS; s++) {
 			float a0 = 2 * PI * s / SEGS, a1 = a0 + 2 * PI / SEGS;
 			// two burning arcs that circle the player, fading at their ends
-			float m = 0.35f + 0.9f * cosf(2 * ((a0 + a1) / 2 - turn));
+			float m = 0.6f + 0.6f * cosf(2 * ((a0 + a1) / 2 - turn)); // never fully dark: the reference always glows all round
 			m = m < 0 ? 0 : m > 1 ? 1 : m;
 			if (m < 0.02f)
 				continue;
