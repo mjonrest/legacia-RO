@@ -324,10 +324,10 @@ void draw_ground(const V3& foot, void* tex, float t) {
 void draw_rings(const V3& foot, void* tex, float t) {
 	const float CYCLE = 4.0f;            // one turn round the player
 	const int PETALS = 3, SEGS = 32;
-	const float R = 21 * g_scale;        // petal ring radius: the flower is no wider than the ground circle (owner 2026-11-13)
+	const float R = 25 * g_scale;        // petal ring radius (owner 2026-11-13: 28 too wide, 21 too small)
 	const float BAND = 6 * g_scale;      // thin lines (the texture fades at its edges)
 	const float LIFT = 22 * g_scale;     // centre at the waist
-	const float OFF0 = 36 * g_scale, OFF1 = 9 * g_scale; // petal centres a little off the player
+	const float OFF0 = 36 * g_scale, OFF1 = 11 * g_scale; // petal centres a little off the player
 	const float TILT = 30 * PI / 180;
 	// the flower stays and keeps turning round the player (one turn per CYCLE)
 	const float fade = 1, ease = 1;
@@ -367,7 +367,7 @@ void draw_rings(const V3& foot, void* tex, float t) {
 
 // Ring textures that are flame / spike strips (bright at the bottom, fading
 // up). Like a skill effect, these rise round the body as a glowing pillar
-// instead of the flower rings (owner 2026-11-13, see draw_pillar).
+// instead of the flower rings, opening like a flower of fire (owner 2026-11-13, see draw_pillar).
 bool ring_is_pillar(int num) {
 	static const unsigned char list[] = {1, 5, 9, 11, 14, 15, 16, 18, 19, 22, 23, 24, 25, 29, 30, 34, 35, 39, 43, 47,
 		54, 59, 64, 68, 69, 70, 71, 72, 76, 78, 81, 82, 86, 96, 97, 98, 100, 103, 107, 113};
@@ -377,26 +377,35 @@ bool ring_is_pillar(int num) {
 	return false;
 }
 
-// a flame pillar: two thin cylinders round the body, texture bottom at the
-// feet, turning slowly in opposite directions, the flames gently rising and
-// settling. Inside the ground circle.
+// a flame bloom: two layers that start narrow at the feet and open outward
+// like a flower / fire (a flared cup, not a straight pillar), the top edge
+// waving in petal tongues; the layers turn slowly in opposite directions and
+// the flames gently rise and settle. Texture bottom at the feet.
 void draw_pillar(const V3& foot, void* tex, float t) {
-	const int SEGS = 24, REP = 2;          // texture runs twice round
-	const float R = 15 * g_scale, H = 34 * g_scale;
+	const int SEGS = 30, REP = 3, ROWS = 4; // texture runs three times round
+	const float R0 = 5 * g_scale, R1 = 34 * g_scale, H = 30 * g_scale;
 	for (int layer = 0; layer < 2; layer++) {
-		float r = R * (layer ? 1.25f : 1.0f);
-		float h = H * (layer ? 0.8f : 1.0f) * (0.9f + 0.1f * sinf(2 * PI * t / 2.2f + layer * 1.7f));
-		float turn = 2 * PI * fmodf(t / (layer ? 7.0f : 5.0f), 1.0f) * (layer ? -1.0f : 1.0f);
+		float open = layer ? 1.15f : 0.85f;  // outer layer opens wider and lower
+		float hh = H * (layer ? 0.8f : 1.0f) * (0.9f + 0.1f * sinf(2 * PI * t / 2.2f + layer * 1.7f));
+		float turn = 2 * PI * fmodf(t / (layer ? 9.0f : 6.0f), 1.0f) * (layer ? -1.0f : 1.0f);
 		uint32_t col = grey(layer ? 70.0f : 110.0f);
+		auto at = [&](float ang, float f) {
+			// petal tongues: 5 round the cup, swaying with time
+			float tongue = 1 + 0.18f * sinf(5 * ang + 2 * PI * t / 1.7f + layer * 2.0f);
+			float h = hh * f * (0.75f + 0.25f * tongue);
+			float r = R0 + (R1 * open - R0) * powf(f, 1.6f) * tongue; // flares out toward the top
+			return V3{foot.x + r * cosf(ang), foot.y - h, foot.z + r * sinf(ang)}; // up is -y
+		};
 		for (int s = 0; s < SEGS; s++) {
 			float a0 = turn + 2 * PI * s / SEGS, a1 = a0 + 2 * PI / SEGS;
 			int k = s % (SEGS / REP);
 			float u0 = (float)k / (SEGS / REP), u1 = (float)(k + 1) / (SEGS / REP);
-			V3 b0 = {foot.x + r * cosf(a0), foot.y, foot.z + r * sinf(a0)};
-			V3 b1 = {foot.x + r * cosf(a1), foot.y, foot.z + r * sinf(a1)};
-			V3 p[4] = {{b0.x, b0.y - h, b0.z}, {b1.x, b1.y - h, b1.z}, b0, b1}; // up is -y
-			float uv[8] = {u0, 0, u1, 0, u0, 1, u1, 1};
-			quad(p, uv, col, tex);
+			for (int row = 0; row < ROWS; row++) {
+				float f0 = (float)row / ROWS, f1 = (float)(row + 1) / ROWS; // 0 feet .. 1 top
+				V3 p[4] = {at(a0, f1), at(a1, f1), at(a0, f0), at(a1, f0)};
+				float uv[8] = {u0, 1 - f1, u1, 1 - f1, u0, 1 - f0, u1, 1 - f0};
+				quad(p, uv, col, tex);
+			}
 		}
 	}
 }
