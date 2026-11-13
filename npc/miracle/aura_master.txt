@@ -120,12 +120,15 @@ S_Menu:
 S_Browse:
 	.@part = getarg(0);
 	.@per = 20;
-	.@pages = (.PartMax[.@part] - 1) / .@per + 1;
+	// Copy to a plain variable: min() given .PartMax[x] walks the whole
+	// array from x, so ground circles/rings were capped at 35 (sparkles).
+	.@max = .PartMax[.@part];
+	.@pages = (.@max - 1) / .@per + 1;
 	.@page = 0;
 	while (1) {
 		clear;
 		.@from = .@page * .@per + 1;
-		.@to = min(.@from + .@per - 1, .PartMax[.@part]);
+		.@to = min(.@from + .@per - 1, .@max);
 		.@n = .@to - .@from + 1;
 		.@menu$ = "";
 		for (.@i = .@from; .@i <= .@to; .@i++) {
