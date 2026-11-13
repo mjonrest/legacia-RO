@@ -36,6 +36,7 @@ enum e_voice_link_cmd : uint16 {
 	VOICE_LINK_CELLS = 0x7609,     // map -> voice: char_id(4) count(2) count * {x(2) y(2) skill_id(2) kind(1)}, answer to CELLS_QUERY
 	VOICE_LINK_AURAS = 0x760a,     // map -> voice: char_id(4) count(2) count * {account_id(4) part1(1) part2(1) part3(1)}, answer to AURAS_QUERY
 	VOICE_LINK_CLAIM_IDENT = 0x760b, // map -> voice: short_code[8] char_id(4), answer to IDENT_QUERY when the login matched
+	VOICE_LINK_SNAP = 0x760c,      // map -> voice: ticket(4) page(1) text, answer to SNAP_QUERY; page VOICE_SNAP_DENIED = no such login in game
 	VOICE_LINK_HELLO_ACK = 0x7680, // voice -> map: result(1), 0 = ok
 	VOICE_LINK_PONG = 0x7681,      // voice -> map
 	VOICE_LINK_CLAIM_RESULT = 0x7682, // voice -> map: char_id(4) result(1), answer to CLAIM_SHORT
@@ -44,6 +45,7 @@ enum e_voice_link_cmd : uint16 {
 	VOICE_LINK_CELLS_QUERY = 0x7685, // voice -> map: char_id(4), the plugin's LGP wants the skill cells around the player
 	VOICE_LINK_IDENT_QUERY = 0x7687, // voice -> map: account_id(4) char_id(4) login_id1(4) short_code[8], the plugin read the game's login
 	VOICE_LINK_AURAS_QUERY = 0x7686, // voice -> map: char_id(4), the plugin wants the auras of the players around (it draws them)
+	VOICE_LINK_SNAP_QUERY = 0x7688, // voice -> map: ticket(4) account_id(4) char_id(4) login_id1(4), every Player Statistics page at once, no voice sign-in needed
 };
 
 // Sent after the secret in HELLO. Older voice servers ignore it; newer ones
@@ -53,6 +55,7 @@ enum e_voice_feature : uint8 {
 	VOICE_FEATURE_CELLS = 0x02, // answers CELLS_QUERY
 	VOICE_FEATURE_AURAS = 0x04, // answers AURAS_QUERY
 	VOICE_FEATURE_IDENT = 0x08, // answers IDENT_QUERY
+	VOICE_FEATURE_SNAP = 0x10,  // answers SNAP_QUERY
 };
 
 enum e_voice_flag : uint8 {
@@ -69,6 +72,8 @@ static const int32 VOICE_SHORT_CODE_LENGTH = 8; // codes shown to players are 6 
 static const int32 VOICE_CLAIM_SHORT_PACKET_LENGTH = 4 + VOICE_SHORT_CODE_LENGTH + 4;
 static const t_tick VOICE_CLAIM_INTERVAL = 1000;  // per character, for plugin claims
 static const t_tick VOICE_COMMAND_INTERVAL = 3000; // per character, for @voice
+static const t_tick VOICE_SNAP_INTERVAL = 1500;    // per character, for a whole Player Statistics snapshot
+static const uint8 VOICE_SNAP_DENIED = 0xff;
 static const t_tick VOICE_STATS_INTERVAL = 250;    // per character, for the Player Statistics window
 static const size_t VOICE_STATS_MAX_TEXT = 6000;   // the voice server splits it into UDP packets
 static const t_tick VOICE_CELLS_INTERVAL = 250;    // per character, for LGP skill cells
@@ -375,28 +380,14 @@ static void voice_on_disconnect(){
 		entry.second.synced = false;
 }
 
-/// Player Statistics window in the plugin: same text as the @statsview sections.
-/// Only answers for characters whose own voice client signed in this login,
-/// so nobody can read another player's stats.
-static void voice_stats_query( uint32 char_id, uint8 page ){
-	// the tabs of the plugin's Player Statistics window, in order (@statsview sections)
-	static const char* const pages[] = { "overview", "attack", "magic", "defense", "skill", "heal", "effect", "drop" };
+// the tabs of the plugin's Player Statistics window, in order (@statsview sections)
+static const char* const voice_stats_pages[] = { "overview", "attack", "magic", "defense", "skill", "heal", "effect", "drop" };
 
-	auto it = voice_players.find( char_id );
-	map_session_data* sd = map_charid2sd( char_id );
-
-	if( it == voice_players.end() || sd == nullptr || page >= ARRAYLENGTH( pages ) )
-		return;
-
-	t_tick tick = gettick();
-
-	if( DIFF_TICK( tick, it->second.last_stats ) < VOICE_STATS_INTERVAL )
-		return;
-	it->second.last_stats = tick;
-
+/// The text of one Player Statistics page, the same as the @statsview section.
+static std::string voice_stats_text( map_session_data& sd, uint8 page ){
 	std::vector<std::string> lines;
 
-	statsview_page_lines( sd, pages[page], lines );
+	statsview_page_lines( &sd, voice_stats_pages[page], lines );
 
 	std::string text;
 
@@ -409,6 +400,26 @@ static void voice_stats_query( uint32 char_id, uint8 page ){
 		text += '\n';
 	}
 
+	return text;
+}
+
+/// Player Statistics window in the plugin: same text as the @statsview sections.
+/// Only answers for characters whose own voice client signed in this login,
+/// so nobody can read another player's stats.
+static void voice_stats_query( uint32 char_id, uint8 page ){
+	auto it = voice_players.find( char_id );
+	map_session_data* sd = map_charid2sd( char_id );
+
+	if( it == voice_players.end() || sd == nullptr || page >= ARRAYLENGTH( voice_stats_pages ) )
+		return;
+
+	t_tick tick = gettick();
+
+	if( DIFF_TICK( tick, it->second.last_stats ) < VOICE_STATS_INTERVAL )
+		return;
+	it->second.last_stats = tick;
+
+	std::string text = voice_stats_text( *sd, page );
 	size_t len = 4 + 4 + 1 + text.length();
 
 	WFIFOHEAD( voice_fd, len );
@@ -418,6 +429,54 @@ static void voice_stats_query( uint32 char_id, uint8 page ){
 	WFIFOB( voice_fd, 8 ) = page;
 	memcpy( WFIFOP( voice_fd, 9 ), text.data(), text.length() );
 	WFIFOSET( voice_fd, len );
+}
+
+static void voice_send_snap_page( uint32 ticket, uint8 page, const std::string& text ){
+	size_t len = 4 + 4 + 1 + text.length();
+
+	WFIFOHEAD( voice_fd, len );
+	WFIFOW( voice_fd, 0 ) = VOICE_LINK_SNAP;
+	WFIFOW( voice_fd, 2 ) = static_cast<uint16>( len );
+	WFIFOL( voice_fd, 4 ) = ticket;
+	WFIFOB( voice_fd, 8 ) = page;
+	memcpy( WFIFOP( voice_fd, 9 ), text.data(), text.length() );
+	WFIFOSET( voice_fd, len );
+}
+
+/// SNAP_QUERY: the plugin's Player Statistics window was opened and wants
+/// every page once, as a snapshot. Like IDENT_QUERY, the account, character
+/// and login code (login_id1) the plugin read from the game client prove
+/// whose statistics they are, so no voice sign-in is needed. Wrong logins get
+/// a VOICE_SNAP_DENIED answer, so the window can tell the player.
+static void voice_snap_query( uint32 ticket, uint32 account_id, uint32 char_id, uint32 login_id1 ){
+	// per character, so a plugin asking again can't make us build every page over and over
+	static std::unordered_map<uint32, t_tick> last_snap;
+
+	map_session_data* sd = map_charid2sd( char_id );
+
+	if( sd == nullptr || sd->state.autotrade || !session_isActive( sd->fd ) ||
+		static_cast<uint32>( sd->status.account_id ) != account_id || sd->login_id1 != login_id1 ){
+		voice_send_snap_page( ticket, VOICE_SNAP_DENIED, "" );
+		return;
+	}
+
+	t_tick tick = gettick();
+	auto it = last_snap.find( char_id );
+
+	if( it != last_snap.end() && DIFF_TICK( tick, it->second ) < VOICE_SNAP_INTERVAL )
+		return;
+	if( last_snap.size() > 4096 ){
+		for( auto e = last_snap.begin(); e != last_snap.end(); ){
+			if( DIFF_TICK( tick, e->second ) >= VOICE_SNAP_INTERVAL )
+				e = last_snap.erase( e );
+			else
+				++e;
+		}
+	}
+	last_snap[char_id] = tick;
+
+	for( uint8 page = 0; page < ARRAYLENGTH( voice_stats_pages ); page++ )
+		voice_send_snap_page( ticket, page, voice_stats_text( *sd, page ) );
 }
 
 /// One skill cell near the player, for voice_cells_query.
@@ -650,6 +709,11 @@ static int32 voice_parse( int32 fd ){
 					break;
 				voice_cells_query( RFIFOL( fd, 4 ) );
 				break;
+			case VOICE_LINK_SNAP_QUERY:
+				if( len < 4 + 16 )
+					break;
+				voice_snap_query( RFIFOL( fd, 4 ), RFIFOL( fd, 8 ), RFIFOL( fd, 12 ), RFIFOL( fd, 16 ) );
+				break;
 			case VOICE_LINK_AURAS_QUERY:
 				if( len < 8 )
 					break;
@@ -685,7 +749,7 @@ static TIMER_FUNC( voice_check_connect ){
 	WFIFOW( voice_fd, 2 ) = 4 + VOICE_SECRET_LENGTH + 1;
 	memset( WFIFOP( voice_fd, 4 ), 0, VOICE_SECRET_LENGTH );
 	memcpy( WFIFOP( voice_fd, 4 ), voice_secret, strnlen( voice_secret, VOICE_SECRET_LENGTH ) );
-	WFIFOB( voice_fd, 4 + VOICE_SECRET_LENGTH ) = VOICE_FEATURE_STATS | VOICE_FEATURE_CELLS | VOICE_FEATURE_AURAS | VOICE_FEATURE_IDENT;
+	WFIFOB( voice_fd, 4 + VOICE_SECRET_LENGTH ) = VOICE_FEATURE_STATS | VOICE_FEATURE_CELLS | VOICE_FEATURE_AURAS | VOICE_FEATURE_IDENT | VOICE_FEATURE_SNAP;
 	WFIFOSET( voice_fd, 4 + VOICE_SECRET_LENGTH + 1 );
 
 	return 0;

@@ -33,8 +33,6 @@ const int TAB_X = 16, TAB_Y = 34, TAB_W = 116, TAB_H = 28, TAB_GAP = 4;
 const int PANEL_X = 144, PANEL_Y = 34, PANEL_R = W - 16, PANEL_B = H - 40;
 const int PAD = 10, LINE_H = 16, SCROLL_W = 8;
 const UINT_PTR TIMER_REFRESH = 1;
-const DWORD REFRESH_MS = 3000; // live values while the window is open
-const DWORD TIMEOUT_MS = 4000;
 const UINT WM_STATS = WM_APP + 41;
 
 const char* const TABS[] = {"Overview", "Attack", "Magic", "Defense", "Skills", "Healing", "Procs", "EXP & Drops"};
@@ -52,9 +50,6 @@ int g_dragY, g_dragScroll;
 CRITICAL_SECTION g_lock; // the page text is written by the net thread
 std::string g_text[TAB_COUNT];
 DWORD g_gotAt[TAB_COUNT];   // GetTickCount when it arrived, 0 = never
-DWORD g_askedAt;            // last request for the current tab
-volatile bool g_unavailable; // the server said it can't answer
-volatile bool g_waiting;     // asked, no answer yet
 
 HWND item(int id) { return GetDlgItem(g_wnd, id); }
 
@@ -230,9 +225,16 @@ void blit_background(HDC dc, const RECT& dst, int x, int y) {
 	BitBlt(dc, dst.left, dst.top, dst.right - dst.left, dst.bottom - dst.top, g_bgDC, x, y, SRCCOPY);
 }
 
+// a snapshot of every page, taken when the window opens (see net.cpp)
 void ask() {
-	g_askedAt = GetTickCount();
-	g_waiting = net_request_stats((uint8_t)g_tab);
+	{
+		Lock l(g_lock);
+		for (int i = 0; i < TAB_COUNT; i++) {
+			g_text[i].clear();
+			g_gotAt[i] = 0;
+		}
+	}
+	net_snapshot_start();
 	InvalidateRect(g_wnd, nullptr, FALSE);
 }
 
@@ -242,7 +244,7 @@ void select_tab(int t) {
 	g_tab = t;
 	for (int i = 0; i < TAB_COUNT; i++)
 		InvalidateRect(item(ID_TAB + i), nullptr, FALSE);
-	ask();
+	InvalidateRect(g_wnd, nullptr, FALSE); // every page came with the snapshot
 }
 
 // ---- text layout ----
@@ -476,22 +478,25 @@ void paint(HDC dc) {
 	const char* status;
 	COLORREF statusColor = C_HEADER;
 	char buf[96];
-	if (net_state() != NET_CONNECTED) {
-		if (!g_cfg.host[0])
-			status = "No server is set in legacia.ini.";
-		else if (!net_short_code().empty()) {
-			// typed keys don't always reach the chat box, so show the command
-			snprintf(buf, sizeof(buf), "Not signed in: type @voice %s in game chat, or relog.", net_short_code().c_str());
-			status = buf;
-		}
-		else
-			status = "Signing in to the server...";
+	DWORD snapAt = 0;
+	SnapState snap = net_snapshot_state(&snapAt);
+	if (!g_cfg.host[0]) {
+		status = "No server is set in legacia.ini.";
 		statusColor = C_WAIT;
-	} else if (g_unavailable) {
+	} else if (snap == SNAP_NOT_IN_GAME) {
+		status = "Server didn't find your character. Relog, then Recalculate.";
+		statusColor = C_WAIT;
+	} else if (snap == SNAP_NO_LOGIN) {
+		status = "Enter a map first, then press Recalculate.";
+		statusColor = C_WAIT;
+	} else if (snap == SNAP_UNAVAILABLE) {
 		status = "The server can't send statistics right now. Try again later.";
 		statusColor = C_WAIT;
-	} else if (gotAt == 0) {
-		status = g_waiting && GetTickCount() - g_askedAt > TIMEOUT_MS ? "No answer from the server yet..." : "Loading...";
+	} else if (snap == SNAP_NO_ANSWER && gotAt == 0) {
+		status = "No answer from the server. Press Recalculate.";
+		statusColor = C_WAIT;
+	} else if (snap == SNAP_LOADING && gotAt == 0) {
+		status = "Calculating...";
 	} else if (g_bgNoticeAt && GetTickCount() - g_bgNoticeAt < 2500) {
 		int n = (int)g_bgFiles.size(), cur = 0;
 		for (int i = 0; i < n; i++)
@@ -504,13 +509,13 @@ void paint(HDC dc) {
 		status = buf;
 		statusColor = C_BLUE_TEXT;
 	} else {
-		DWORD age = (GetTickCount() - gotAt) / 1000;
-		if (age < 2)
-			snprintf(buf, sizeof(buf), "Live - updates every %u seconds", (unsigned)(REFRESH_MS / 1000));
+		DWORD age = (GetTickCount() - (snapAt ? snapAt : gotAt)) / 1000;
+		if (age < 60)
+			snprintf(buf, sizeof(buf), "Snapshot %u s ago - Recalculate to update", (unsigned)age);
 		else
-			snprintf(buf, sizeof(buf), "Updated %u seconds ago", (unsigned)age);
+			snprintf(buf, sizeof(buf), "Snapshot %u min ago - Recalculate to update", (unsigned)(age / 60));
 		status = buf;
-		statusColor = age < 2 ? C_OK : C_HEADER;
+		statusColor = age < 3 ? C_OK : C_HEADER;
 	}
 
 	if (page.empty()) {
@@ -670,22 +675,8 @@ LRESULT CALLBACK proc(HWND hw, UINT msg, WPARAM wp, LPARAM lp) {
 			scroll_to(g_scroll + (wp == VK_PRIOR ? -1 : 1) * (PANEL_B - PANEL_Y - LINE_H));
 		return 0;
 	case WM_TIMER:
-		if (wp == TIMER_REFRESH && IsWindowVisible(hw)) {
-			const char* caption = net_short_code().empty() ? "Refresh" : "Sign in";
-			char cur[16];
-			GetWindowTextA(g_refreshBtn, cur, sizeof(cur));
-			if (strcmp(cur, caption))
-				SetWindowTextA(g_refreshBtn, caption), InvalidateRect(g_refreshBtn, nullptr, FALSE);
-			DWORD now = GetTickCount(), gotAt;
-			{
-				Lock l(g_lock);
-				gotAt = g_gotAt[g_tab];
-			}
-			if (now - g_askedAt >= REFRESH_MS && (gotAt == 0 || now - gotAt >= REFRESH_MS))
-				ask();
-			else
-				InvalidateRect(hw, nullptr, FALSE); // status line ages
-		}
+		if (wp == TIMER_REFRESH && IsWindowVisible(hw))
+			InvalidateRect(hw, nullptr, FALSE); // status line ages, pages arrive
 		return 0;
 	case WM_STATS:
 		InvalidateRect(hw, nullptr, FALSE);
@@ -700,14 +691,7 @@ LRESULT CALLBACK proc(HWND hw, UINT msg, WPARAM wp, LPARAM lp) {
 			return 0;
 		if (id == ID_X)
 			ShowWindow(hw, SW_HIDE);
-		else if (id == ID_REFRESH && !net_short_code().empty()) {
-			// the server can't tell which player this is: sign in through
-			// the game chat, which needs the game to have the keyboard
-			SetForegroundWindow(g_gameWnd);
-			SetFocus(g_gameWnd);
-			ui_type_voice_command(net_short_code());
-			return 0;
-		} else if (id == ID_REFRESH)
+		else if (id == ID_REFRESH)
 			ask();
 		else if (id == ID_BG_PREV || id == ID_BG_NEXT)
 			cycle_background(id == ID_BG_NEXT ? 1 : -1);
@@ -750,7 +734,7 @@ void stats_ui_create() {
 	child("", W - 21, 3, 16, 16, ID_X);
 	for (int i = 0; i < TAB_COUNT; i++)
 		child(TABS[i], TAB_X, TAB_Y + i * (TAB_H + TAB_GAP), TAB_W, TAB_H, ID_TAB + i);
-	g_refreshBtn = child("Refresh", W - 16 - 70, H - 27, 70, 22, ID_REFRESH);
+	g_refreshBtn = child("Recalculate", W - 16 - 70, H - 27, 70, 22, ID_REFRESH);
 	child(">", W - 16 - 70 - 6 - 24, H - 27, 24, 22, ID_BG_NEXT);
 	child("<", W - 16 - 70 - 6 - 24 - 2 - 24, H - 27, 24, 22, ID_BG_PREV);
 	child("Background", W - 16 - 70 - 6 - 24 - 2 - 24 - 2 - 80, H - 27, 80, 22, ID_BG_FOLDER);
@@ -773,7 +757,6 @@ void stats_ui_toggle() {
 		ClientToScreen(g_gameWnd, &c);
 		SetWindowPos(g_wnd, HWND_TOP, c.x - W / 2, c.y - H / 2, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
 	}
-	g_unavailable = false;
 	ShowWindow(g_wnd, SW_SHOW);
 	SetForegroundWindow(g_wnd);
 	SetFocus(g_wnd);
@@ -798,8 +781,6 @@ void stats_ui_on_page(uint8_t page, const std::string& text) {
 		if (g_gotAt[page] == 0)
 			g_gotAt[page] = 1;
 	}
-	g_waiting = false;
-	g_unavailable = false;
 	if (g_wnd)
 		PostMessageA(g_wnd, WM_STATS, 0, 0);
 }
@@ -809,9 +790,7 @@ void stats_ui_on_unavailable(uint8_t page) {
 		gui_stats_on_unavailable(page);
 		return;
 	}
-	(void)page;
-	g_waiting = false;
-	g_unavailable = true;
+	(void)page; // the snapshot (net.cpp) tracks whether the server can answer
 	if (g_wnd)
 		PostMessageA(g_wnd, WM_STATS, 0, 0);
 }

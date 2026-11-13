@@ -96,7 +96,7 @@ Every packet starts with `W cmd, W length` (length includes the 4 header bytes).
 
 | Cmd | Direction | Body |
 |-----|-----------|------|
-| `0x7600` HELLO | map -> voice | `S secret[32]` (zero padded), then `B features` (0x01: answers STATS_QUERY, 0x02: answers CELLS_QUERY, 0x04: answers AURAS_QUERY, 0x08: answers IDENT_QUERY). Older map-servers send no feature byte, and the voice server then never sends them STATS_QUERY |
+| `0x7600` HELLO | map -> voice | `S secret[32]` (zero padded), then `B features` (0x01: answers STATS_QUERY, 0x02: answers CELLS_QUERY, 0x04: answers AURAS_QUERY, 0x08: answers IDENT_QUERY, 0x10: answers SNAP_QUERY). Older map-servers send no feature byte, and the voice server then never sends them STATS_QUERY |
 | `0x7680` HELLO_ACK | voice -> map | `B result` (0 ok, 1 wrong secret) |
 | `0x7601` PLAYER | map -> voice | `L account_id, L char_id, L party_id, L guild_id, W x, W y, B flags, S map[16], S name[24], L chat_id` (flags: 0x01 chat-banned, 0x02 blocks all whispers; older map-servers leave out `chat_id`) |
 | `0x7604` CLAIM | map -> voice | `B code[16], L char_id` |
@@ -113,6 +113,8 @@ Every packet starts with `W cmd, W length` (length includes the 4 header bytes).
 | `0x760a` AURAS | map -> voice | `L char_id, W count, count * {L account_id, B part1, B part2, B part3}`: players within 14 cells wearing an aura (at most 200; part 0 = none). Hidden, cloaked and invisible players are left out except the player themself; `@show_auras` 1 sends only their own, 2 none |
 | `0x7687` IDENT_QUERY | voice -> map | `L account_id, L char_id, L login_id1, S short_code[8]`: the plugin read the game's own login; at most one per address every 2 s |
 | `0x760b` CLAIM_IDENT | map -> voice | `S short_code[8], L char_id`: answer to IDENT_QUERY when account, character and login code match a player in game. The voice server links the code and answers CLAIM_RESULT |
+| `0x7688` SNAP_QUERY | voice -> map | `L ticket, L account_id, L char_id, L login_id1`: the plugin's Player Statistics window was opened and wants every page once. The game login proves whose stats they are, so no voice sign-in is needed. Only sent to map-servers with feature 0x10; limited to one per address per second (and the shared 20 per second overall) |
+| `0x760c` SNAP | map -> voice | `L ticket, B page, S text`: one page of the snapshot (all 8 follow each other). Page 0xff with no text = no player in game with that login. The map-server builds a snapshot at most once per 1.5 s per character |
 | `0x7602` LEAVE | map -> voice | `L char_id` |
 | `0x7603` PING | map -> voice | (none) |
 | `0x7681` PONG | voice -> map | (none) |
@@ -144,12 +146,17 @@ After HELLO_ACK the voice server forgets all players and the map-server sends ev
 | `0x08` AURAS | client -> voice | `B type, L session`: ask for the auras of the players around (once a second, at most one every 400 ms) |
 | `0x8b` AURAS | voice -> client | `B type, W count, count * {L account_id, B part1, B part2, B part3}` |
 | `0x8c` NO_AURAS | voice -> client | `B type`: no map-server is linked, or it is too old to answer |
+| `0x0a` SNAP | client -> voice | `B type, L account_id, L char_id, L login_id1, L nonce`: Player Statistics snapshot, no session needed. The plugin sends it again every 2 s until every page arrived (gives up after 12 s) |
+| `0x8d` SNAP | voice -> client | `B type, L nonce, B page, B part, B parts, S text`: one piece of a snapshot page (up to 16 pieces of 1000 bytes) |
+| `0x8e` SNAP_NO | voice -> client | `B type, L nonce, B reason`: 1 = the map-server found no player in game with that login, 2 = no map-server is linked or it is too old (the plugin then asks page by page over its voice session, if it has one) |
 
 Audio is 48 kHz mono Opus, 20 ms frames. A session only accepts packets from the address that sent HELLO. Muting a single player (the Players tab) is done in the client.
 
 ## Player Statistics window
 
-The plugin's Player Statistics window (Stats button, Ctrl+Shift+S) shows the same sections as `@statsview`. It asks the voice server, which asks the map-server over the link. The plugin stays signed in to the voice server even when the player turns voice chat off (MODE 0x01: no audio either way), so the window works for players who don't use voice chat too. It only stops when the voice server isn't running. The voice server only asks for the character its session belongs to, and the map-server only answers for characters whose voice client signed in during this login, so nobody can read another player's stats. Both sides limit requests to one every 250 ms per player; the window itself refreshes every 3 seconds while it's open.
+The plugin's Player Statistics window (Stats button, Ctrl+Shift+S) shows the same sections as `@statsview`. When it opens it takes a **snapshot**: one SNAP packet with the game's own login (account, character, login_id1, read from the client like IDENT) goes to the voice server, which asks the map-server for every page at once. Nothing has to be signed in or stay connected, and nobody can ask for someone else's stats without their login code. The numbers don't change while the window is open; opening it again (or the Recalculate button) takes a new snapshot. With an older voice server or map-server, the window falls back to the session pages below.
+
+Older path, still used as the fallback: the window asks the voice server, which asks the map-server over the link. The plugin stays signed in to the voice server even when the player turns voice chat off (MODE 0x01: no audio either way). The voice server only asks for the character its session belongs to, and the map-server only answers for characters whose voice client signed in during this login, so nobody can read another player's stats. Both sides limit requests to one every 250 ms per player.
 
 ## Abuse protection
 

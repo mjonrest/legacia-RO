@@ -101,6 +101,19 @@ std::string net_short_code(); // code for @voice while signing in, else empty
 uint32_t net_char_id();
 void net_send_audio(uint16_t seq, uint8_t channel, const uint8_t* data, int len);
 bool net_request_stats(uint8_t page); // false while voice chat isn't connected
+// Player Statistics snapshot: every page once, asked with the game login, no
+// voice sign-in needed. Pages arrive through stats_ui_on_page.
+enum SnapState {
+	SNAP_IDLE,
+	SNAP_LOADING,
+	SNAP_DONE,        // every page arrived (doneAt = GetTickCount then)
+	SNAP_NOT_IN_GAME, // the map-server didn't find this login in game
+	SNAP_UNAVAILABLE, // the server can't answer right now
+	SNAP_NO_ANSWER,   // nothing came back
+	SNAP_NO_LOGIN,    // no game login to ask with (not in a map yet, or another exe) and no voice session
+};
+void net_snapshot_start(); // ask again from the start (window opened, Recalculate)
+SnapState net_snapshot_state(DWORD* doneAt);
 
 // ---- audio.cpp ----
 struct SpeakerInfo {
@@ -178,7 +191,7 @@ void graymap_button_refresh();               // Graymap switched on/off or colou
 
 // ---- stats_ui.cpp: Player Statistics window (Ctrl+Shift+S) ----
 // The text comes from the map-server through the voice server (same pages as
-// @statsview), so it needs voice chat to be connected.
+// @statsview), as a snapshot asked for with the game login when the window opens.
 // types "@voice CODE" into the game chat, signing this plugin in when the
 // server can't tell the player by address (several games on one connection)
 void ui_type_voice_command(const std::string& code);

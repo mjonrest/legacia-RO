@@ -45,6 +45,7 @@ const ImGuiWindowFlags FIXED_FLAGS = WIN_FLAGS | ImGuiWindowFlags_NoMove | ImGui
 
 struct Win {
 	bool open = false;
+	bool minimized = false; // only the title bar shows (Player Statistics)
 	bool placed = false; // opened once: keeps the spot the player dragged it to
 	bool focus = false;  // bring to the front on the next frame
 };
@@ -144,9 +145,33 @@ bool close_x(const char* id) {
 	return clicked;
 }
 
+// the minimize button next to close_x: a bar, or a box when minimized
+bool minimize_button(const char* id, bool minimized) {
+	ImVec2 p = ImGui::GetCursorScreenPos();
+	bool clicked = ImGui::InvisibleButton(id, ImVec2(16, 16));
+	bool hot = ImGui::IsItemHovered();
+	ImDrawList* dl = ImGui::GetWindowDrawList();
+	ImVec2 c = p + ImVec2(8, 8);
+	dl->AddCircleFilled(c, 7.5f, hot ? rgb(120, 160, 235) : rgb(255, 255, 255, 70));
+	dl->AddCircle(c, 7.5f, rgb(255, 255, 255, 200));
+	if (minimized)
+		dl->AddRect(c + ImVec2(-3.5f, -3.5f), c + ImVec2(3.5f, 3.0f), WHITE, 0, 0, 1.4f);
+	else
+		dl->AddLine(c + ImVec2(-3.5f, 2.5f), c + ImVec2(4.0f, 2.5f), WHITE, 1.8f);
+	if (hot)
+		ImGui::SetTooltip(minimized ? "Restore" : "Minimize");
+	return clicked;
+}
+
 // a window in the game's style: blue title bar with a close button.
 // bg: picture drawn behind everything (Player Statistics)
-void begin_window(const char* id, const char* title, Win& w, ImVec2 size, ImVec2 defPos, const GuiTexture* bg = nullptr) {
+// minimizable: a minimize button too; while w.minimized only the title bar shows
+void begin_window(const char* id, const char* title, Win& w, ImVec2 size, ImVec2 defPos, const GuiTexture* bg = nullptr,
+                  bool minimizable = false) {
+	if (minimizable && w.minimized) {
+		size.y = TITLE_H + 2;
+		bg = nullptr;
+	}
 	if (!w.placed) {
 		ImGui::SetNextWindowPos(defPos);
 		w.placed = true;
@@ -170,6 +195,11 @@ void begin_window(const char* id, const char* title, Win& w, ImVec2 size, ImVec2
 	ImGui::SetCursorPos(ImVec2(size.x - 21, 3));
 	if (close_x("##close"))
 		w.open = false;
+	if (minimizable) {
+		ImGui::SetCursorPos(ImVec2(size.x - 41, 3));
+		if (minimize_button("##minimize", w.minimized))
+			w.minimized = !w.minimized;
+	}
 }
 
 ImGuiWindow* window_named(const char* name) {
@@ -244,13 +274,10 @@ CornerButton g_gmBtn, g_stBtn;
 // Player Statistics
 const char* const TABS[] = {"Overview", "Attack", "Magic", "Defense", "Skills", "Healing", "Procs", "EXP & Drops"};
 const int TAB_COUNT = sizeof(TABS) / sizeof(TABS[0]);
-const DWORD REFRESH_MS = 3000, TIMEOUT_MS = 4000;
 const float ST_W = 520, ST_H = 440;
 CRITICAL_SECTION g_statsLock;
 std::string g_statsText[TAB_COUNT];
 DWORD g_statsGot[TAB_COUNT];
-DWORD g_statsAsked;
-volatile bool g_statsWaiting, g_statsUnavailable;
 int g_statsTab;
 GuiTexture g_bgTex;
 bool g_bgDirty = true;
@@ -726,16 +753,23 @@ void toggle_graymap_window() {
 	g_graymap.focus = g_graymap.open;
 }
 
-void ask_stats();
+void take_stats_snapshot();
 
+// The window shows a snapshot taken when it opens: no live connection to keep
+// up. Opening it again (or Recalculate) takes a new one. The Stats button on
+// a minimized window brings it back with new numbers.
 void toggle_stats_window() {
-	g_stats.open = !g_stats.open;
-	if (g_stats.open) {
-		g_stats.focus = true;
-		g_statsUnavailable = false;
-		g_bgDirty = true;
-		ask_stats();
+	if (g_stats.open && !g_stats.minimized) {
+		g_stats.open = false;
+		return;
 	}
+	bool wasOpen = g_stats.open;
+	g_stats.open = true;
+	g_stats.minimized = false;
+	g_stats.focus = true;
+	if (!wasOpen)
+		g_bgDirty = true;
+	take_stats_snapshot();
 }
 
 void set_graymap(bool on) {
@@ -1150,9 +1184,15 @@ void cycle_background(int dir) {
 	background_changed();
 }
 
-void ask_stats() {
-	g_statsAsked = GetTickCount();
-	g_statsWaiting = net_request_stats((uint8_t)g_statsTab);
+void take_stats_snapshot() {
+	{
+		Lock l(g_statsLock);
+		for (int i = 0; i < TAB_COUNT; i++) {
+			g_statsText[i].clear();
+			g_statsGot[i] = 0;
+		}
+	}
+	net_snapshot_start();
 }
 
 struct Run {
@@ -1251,22 +1291,23 @@ void stats_window() {
 	if (g_bgDirty)
 		load_background();
 	DWORD now = GetTickCount();
-	if (net_state() == NET_CONNECTED && now - g_statsAsked >= REFRESH_MS)
-		ask_stats();
 
 	const float W = ST_W, H = ST_H;
 	ImVec2 disp = ImGui::GetIO().DisplaySize;
-	begin_window("##stats", "Player Statistics", g_stats, ImVec2(W, H), ImVec2((disp.x - W) / 2, (disp.y - H) / 2), &g_bgTex);
+	begin_window("##stats", "Player Statistics", g_stats, ImVec2(W, H), ImVec2((disp.x - W) / 2, (disp.y - H) / 2), &g_bgTex,
+	             true);
+	if (g_stats.minimized) {
+		ImGui::End();
+		return;
+	}
 	bool bg = g_bgTex.tex != nullptr;
 	int op = g_cfg.stOpacity;
 
 	for (int i = 0; i < TAB_COUNT; i++) {
 		char id[40];
 		snprintf(id, sizeof(id), "%s##st%d", TABS[i], i);
-		if (button_at(16, 34 + i * 32.0f, id, ImVec2(116, 28), g_statsTab == i) && g_statsTab != i) {
-			g_statsTab = i;
-			ask_stats();
-		}
+		if (button_at(16, 34 + i * 32.0f, id, ImVec2(116, 28), g_statsTab == i) && g_statsTab != i)
+			g_statsTab = i; // every page came with the snapshot
 	}
 
 	std::string page;
@@ -1281,20 +1322,25 @@ void stats_window() {
 	char buf[160];
 	const char* status;
 	ImU32 statusColor = HEADER;
-	if (net_state() != NET_CONNECTED) {
-		if (!g_cfg.host[0])
-			status = "No server is set in legacia.ini.";
-		else if (!net_short_code().empty()) {
-			snprintf(buf, sizeof(buf), "Not signed in: type @voice %s in game chat, or relog.", net_short_code().c_str());
-			status = buf;
-		} else
-			status = "Signing in to the server...";
+	DWORD snapAt = 0;
+	SnapState snap = net_snapshot_state(&snapAt);
+	if (!g_cfg.host[0]) {
+		status = "No server is set in legacia.ini.";
 		statusColor = WAIT;
-	} else if (g_statsUnavailable) {
+	} else if (snap == SNAP_NOT_IN_GAME) {
+		status = "The server didn't find your character. Relog, then press Recalculate.";
+		statusColor = WAIT;
+	} else if (snap == SNAP_NO_LOGIN) {
+		status = "Enter a map first, then press Recalculate.";
+		statusColor = WAIT;
+	} else if (snap == SNAP_UNAVAILABLE) {
 		status = "The server can't send statistics right now. Try again later.";
 		statusColor = WAIT;
-	} else if (gotAt == 0) {
-		status = g_statsWaiting && now - g_statsAsked > TIMEOUT_MS ? "No answer from the server yet..." : "Loading...";
+	} else if (snap == SNAP_NO_ANSWER && gotAt == 0) {
+		status = "No answer from the server. Press Recalculate to try again.";
+		statusColor = WAIT;
+	} else if (snap == SNAP_LOADING && gotAt == 0) {
+		status = "Calculating...";
 	} else if (g_bgNoticeAt && now - g_bgNoticeAt < 2500) {
 		int n = (int)g_bgFiles.size(), cur = 0;
 		for (int i = 0; i < n; i++)
@@ -1307,13 +1353,15 @@ void stats_window() {
 		status = buf;
 		statusColor = BLUE_TEXT;
 	} else {
-		DWORD age = (now - gotAt) / 1000;
-		if (age < 2)
-			snprintf(buf, sizeof(buf), "Live - updates every %u seconds", (unsigned)(REFRESH_MS / 1000));
+		// a snapshot: the numbers when the window opened
+		DWORD at = snapAt ? snapAt : gotAt;
+		DWORD age = (now - at) / 1000;
+		if (age < 60)
+			snprintf(buf, sizeof(buf), "Snapshot %u s ago - Recalculate for new numbers", (unsigned)age);
 		else
-			snprintf(buf, sizeof(buf), "Updated %u seconds ago", (unsigned)age);
+			snprintf(buf, sizeof(buf), "Snapshot %u min ago - Recalculate for new numbers", (unsigned)(age / 60));
 		status = buf;
-		statusColor = age < 2 ? OK : HEADER;
+		statusColor = age < 3 ? OK : HEADER;
 	}
 
 	// text panel
@@ -1353,13 +1401,8 @@ void stats_window() {
 		scan_backgrounds();
 		ImGui::OpenPopup("##bgmenu");
 	}
-	bool signIn = net_state() != NET_CONNECTED && !net_short_code().empty();
-	if (button_at(W - 86, H - 34, signIn ? "Sign in##st" : "Refresh##st", ImVec2(70, 24))) {
-		if (signIn)
-			ui_type_voice_command(net_short_code());
-		else
-			ask_stats();
-	}
+	if (button_at(W - 86, H - 34, "Recalculate##st", ImVec2(70, 24)))
+		take_stats_snapshot();
 
 	if (ImGui::BeginPopup("##bgmenu")) {
 		if (ImGui::MenuItem("No picture", nullptr, !g_cfg.stBackground[0])) {
@@ -1517,11 +1560,8 @@ void gui_stats_on_page(uint8_t page, const std::string& text) {
 		if (g_statsGot[page] == 0)
 			g_statsGot[page] = 1;
 	}
-	g_statsWaiting = false;
-	g_statsUnavailable = false;
 }
 
 void gui_stats_on_unavailable(uint8_t) {
-	g_statsWaiting = false;
-	g_statsUnavailable = true;
+	// the snapshot (net.cpp) tracks whether the server can answer
 }

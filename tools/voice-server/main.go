@@ -53,6 +53,9 @@ func main() {
 	link.OnCells = udp.SendCells
 	udp.AurasQuery = link.AurasQuery
 	link.OnAuras = udp.SendAuras
+	udp.SnapQuery = link.SnapQuery
+	udp.SnapAvailable = link.SnapQueryAvailable
+	link.OnSnap = udp.SendSnap
 	go func() {
 		log.Fatal(link.Serve(ln))
 	}()

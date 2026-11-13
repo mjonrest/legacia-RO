@@ -28,6 +28,7 @@ const (
 	linkCells       = 0x7609 // char_id(4) count(2) count * {x(2) y(2) skill_id(2) kind(1)}: LGP skill cells
 	linkClaimIdent  = 0x760b // short_code(8) char_id(4), answer to linkIdentQuery: the login matched
 	linkAuras       = 0x760a // char_id(4) count(2) count * {account_id(4) part1(1) part2(1) part3(1)}: auras around the player
+	linkSnap        = 0x760c // ticket(4) page(1) text: one page of a statistics snapshot; page snapDenied = the login didn't match a player in game
 	linkHelloAck    = 0x7680
 	linkPong        = 0x7681
 	linkClaimResult = 0x7682 // char_id(4) result(1): 0 linked, 1 unknown or expired code
@@ -36,12 +37,16 @@ const (
 	linkCellsQuery  = 0x7685 // char_id(4): only sent if the map-server said it knows it
 	linkIdentQuery  = 0x7687 // account_id(4) char_id(4) auth_code(4) short_code(8): only sent if the map-server said it knows it
 	linkAurasQuery  = 0x7686 // char_id(4): only sent if the map-server said it knows it
+	linkSnapQuery   = 0x7688 // ticket(4) account_id(4) char_id(4) auth_code(4): all statistics pages at once, only sent if the map-server said it knows it
 
 	// features a map-server lists in the byte after the secret in HELLO
 	featureStats = 0x01
 	featureCells = 0x02
 	featureAuras = 0x04
 	featureIdent = 0x08 // answers linkIdentQuery
+	featureSnap  = 0x10 // answers linkSnapQuery
+
+	snapDenied = 0xff // linkSnap page: no such player in game with that login
 
 	secretLength       = 32
 	nameLength         = 24
@@ -64,6 +69,8 @@ type LinkServer struct {
 	OnCells func(charID uint32, cells []byte)
 	// called with the auras of the players around a character from the map-server
 	OnAuras func(charID uint32, auras []byte)
+	// called with one page of a statistics snapshot from the map-server
+	OnSnap func(ticket uint32, page uint8, text []byte)
 
 	mu      sync.Mutex // guards current and writes to it
 	current net.Conn
@@ -73,19 +80,23 @@ type LinkServer struct {
 	cellsOK bool
 	aurasOK bool
 	identOK bool // and linkIdentQuery
+	snapOK  bool // and linkSnapQuery
 	// last aura query and answer written to the log (one a minute each)
 	aurasAskLog, aurasAnswerLog time.Time
 	// last auto query per address, so UDP hellos can't flood the map-server
 	queried map[netip.Addr]time.Time
 	// last ident query per address
 	identQueried map[netip.Addr]time.Time
+	// last snapshot query per address
+	snapQueried map[netip.Addr]time.Time
 	// and overall, since each query makes the map-server look at every player
 	queryTokens float64
 	queryRefill time.Time
 }
 
 func NewLinkServer(hub *Hub, secret string) *LinkServer {
-	ls := &LinkServer{hub: hub, queried: map[netip.Addr]time.Time{}, identQueried: map[netip.Addr]time.Time{}}
+	ls := &LinkServer{hub: hub, queried: map[netip.Addr]time.Time{}, identQueried: map[netip.Addr]time.Time{},
+		snapQueried: map[netip.Addr]time.Time{}}
 	copy(ls.secret[:], secret)
 	return ls
 }
@@ -146,12 +157,16 @@ const (
 // allowQuery applies the per-address and overall limits shared by auto and
 // ident queries. Called with ls.mu held.
 func (ls *LinkServer) allowQueryLocked(seen map[netip.Addr]time.Time, ip netip.Addr, now time.Time) bool {
-	if now.Sub(seen[ip]) < autoQueryInterval {
+	return ls.allowQueryEveryLocked(seen, ip, now, autoQueryInterval)
+}
+
+func (ls *LinkServer) allowQueryEveryLocked(seen map[netip.Addr]time.Time, ip netip.Addr, now time.Time, every time.Duration) bool {
+	if now.Sub(seen[ip]) < every {
 		return false
 	}
 	if len(seen) > maxPending {
 		for k, t := range seen {
-			if now.Sub(t) >= autoQueryInterval {
+			if now.Sub(t) >= every {
 				delete(seen, k)
 			}
 		}
@@ -250,6 +265,40 @@ func (ls *LinkServer) CellsQuery(charID uint32) bool {
 	return ls.send(c, linkCellsQuery, b) == nil
 }
 
+// snapQueryInterval: snapshot queries per address. Several players may share
+// one address and the plugin asks again until it has every page, so this is
+// shorter than the ident limit; the overall limit still applies.
+const snapQueryInterval = time.Second
+
+// SnapQueryAvailable says whether the linked map-server answers snapshot queries.
+func (ls *LinkServer) SnapQueryAvailable() bool {
+	ls.mu.Lock()
+	defer ls.mu.Unlock()
+	return ls.current != nil && ls.snapOK
+}
+
+// SnapQuery asks the map-server for every Player Statistics page of the
+// character this game login belongs to, answered with linkSnap under ticket.
+// No voice sign-in is needed: the login code (the game client's own) proves
+// whose statistics they are. Returns false when the query wasn't sent (no
+// map-server, too old, or over the query limits).
+func (ls *LinkServer) SnapQuery(ip netip.Addr, ticket, accountID, charID, authCode uint32, now time.Time) bool {
+	ip = ip.Unmap()
+	ls.mu.Lock()
+	if ls.current == nil || !ls.snapOK || !ls.allowQueryEveryLocked(ls.snapQueried, ip, now, snapQueryInterval) {
+		ls.mu.Unlock()
+		return false
+	}
+	c := ls.current
+	ls.mu.Unlock()
+	b := make([]byte, 16)
+	binary.LittleEndian.PutUint32(b[0:], ticket)
+	binary.LittleEndian.PutUint32(b[4:], accountID)
+	binary.LittleEndian.PutUint32(b[8:], charID)
+	binary.LittleEndian.PutUint32(b[12:], authCode)
+	return ls.send(c, linkSnapQuery, b) == nil
+}
+
 // AurasQuery asks the map-server for the auras of the players around a
 // character. Returns false when no map-server is linked or it is too old.
 func (ls *LinkServer) AurasQuery(charID uint32) bool {
@@ -296,6 +345,7 @@ func (ls *LinkServer) handle(c net.Conn) {
 	ls.cellsOK = len(body) > secretLength && body[secretLength]&featureCells != 0
 	ls.aurasOK = len(body) > secretLength && body[secretLength]&featureAuras != 0
 	ls.identOK = len(body) > secretLength && body[secretLength]&featureIdent != 0
+	ls.snapOK = len(body) > secretLength && body[secretLength]&featureSnap != 0
 	ls.mu.Unlock()
 	defer func() {
 		ls.mu.Lock()
@@ -310,8 +360,8 @@ func (ls *LinkServer) handle(c net.Conn) {
 		return
 	}
 	ls.mu.Lock()
-	log.Printf("link %s: map-server connected (stats %v, cells %v, auras %v, game login %v)",
-		c.RemoteAddr(), ls.statsOK, ls.cellsOK, ls.aurasOK, ls.identOK)
+	log.Printf("link %s: map-server connected (stats %v, cells %v, auras %v, game login %v, stats snapshot %v)",
+		c.RemoteAddr(), ls.statsOK, ls.cellsOK, ls.aurasOK, ls.identOK, ls.snapOK)
 	ls.mu.Unlock()
 
 	for {
@@ -424,6 +474,13 @@ func (ls *LinkServer) handle(c net.Conn) {
 			}
 			if ls.OnCells != nil {
 				ls.OnCells(binary.LittleEndian.Uint32(body), body[4:6+n*cellSize])
+			}
+		case linkSnap:
+			if len(body) < 5 {
+				return
+			}
+			if ls.OnSnap != nil {
+				ls.OnSnap(binary.LittleEndian.Uint32(body), body[4], body[5:])
 			}
 		case linkAuras:
 			if len(body) < 6 {
