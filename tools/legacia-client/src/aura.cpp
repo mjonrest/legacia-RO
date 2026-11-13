@@ -343,7 +343,7 @@ void draw_rings(const V3& foot, void* tex, float t) {
 		V3 d = {cosf(dir), 0, sinf(dir)};
 		V3 e1 = {-d.z, 0, d.x};
 		V3 e2 = {cosf(TILT) * d.x, sinf(TILT), cosf(TILT) * d.z};
-		float alpha = 100 * fade; // dim like the ground circle: 240/150 read too bright/white (owner 2026-11-13)
+		float alpha = 50 * fade; // owner 2026-11-13: brightness 50 (240/150/100 read too bright/white)
 		float spin = fmodf(t / 2.6f + pi * 0.31f, 1.0f) * (pi == 1 ? -1.0f : 1.0f);
 		auto at = [&](float rr, float ang) {
 			if (rr < 0.5f * g_scale)
@@ -378,7 +378,7 @@ bool ring_is_pillar(int num) {
 }
 
 // a flame bloom, matched to the owner's video (2026-11-13): a ring of flame
-// round the feet about 2 cells across that bulges out to about 3 cells like a
+// round the feet about as wide as the player that bulges out a little like a
 // bowl and rises to about head height. Each of the two layers burns on two
 // arcs (not the whole way round) that circle the player, the layers turning
 // opposite ways, so the flames move from side to side round the body. The
@@ -386,13 +386,14 @@ bool ring_is_pillar(int num) {
 // Texture bottom at the feet.
 void draw_pillar(const V3& foot, void* tex, float t) {
 	const int SEGS = 36, REP = 3, ROWS = 4; // texture runs three times round
-	const float R0 = 19 * g_scale, R1 = 33 * g_scale, H = 58 * g_scale;
+	// width matches the player and stays inside the ground circle (R 37), owner 2026-11-13
+	const float R0 = 13 * g_scale, R1 = 24 * g_scale, H = 58 * g_scale;
 	float grow = 0.88f + 0.12f * sinf(2 * PI * t / 3.0f); // breathes like the ground circle
 	for (int layer = 0; layer < 2; layer++) {
 		float open = layer ? 1.1f : 0.95f;   // outer layer opens wider and lower
 		float hh = H * grow * (layer ? 0.8f : 1.0f) * (0.92f + 0.08f * sinf(2 * PI * t / 1.3f + layer * 1.7f));
 		float turn = 2 * PI * fmodf(t / (layer ? 4.5f : 3.5f), 1.0f) * (layer ? -1.0f : 1.0f) + layer * PI / 2;
-		float bright = layer ? 80.0f : 120.0f;
+		float bright = layer ? 35.0f : 50.0f; // owner: brightness 50
 		auto at = [&](float ang, float f) {
 			float tongue = 1 + 0.08f * sinf(5 * ang + 2 * PI * t / 1.7f + layer * 2.0f);
 			float h = hh * f * (0.75f + 0.25f * tongue);
