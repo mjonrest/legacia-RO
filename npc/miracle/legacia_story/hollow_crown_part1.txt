@@ -133,6 +133,16 @@ prt_castle,125,51,4	script	Archivist Sera	4_F_SARAH,{
 		mes "Cursed Ruby: ^0000FF" + countitem(724) + "/10^000000";
 		if (LGS_GHKILL < .ghkills || countitem(932) < 100 || countitem(724) < 10)
 			close;
+		// rewards are bound/no-drop: if they can't fit, getitembound fails and the
+		// script stops after the items were taken, so check room first
+		if (!checkweight(.lens, 1, .emblem[0], 1, .shard, 10)) {
+			next;
+			mes .@n$;
+			mes "Your bag is too full to carry";
+			mes "the reward. Free a few inventory";
+			mes "slots and talk to me again.";
+			close;
+		}
 		next;
 		mes .@n$;
 		mes "You have everything! Quickly,";
@@ -187,10 +197,26 @@ prt_castle,125,51,4	script	Archivist Sera	4_F_SARAH,{
 	switch (select("Open the rift to the echo:Legacy Shard Exchange:Legacy Emblem upgrade:About Legacia:Leave")) {
 	case 1:
 		if (!countitem(.lens)) {
+			// lost lens (e.g. the chapter 1 reward failed on a full inventory): give it back
+			.@has_emblem = 0;
+			for (.@i = 0; .@i < 5; .@i++)
+				if (countitem(.emblem[.@i])) .@has_emblem = 1;
+			if (!checkweight(.lens, 1, .emblem[0], 1)) {
+				mes .@n$;
+				mes "You lost your ^0000FFEcho Lens^000000?";
+				mes "Free a few inventory slots and";
+				mes "I'll make you a new one.";
+				close;
+			}
+			getitembound .lens, 1, Bound_Char;
+			if (!.@has_emblem)
+				getitembound .emblem[0], 1, Bound_Char;
 			mes .@n$;
-			mes "You need your ^0000FFEcho Lens^000000";
-			mes "to see the rift.";
-			close;
+			mes "You lost your ^0000FFEcho Lens^000000?";
+			mes "Here, the stone made another.";
+			if (!.@has_emblem)
+				mes "Your ^0000FFLegacy Emblem^000000 too.";
+			next;
 		}
 		if (LGS_STEP == 2) {
 			mes .@n$;
