@@ -377,23 +377,26 @@ bool ring_is_pillar(int num) {
 	return false;
 }
 
-// a flame bloom: two layers that start narrow at the feet and open outward
+// a flame bloom: two layers that start at a ring round the feet and open outward
 // like a flower / fire (a flared cup, not a straight pillar), the top edge
 // waving in petal tongues; the layers turn slowly in opposite directions and
 // the flames gently rise and settle. Texture bottom at the feet.
 void draw_pillar(const V3& foot, void* tex, float t) {
 	const int SEGS = 30, REP = 3, ROWS = 4; // texture runs three times round
-	const float R0 = 5 * g_scale, R1 = 34 * g_scale, H = 30 * g_scale;
+	// matched to the owner's screenshot: a ring of flame round the feet about
+	// 2 cells across that bulges out to about 3 cells at the waist like a bowl,
+	// fading out at about two thirds of the character's height
+	const float R0 = 19 * g_scale, R1 = 33 * g_scale, H = 40 * g_scale;
 	for (int layer = 0; layer < 2; layer++) {
-		float open = layer ? 1.15f : 0.85f;  // outer layer opens wider and lower
+		float open = layer ? 1.1f : 0.95f;   // outer layer opens wider and lower
 		float hh = H * (layer ? 0.8f : 1.0f) * (0.9f + 0.1f * sinf(2 * PI * t / 2.2f + layer * 1.7f));
 		float turn = 2 * PI * fmodf(t / (layer ? 9.0f : 6.0f), 1.0f) * (layer ? -1.0f : 1.0f);
 		uint32_t col = grey(layer ? 70.0f : 110.0f);
 		auto at = [&](float ang, float f) {
 			// petal tongues: 5 round the cup, swaying with time
-			float tongue = 1 + 0.18f * sinf(5 * ang + 2 * PI * t / 1.7f + layer * 2.0f);
+			float tongue = 1 + 0.08f * sinf(5 * ang + 2 * PI * t / 1.7f + layer * 2.0f);
 			float h = hh * f * (0.75f + 0.25f * tongue);
-			float r = R0 + (R1 * open - R0) * powf(f, 1.6f) * tongue; // flares out toward the top
+			float r = R0 + (R1 * open - R0) * sqrtf(f) * tongue; // bulges out quickly, then rises (bowl / tulip)
 			return V3{foot.x + r * cosf(ang), foot.y - h, foot.z + r * sinf(ang)}; // up is -y
 		};
 		for (int s = 0; s < SEGS; s++) {
