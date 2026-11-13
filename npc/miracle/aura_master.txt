@@ -5,6 +5,8 @@
 // as Gepard: Ground circle (part 1), Rings (part 2) and Sparkles
 // (part 3). Players unlock a part once (account-wide) and can
 // switch between owned parts for free. @aura opens the menu.
+// Browsing works like the hair Stylist: Next / Previous show each
+// part on the character right away, then Pick (or Unlock) it.
 //
 // How it works
 //  - The aura is still stored by the Gepard commands
@@ -81,9 +83,9 @@ S_Menu:
 			mes " " + .PartName$[.@p] + ": " + (get_aura_part(.@p) ? "^0000FF#" + get_aura_part(.@p) + "^000000" : "none");
 		mes "Price per part: " + .Price$;
 		.@s = select(
-			"Browse ground circles (" + callsub(S_CountOwned, 1) + "/" + .PartMax[1] + " owned)",
-			"Browse rings (" + callsub(S_CountOwned, 2) + "/" + .PartMax[2] + " owned)",
-			"Browse sparkles (" + callsub(S_CountOwned, 3) + "/" + .PartMax[3] + " owned)",
+			"Try ground circles (" + callsub(S_CountOwned, 1) + "/" + .PartMax[1] + " owned)",
+			"Try rings (" + callsub(S_CountOwned, 2) + "/" + .PartMax[2] + " owned)",
+			"Try sparkles (" + callsub(S_CountOwned, 3) + "/" + .PartMax[3] + " owned)",
 			"My auras",
 			"Remove a part",
 			"Close");
@@ -116,79 +118,73 @@ S_Menu:
 		}
 	}
 
-// ---------------- browse one part (20 per page) ----------------
+// ---------------- stylist-style browser ----------------
+// The aura changes on the character as soon as the player moves
+// with Next / Previous, like the hair Stylist. "Pick this one"
+// wears it (unlocks it first if needed); Cancel puts the old one back.
 S_Browse:
 	.@part = getarg(0);
-	.@per = 20;
-	// Copy to a plain variable: min() given .PartMax[x] walks the whole
-	// array from x, so ground circles/rings were capped at 35 (sparkles).
-	.@max = .PartMax[.@part];
-	.@pages = (.@max - 1) / .@per + 1;
-	.@page = 0;
-	while (1) {
-		clear;
-		.@from = .@page * .@per + 1;
-		.@to = min(.@from + .@per - 1, .@max);
-		.@n = .@to - .@from + 1;
-		.@menu$ = "";
-		for (.@i = .@from; .@i <= .@to; .@i++) {
-			.@tag$ = "";
-			if (.@i == get_aura_part(.@part))
-				.@tag$ = " ^0000FF[wearing]^000000";
-			else if (callsub(S_Owned, .@part, .@i))
-				.@tag$ = " ^008800[owned]^000000";
-			.@menu$ += .PartName$[.@part] + " #" + .@i + .@tag$ + ":";
-		}
-		.@menu$ += (.@page + 1 < .@pages ? "> Next page" : "") + ":" + (.@page ? "< Previous page" : "") + ":Back";
-		mes "[Aura Master]";
-		mes .PartName$[.@part] + "s, page " + (.@page + 1) + " of " + .@pages + ".";
-		mes "Pick one to see it on your character.";
-		.@s = select(.@menu$);
-		if (.@s <= .@n) {
-			callsub S_Try, .@part, .@from + .@s - 1;
-			continue;
-		}
-		.@s -= .@n;
-		if (.@s == 1)
-			.@page++;
-		else if (.@s == 2)
-			.@page--;
-		else
-			return;
-	}
-
-// ---------------- try one part on (live preview) ----------------
-S_Try:
-	.@part = getarg(0);
-	.@num = getarg(1);
+	.@max = .PartMax[.@part];	// plain copy: min()/max() given an array element walk the array
 	.@old = get_aura_part(.@part);
-	.@own = callsub(S_Owned, .@part, .@num);
-	if (!.@own)
-		AURA_PREVIEW = .@part * 1000 + .@old;	// undone at login if the player logs out now
-	set_aura_part .@part, .@num;
-	clear;
-	mes "[Aura Master]";
-	mes "^0000FF" + .PartName$[.@part] + " #" + .@num + "^000000";
-	mes "Take a look at your character.";
-	if (!.@own)
-		mes "Price: " + .Price$;
-	.@s = prompt((.@own ? "Wear it" : "Unlock and wear it"), "Back");
-	if (.@s == 1) {
-		if (.@own)
-			return;
-		if (callsub(S_Pay, .@part, .@num)) {
-			callsub S_Give, .@part, .@num;
+	.@cur = (.@old > 0 && .@old <= .@max) ? .@old : 1;
+	AURA_PREVIEW = .@part * 1000 + .@old;	// undone at login if the player logs out mid-browse
+	while (1) {
+		set_aura_part .@part, .@cur;
+		.@next = (.@cur % .@max) + 1;
+		.@prev = ((.@cur + .@max - 2) % .@max) + 1;
+		.@own = callsub(S_Owned, .@part, .@cur);
+		clear;
+		mes "[Aura Master]";
+		mes "^0000FF" + .PartName$[.@part] + " #" + .@cur + "^000000 (of " + .@max + ")";
+		if (.@cur == .@old)
+			mes "^0000FFYou are wearing this one.^000000";
+		else if (.@own)
+			mes "^008800Owned^000000, free to wear.";
+		else
+			mes "Price: " + .Price$;
+		mes "Look at your character, then keep browsing or pick it.";
+		.@s = prompt(
+			"Next  >> #" + .@next,
+			"<< Previous  #" + .@prev,
+			"Jump to number",
+			(.@own ? "Pick this one" : "Unlock and wear this one"),
+			"Cancel");
+		switch (.@s) {
+		case 1:
+			.@cur = .@next;
+			break;
+		case 2:
+			.@cur = .@prev;
+			break;
+		case 3:
+			clear;
+			mes "[Aura Master]";
+			mes "Which " + .PartName$[.@part] + " number? (1-" + .@max + ")";
+			if (input(.@j, 1, .@max) == 0)
+				.@cur = .@j;
+			break;
+		case 4:
+			if (!.@own) {
+				if (!callsub(S_Pay, .@part, .@cur))
+					break;	// no money or said No: keep browsing
+				callsub S_Give, .@part, .@cur;
+				AURA_PREVIEW = 0;
+				clear;
+				mes "[Aura Master]";
+				mes "Unlocked! You are now wearing " + .PartName$[.@part] + " #" + .@cur + ".";
+				next;
+				return;
+			}
 			AURA_PREVIEW = 0;
-			mes "Unlocked! You are now wearing it.";
-			next;
+			return;
+		default:	// Cancel or closed the window
+			set_aura_part .@part, .@old;
+			AURA_PREVIEW = 0;
+			if (.@s == 255)
+				end;
 			return;
 		}
 	}
-	set_aura_part .@part, .@old;	// Back, cancel, or could not pay
-	AURA_PREVIEW = 0;
-	if (.@s == 255)
-		end;
-	return;
 
 // ---------------- owned list ----------------
 S_Mine:
