@@ -268,9 +268,9 @@ const float PI = 3.14159265f;
 const float GROUND_BRIGHTNESS = 165, GROUND_GLOW = 150;
 void draw_ground(const V3& foot, void* tex, float t) {
 	bool blended = g_alphaTex.count(tex) != 0;
-	// about 4.5 cells across at its widest, as in the Gepard recording, and it
+	// about 3.7 cells across at its widest (owner: smaller, 2026-11-13), and it
 	// slowly breathes: 82% -> 100% -> 82% every 3 s (a small change, user 2026-11-13)
-	const float R = 46 * g_scale * (0.91f + 0.09f * sinf(2 * PI * t / 3.0f));
+	const float R = 37 * g_scale * (0.91f + 0.09f * sinf(2 * PI * t / 3.0f));
 	float th = 2 * PI * fmodf(t / 6.0f, 1.0f), c = cosf(th), s = sinf(th);
 	// corners in order around the square, with their texture corners
 	const float cx[4] = {-1, 1, 1, -1}, cz[4] = {-1, -1, 1, 1};
