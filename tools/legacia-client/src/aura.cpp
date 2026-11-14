@@ -377,35 +377,36 @@ bool ring_is_pillar(int num) {
 	return false;
 }
 
-// a flame bloom, matched to the owner's video (2026-11-13): a ring of flame
-// round the feet about as wide as the player that bulges out a little like a
-// bowl and rises to about head height. Each of the two layers burns on two
-// arcs (not the whole way round) that circle the player, the layers turning
-// opposite ways, so the flames move from side to side round the body. The
-// whole bloom slowly breathes smaller and bigger, like the ground circle.
-// Texture bottom at the feet.
+// a flame bloom, matched to the owner's videos (2026-11-13/15): a ring of
+// flame round the feet about as wide as the player that opens out like a bowl
+// to about 3.5 player widths and rises to about head height. Two layers swirl
+// round the player in opposite directions (the flames themselves travel, their
+// tips trailing behind), brighter patches travel the other way, and the
+// tongues lick up and down at three speeds like fire. The whole bloom slowly
+// breathes smaller and bigger, like the ground circle. Texture bottom at the
+// feet. Checked in the offline preview before shipping.
 void draw_pillar(const V3& foot, void* tex, float t) {
 	const int SEGS = 36, REP = 3, ROWS = 4; // texture runs three times round
-	// width matches the player and stays inside the ground circle (R 37), owner 2026-11-13
-	// measured against the owner's two videos: the ring at the feet is about as
-	// wide as the player, the flames flare out to about 3.5 player widths
 	const float R0 = 14 * g_scale, R1 = 36 * g_scale, H = 58 * g_scale;
-	float grow = 0.88f + 0.12f * sinf(2 * PI * t / 3.0f); // breathes like the ground circle
+	float grow = 0.9f + 0.1f * sinf(2 * PI * t / 3.0f); // breathes like the ground circle
 	for (int layer = 0; layer < 2; layer++) {
+		float dir = layer ? -1.0f : 1.0f;
 		float open = layer ? 1.1f : 0.95f;   // outer layer opens wider and lower
-		float hh = H * grow * (layer ? 0.8f : 1.0f) * (0.92f + 0.08f * sinf(2 * PI * t / 1.3f + layer * 1.7f));
-		float turn = 2 * PI * fmodf(t / (layer ? 4.5f : 3.5f), 1.0f) * (layer ? -1.0f : 1.0f) + layer * PI / 2;
-		float bright = layer ? 120.0f : 190.0f; // 50/35 was invisible in game (owner's video); the reference glows blue-white
-		auto at = [&](float ang, float f) {
-			float tongue = 1 + 0.08f * sinf(5 * ang + 2 * PI * t / 1.7f + layer * 2.0f);
-			float h = hh * f * (0.75f + 0.25f * tongue);
-			float r = grow * (R0 + (R1 * open - R0) * sqrtf(f) * tongue); // bulges out quickly, then rises
+		float hl = layer ? 0.8f : 1.0f;
+		float spin = 2 * PI * fmodf(t / (layer ? 4.2f : 3.0f), 1.0f) * dir;          // the flames travel round the player
+		float arc = 2 * PI * fmodf(t / (layer ? 6.5f : 5.0f), 1.0f) * -dir + layer * 1.3f; // bright patches go the other way
+		float bright = layer ? 120.0f : 190.0f;
+		auto at = [&](float a, float f) {
+			float lick = 0.62f + 0.2f * sinf(3 * a + 2 * PI * t / 1.1f + layer * 2.0f)
+				+ 0.12f * sinf(7 * a - 2 * PI * t / 0.7f + layer) + 0.06f * sinf(11 * a + 2 * PI * t / 0.45f);
+			float h = H * grow * hl * f * lick;
+			float ang = a + spin - 0.35f * f * f * dir; // tips trail behind the turn
+			float r = grow * (R0 + (R1 * open - R0) * sqrtf(f) * (0.9f + 0.25f * (lick - 0.62f)));
 			return V3{foot.x + r * cosf(ang), foot.y - h, foot.z + r * sinf(ang)}; // up is -y
 		};
 		for (int s = 0; s < SEGS; s++) {
 			float a0 = 2 * PI * s / SEGS, a1 = a0 + 2 * PI / SEGS;
-			// two burning arcs that circle the player, fading at their ends
-			float m = 0.6f + 0.6f * cosf(2 * ((a0 + a1) / 2 - turn)); // never fully dark: the reference always glows all round
+			float m = 0.5f + 0.7f * cosf(2 * ((a0 + a1) / 2 + spin - arc));
 			m = m < 0 ? 0 : m > 1 ? 1 : m;
 			if (m < 0.02f)
 				continue;
