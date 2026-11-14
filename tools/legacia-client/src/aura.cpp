@@ -268,9 +268,9 @@ const float PI = 3.14159265f;
 const float GROUND_BRIGHTNESS = 165, GROUND_GLOW = 150;
 void draw_ground(const V3& foot, void* tex, float t) {
 	bool blended = g_alphaTex.count(tex) != 0;
-	// about 4.5 cells across at its widest, as in the Gepard recording, and it
-	// slowly breathes: 65% -> 100% -> 65% every 3 s
-	const float R = 46 * g_scale * (0.825f + 0.175f * sinf(2 * PI * t / 3.0f));
+	// about 3.7 cells across at its widest (owner: smaller, 2026-11-13), and it
+	// slowly breathes: 82% -> 100% -> 82% every 3 s (a small change, user 2026-11-13)
+	const float R = 37 * g_scale * (0.91f + 0.09f * sinf(2 * PI * t / 3.0f));
 	float th = 2 * PI * fmodf(t / 6.0f, 1.0f), c = cosf(th), s = sinf(th);
 	// corners in order around the square, with their texture corners
 	const float cx[4] = {-1, 1, 1, -1}, cz[4] = {-1, -1, 1, 1};
@@ -324,10 +324,10 @@ void draw_ground(const V3& foot, void* tex, float t) {
 void draw_rings(const V3& foot, void* tex, float t) {
 	const float CYCLE = 4.0f;            // one turn round the player
 	const int PETALS = 3, SEGS = 32;
-	const float R = 28 * g_scale;        // petal ring radius at full size (7 units): the flower is as wide as the ground circle
+	const float R = 25 * g_scale;        // petal ring radius (owner 2026-11-13: 28 too wide, 21 too small)
 	const float BAND = 6 * g_scale;      // thin lines (the texture fades at its edges)
 	const float LIFT = 22 * g_scale;     // centre at the waist
-	const float OFF0 = 36 * g_scale, OFF1 = 12 * g_scale; // petal centres 3 units off the player
+	const float OFF0 = 36 * g_scale, OFF1 = 11 * g_scale; // petal centres a little off the player
 	const float TILT = 30 * PI / 180;
 	// the flower stays and keeps turning round the player (one turn per CYCLE)
 	const float fade = 1, ease = 1;
@@ -343,7 +343,7 @@ void draw_rings(const V3& foot, void* tex, float t) {
 		V3 d = {cosf(dir), 0, sinf(dir)};
 		V3 e1 = {-d.z, 0, d.x};
 		V3 e2 = {cosf(TILT) * d.x, sinf(TILT), cosf(TILT) * d.z};
-		float alpha = 240 * fade;
+		float alpha = 90 * fade; // owner 2026-11-13: 240/150 too bright/white, 50 could not be seen
 		float spin = fmodf(t / 2.6f + pi * 0.31f, 1.0f) * (pi == 1 ? -1.0f : 1.0f);
 		auto at = [&](float rr, float ang) {
 			if (rr < 0.5f * g_scale)
@@ -365,6 +365,64 @@ void draw_rings(const V3& foot, void* tex, float t) {
 	}
 }
 
+// Ring textures that are flame / spike strips (bright at the bottom, fading
+// up). Like a skill effect, these rise round the body as a glowing pillar
+// instead of the flower rings, opening like a flower of fire (owner 2026-11-13, see draw_pillar).
+bool ring_is_pillar(int num) {
+	static const unsigned char list[] = {1, 5, 9, 11, 14, 15, 16, 18, 19, 22, 23, 24, 25, 29, 30, 34, 35, 39, 43, 47,
+		54, 59, 64, 68, 69, 70, 71, 72, 76, 78, 81, 82, 86, 96, 97, 98, 100, 103, 107, 113};
+	for (unsigned char n : list)
+		if (n == num)
+			return true;
+	return false;
+}
+
+// a flame bloom, matched to the owner's videos (2026-11-13/15): a ring of
+// flame round the feet about as wide as the player that opens out like a bowl
+// to about 3.5 player widths and rises to about head height. Two layers swirl
+// round the player in opposite directions (the flames themselves travel, their
+// tips trailing behind), brighter patches travel the other way, and the
+// tongues lick up and down at three speeds like fire. The whole bloom slowly
+// breathes smaller and bigger, like the ground circle. Texture bottom at the
+// feet. Checked in the offline preview before shipping.
+void draw_pillar(const V3& foot, void* tex, float t) {
+	const int SEGS = 36, REP = 3, ROWS = 4; // texture runs three times round
+	const float R0 = 14 * g_scale, R1 = 36 * g_scale, H = 58 * g_scale;
+	float grow = 0.9f + 0.1f * sinf(2 * PI * t / 3.0f); // breathes like the ground circle
+	for (int layer = 0; layer < 2; layer++) {
+		float dir = layer ? -1.0f : 1.0f;
+		float open = layer ? 1.1f : 0.95f;   // outer layer opens wider and lower
+		float hl = layer ? 0.8f : 1.0f;
+		float spin = 2 * PI * fmodf(t / (layer ? 4.2f : 3.0f), 1.0f) * dir;          // the flames travel round the player
+		float arc = 2 * PI * fmodf(t / (layer ? 6.5f : 5.0f), 1.0f) * -dir + layer * 1.3f; // bright patches go the other way
+		float bright = layer ? 120.0f : 190.0f;
+		auto at = [&](float a, float f) {
+			float lick = 0.62f + 0.2f * sinf(3 * a + 2 * PI * t / 1.1f + layer * 2.0f)
+				+ 0.12f * sinf(7 * a - 2 * PI * t / 0.7f + layer) + 0.06f * sinf(11 * a + 2 * PI * t / 0.45f);
+			float h = H * grow * hl * f * lick;
+			float ang = a + spin - 0.35f * f * f * dir; // tips trail behind the turn
+			float r = grow * (R0 + (R1 * open - R0) * sqrtf(f) * (0.9f + 0.25f * (lick - 0.62f)));
+			return V3{foot.x + r * cosf(ang), foot.y - h, foot.z + r * sinf(ang)}; // up is -y
+		};
+		for (int s = 0; s < SEGS; s++) {
+			float a0 = 2 * PI * s / SEGS, a1 = a0 + 2 * PI / SEGS;
+			float m = 0.5f + 0.7f * cosf(2 * ((a0 + a1) / 2 + spin - arc));
+			m = m < 0 ? 0 : m > 1 ? 1 : m;
+			if (m < 0.02f)
+				continue;
+			uint32_t col = grey(bright * m);
+			int k = s % (SEGS / REP);
+			float u0 = (float)k / (SEGS / REP), u1 = (float)(k + 1) / (SEGS / REP);
+			for (int row = 0; row < ROWS; row++) {
+				float f0 = (float)row / ROWS, f1 = (float)(row + 1) / ROWS; // 0 feet .. 1 top
+				V3 p[4] = {at(a0, f1), at(a1, f1), at(a0, f0), at(a1, f0)};
+				float uv[8] = {u0, 1 - f1, u1, 1 - f1, u0, 1 - f0, u1, 1 - f0};
+				quad(p, uv, col, tex);
+			}
+		}
+	}
+}
+
 // part 3: small sparkles shooting out from the feet across the floor
 void draw_sparkles(const V3& foot, uint32_t aid, void* tex, float t) {
 	const float PERIOD = 5.0f, LIFE = 3.4f;
@@ -381,7 +439,7 @@ void draw_sparkles(const V3& foot, uint32_t aid, void* tex, float t) {
 		float u = phase / LIFE;
 		uint32_t s = hash(seed ^ (uint32_t)(int)cyc);
 		float a = rnd(s, 0, 2 * PI), dist = 80 * g_scale * rnd(s, 0.75f, 1.15f);
-		float rise = 14 * g_scale * rnd(s, 0, 1), size = 4.5f * g_scale * rnd(s, 0.8f, 1.1f);
+		float rise = 14 * g_scale * rnd(s, 0, 1), size = 6.0f * g_scale * rnd(s, 0.8f, 1.1f);
 		float alpha = 255 * fminf(1, u / 0.12f) * (1 - fmaxf(0, (u - 0.7f) / 0.3f));
 		V3 c = {foot.x + dist * u * cosf(a), foot.y - rise * u, foot.z + dist * u * sinf(a)};
 		TLV m;
@@ -415,8 +473,12 @@ void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 	void* tex;
 	if (a.part[0] && (tex = texture(1, a.part[0])))
 		draw_ground(foot, tex, t);
-	if (a.part[1] && (tex = texture(2, a.part[1])))
-		draw_rings(foot, tex, t);
+	if (a.part[1] && (tex = texture(2, a.part[1]))) {
+		if (ring_is_pillar(a.part[1]))
+			draw_pillar(foot, tex, t);
+		else
+			draw_rings(foot, tex, t);
+	}
 	if (a.part[2] && (tex = texture(3, a.part[2])))
 		draw_sparkles(foot, aid, tex, t);
 }
