@@ -818,6 +818,63 @@ void draw_swirl(const V3& foot, void* tex, float t, const Swirl& sw, float v0, f
 	}
 }
 
+// #5-style rings (full pictures): Gepard draws three round discs ("bubbles"), each
+// hinged near the player's feet, tilted up and turning round the player. Every
+// 5.7 s they start again: one after another they come up from the feet and open.
+// Fitted to the owner's #5 recording in 3D (80% overlap of the shapes); sizes are
+// pixels of that video (2.3435 px per aura unit).
+void draw_petals(const V3& foot, void* tex, float t) {
+	const float PPU = 2.3435f;
+	const float R = 90.5f, D0 = -49.2f, H0 = 34.7f, BETA = 26.5f * PI / 180;
+	const float W = 219.9f, CYC = 5.733f, GAP = 0.45f, GROW = 1.0f, FADE = 0.25f;
+	const float TINT[3] = {0.3f, 0.3f, 0.38f};
+	const int NA = 32, NR = 5;
+	float k2w = g_scale / PPU; // video pixels -> world
+	// which way round looks counter-clockwise on this camera
+	TLV o, ox, oz;
+	V3 px = {foot.x + 10, foot.y, foot.z}, pz = {foot.x, foot.y, foot.z + 10};
+	if (!project(foot, o) || !project(px, ox) || !project(pz, oz))
+		return;
+	float cross = (ox.x - o.x) * (oz.y - o.y) - (ox.y - o.y) * (oz.x - o.x);
+	float dir = cross < 0 ? 1.0f : -1.0f;
+	float tc = fmodf(t, CYC);
+	for (int k = 0; k < 3; k++) {
+		float age = tc - k * GAP;
+		if (age < 0)
+			continue;
+		float g = fminf(1.0f, age / GROW);
+		g = g * g * (3 - 2 * g);
+		float alpha = fminf(1.0f, age / FADE) * fminf(1.0f, (CYC - tc) / FADE);
+		if (alpha <= 0)
+			continue;
+		uint32_t col = 0xff000000u;
+		for (int i = 0; i < 3; i++) {
+			int c = (int)(TINT[i] * 255 * alpha + 0.5f);
+			col |= (uint32_t)(c > 255 ? 255 : c) << (16 - 8 * i);
+		}
+		float ps = dir * (W * t + k * 120.0f) * PI / 180, b = BETA * g;
+		float rx = cosf(ps), rz = sinf(ps); // out from the player
+		float tx = -rz, tz = rx;            // along the ground, sideways
+		float cOut = (D0 + R * cosf(b)) * k2w, cUp = (H0 * g + R * sinf(b)) * k2w;
+		float e1o = cosf(b), e1u = sinf(b), r = R * k2w;
+		auto at = [&](float rr, float a) {
+			float ca = rr * cosf(a), sa = rr * sinf(a);
+			float out = cOut + r * ca * e1o, up = cUp + r * ca * e1u;
+			return V3{foot.x + out * rx + r * sa * tx, foot.y - up, foot.z + out * rz + r * sa * tz};
+		};
+		for (int j = 0; j < NR; j++) {
+			float r0 = (float)j / NR, r1 = (float)(j + 1) / NR;
+			for (int i = 0; i < NA; i++) {
+				float a0 = 2 * PI * i / NA, a1 = 2 * PI * (i + 1) / NA;
+				V3 q[4] = {at(r0, a0), at(r0, a1), at(r1, a0), at(r1, a1)};
+				float u0 = (float)i / NA, u1 = (float)(i + 1) / NA;
+				float uv[8] = {u0, r0, u1, r0, u0, r1, u1, r1};
+				quad(q, uv, col, tex);
+			}
+		}
+	}
+}
+
 void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 	if (!readable((uintptr_t)actor, 0x114))
 		return;
@@ -839,7 +896,7 @@ void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 		else if (li != g_ringLook.end() && li->second.style == 2)
 			draw_swirl(foot, tex, t, SWIRL_STRIP, li->second.v0, li->second.v1);
 		else
-			draw_swirl(foot, tex, t, SWIRL_FULL, 0, 1);
+			draw_petals(foot, tex, t);
 	}
 	if (a.part[2] && (tex = texture(3, a.part[2])))
 		draw_sparkles(foot, aid, tex, t);
