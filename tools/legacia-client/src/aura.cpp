@@ -100,7 +100,7 @@ std::unordered_map<int, void*> g_tex; // part * 1000 + number -> client texture,
 bool g_texFailed;
 std::unordered_set<void*> g_alphaTex; // textures with a real alpha (ground circles)
 struct TexBox { float u0, v0, u1, v1; };
-std::unordered_map<void*, TexBox> g_texBox; // ring textures: the part of the picture that isn't black
+std::unordered_map<void*, TexBox> g_texBox; // ring textures: the lit part of the picture (rings use its rows)
 int g_loadsThisFrame;
 
 std::string tex_folder() {
@@ -183,7 +183,7 @@ void* texture(int part, int num) {
 		}
 		if (tex && part == 2) {
 			// many ring pictures are a thin strip in a big black square (e.g. #3 is a
-			// dotted line 4 pixels high); the ring sprites show only the lit part
+			// dotted line 4 pixels high); the rings use only the lit rows
 			int x0 = w, y0 = h, x1 = -1, y1 = -1;
 			for (int y = 0; y < h; y++)
 				for (int x = 0; x < w; x++) {
@@ -333,65 +333,47 @@ void draw_ground(const V3& foot, void* tex, float t) {
 
 // part 2: rings. Two styles:
 //  - flame / spike strips: draw_pillar (a soft fire bloom round the body)
-//  - everything else: draw_rings, matched to the owner's Gepard video
-//    (2026-11-16): curved lines of small copies of the picture that wrap
-//    round the body at three tilts, each line a partial arc sweeping round
-//    while the tilts slowly turn, like a gyroscope
+//  - everything else: draw_rings, matched frame by frame to the owner's
+//    Gepard video of ring #3 (2026-11-16): thin rings centred on the player,
+//    one lying round the feet and two round the chest whose tilt slowly goes
+//    round. The picture runs along each ring (twice round), squeezed across
+//    its width to the lit rows only, so a dotted strip shows as dashes. Each
+//    ring is a partial arc that sweeps round and fades at its ends.
 // Sizes: g_scale * 4 = 1 world unit; a cell is 5 units.
 void draw_rings(const V3& foot, void* tex, float t) {
-	struct Ring { float tilt, yaw0, yawPeriod, spinPeriod, r, lift, arc; };
+	struct Ring { float tilt, yawPeriod, spinPeriod, r, lift, arc, phase; };
 	static const Ring rings[3] = {
-		{25, 0.0f, 9.0f, 3.2f, 23, 20, 0.8f},
-		{62, 2.1f, -11.0f, -2.6f, 21, 22, 0.7f},
-		{78, 4.2f, 13.0f, 2.9f, 19, 22, 0.65f},
+		{8, 7.0f, 4.0f, 24, 3, 0.85f, 0.0f},
+		{32, 3.2f, -3.0f, 22, 22, 0.8f, 1.0f},
+		{28, -4.1f, 3.5f, 21, 27, 0.75f, 2.5f},
 	};
-	const int N = 18;              // copies on a full circle
-	const float SIZE = 3.4f;       // half width of one copy
+	const int SEGS = 60, REP = 2;
+	const float BAND = 2.2f * g_scale; // half width of the line
 	TexBox box = {0, 0, 1, 1};
 	auto bi = g_texBox.find(tex);
 	if (bi != g_texBox.end())
 		box = bi->second;
-	float aspect = (box.v1 - box.v0) / fmaxf(1e-4f, box.u1 - box.u0);
-	aspect = aspect < 0.3f ? 0.3f : aspect > 1 ? 1 : aspect; // thin strips become dashes
-	float hpc = fabsf(*(float*)(g_renderer + 4));
-	float grow = 0.92f + 0.08f * sinf(2 * PI * t / 3.0f); // breathes like the ground circle
 	for (const Ring& g : rings) {
-		float yaw = g.yaw0 + 2 * PI * t / g.yawPeriod, tl = g.tilt * PI / 180;
-		V3 e1 = {cosf(yaw), 0, sinf(yaw)};
-		V3 e2 = {-sinf(yaw) * cosf(tl), sinf(tl), cosf(yaw) * cosf(tl)};
-		float R = g.r * g_scale * grow, lift = g.lift * g_scale;
-		float head = 2 * PI * t / g.spinPeriod;
-		auto at = [&](float a) {
+		float yaw = g.phase + 2 * PI * t / g.yawPeriod, tl = g.tilt * PI / 180;
+		V3 ax = {cosf(yaw), 0, sinf(yaw)};                                  // the axis the ring is tipped round
+		V3 bx = {-sinf(yaw) * cosf(tl), sinf(tl), cosf(yaw) * cosf(tl)};   // the other in-plane axis, tipped up
+		float R = g.r * g_scale * (0.94f + 0.06f * sinf(2 * PI * t / 3.0f + g.phase));
+		float lift = g.lift * g_scale, head = 2 * PI * t / g.spinPeriod;
+		auto at = [&](float rr, float a) {
 			float ca = cosf(a), sa = sinf(a);
-			return V3{foot.x + R * (ca * e1.x + sa * e2.x), foot.y - lift - R * sa * e2.y, foot.z + R * (ca * e1.z + sa * e2.z)}; // up is -y
+			return V3{foot.x + rr * (ca * ax.x + sa * bx.x), foot.y - lift - rr * sa * bx.y, foot.z + rr * (ca * ax.z + sa * bx.z)}; // up is -y
 		};
-		int n = (int)(N * g.arc);
-		for (int i = 0; i < n; i++) {
-			float a = head + 2 * PI * i / N;
-			float fm = (i + 0.5f) / n;
-			float w = fminf(1, fminf(fm / 0.25f, (1 - fm) / 0.25f)); // the arc fades in and out at its ends
-			TLV p, q;
-			if (!project(at(a), p) || !project(at(a + 0.05f), q))
-				continue;
-			float tx = q.x - p.x, ty = q.y - p.y, len = sqrtf(tx * tx + ty * ty);
-			if (len < 1e-4f)
-				continue;
-			tx /= len, ty /= len;
-			float rx = -ty, ry = tx; // the picture's width lies across the line
-			float hx = SIZE * g_scale * hpc * p.rhw * (0.5f + 0.5f * w), hy = hx * aspect;
-			const float sx[4] = {-1, 1, -1, 1}, sy[4] = {-1, -1, 1, 1};
-			const float uv[8] = {box.u0, box.v0, box.u1, box.v0, box.u0, box.v1, box.u1, box.v1};
-			TLV v[4];
-			for (int k = 0; k < 4; k++) {
-				v[k] = p;
-				v[k].x += sx[k] * rx * hx + sy[k] * tx * hy;
-				v[k].y += sx[k] * ry * hx + sy[k] * ty * hy;
-				v[k].color = grey(255 * w);
-				v[k].specular = 0xff000000u;
-				v[k].u = uv[k * 2];
-				v[k].v = uv[k * 2 + 1];
-			}
-			emit(v, tex);
+		for (int s = 0; s < SEGS; s++) {
+			float f0 = (float)s / SEGS, f1 = (float)(s + 1) / SEGS;
+			if (f1 > g.arc)
+				break;
+			float a0 = head + 2 * PI * f0, a1 = head + 2 * PI * f1;
+			float fm = (f0 + f1) / 2 / g.arc;
+			float w = fminf(1, fminf(fm / 0.15f, (1 - fm) / 0.15f)); // fades at both ends of the arc
+			float u0 = f0 * REP, u1 = f1 * REP;
+			V3 p[4] = {at(R + BAND, a0), at(R + BAND, a1), at(R - BAND, a0), at(R - BAND, a1)};
+			float uv[8] = {u0, box.v0, u1, box.v0, u0, box.v1, u1, box.v1};
+			quad(p, uv, grey(255 * w), tex);
 		}
 	}
 }
