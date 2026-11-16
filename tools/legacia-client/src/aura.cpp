@@ -657,6 +657,7 @@ void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 // manager 0x1382ff4: GetTexture 0x5708a0 (name, 0, 0, 1, 0) loads and caches,
 // a std::map<const char*, CTexture*> (find 0x571370; node key +0x10, value +0x14).
 const uintptr_t TEX_MGR = 0x1382ff4, GET_TEXTURE = 0x5708a0, TEX_FIND = 0x571370;
+const uintptr_t AURA_LEVEL = 0x1733e40; // MaxLevelTable.BaseLevel: level that gets the level 99 aura
 const uintptr_t AURA_EFFECT_IDS = 0x1733e78; // the game's own overrides (0 = default), 8 ints
 const int ACTOR_EFFECTS = 0x144, EFFECT_ID = 0x168, EFFECT_PRIMS = 0x1a4, PRIM_TEX = 0x144, PRIM_TEX_COUNT = 0x204;
 const int EFFECT_SIZE = 0x11ca8, PRIM_SIZE = 0xfa18;
@@ -1043,6 +1044,17 @@ bool g_dropTextures = false;
 void aura_frame() {
 	if (!g_ok)
 		return;
+	// The game draws the level 99 aura when a character's level equals MaxLevelTable.BaseLevel
+	// (ExternalSettings lub, kept at 0x1733e40). Legacia's max level is 99; a client set to 100
+	// shows no level 99 aura at all, so Classic Auras could not show. The server decides who
+	// gets the aura (aura_lv 255, packs only), so the game's value is kept at 99.
+	if (g_packOk && readable(AURA_LEVEL, 4)) {
+		int* lv = (int*)AURA_LEVEL;
+		if (*lv > 99 && *lv <= 200) {
+			log_line("aura: game aura level was %d, set to 99 (Legacia max level)", *lv);
+			*lv = 99;
+		}
+	}
 	uint8_t* mm = (uint8_t*)MODE_MGR;
 	if (*(int*)(mm + 0x58) != 1)
 		g_dropTextures = true;
