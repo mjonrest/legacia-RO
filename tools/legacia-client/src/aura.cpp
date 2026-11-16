@@ -364,16 +364,22 @@ void draw_rings(const V3& foot, void* tex, float t) {
 	if (li != g_ringLook.end())
 		lk = li->second;
 	const int PETALS = 3, SEGS = 40;
-	const float LIFT = 16 * g_scale;     // petal centres above the feet
 	const float TILT = 32 * PI / 180;    // petals lean up, outward
 	const float TURN = 6.0f, SPIN = 2.0f;
 	const float CYCLE = 5.7f, GROW = 1.3f, FADE = 0.6f, STAGGER = 0.35f;
-	float R = 48, hole = 0, ecc = 0, bright = 60, off = 16, arc = 0;
-	if (lk.style == 1)
-		R = 40, hole = 0.62f, ecc = 0.3f, bright = 85, arc = 0.15f, off = 21;
-	else if (lk.style == 2)
-		ecc = 0, bright = 75, off = 5;
-	R *= g_scale, off *= g_scale;
+	// full discs float round the waist; crescents (#6) and dotted rings (#3) have
+	// their base at the feet and stand up steeper, sweeping round the body from the
+	// ground (owner 2026-11-16: "base at the bottom of player ... not circle the air")
+	float R = 48, hole = 0, ecc = 0, bright = 60, off = 16, arc = 0, lift = 16;
+	float tilts[3] = {0.4f, 0.8f, 1.1f};
+	if (lk.style == 1) {
+		R = 46, hole = 0.62f, ecc = 0.3f, bright = 85, arc = 0.15f, off = 6, lift = 0;
+		tilts[0] = 1.0f, tilts[1] = 1.6f, tilts[2] = 2.2f;
+	} else if (lk.style == 2) {
+		bright = 75, off = 3, lift = 0;
+		tilts[0] = 0.8f, tilts[1] = 1.3f, tilts[2] = 1.8f;
+	}
+	R *= g_scale, off *= g_scale, lift *= g_scale;
 	float turn = 2 * PI * t / TURN;
 	for (int pi = 0; pi < PETALS; pi++) {
 		// each petal's own life: grow from the feet, stay, fade, start again
@@ -384,10 +390,10 @@ void draw_rings(const V3& foot, void* tex, float t) {
 		fade *= fminf(1.0f, ph / 0.15f);
 		float size = 0.2f + 0.8f * g;
 		float dir = turn + 2 * PI / 3 * pi;
-		V3 c = {foot.x + off * g * cosf(dir), foot.y - LIFT * g, foot.z + off * g * sinf(dir)};
+		V3 c = {foot.x + off * g * cosf(dir), foot.y - lift * g, foot.z + off * g * sinf(dir)};
 		V3 d = {cosf(dir), 0, sinf(dir)};
 		V3 e1 = {-d.z, 0, d.x};
-		float tilt = TILT * (pi == 0 ? 0.4f : pi == 1 ? 0.8f : 1.1f); // not all the same, like Gepard
+		float tilt = TILT * tilts[pi]; // not all the same, like Gepard
 		V3 e2 = {cosf(tilt) * d.x, sinf(tilt), cosf(tilt) * d.z};
 		// all discs spin the same way as the flower turns, like a fan (owner 2026-11-16);
 		// the disc's own angle runs the other way round, hence the minus
