@@ -102,6 +102,7 @@ struct RingLook {
 	int style; // 0 full discs, 1 sweeping crescents, 2 thin dotted ring (a strip picture)
 	float v0, v1; // the lit rows
 	float tint[3] = {1, 1, 1}; // vertex colour: leans toward the picture's own colour
+	float hue[3] = {1, 1, 1};  // the picture's mean colour over its brightest channel
 };
 
 // ring colour: additive light of `a`, leaning toward the picture's colour so it reads
@@ -234,6 +235,8 @@ void* texture(int part, int num) {
 					tv[i] = powf((float)(mean[i] / big), 1.5f), avg += tv[i] / 3;
 				for (int i = 0; i < 3; i++)
 					lk.tint[i] = avg > 0 ? tv[i] / avg * 0.85f : 1;
+				for (int i = 0; i < 3; i++)
+					lk.hue[i] = (float)(mean[i] / big);
 			}
 			g_ringLook[tex] = lk;
 		}
@@ -690,8 +693,9 @@ const ReplayInfo& replay_info(int ring) {
 	return g_replay[ring] = ri;
 }
 
-void* replay_texture(int ring, int frame) {
-	int key = 100000 + ring * 1000 + frame;
+// gray: the frame's brightness only, so another ring of the same kind can colour it
+void* replay_texture(int ring, int frame, bool gray = false) {
+	int key = 100000 + ring * 1000 + frame + (gray ? 500000 : 0);
 	auto it = g_tex.find(key);
 	if (it != g_tex.end())
 		return it->second;
@@ -704,6 +708,12 @@ void* replay_texture(int ring, int frame) {
 	int w = 0, h = 0;
 	void* tex = nullptr;
 	if (read_bmp32(path, px, w, h)) {
+		if (gray)
+			for (uint32_t& c : px) {
+				uint32_t r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
+				uint32_t m = r > g ? (r > b ? r : b) : (g > b ? g : b);
+				c = (c & 0xff000000u) | m << 16 | m << 8 | m;
+			}
 		void* dev = ((GetDeviceFn)GET_DEVICE)();
 		if (dev)
 			tex = ((CreateTextureFn)CREATE_TEXTURE)(dev, w, h, TEX_FORMAT_ARGB8888, 0, 0);
@@ -718,15 +728,16 @@ void* replay_texture(int ring, int frame) {
 	return tex;
 }
 
-bool draw_replay(const V3& foot, int ring, float t) {
+// gray/color: play another ring's recording in this ring's own colour
+bool draw_replay(const V3& foot, int ring, float t, bool gray = false, uint32_t color = 0xffffffffu) {
 	const ReplayInfo& ri = replay_info(ring);
 	if (!ri.ok)
 		return false;
 	// load every frame once (a few per game frame), so playback never stutters
 	for (int i = 0; i < ri.frames && g_loadsThisFrame < 3; i++)
-		replay_texture(ring, i);
+		replay_texture(ring, i, gray);
 	int frame = (int)(t * ri.fps) % ri.frames;
-	void* tex = replay_texture(ring, frame);
+	void* tex = replay_texture(ring, frame, gray);
 	TLV m;
 	if (!tex || !project(foot, m))
 		return true;
@@ -741,7 +752,7 @@ bool draw_replay(const V3& foot, int ring, float t) {
 		v[i] = m;
 		v[i].x = xs[i];
 		v[i].y = ys[i];
-		v[i].color = 0xffffffffu;
+		v[i].color = color;
 		v[i].specular = 0xff000000u;
 		v[i].u = uv[i * 2];
 		v[i].v = uv[i * 2 + 1];
@@ -875,6 +886,21 @@ void draw_petals(const V3& foot, void* tex, float t) {
 	}
 }
 
+// Every ring picture is one of the three kinds the owner recorded in Gepard: a thin
+// strip (#3), fading edges (#6) or a full picture (#5). A ring without its own
+// recording plays the recording of its kind, recoloured to its own colour (owner
+// 2026-11-16: it must move exactly like the replay).
+bool draw_kind_replay(const V3& foot, const RingLook& lk, float t) {
+	int ring = lk.style == 2 ? 3 : lk.style == 1 ? 6 : 5;
+	const float BRIGHT = 1.0f;
+	uint32_t col = 0xff000000u;
+	for (int i = 0; i < 3; i++) {
+		int c = (int)(lk.hue[i] * 255 * BRIGHT + 0.5f);
+		col |= (uint32_t)(c > 255 ? 255 : c < 0 ? 0 : c) << (16 - 8 * i);
+	}
+	return draw_replay(foot, ring, t, true, col);
+}
+
 void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 	if (!readable((uintptr_t)actor, 0x114))
 		return;
@@ -891,6 +917,8 @@ void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 			; // a recorded Gepard ring
 		else if (ring_is_pillar(a.part[1]))
 			draw_pillar(foot, tex, t);
+		else if (li != g_ringLook.end() && draw_kind_replay(foot, li->second, t))
+			; // the recorded ring of the same kind, in this ring's colour
 		else if (li != g_ringLook.end() && li->second.style == 1)
 			draw_swirl(foot, tex, t, SWIRL_FADE, 0, 1);
 		else if (li != g_ringLook.end() && li->second.style == 2)
