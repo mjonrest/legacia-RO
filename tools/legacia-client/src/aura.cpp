@@ -335,52 +335,55 @@ void draw_ground(const V3& foot, void* tex, float t) {
 
 // part 2: rings. Two styles:
 //  - flame / spike strips: draw_pillar (a soft fire bloom round the body)
-//  - everything else: draw_rings, matched to the owner's Gepard video of
-//    ring #3 (2026-11-16): three dotted lines, 120 degrees apart, that come
-//    up from the feet and wind round the player again and again. The picture
-//    runs along each line using only its lit rows, so a dotted strip shows as
-//    separate dashes; sections pulse brighter and dimmer as they go round.
+//  - everything else: draw_rings, three petals circling the player, each a
+//    curved dashed line of the ring's picture (owner 2026-11-16: "like the
+//    other ring, surrounding the player, but a line that looks curved")
 // Sizes: g_scale * 4 = 1 world unit; a cell is 5 units.
 void draw_rings(const V3& foot, void* tex, float t) {
-	// sizes measured against the character in the owner's in-game clips (the
-	// game draws ~2x smaller than the offline preview suggested)
-	const int LINES = 3, SEGS = 48;
-	const float TURNS = 0.8f, PERIOD = 1.6f;          // each line climbs one turn per PERIOD
-	// owner's clip at R 34: the lines spread to ~0.85 of the character's height
-	// each side; Gepard's are ~0.55, so R is 0.65x of that
-	const float H = 58 * g_scale, R0 = 22 * g_scale, R1 = 19.5f * g_scale;
-	const float BAND = 2.1f * g_scale, REP = 1.5f;     // half width; picture repeats per turn
+	// the three-petal flower the owner liked (sizes tuned in game 2026-11-13),
+	// but each petal is now a curved dashed line: a partial arc of the picture
+	// (its lit rows only) that sweeps round inside the petal, fading at its ends
+	const float CYCLE = 4.0f;            // the flower turns round the player once per CYCLE
+	const int PETALS = 3, SEGS = 40;
+	const float R = 25 * g_scale;        // petal radius
+	const float BAND = 2.0f * g_scale;   // half width of the line
+	const float LIFT = 22 * g_scale;     // centre at the waist
+	const float OFF = 11 * g_scale;      // petal centres a little off the player
+	const float TILT = 30 * PI / 180;
+	const float ARC = 0.7f, REP = 3.0f;  // the curve covers 70% of the petal; picture repeats along it
 	TexBox box = {0, 0, 1, 1};
 	auto bi = g_texBox.find(tex);
 	if (bi != g_texBox.end())
 		box = bi->second;
-	float rise = fmodf(t / PERIOD, 1.0f);
-	for (int line = 0; line < LINES; line++) {
-		float start = (float)line / LINES; // three lines, 120 degrees apart
-		auto at = [&](float f, float off) {
-			float ang = 2 * PI * (TURNS * f - rise + start);
-			float r = R0 + (R1 - R0) * f + off;
-			return V3{foot.x + r * cosf(ang), foot.y - H * f, foot.z + r * sinf(ang)}; // up is -y
+	bool blended = g_alphaTex.count(tex) != 0;
+	float turn = 2 * PI * fmodf(t / CYCLE, 1.0f);
+	for (int pi = 0; pi < PETALS; pi++) {
+		float dir = turn + 2 * PI / 3 * pi; // 120 degrees apart
+		float r = R * (0.85f + 0.15f * sinf(2 * PI * t / 1.6f + pi * 2.1f)); // breathing out of step
+		V3 c = {foot.x + OFF * cosf(dir), foot.y - LIFT, foot.z + OFF * sinf(dir)};
+		// the petal leans out, toward its own side
+		V3 d = {cosf(dir), 0, sinf(dir)};
+		V3 e1 = {-d.z, 0, d.x};
+		V3 e2 = {cosf(TILT) * d.x, sinf(TILT), cosf(TILT) * d.z};
+		float spin = fmodf(t / 2.6f + pi * 0.31f, 1.0f) * (pi == 1 ? -1.0f : 1.0f);
+		auto at = [&](float rr, float ang) {
+			float ca = cosf(ang), sa = sinf(ang);
+			return V3{c.x + rr * (ca * e1.x + sa * e2.x), c.y - rr * (sa * e2.y), c.z + rr * (ca * e1.z + sa * e2.z)}; // up is -y
 		};
 		for (int s = 0; s < SEGS; s++) {
 			float f0 = (float)s / SEGS, f1 = (float)(s + 1) / SEGS, fm = (f0 + f1) / 2;
-			float w = fminf(1, fminf(fm / 0.12f, (1 - fm) / 0.3f)); // fades in at the feet, out at the top
-			// sections pulse brighter and dimmer as they go round
-			float ang = 2 * PI * (TURNS * fm - rise + start);
-			float pulse = 0.75f + 0.35f * sinf(3 * ang - 2 * PI * t / 1.3f + line * 2.0f);
-			pulse = pulse > 1 ? 1 : pulse;
+			float w = fminf(1, fminf(fm / 0.2f, (1 - fm) / 0.2f)); // the curve fades in and out at its ends
+			float a0 = 2 * PI * (ARC * f0 + spin), a1 = 2 * PI * (ARC * f1 + spin);
 			// keep u inside 0..1 (the game may clamp textures instead of repeating them)
-			float u0 = REP * (TURNS * f0 - rise), du = REP * TURNS / SEGS;
+			float u0 = REP * f0, du = REP / SEGS;
 			u0 -= floorf(u0);
 			if (u0 + du > 1)
 				u0 = 1 - du;
 			float u1 = u0 + du;
-			V3 p[4] = {at(f0, BAND), at(f1, BAND), at(f0, -BAND), at(f1, -BAND)};
+			V3 p[4] = {at(r + BAND, a0), at(r + BAND, a1), at(r - BAND, a0), at(r - BAND, a1)};
 			float uv[8] = {u0, box.v0, u1, box.v0, u0, box.v1, u1, box.v1};
-			// mixed by alpha like the ground circle, so the picture's colour stays
-			// true on light floors (added light washed out to white on Prontera's stones)
-			bool blended = g_alphaTex.count(tex) != 0;
-			uint32_t col = blended ? ((uint32_t)(255 * w * pulse) << 24 | 0xffffffu) : grey(255 * w * pulse);
+			// mixed by alpha like the ground circle so the colour stays true on light floors
+			uint32_t col = blended ? ((uint32_t)(255 * w) << 24 | 0xffffffu) : grey(200 * w);
 			quad(p, uv, col, tex, 0, blended);
 		}
 	}
