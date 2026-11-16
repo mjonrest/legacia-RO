@@ -524,7 +524,7 @@ OnInit:
 	callsub S_ExJobs, 60002, "Archer, Hunter, Bard, Dancer, Rogue", Job_Archer, Job_Hunter, Job_Bard, Job_Dancer, Job_Rogue;
 	callsub S_ExJobs, 60003, "Swordman, Knight, Crusader, Thief, Assassin, Merchant, Blacksmith, Alchemist", Job_Swordman, Job_Knight, Job_Crusader, Job_Thief, Job_Assassin, Job_Merchant, Job_Blacksmith, Job_Alchemist;
 	callsub S_ExJobs, 60004, "Swordman, Knight, Assassin", Job_Swordman, Job_Knight, Job_Assassin;
-	callsub S_ExJobs, 60005, "Knight, Crusader, Assassin", Job_Knight, Job_Crusader, Job_Assassin;
+	callsub S_ExJobs, 60005, "Knight, Crusader, Assassin, Ninja", Job_Knight, Job_Crusader, Job_Assassin, Job_Ninja;
 	callsub S_ExJobs, 60006, "Novice, Super Novice", Job_Novice, Job_Super_Novice;
 	callsub S_ExJobs, 60007, "Novice, Super Novice", Job_Novice, Job_Super_Novice;
 	callsub S_ExJobs, 60008, "Priest", Job_Priest;

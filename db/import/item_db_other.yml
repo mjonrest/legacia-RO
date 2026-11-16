@@ -27344,17 +27344,19 @@ Body:
       Assassin: true
       Crusader: true
       Knight: true
+      Ninja: true
     Locations:
       Right_Hand: true
     WeaponLevel: 4
     Refineable: true
     Script: |
-      // Copies Assassin Dagger
-      bonus bMaxHPrate,20;
-      bonus bMaxSPrate,15;
-      bonus bAspdRate,2;
-      bonus bAtkEle,Ele_Dark;
-      callfunc "F_LegaciaWeapon",0;
+      // Magic dagger: copies Bazerald, uses Mystical mastery
+      bonus bAtkEle,Ele_Fire;
+      bonus bInt,5;
+      bonus bMatkRate,10;
+      // job bonus (every job): MATK +20%
+      bonus bMatkRate,20;
+      callfunc "F_LegaciaWeapon",1,1;
     EquipScript: |
       callfunc "WM_Refresh";
     UnEquipScript: |

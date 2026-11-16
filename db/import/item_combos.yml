@@ -448,26 +448,26 @@ Body:
           - Blinkstrike    # 60005
           - Leaf_Cat_Card    # 4195
     Script: |
-      bonus bFlee,5;
+      bonus bCastrate,-5;
   - Combos:
       - Combo:
           - Blinkstrike    # 60005
           - Baby_Leopard_Card    # 4233
     Script: |
-      bonus bCritical,3;
+      bonus bMatkRate,3;
   - Combos:
       - Combo:
           - Blinkstrike    # 60005
           - Baphomet__Card    # 4129
     Script: |
-      bonus bCritical,3;
-      bonus bAspdRate,3;
+      bonus bMatkRate,3;
+      bonus bCastrate,-3;
   - Combos:
       - Combo:
           - Blinkstrike    # 60005
           - Thief_Bug_Male_Card    # 4050
     Script: |
-      bonus bAgi,2;
+      bonus bInt,2;
   - Combos:
       - Combo:
           - White_Rabbit_Sword    # 60006
