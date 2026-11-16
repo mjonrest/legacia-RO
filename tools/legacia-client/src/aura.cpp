@@ -834,12 +834,12 @@ void draw_swirl(const V3& foot, void* tex, float t, const Swirl& sw, float v0, f
 // 5.7 s they start again: one after another they come up from the feet and open.
 // Fitted to the owner's #5 recording in 3D (80% overlap of the shapes); sizes are
 // pixels of that video (2.3435 px per aura unit).
-void draw_petals(const V3& foot, void* tex, float t) {
+void draw_petals(const V3& foot, void* tex, float t, uint32_t aid) {
 	const float PPU = 2.3435f;
 	const float R = 90.5f, D0 = -54.0f, H0 = 0.0f, BETA = 26.5f * PI / 180;
 	// an empty dark circle round the feet (owner 2026-11-16), soft at its edge
 	const float HOLE = 34.0f, HOLE_SOFT = 10.0f;
-	const float W = 219.9f, CYC = 5.733f, GAP = 0.45f, GROW = 1.0f, FADE = 0.25f;
+	const float W = 219.9f, GAP = 0.45f, GROW = 1.6f, FADE = 0.3f;
 	const float TINT[3] = {0.3f, 0.3f, 0.38f};
 	const int NA = 36, NR = 8;
 	float k2w = g_scale / PPU; // video pixels -> world
@@ -850,16 +850,21 @@ void draw_petals(const V3& foot, void* tex, float t) {
 		return;
 	float cross = (ox.x - o.x) * (oz.y - o.y) - (ox.y - o.y) * (oz.x - o.x);
 	float dir = cross < 0 ? 1.0f : -1.0f;
-	float tc = fmodf(t, CYC);
+	// when this player's aura appeared (again): the bubbles rise once from the
+	// floor, small to full size, then keep circling with no fading (owner 2026-11-16)
+	static std::unordered_map<uint32_t, std::pair<float, float>> seen; // aid -> start, last drawn
+	auto& sl = seen[aid];
+	if (sl.second <= 0 || t - sl.second > 1.0f || t < sl.second)
+		sl.first = t;
+	sl.second = t;
+	float since = t - sl.first;
 	for (int k = 0; k < 3; k++) {
-		float age = tc - k * GAP;
+		float age = since - k * GAP;
 		if (age < 0)
 			continue;
 		float g = fminf(1.0f, age / GROW);
 		g = g * g * (3 - 2 * g);
-		float alpha = fminf(1.0f, age / FADE) * fminf(1.0f, (CYC - tc) / FADE);
-		if (alpha <= 0)
-			continue;
+		float alpha = fminf(1.0f, age / FADE);
 		auto colour = [&](float f) {
 			uint32_t col = 0xff000000u;
 			for (int i = 0; i < 3; i++) {
@@ -871,8 +876,9 @@ void draw_petals(const V3& foot, void* tex, float t) {
 		float ps = dir * (W * t + k * 120.0f) * PI / 180, b = BETA * g;
 		float rx = cosf(ps), rz = sinf(ps); // out from the player
 		float tx = -rz, tz = rx;            // along the ground, sideways
-		float cOut = (D0 + R * cosf(b)) * k2w, cUp = (H0 * g + R * sinf(b)) * k2w;
-		float e1o = cosf(b), e1u = sinf(b), r = R * k2w;
+		float Rg = R * (0.2f + 0.8f * g), Dg = D0 * (0.2f + 0.8f * g); // small to big, hinge stays at the feet
+		float cOut = (Dg + Rg * cosf(b)) * k2w, cUp = (H0 * g + Rg * sinf(b)) * k2w;
+		float e1o = cosf(b), e1u = sinf(b), r = Rg * k2w;
 		// a point of the disc, and how bright it may be (dark near the feet)
 		auto at = [&](float rr, float a, float& f) {
 			float ca = rr * cosf(a), sa = rr * sinf(a);
@@ -940,7 +946,7 @@ void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 		else if (li != g_ringLook.end() && li->second.style == 2)
 			draw_swirl(foot, tex, t, SWIRL_STRIP, li->second.v0, li->second.v1);
 		else
-			draw_petals(foot, tex, t);
+			draw_petals(foot, tex, t, aid);
 	}
 	if (a.part[2] && (tex = texture(3, a.part[2])))
 		draw_sparkles(foot, aid, tex, t);
