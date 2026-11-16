@@ -1,0 +1,518 @@
+//===== Legacia RO Script ====================================
+//= Damage Tester (adjustable)
+//===== Description: =========================================
+//= 5 training booths in Prontera (same spots as the old
+//= punching bags, npc/miracle/dummy*.txt). @dummy warps there.
+//= Each booth has a Dummy Trainer NPC and 1-9 dummies the
+//= player can adjust:
+//=   size, race, element + level, Normal / Boss, level,
+//=   DEF, MDEF, VIT, INT, AGI, LUK, or copy a monster by ID.
+//= The dummies never die and never fight back. Every second
+//= the booth reads the HP they lost, heals them, and keeps:
+//=   damage this second, total, duration, DPS, best second.
+//= Test mode: Free (ends 3 s after the last hit) or a timed
+//= test of 10 / 30 / 60 / 180 seconds from the first hit.
+//=
+//= The player who sets up a booth owns it (results also go to
+//= their chat) until they leave it alone for 60 seconds.
+//= Settings are saved per character (DT_SET[] char array)
+//= and can be loaded at any booth.
+//=
+//= Dummies: mob 2409 (Normal) and 2410 (Boss), defined in
+//= db/import/mob_db.yml with the renewal dummy IDs so the
+//= client already has their sprites.
+//= Notes:
+//=  - Damage is read once per second, so the numbers are per
+//=    second, not per hit (the client still shows each hit).
+//=  - Anyone hitting a booth's dummy adds to its numbers
+//=    (also homunculus / mercenary / summon damage).
+//=  - Boss dummies follow boss rules (status immune, etc.).
+//============================================================
+
+-	script	Dummy Trainer#0	-1,{
+	.@b = atoi(strnpcinfo(2));
+	.@now = gettimetick(2);
+	.@me = getcharid(0);
+	.@oc = .OwnC[.@b];
+	if (.@oc > 0 && .@oc != .@me) {
+		.@free = 0;
+		if (.@now - .Busy[.@b] >= .Lock)
+			.@free = 1;
+		else if (isloggedin(.OwnA[.@b], .@oc) == 0)
+			.@free = 1;
+		if (.@free == 0) {
+			mes "[Dummy Trainer]";
+			mes "This booth is being used by";
+			mes "^0000FF" + .OwnN$[.@b] + "^000000.";
+			mes "Please use another booth, or wait";
+			mes "until it has been quiet for " + .Lock + "s.";
+			next;
+			if (select("Show this booth's last results:Close") == 1)
+				callsub S_ShowHist;
+			close;
+		}
+	}
+	// claim the booth
+	.OwnC[.@b] = .@me;
+	.OwnA[.@b] = getcharid(3);
+	.OwnN$[.@b] = strcharinfo(0);
+	.Busy[.@b] = .@now;
+
+	while (1) {
+		.@k = .@b * 16;
+		mes "[Dummy Trainer]";
+		mes "Dummy: ^0000FF" + callsub(S_Summary) + "^000000";
+		mes "Lv " + .S[.@k + 5] + "  DEF " + .S[.@k + 6] + "  MDEF " + .S[.@k + 7];
+		mes "VIT " + .S[.@k + 8] + "  INT " + .S[.@k + 9] + "  AGI " + .S[.@k + 10] + "  LUK " + .S[.@k + 11];
+		mes "Dummies: " + .S[.@k + 12] + "   Test: " + callsub(S_DurName, .S[.@k + 13]);
+		if (.State[.@b] == 1)
+			mes "^FF0000Test running: " + F_InsertComma(.Tot[.@b]) + " dmg in " + .Secs[.@b] + "s^000000";
+		next;
+		.Busy[.@b] = gettimetick(2);
+		switch (select("Adjust the dummy:Load my saved dummy:Test mode [" + callsub(S_DurName, .S[.@k + 13]) + "]:Last results:Reset the counter:How does it work?:Close")) {
+		case 1:
+			callsub S_Adjust;
+			break;
+		case 2:
+			mes "[Dummy Trainer]";
+			if (DT_SET[14] != .Ver) {
+				mes "You haven't saved a dummy yet.";
+				mes "Any dummy you ^0000FFApply^000000 is saved";
+				mes "to your character automatically.";
+				next;
+				break;
+			}
+			copyarray .S[.@k], DT_SET[0], 14;
+			.Copy$[.@b] = DT_COPY$;
+			if (.S[.@k + 12] < 1 || .S[.@k + 12] > 9)
+				.S[.@k + 12] = 1;
+			callsub S_Spawn;
+			mes "Loaded your dummy:";
+			mes "^0000FF" + callsub(S_Summary) + "^000000";
+			next;
+			break;
+		case 3:
+			mes "[Dummy Trainer]";
+			mes "^0000FFFree^000000: the test starts on the first";
+			mes "hit and ends 3 seconds after the last.";
+			mes "^0000FFTimed^000000: starts on the first hit and";
+			mes "ends after exactly that many seconds.";
+			next;
+			.@s = select("Free:10 seconds:30 seconds:60 seconds:180 seconds") - 1;
+			setarray .@d[0], 0, 10, 30, 60, 180;
+			.S[.@k + 13] = .@d[.@s];
+			DT_SET[13] = .@d[.@s];
+			callsub S_ResetCounter;
+			break;
+		case 4:
+			callsub S_ShowHist;
+			break;
+		case 5:
+			callsub S_ResetCounter;
+			mes "[Dummy Trainer]";
+			mes "Counter reset. Ready when you are.";
+			next;
+			break;
+		case 6:
+			mes "[Dummy Trainer]";
+			mes "Adjust the dummy's ^FF0000size, race,";
+			mes "element, Normal/Boss, level, DEF,";
+			mes "MDEF, VIT, INT, AGI and LUK^000000,";
+			mes "or copy a real monster by its ID.";
+			next;
+			mes "[Dummy Trainer]";
+			mes "Then just attack. Every second the";
+			mes "dummy tells you the damage it took,";
+			mes "the total and your ^0000FFDPS^000000. When you";
+			mes "stop, you get a summary in chat.";
+			mes "The dummies never die or fight back.";
+			next;
+			mes "[Dummy Trainer]";
+			mes "The booth is yours while you use it.";
+			mes "If nobody touches it for " + .Lock + "s,";
+			mes "someone else can take it.";
+			mes "Anyone hitting your dummy adds to";
+			mes "the numbers, so pick a free booth.";
+			next;
+			break;
+		case 7:
+			close;
+		}
+	}
+	end;
+
+// ---- Adjust menu (player attached) ----
+S_Adjust:
+	.@b = atoi(strnpcinfo(2));
+	.@k0 = .@b * 16;
+	copyarray .@n[0], .S[.@k0], 14;
+	.@copy$ = .Copy$[.@b];
+	while (1) {
+		mes "[Dummy Trainer]";
+		mes "Pick what to change, then";
+		mes "^0000FFApply^000000 to respawn the dummy.";
+		next;
+		.@m$ = "Size [" + .Size$[.@n[0]] + "]"
+			+ ":Race [" + .Race$[.@n[1]] + "]"
+			+ ":Element [" + .Ele$[.@n[2]] + " " + .@n[3] + "]"
+			+ ":Type [" + (.@n[4] ? "Boss" : "Normal") + "]"
+			+ ":Level [" + .@n[5] + "]"
+			+ ":DEF [" + .@n[6] + "]"
+			+ ":MDEF [" + .@n[7] + "]"
+			+ ":VIT [" + .@n[8] + "]"
+			+ ":INT [" + .@n[9] + "]"
+			+ ":AGI [" + .@n[10] + "]"
+			+ ":LUK [" + .@n[11] + "]"
+			+ ":Number of dummies [" + .@n[12] + "]"
+			+ ":Copy a monster by ID" + (.@copy$ != "" ? " [" + .@copy$ + "]" : "")
+			+ ":Default dummy"
+			+ ":^0000FFApply and respawn^000000"
+			+ ":Back without changes";
+		.@s = select(.@m$);
+		.Busy[.@b] = gettimetick(2);
+		switch (.@s) {
+		case 1:
+			.@n[0] = select("Small:Medium:Large") - 1;
+			break;
+		case 2:
+			.@n[1] = select(implode(.Race$, ":")) - 1;
+			break;
+		case 3:
+			.@n[2] = select(implode(.Ele$, ":")) - 1;
+			.@n[3] = select("Level 1:Level 2:Level 3:Level 4");
+			break;
+		case 4:
+			.@n[4] = select("Normal monster:Boss monster") - 1;
+			break;
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+		case 11:
+		case 12:
+			.@i = .@s; // menu 5..12 = setting 5..12
+			mes "[Dummy Trainer]";
+			mes "New value for ^0000FF" + .SetName$[.@i] + "^000000";
+			mes "(" + .Min[.@i] + " - " + .Max[.@i] + "):";
+			next;
+			input .@v, .Min[.@i], .Max[.@i];
+			if (.@v < .Min[.@i]) .@v = .Min[.@i];
+			if (.@v > .Max[.@i]) .@v = .Max[.@i];
+			.@n[.@i] = .@v;
+			if (.@i < 12)
+				.@copy$ = "";
+			continue;
+		case 13:
+			mes "[Dummy Trainer]";
+			mes "Enter the monster ID to copy.";
+			mes "I'll copy its size, race, element,";
+			mes "Normal/Boss, level, DEF, MDEF,";
+			mes "VIT, INT, AGI and LUK.";
+			next;
+			input .@id;
+			.@mn$ = "null";
+			if (.@id > 0)
+				.@mn$ = getmonsterinfo(.@id, MOB_NAME);
+			if (.@mn$ == "null") {
+				mes "[Dummy Trainer]";
+				mes "There is no monster with ID " + .@id + ".";
+				next;
+				continue;
+			}
+			.@n[0] = getmonsterinfo(.@id, MOB_SIZE);
+			.@n[1] = getmonsterinfo(.@id, MOB_RACE);
+			.@n[2] = getmonsterinfo(.@id, MOB_ELEMENT);
+			.@n[3] = getmonsterinfo(.@id, MOB_ELEMENTLV);
+			.@mode = getmonsterinfo(.@id, MOB_MODE);
+			.@n[4] = ((.@mode & MD_STATUSIMMUNE) && (.@mode & MD_KNOCKBACKIMMUNE)) ? 1 : 0;
+			.@n[5] = getmonsterinfo(.@id, MOB_LV);
+			.@n[6] = getmonsterinfo(.@id, MOB_DEF);
+			.@n[7] = getmonsterinfo(.@id, MOB_MDEF);
+			.@n[8] = getmonsterinfo(.@id, MOB_VIT);
+			.@n[9] = getmonsterinfo(.@id, MOB_INT);
+			.@n[10] = getmonsterinfo(.@id, MOB_AGI);
+			.@n[11] = getmonsterinfo(.@id, MOB_LUK);
+			// keep everything inside the limits the dummy supports
+			if (.@n[0] < 0 || .@n[0] > 2) .@n[0] = 1;
+			if (.@n[1] < 0 || .@n[1] > 9) .@n[1] = 0;
+			if (.@n[2] < 0 || .@n[2] > 9) .@n[2] = 0;
+			if (.@n[3] < 1 || .@n[3] > 4) .@n[3] = 1;
+			for (.@i = 5; .@i <= 11; .@i++) {
+				if (.@n[.@i] < .Min[.@i]) .@n[.@i] = .Min[.@i];
+				if (.@n[.@i] > .Max[.@i]) .@n[.@i] = .Max[.@i];
+			}
+			.@copy$ = .@mn$;
+			mes "[Dummy Trainer]";
+			mes "Copied ^0000FF" + .@mn$ + "^000000 (" + .@id + ").";
+			mes "Press ^0000FFApply and respawn^000000 to use it.";
+			next;
+			continue;
+		case 14:
+			for (.@i = 0; .@i < 13; .@i++) // keeps test mode (13)
+				.@n[.@i] = .Def[.@i];
+			.@copy$ = "";
+			continue;
+		case 15:
+			copyarray .S[.@k0], .@n[0], 14;
+			.Copy$[.@b] = .@copy$;
+			// save to the player too
+			copyarray DT_SET[0], .@n[0], 14;
+			DT_SET[14] = .Ver;
+			DT_COPY$ = .@copy$;
+			callsub S_Spawn;
+			mes "[Dummy Trainer]";
+			mes "Done! Your dummy is ready:";
+			mes "^0000FF" + callsub(S_Summary) + "^000000";
+			next;
+			return;
+		case 16:
+			return;
+		}
+		// cases 1-4 change a property: the copy is no longer exact
+		.@copy$ = "";
+	}
+	return;
+
+S_ShowHist:
+	.@b = atoi(strnpcinfo(2));
+	mes "[Dummy Trainer]";
+	if (.H$[.@b * 5] == "") {
+		mes "No results yet. Go hit the dummy!";
+	} else {
+		mes "Latest first:";
+		for (.@i = 0; .@i < 5; .@i++) {
+			if (.H$[.@b * 5 + .@i] == "")
+				break;
+			mes "^0000FF" + (.@i + 1) + ".^000000 " + .H$[.@b * 5 + .@i];
+		}
+	}
+	next;
+	return;
+
+// ---- Text helpers ----
+S_Summary:
+	.@b = atoi(strnpcinfo(2));
+	.@k = .@b * 16;
+	if (.Copy$[.@b] != "")
+		return "copy of " + .Copy$[.@b] + (.S[.@k + 4] ? " (Boss)" : "");
+	return (.S[.@k + 4] ? "Boss, " : "Normal, ") + .Size$[.S[.@k]] + ", " + .Race$[.S[.@k + 1]] + ", " + .Ele$[.S[.@k + 2]] + " " + .S[.@k + 3];
+
+S_DurName:
+	if (getarg(0) <= 0)
+		return "Free";
+	return getarg(0) + "s timed";
+
+// ---- Spawn / respawn the booth's dummies (no player needed) ----
+S_Spawn:
+	.@b = atoi(strnpcinfo(2));
+	.@k = .@b * 16;
+	.Spawning[.@b] = 1;
+	killmonster "prontera", strnpcinfo(0) + "::OnDummyDead";
+	for (.@i = 0; .@i < 9; .@i++)
+		.G[.@b * 10 + .@i] = 0;
+	if (.Copy$[.@b] != "")
+		.@mname$ = "Dummy " + .Copy$[.@b];
+	else
+		.@mname$ = (.S[.@k + 4] ? "[B] " : "") + .SizeS$[.S[.@k]] + " " + .Race$[.S[.@k + 1]] + " " + .Ele$[.S[.@k + 2]] + .S[.@k + 3];
+	if (getstrlen(.@mname$) > 23)
+		.@mname$ = substr(.@mname$, 0, 22);
+	.@mob = .S[.@k + 4] ? 2410 : 2409;
+	for (.@i = 0; .@i < .S[.@k + 12]; .@i++) {
+		.@x = .BX[.@b] + .OffX[.@i];
+		.@y = .BY[.@b] + .OffY[.@i];
+		monster "prontera", .@x, .@y, .@mname$, .@mob, 1, strnpcinfo(0) + "::OnDummyDead";
+		.@g = $@mobid[0];
+		.G[.@b * 10 + .@i] = .@g;
+		setunitdata .@g, UMOB_SIZE, .S[.@k];
+		setunitdata .@g, UMOB_RACE, .S[.@k + 1];
+		setunitdata .@g, UMOB_ELETYPE, .S[.@k + 2];
+		setunitdata .@g, UMOB_ELELEVEL, .S[.@k + 3];
+		setunitdata .@g, UMOB_LEVEL, .S[.@k + 5];
+		setunitdata .@g, UMOB_DEF, .S[.@k + 6];
+		setunitdata .@g, UMOB_MDEF, .S[.@k + 7];
+		setunitdata .@g, UMOB_VIT, .S[.@k + 8];
+		setunitdata .@g, UMOB_INT, .S[.@k + 9];
+		setunitdata .@g, UMOB_AGI, .S[.@k + 10];
+		setunitdata .@g, UMOB_LUK, .S[.@k + 11];
+		setunitdata .@g, UMOB_MAXHP, .DumHP;
+		setunitdata .@g, UMOB_HP, .DumHP;
+		setunitdata .@g, UMOB_LOOKDIR, 4; // face south
+	}
+	.Spawning[.@b] = 0;
+	callsub S_ResetCounter;
+	return;
+
+S_ResetCounter:
+	.@b = atoi(strnpcinfo(2));
+	.State[.@b] = 0;
+	.Tot[.@b] = 0;
+	.Secs[.@b] = 0;
+	.Last[.@b] = 0;
+	.Peak[.@b] = 0;
+	.Idle[.@b] = 0;
+	return;
+
+// ---- Finish a test and report ----
+S_Finish:
+	.@b = atoi(strnpcinfo(2));
+	.@secs = getarg(0);
+	if (.@secs < 1)
+		.@secs = 1;
+	.@dps = .Tot[.@b] / .@secs;
+	.@r$ = F_InsertComma(.Tot[.@b]) + " dmg in " + .@secs + "s = " + F_InsertComma(.@dps) + " DPS (best 1s: " + F_InsertComma(.Peak[.@b]) + ")";
+	// keep the last 5 results, newest first
+	for (.@i = 4; .@i > 0; .@i--)
+		.H$[.@b * 5 + .@i] = .H$[.@b * 5 + .@i - 1];
+	.H$[.@b * 5] = .@r$;
+	.@g = .G[.@b * 10];
+	if (unitexists(.@g))
+		unittalk .@g, "Result: " + .@r$;
+	.@oc = .OwnC[.@b];
+	if (.@oc > 0) {
+		if (isloggedin(.OwnA[.@b], .@oc)) {
+			dispbottom "[Damage Tester] " + callsub(S_Summary) + " | " + callsub(S_DurName, .S[.@b * 16 + 13]), 0xFFCC66, .@oc;
+			dispbottom "[Damage Tester] " + .@r$, 0xFFCC66, .@oc;
+		}
+	}
+	return;
+
+OnDummyDead:
+	// should never happen (1,000,000,000 HP healed every second), but keep the booth usable
+	.@b = atoi(strnpcinfo(2));
+	if (.Spawning[.@b])
+		end;
+	callsub S_Spawn;
+	end;
+
+OnTimer1000:
+	.@b = atoi(strnpcinfo(2));
+	// damage taken since the last check, then heal the dummies
+	.@sum = 0;
+	.@alive = 0;
+	for (.@i = 0; .@i < .S[.@b * 16 + 12]; .@i++) {
+		.@g = .G[.@b * 10 + .@i];
+		if (.@g <= 0)
+			continue;
+		if (unitexists(.@g) == 0)
+			continue;
+		.@alive++;
+		getunitdata .@g, .@d;
+		.@lost = .@d[UMOB_MAXHP] - .@d[UMOB_HP];
+		if (.@lost > 0) {
+			.@sum += .@lost;
+			setunitdata .@g, UMOB_HP, .@d[UMOB_MAXHP];
+		}
+	}
+	if (.@alive == 0) {
+		callsub S_Spawn;
+		initnpctimer;
+		end;
+	}
+	.@g = .G[.@b * 10];
+
+	if (.@sum > 0) {
+		.Idle[.@b] = 0;
+		.Busy[.@b] = gettimetick(2);
+		if (.State[.@b] == 0) {
+			.State[.@b] = 1;
+			.Tot[.@b] = 0;
+			.Secs[.@b] = 0;
+			.Last[.@b] = 0;
+			.Peak[.@b] = 0;
+		}
+		if (.State[.@b] == 1) {
+			.Secs[.@b]++;
+			.Last[.@b] = .Secs[.@b];
+			.Tot[.@b] += .@sum;
+			if (.@sum > .Peak[.@b])
+				.Peak[.@b] = .@sum;
+			.@dur = .S[.@b * 16 + 13];
+			.@dps = .Tot[.@b] / .Secs[.@b];
+			if (.@dur > 0) {
+				if (.Secs[.@b] >= .@dur) {
+					callsub S_Finish, .Secs[.@b];
+					.State[.@b] = 2;
+					unittalk .@g, "Timed test done. Stop attacking for 3 seconds to start a new one.";
+				} else {
+					unittalk .@g, F_InsertComma(.@sum) + " | Total " + F_InsertComma(.Tot[.@b]) + " | " + .Secs[.@b] + "/" + .@dur + "s | DPS " + F_InsertComma(.@dps);
+				}
+			} else {
+				unittalk .@g, F_InsertComma(.@sum) + " | Total " + F_InsertComma(.Tot[.@b]) + " | " + .Secs[.@b] + "s | DPS " + F_InsertComma(.@dps);
+			}
+		}
+	} else {
+		.Idle[.@b]++;
+		if (.State[.@b] == 1) {
+			.Secs[.@b]++;
+			.@dur = .S[.@b * 16 + 13];
+			if (.@dur > 0) {
+				if (.Secs[.@b] >= .@dur) {
+					callsub S_Finish, .Secs[.@b];
+					.State[.@b] = 2;
+				}
+			} else if (.Idle[.@b] >= 3) {
+				// free mode: duration = first hit to last hit
+				callsub S_Finish, .Last[.@b];
+				.State[.@b] = 0;
+			}
+		} else if (.State[.@b] == 2) {
+			if (.Idle[.@b] >= 3) {
+				.State[.@b] = 0;
+				unittalk .@g, "Ready for a new test.";
+			}
+		}
+	}
+	initnpctimer;
+	end;
+
+OnInit:
+	// shared settings (duplicates share these variables)
+	.Ver = 1;
+	.Lock = 60;          // seconds of no use before another player can take a booth
+	.DumHP = 1000000000;
+	// dummy spots per booth (the old punching bag spots)
+	setarray .BX[1], 224, 216, 224, 216, 224;
+	setarray .BY[1], 79, 79, 70, 58, 58;
+	// layout of up to 9 dummies: centre, sides, then corners (3x3)
+	setarray .OffX[0], 0, -1, 1, 0, 0, -1, 1, -1, 1;
+	setarray .OffY[0], 0, 0, 0, 1, -1, 1, 1, -1, -1;
+	setarray .Size$[0], "Small", "Medium", "Large";
+	setarray .SizeS$[0], "S", "M", "L";
+	setarray .Race$[0], "Formless", "Undead", "Brute", "Plant", "Insect", "Fish", "Demon", "Demi-Human", "Angel", "Dragon";
+	setarray .Ele$[0], "Neutral", "Water", "Earth", "Fire", "Wind", "Poison", "Holy", "Shadow", "Ghost", "Undead";
+	// settings: 0 size, 1 race, 2 element, 3 element lv, 4 boss,
+	// 5 level, 6 DEF, 7 MDEF, 8 VIT, 9 INT, 10 AGI, 11 LUK,
+	// 12 number of dummies, 13 test seconds (0 = free)
+	setarray .Def[0], 1, 0, 0, 1, 0, 99, 0, 0, 0, 0, 0, 0, 1, 0;
+	setarray .SetName$[5], "Level", "DEF", "MDEF", "VIT", "INT", "AGI", "LUK", "Number of dummies";
+	setarray .Min[5], 1, 0, 0, 0, 0, 0, 0, 1;
+	setarray .Max[5], 255, 99, 99, 500, 500, 500, 500, 9;
+
+	.@b = atoi(strnpcinfo(2));
+	if (.@b < 1)
+		end; // the hidden template has no booth
+	copyarray .S[.@b * 16], .Def[0], 14;
+	.Copy$[.@b] = "";
+	callsub S_Spawn;
+	initnpctimer;
+	end;
+}
+
+// Booths: trainer NPC 3 cells south of its dummy spot
+prontera,224,76,4	duplicate(Dummy Trainer#0)	Dummy Trainer#1	JT_4_M_JOB_KNIGHT1
+prontera,216,76,4	duplicate(Dummy Trainer#0)	Dummy Trainer#2	JT_4_M_JOB_KNIGHT1
+prontera,224,67,4	duplicate(Dummy Trainer#0)	Dummy Trainer#3	JT_4_M_JOB_KNIGHT1
+prontera,216,55,4	duplicate(Dummy Trainer#0)	Dummy Trainer#4	JT_4_M_JOB_KNIGHT1
+prontera,224,55,4	duplicate(Dummy Trainer#0)	Dummy Trainer#5	JT_4_M_JOB_KNIGHT1
+
+// @dummy: go to the training booths
+-	script	dummy_cmd#dt	-1,{
+OnInit:
+	bindatcmd "dummy", strnpcinfo(3) + "::OnAtcommand";
+	end;
+OnAtcommand:
+	warp "prontera", 220, 70;
+	end;
+}
