@@ -367,17 +367,19 @@ void draw_rings(const V3& foot, void* tex, float t) {
 	const float TILT = 32 * PI / 180;    // petals lean up, outward
 	const float TURN = 6.0f, SPIN = 2.0f;
 	const float CYCLE = 5.7f, GROW = 1.3f, FADE = 0.6f, STAGGER = 0.35f;
-	// full discs float round the waist; crescents (#6) and dotted rings (#3) have
-	// their base at the feet and stand up steeper, sweeping round the body from the
-	// ground (owner 2026-11-16: "base at the bottom of player ... not circle the air")
+	// full discs (#5) float round the waist as three petals. Crescents (#6) and dotted
+	// rings (#3) are centred on the player and wobble round the body at very different
+	// tilts: sizes, heights and tilts were fitted to where Gepard's ring shows up over
+	// the owner's whole clips (time-averaged coverage, 2026-11-16)
 	float R = 48, hole = 0, ecc = 0, bright = 60, off = 16, arc = 0, lift = 16;
-	float tilts[3] = {0.4f, 0.8f, 1.1f};
+	float tilts[3] = {0.4f, 0.8f, 1.1f}; // times TILT
+	float ringIn = 0.64f, ringOut = 0.8f; // dotted ring band, as part of R
 	if (lk.style == 1) {
-		R = 46, hole = 0.62f, ecc = 0.3f, bright = 85, arc = 0.15f, off = 6, lift = 0;
-		tilts[0] = 1.0f, tilts[1] = 1.6f, tilts[2] = 2.2f;
+		R = 47.5f, hole = 0.6f, ecc = 0.25f, bright = 85, arc = -0.04f, off = 0, lift = 31.7f;
+		tilts[0] = 16.5f / 32, tilts[1] = 58.7f / 32, tilts[2] = 74.7f / 32;
 	} else if (lk.style == 2) {
-		bright = 75, off = 3, lift = 0;
-		tilts[0] = 0.8f, tilts[1] = 1.3f, tilts[2] = 1.8f;
+		R = 40.9f, bright = 55, off = 0, lift = 20.6f;
+		tilts[0] = 14.2f / 32, tilts[1] = 63.3f / 32, tilts[2] = 89.2f / 32;
 	}
 	R *= g_scale, off *= g_scale, lift *= g_scale;
 	float turn = 2 * PI * t / TURN;
@@ -422,7 +424,7 @@ void draw_rings(const V3& foot, void* tex, float t) {
 			float u0 = uu - floorf(uu), u1 = u0 + 2.0f / SEGS;
 			float in0, in1, out0, out1, v0 = 0, v1 = 1;
 			if (lk.style == 2) {
-				in0 = in1 = r1 * 0.45f, out0 = out1 = r1 * 0.56f;
+				in0 = in1 = r1 * ringIn, out0 = out1 = r1 * ringOut;
 				v0 = lk.v0, v1 = lk.v1;
 			} else {
 				in0 = r0 + ex * cosf(a0 - holeAt), in1 = r0 + ex * cosf(a1 - holeAt);
