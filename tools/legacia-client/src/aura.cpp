@@ -779,8 +779,8 @@ struct Swirl {
 	float us;       // how much of the picture's width one blade uses
 	float tint[3];  // Gepard's colour on the picture (measured)
 };
-const Swirl SWIRL_FADE = {2, 158, 250, 190, 52, 90, 30, 5, 1.3f, 0.15f, 145, 1, {0.36f, 0.36f, 0.85f}};  // #6
-const Swirl SWIRL_STRIP = {2, 165, 250, 170, 48, 68, 8, 3, 1, 0.1f, 60, 1, {0.36f, 0.36f, 0.85f}};      // #3
+const Swirl SWIRL_FADE = {2, 158, 250, 190, 52, 90, 30, 5, 1.3f, 0.15f, 145, 1, {0.5f, 0.5f, 0.5f}};  // #6 look, neutral colour
+const Swirl SWIRL_STRIP = {2, 165, 250, 170, 48, 68, 8, 3, 1, 0.1f, 60, 1, {0.5f, 0.5f, 0.5f}};      // #3 look, neutral colour
 const Swirl SWIRL_FULL = {2, 150, 200, 300, 48, 72, 34, 20, 1, 0.1f, 5, 0.3f, {0.52f, 0.51f, 0.65f}};  // #5
 
 void draw_swirl(const V3& foot, void* tex, float t, const Swirl& sw, float v0, float v1) {
@@ -838,7 +838,7 @@ void draw_petals(const V3& foot, void* tex, float t) {
 	const float PPU = 2.3435f;
 	const float R = 90.5f, D0 = -49.2f, H0 = 34.7f, BETA = 26.5f * PI / 180;
 	const float W = 219.9f, CYC = 5.733f, GAP = 0.45f, GROW = 1.0f, FADE = 0.25f;
-	const float TINT[3] = {0.3f, 0.3f, 0.38f};
+	const float TINT[3] = {0.33f, 0.33f, 0.33f}; // neutral, so each ring keeps its own colour
 	const int NA = 32, NR = 5;
 	float k2w = g_scale / PPU; // video pixels -> world
 	// which way round looks counter-clockwise on this camera
@@ -915,10 +915,6 @@ void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 		auto li = g_ringLook.find(tex);
 		if (draw_replay(foot, a.part[1], t))
 			; // a recorded Gepard ring
-		else if (li != g_ringLook.end() && draw_kind_replay(foot, li->second, t))
-			; // the recorded ring of the same kind, in this ring's colour
-		else if (ring_is_pillar(a.part[1])) // no recordings installed: the old drawn looks
-			draw_pillar(foot, tex, t);
 		else if (li != g_ringLook.end() && li->second.style == 1)
 			draw_swirl(foot, tex, t, SWIRL_FADE, 0, 1);
 		else if (li != g_ringLook.end() && li->second.style == 2)
