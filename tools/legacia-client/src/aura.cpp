@@ -91,6 +91,8 @@ DWORD g_aurasAt;                             // when the last answer came
 bool g_none;                                 // the map-server can't answer
 
 bool readable(uintptr_t at, int len) {
+	if (at + (uintptr_t)len < at)
+		return false;
 	MEMORY_BASIC_INFORMATION mi;
 	if (!VirtualQuery((void*)at, &mi, sizeof(mi)) || mi.State != MEM_COMMIT || (mi.Protect & (PAGE_NOACCESS | PAGE_GUARD)))
 		return false;
@@ -790,6 +792,8 @@ Region g_regions[16];
 int g_regionNext;
 
 bool readable_fast(uintptr_t at, int len) {
+	if (at + (uintptr_t)len < at || at + (uintptr_t)len > 0xfffe0000u)
+		return false; // a wrapped range (a value like 0xffffff00 taken for a pointer) once crashed the game
 	for (const Region& r : g_regions)
 		if (at >= r.lo && at + len <= r.hi)
 			return true;
@@ -824,7 +828,7 @@ void efx_scan(const uint8_t* p, int depth, std::vector<void**>& out, int& budget
 			continue;
 		}
 		uintptr_t u = (uintptr_t)v;
-		if (depth > 0 && (u & 3) == 0 && u > 0x10000 && (u < 0x400000 || u >= 0x3880000))
+		if (depth > 0 && (u & 3) == 0 && u > 0x10000 && (u < 0x400000 || u >= 0x3880000) && u < 0xfffe0000u)
 			efx_scan((const uint8_t*)v, depth - 1, out, budget, seen);
 	}
 }
@@ -875,6 +879,7 @@ int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLe
 			es.scanFrame = frame;
 			int budget = 60000;
 			std::unordered_set<const uint8_t*> seen;
+			memset(g_regions, 0, sizeof(g_regions)); // memory may have been freed since the last search
 			efx_scan(obj, 3, es.slots, budget, seen);
 			log_line("aura: effect %d (object %p, class %p): %d picture places found", id, obj,
 				         readable((uintptr_t)obj, 4) ? *(void* const*)obj : nullptr, (int)es.slots.size());
