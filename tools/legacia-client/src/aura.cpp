@@ -144,6 +144,8 @@ bool read_bmp32(const char* path, std::vector<uint32_t>& px, int& w, int& h) {
 	return ok;
 }
 
+bool ring_is_pillar(int num);
+
 void* texture(int part, int num) {
 	int key = part * 1000 + num;
 	auto it = g_tex.find(key);
@@ -161,8 +163,8 @@ void* texture(int part, int num) {
 		void* dev = ((GetDeviceFn)GET_DEVICE)();
 		if (dev) {
 			tex = ((CreateTextureFn)CREATE_TEXTURE)(dev, w, h, TEX_FORMAT_ARGB8888, 0, 0);
-			if (tex && part == 1) {
-				// ground circles are mixed by alpha (see emit): the brightness
+			if (tex && (part == 1 || (part == 2 && !ring_is_pillar(num)))) {
+				// ground circles and line rings are mixed by alpha (see emit): the brightness
 				// becomes the alpha (a bit stronger, so the circle reads clearly)
 				// and the colour is un-darkened to match
 				for (uint32_t& c : px) {
@@ -250,7 +252,7 @@ uint32_t grey(float a) {
 	return 0xff000000u | (uint32_t)(g << 16) | (uint32_t)(g << 8) | (uint32_t)g;
 }
 
-bool quad(const V3 p[4], const float uv[8], uint32_t color, void* tex, float zbias = 0) {
+bool quad(const V3 p[4], const float uv[8], uint32_t color, void* tex, float zbias = 0, bool blended = false) {
 	TLV v[4];
 	for (int i = 0; i < 4; i++) {
 		if (!project(p[i], v[i]))
@@ -261,7 +263,7 @@ bool quad(const V3 p[4], const float uv[8], uint32_t color, void* tex, float zbi
 		v[i].u = uv[i * 2];
 		v[i].v = uv[i * 2 + 1];
 	}
-	emit(v, tex);
+	emit(v, tex, blended);
 	return true;
 }
 
@@ -344,7 +346,9 @@ void draw_rings(const V3& foot, void* tex, float t) {
 	// game draws ~2x smaller than the offline preview suggested)
 	const int LINES = 3, SEGS = 48;
 	const float TURNS = 0.8f, PERIOD = 1.6f;          // each line climbs one turn per PERIOD
-	const float H = 58 * g_scale, R0 = 34 * g_scale, R1 = 30 * g_scale;
+	// owner's clip at R 34: the lines spread to ~0.85 of the character's height
+	// each side; Gepard's are ~0.55, so R is 0.65x of that
+	const float H = 58 * g_scale, R0 = 22 * g_scale, R1 = 19.5f * g_scale;
 	const float BAND = 2.1f * g_scale, REP = 1.5f;     // half width; picture repeats per turn
 	TexBox box = {0, 0, 1, 1};
 	auto bi = g_texBox.find(tex);
@@ -373,7 +377,11 @@ void draw_rings(const V3& foot, void* tex, float t) {
 			float u1 = u0 + du;
 			V3 p[4] = {at(f0, BAND), at(f1, BAND), at(f0, -BAND), at(f1, -BAND)};
 			float uv[8] = {u0, box.v0, u1, box.v0, u0, box.v1, u1, box.v1};
-			quad(p, uv, grey(255 * w * pulse), tex);
+			// mixed by alpha like the ground circle, so the picture's colour stays
+			// true on light floors (added light washed out to white on Prontera's stones)
+			bool blended = g_alphaTex.count(tex) != 0;
+			uint32_t col = blended ? ((uint32_t)(255 * w * pulse) << 24 | 0xffffffu) : grey(255 * w * pulse);
+			quad(p, uv, col, tex, 0, blended);
 		}
 	}
 }
