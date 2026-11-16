@@ -313,63 +313,83 @@ void draw_ground(const V3& foot, void* tex, float t) {
 	}
 }
 
-// part 2: rings, as in the user's Gepard recording: three ring layers like
-// flower petals. Each swirl comes in from one side as one ring, then the three
-// fan out 120 degrees apart, each one's centre a little off the player toward
-// its own side and leaning out that way, and the flower turns round the player
-// at waist height, the petals breathing bigger and smaller out of step, each
-// ring spinning (the middle one the other way). The texture runs once round
-// each ring, so its faded ends leave a gap that shows the spin.
+// part 2: rings. The 117 ring textures are very different pictures (flames,
+// stripes, swirls, symbols, round images), so they get one of three styles
+// (owner 2026-11-16: drawing them all as thin flower rings made many look
+// the same and hard to see):
+//  - flame / spike strips: draw_pillar (a fire bloom round the body)
+//  - stripes: draw_belt (glowing belts round the waist)
+//  - everything else: draw_rings, three tilted discs that each show the whole
+//    picture, circling the player like flower petals and spinning
 // Sizes: g_scale * 4 = 1 world unit; a cell is 5 units.
 void draw_rings(const V3& foot, void* tex, float t) {
-	const float CYCLE = 4.0f;            // one turn round the player
-	const int PETALS = 3, SEGS = 32;
-	const float R = 25 * g_scale;        // petal ring radius (owner 2026-11-13: 28 too wide, 21 too small)
-	const float BAND = 6 * g_scale;      // thin lines (the texture fades at its edges)
-	const float LIFT = 22 * g_scale;     // centre at the waist
-	const float OFF0 = 36 * g_scale, OFF1 = 11 * g_scale; // petal centres a little off the player
-	const float TILT = 30 * PI / 180;
-	// the flower stays and keeps turning round the player (one turn per CYCLE)
-	const float fade = 1, ease = 1;
-	float turn = 2 * PI * fmodf(t / CYCLE, 1.0f);
-	float off = OFF0 + (OFF1 - OFF0) * ease;
-	float lift = LIFT * (0.4f + 0.6f * ease);
-	for (int pi = 0; pi < PETALS; pi++) {
-		float dir = turn + 2 * PI / 3 * pi * ease; // fan out to 120 degrees apart
-		float breathe = 0.85f + 0.15f * sinf(2 * PI * t / 1.6f + pi * 2.1f);
-		float r = R * (0.4f + 0.6f * ease) * breathe;
-		V3 c = {foot.x + off * cosf(dir), foot.y - lift, foot.z + off * sinf(dir)};
-		// the petal leans out, toward its own side
+	const int PETALS = 3, SEGS = 20;
+	const float R = 17 * g_scale, OFF = 16 * g_scale, LIFT = 24 * g_scale;
+	const float TILT = 35 * PI / 180;
+	float turn = 2 * PI * fmodf(t / 5.0f, 1.0f); // the flower circles the player, one turn per 5 s
+	uint32_t col = grey(150);
+	for (int k = 0; k < PETALS; k++) {
+		float dir = turn + 2 * PI / 3 * k;
+		float r = R * (0.9f + 0.1f * sinf(2 * PI * t / 2.0f + k * 2.1f)); // breathing out of step
+		float lift = LIFT + 3 * g_scale * sinf(2 * PI * t / 2.4f + k * 2.1f);
+		V3 c = {foot.x + OFF * cosf(dir), foot.y - lift, foot.z + OFF * sinf(dir)};
+		// the disc leans out, toward its own side
 		V3 d = {cosf(dir), 0, sinf(dir)};
 		V3 e1 = {-d.z, 0, d.x};
 		V3 e2 = {cosf(TILT) * d.x, sinf(TILT), cosf(TILT) * d.z};
-		float alpha = 90 * fade; // owner 2026-11-13: 240/150 too bright/white, 50 could not be seen
-		float spin = fmodf(t / 2.6f + pi * 0.31f, 1.0f) * (pi == 1 ? -1.0f : 1.0f);
+		float spin = 2 * PI * fmodf(t / 3.0f + k * 0.31f, 1.0f) * (k == 1 ? -1.0f : 1.0f);
 		auto at = [&](float rr, float ang) {
-			if (rr < 0.5f * g_scale)
-				rr = 0.5f * g_scale;
 			float ca = cosf(ang), sa = sinf(ang);
-			float x = rr * (ca * e1.x + sa * e2.x);
-			float y = rr * (sa * e2.y);
-			float z = rr * (ca * e1.z + sa * e2.z);
-			return V3{c.x + x, c.y - y, c.z + z}; // up is -y in the client
+			return V3{c.x + rr * (ca * e1.x + sa * e2.x), c.y - rr * (sa * e2.y), c.z + rr * (ca * e1.z + sa * e2.z)}; // up is -y
 		};
-		uint32_t col = grey(alpha);
 		for (int s = 0; s < SEGS; s++) {
-			float a0 = 2 * PI * ((float)s / SEGS + spin), a1 = a0 + 2 * PI / SEGS;
-			float u0 = (float)s / SEGS, u1 = (float)(s + 1) / SEGS;
-			V3 p[4] = {at(r + BAND, a0), at(r + BAND, a1), at(r - BAND, a0), at(r - BAND, a1)};
+			float a0 = 2 * PI * s / SEGS, a1 = a0 + 2 * PI / SEGS;
+			// a pie slice: centre (twice) + two rim points, the picture turning inside the disc
+			V3 p[4] = {at(0, a0), at(0, a1), at(r, a0), at(r, a1)};
+			float uv[8] = {0.5f, 0.5f, 0.5f, 0.5f,
+				0.5f + 0.5f * cosf(a0 - spin), 0.5f + 0.5f * sinf(a0 - spin),
+				0.5f + 0.5f * cosf(a1 - spin), 0.5f + 0.5f * sinf(a1 - spin)};
+			quad(p, uv, col, tex);
+		}
+	}
+}
+
+// stripe textures: two glowing belts round the body, the upper one at the
+// chest turning one way, a wider, dimmer one lower turning the other way
+void draw_belt(const V3& foot, void* tex, float t) {
+	const int SEGS = 36, REP = 3; // the stripe runs three times round
+	const float R = 20 * g_scale, HB = 14 * g_scale;
+	for (int k = 0; k < 2; k++) {
+		float turn = 2 * PI * fmodf(t / (k ? 7.0f : 5.0f), 1.0f) * (k ? -1.0f : 1.0f);
+		float lift = (k ? 12 : 30) * g_scale + 2 * g_scale * sinf(2 * PI * t / 2.5f + k * 1.5f);
+		float r = R * (k ? 1.15f : 1.0f), h = HB * (k ? 0.7f : 1.0f);
+		uint32_t col = grey(k ? 140.0f : 230.0f);
+		for (int s = 0; s < SEGS; s++) {
+			float a0 = turn + 2 * PI * s / SEGS, a1 = a0 + 2 * PI / SEGS;
+			int kk = s % (SEGS / REP);
+			float u0 = (float)kk / (SEGS / REP), u1 = (float)(kk + 1) / (SEGS / REP);
+			float top = foot.y - lift - h / 2, bot = foot.y - lift + h / 2; // up is -y
+			V3 p[4] = {{foot.x + r * cosf(a0), top, foot.z + r * sinf(a0)}, {foot.x + r * cosf(a1), top, foot.z + r * sinf(a1)},
+				{foot.x + r * cosf(a0), bot, foot.z + r * sinf(a0)}, {foot.x + r * cosf(a1), bot, foot.z + r * sinf(a1)}};
 			float uv[8] = {u0, 0, u1, 0, u0, 1, u1, 1};
 			quad(p, uv, col, tex);
 		}
 	}
 }
 
+bool ring_is_belt(int num) {
+	static const unsigned char list[] = {3, 4, 5, 6, 7, 8, 11, 31, 32, 35, 52, 60, 89};
+	for (unsigned char n : list)
+		if (n == num)
+			return true;
+	return false;
+}
+
 // Ring textures that are flame / spike strips (bright at the bottom, fading
 // up). Like a skill effect, these rise round the body as a glowing pillar
 // instead of the flower rings, opening like a flower of fire (owner 2026-11-13, see draw_pillar).
 bool ring_is_pillar(int num) {
-	static const unsigned char list[] = {1, 5, 9, 11, 14, 15, 16, 18, 19, 22, 23, 24, 25, 29, 30, 34, 35, 39, 43, 47,
+	static const unsigned char list[] = {1, 9, 14, 15, 16, 18, 19, 22, 23, 24, 25, 29, 30, 34, 39, 43, 47,
 		54, 59, 64, 68, 69, 70, 71, 72, 76, 78, 81, 82, 86, 96, 97, 98, 100, 103, 107, 113};
 	for (unsigned char n : list)
 		if (n == num)
@@ -476,6 +496,8 @@ void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 	if (a.part[1] && (tex = texture(2, a.part[1]))) {
 		if (ring_is_pillar(a.part[1]))
 			draw_pillar(foot, tex, t);
+		else if (ring_is_belt(a.part[1]))
+			draw_belt(foot, tex, t);
 		else
 			draw_rings(foot, tex, t);
 	}
