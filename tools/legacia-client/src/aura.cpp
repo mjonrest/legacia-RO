@@ -335,51 +335,66 @@ void draw_ground(const V3& foot, void* tex, float t) {
 
 // part 2: rings. Two styles:
 //  - flame / spike strips: draw_pillar (a soft fire bloom round the body)
-//  - everything else: draw_rings, three curved dashed lines of the ring's
-//    picture low round the feet, travelling round the player
+//  - everything else: draw_rings, orbiting, pulsing energy particles
 // Sizes: g_scale * 4 = 1 world unit; a cell is 5 units.
 void draw_rings(const V3& foot, void* tex, float t) {
-	// owner 2026-11-16: the line stays at the bottom and moves round the player.
-	// Three curved dashed lines low round the feet, 120 degrees apart, each a
-	// partial arc of the ring's picture (its lit rows only) that sweeps round
-	// the player; the leading end of each line tilts up a little.
-	const int LINES = 3, SEGS = 36;
-	const float PERIOD = 3.0f;           // one turn round the player
-	const float R = 28 * g_scale;        // inside the ground circle (R 37)
-	const float BAND = 2.0f * g_scale;   // half width of the line
-	const float LIFT = 4 * g_scale;      // just above the floor
-	const float HEAD = 9 * g_scale;      // the leading end of each line tilts up this much (owner 2026-11-16)
-	const float ARC = 0.55f, REP = 2.5f; // part of the circle each line covers; picture repeats along it
+	// the owner's six-point spec (2026-11-16), previewed and approved as a gif:
+	// 1 small particles of the ring's picture on one circle round the waist
+	// 2 the circle orbits the player (one turn per PERIOD); its tilt slowly turns
+	// 3 each particle fades in and out on its own, and a brighter wave goes round
+	// 4 each particle has its own distance, height and speed, and drifts a little
+	// 5 alpha-blended, so the picture keeps its colour on light floors
+	// 6 driven by time only, so it loops while standing or moving
+	const int N = 40;
+	const float R = 22 * g_scale, LIFT = 24 * g_scale, TILT = 18 * PI / 180;
+	const float PERIOD = 3.0f, SIZE = 2.6f * g_scale;
 	TexBox box = {0, 0, 1, 1};
 	auto bi = g_texBox.find(tex);
 	if (bi != g_texBox.end())
 		box = bi->second;
 	bool blended = g_alphaTex.count(tex) != 0;
-	float turn = 2 * PI * fmodf(t / PERIOD, 1.0f);
-	for (int line = 0; line < LINES; line++) {
-		float mid = turn + 2 * PI * line / LINES; // the middle of this arc
-		float r = R * (0.92f + 0.08f * sinf(2 * PI * t / 3.0f + line * 2.1f)); // breathes like the ground circle
-		// a flat arc round the feet whose leading end (the way it travels) rises a little
-		auto at = [&](float rr, float a, float f) { // a = angle from the arc's middle, f = 0 tail .. 1 head
-			float ang = mid + a;
-			return V3{foot.x + rr * cosf(ang), foot.y - LIFT - HEAD * f * f, foot.z + rr * sinf(ang)}; // up is -y
-		};
-		for (int s = 0; s < SEGS; s++) {
-			float f0 = (float)s / SEGS, f1 = (float)(s + 1) / SEGS, fm = (f0 + f1) / 2;
-			float w = fminf(1, fminf(fm / 0.2f, (1 - fm) / 0.2f)); // fades in and out at its ends
-			float a0 = 2 * PI * ARC * (f0 - 0.5f), a1 = 2 * PI * ARC * (f1 - 0.5f);
-			// keep u inside 0..1 (the game may clamp textures instead of repeating them)
-			float u0 = REP * f0, du = REP / SEGS;
-			u0 -= floorf(u0);
-			if (u0 + du > 1)
-				u0 = 1 - du;
-			float u1 = u0 + du;
-			V3 p[4] = {at(r + BAND, a0, f0), at(r + BAND, a1, f1), at(r - BAND, a0, f0), at(r - BAND, a1, f1)};
-			float uv[8] = {u0, box.v0, u1, box.v0, u0, box.v1, u1, box.v1};
-			// mixed by alpha like the ground circle so the colour stays true on light floors
-			uint32_t col = blended ? ((uint32_t)(255 * w) << 24 | 0xffffffu) : grey(200 * w);
-			quad(p, uv, col, tex, 0, blended);
+	float hpc = fabsf(*(float*)(g_renderer + 4)), vpc = fabsf(*(float*)(g_renderer + 8));
+	float yaw = 2 * PI * t / 9.0f;
+	V3 ax = {cosf(yaw), 0, sinf(yaw)};
+	V3 bx = {-sinf(yaw) * cosf(TILT), sinf(TILT), cosf(yaw) * cosf(TILT)};
+	for (int i = 0; i < N; i++) {
+		uint32_t seed = hash((uint32_t)i * 2654435761u + 99u);
+		float speed = 1 + rnd(seed, -0.06f, 0.06f);
+		float ph = 2 * PI * i / N + rnd(seed, -0.075f, 0.075f);
+		float rj = rnd(seed, -0.05f, 0.05f), hj = rnd(seed, -1.5f, 1.5f);
+		float ownPeriod = rnd(seed, 1.2f, 2.0f), ownPhase = rnd(seed, 0, 2 * PI);
+		float us = rnd(seed, 0, 0.85f);
+		float a = ph + 2 * PI * t / PERIOD * speed;
+		float rr = R * (1 + rj) + 1.2f * g_scale * sinf(2 * PI * t / 1.9f + i);
+		float dh = hj * g_scale + 1.0f * g_scale * sinf(2 * PI * t / 2.3f + i * 1.3f);
+		float own = 0.5f + 0.5f * sinf(2 * PI * t / ownPeriod + ownPhase);
+		float wave = 0.5f + 0.5f * sinf(2 * a - 2 * PI * t / 1.4f);
+		float al = 1.4f * own * wave + 0.15f * own;
+		al = al > 1 ? 1 : al;
+		if (al < 0.03f)
+			continue;
+		float ca = cosf(a), sa = sinf(a);
+		V3 c = {foot.x + rr * (ca * ax.x + sa * bx.x), foot.y - LIFT - rr * sa * bx.y - dh, foot.z + rr * (ca * ax.z + sa * bx.z)}; // up is -y
+		TLV m;
+		if (!project(c, m))
+			continue;
+		float k = 0.7f + 0.3f * al;
+		float hx = SIZE * k * hpc * m.rhw, hy = SIZE * k * vpc * m.rhw;
+		float u0 = box.u0 + (box.u1 - box.u0) * us, u1 = u0 + (box.u1 - box.u0) * 0.15f;
+		const float dx[4] = {-hx, hx, -hx, hx}, dy[4] = {-hy, -hy, hy, hy};
+		const float uv[8] = {u0, box.v0, u1, box.v0, u0, box.v1, u1, box.v1};
+		uint32_t col = blended ? ((uint32_t)(255 * al) << 24 | 0xffffffu) : grey(255 * al);
+		TLV v[4];
+		for (int j = 0; j < 4; j++) {
+			v[j] = m;
+			v[j].x += dx[j];
+			v[j].y += dy[j];
+			v[j].color = col;
+			v[j].specular = 0xff000000u;
+			v[j].u = uv[j * 2];
+			v[j].v = uv[j * 2 + 1];
 		}
+		emit(v, tex, blended);
 	}
 }
 
