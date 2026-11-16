@@ -662,13 +662,15 @@ struct ReplayInfo {
 	bool ok = false;
 	int frames = 0, w = 0, h = 0;
 	float fps = 15, fx = 0, fy = 0, ppu = 2.49f;
+	DWORD next_try = 0; // a missing folder is looked for again later (copied in while playing)
 };
 std::unordered_map<int, ReplayInfo> g_replay; // ring number -> info (ok false = none)
 
 const ReplayInfo& replay_info(int ring) {
 	auto it = g_replay.find(ring);
-	if (it != g_replay.end())
+	if (it != g_replay.end() && (it->second.ok || GetTickCount() < it->second.next_try))
 		return it->second;
+	bool first = it == g_replay.end();
 	ReplayInfo ri;
 	char path[MAX_PATH];
 	snprintf(path, sizeof(path), "%sreplay\\%03d\\info.txt", tex_folder().c_str(), ring);
@@ -678,7 +680,13 @@ const ReplayInfo& replay_info(int ring) {
 		fclose(f);
 		if (ri.ok)
 			log_line("aura: ring %d plays back %d recorded frames", ring, ri.frames);
+		else
+			log_line("aura: ring %d replay info.txt unreadable: %s", ring, path);
+	} else if (first && (ring == 3 || ring == 5 || ring == 6)) {
+		log_line("aura: ring %d has no recorded frames, looked for %s", ring, path);
 	}
+	if (!ri.ok)
+		ri.next_try = GetTickCount() + 5000;
 	return g_replay[ring] = ri;
 }
 
