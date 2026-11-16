@@ -333,48 +333,39 @@ void draw_ground(const V3& foot, void* tex, float t) {
 
 // part 2: rings. Two styles:
 //  - flame / spike strips: draw_pillar (a soft fire bloom round the body)
-//  - everything else: draw_rings, matched frame by frame to the owner's
-//    Gepard video of ring #3 (2026-11-16): thin rings centred on the player,
-//    one lying round the feet and two round the chest whose tilt slowly goes
-//    round. The picture runs along each ring (twice round), squeezed across
-//    its width to the lit rows only, so a dotted strip shows as dashes. Each
-//    ring is a partial arc that sweeps round and fades at its ends.
+//  - everything else: draw_rings, matched to the owner's Gepard video of
+//    ring #3 (2026-11-16): one line that comes up from the feet and winds
+//    round the player again and again (a rising spiral), fading in at the
+//    feet and out at the top. The picture runs along the line, squeezed
+//    across its width to the lit rows only, so a dotted strip shows as dashes.
 // Sizes: g_scale * 4 = 1 world unit; a cell is 5 units.
 void draw_rings(const V3& foot, void* tex, float t) {
-	struct Ring { float tilt, yawPeriod, spinPeriod, r, lift, arc, phase; };
-	static const Ring rings[3] = {
-		{8, 7.0f, 4.0f, 24, 3, 0.85f, 0.0f},
-		{32, 3.2f, -3.0f, 22, 22, 0.8f, 1.0f},
-		{28, -4.1f, 3.5f, 21, 27, 0.75f, 2.5f},
-	};
-	const int SEGS = 60, REP = 2;
-	const float BAND = 2.2f * g_scale; // half width of the line
+	const int SEGS = 90;
+	const float TURNS = 1.3f, PERIOD = 1.6f;          // the line climbs one turn per PERIOD
+	const float H = 30 * g_scale, R0 = 20 * g_scale, R1 = 17 * g_scale;
+	const float BAND = 1.5f * g_scale, REP = 1.5f;     // half width; picture repeats per turn
 	TexBox box = {0, 0, 1, 1};
 	auto bi = g_texBox.find(tex);
 	if (bi != g_texBox.end())
 		box = bi->second;
-	for (const Ring& g : rings) {
-		float yaw = g.phase + 2 * PI * t / g.yawPeriod, tl = g.tilt * PI / 180;
-		V3 ax = {cosf(yaw), 0, sinf(yaw)};                                  // the axis the ring is tipped round
-		V3 bx = {-sinf(yaw) * cosf(tl), sinf(tl), cosf(yaw) * cosf(tl)};   // the other in-plane axis, tipped up
-		float R = g.r * g_scale * (0.94f + 0.06f * sinf(2 * PI * t / 3.0f + g.phase));
-		float lift = g.lift * g_scale, head = 2 * PI * t / g.spinPeriod;
-		auto at = [&](float rr, float a) {
-			float ca = cosf(a), sa = sinf(a);
-			return V3{foot.x + rr * (ca * ax.x + sa * bx.x), foot.y - lift - rr * sa * bx.y, foot.z + rr * (ca * ax.z + sa * bx.z)}; // up is -y
-		};
-		for (int s = 0; s < SEGS; s++) {
-			float f0 = (float)s / SEGS, f1 = (float)(s + 1) / SEGS;
-			if (f1 > g.arc)
-				break;
-			float a0 = head + 2 * PI * f0, a1 = head + 2 * PI * f1;
-			float fm = (f0 + f1) / 2 / g.arc;
-			float w = fminf(1, fminf(fm / 0.15f, (1 - fm) / 0.15f)); // fades at both ends of the arc
-			float u0 = f0 * REP, u1 = f1 * REP;
-			V3 p[4] = {at(R + BAND, a0), at(R + BAND, a1), at(R - BAND, a0), at(R - BAND, a1)};
-			float uv[8] = {u0, box.v0, u1, box.v0, u0, box.v1, u1, box.v1};
-			quad(p, uv, grey(255 * w), tex);
-		}
+	float rise = fmodf(t / PERIOD, 1.0f);
+	auto at = [&](float f, float off) {
+		float ang = 2 * PI * (TURNS * f - rise);
+		float r = R0 + (R1 - R0) * f + off;
+		return V3{foot.x + r * cosf(ang), foot.y - H * f, foot.z + r * sinf(ang)}; // up is -y
+	};
+	for (int s = 0; s < SEGS; s++) {
+		float f0 = (float)s / SEGS, f1 = (float)(s + 1) / SEGS, fm = (f0 + f1) / 2;
+		float w = fminf(1, fminf(fm / 0.12f, (1 - fm) / 0.3f)); // fades in at the feet, out at the top
+		// keep u inside 0..1 (the game may clamp textures instead of repeating them)
+		float u0 = REP * (TURNS * f0 - rise), du = REP * TURNS / SEGS;
+		u0 -= floorf(u0);
+		if (u0 + du > 1)
+			u0 = 1 - du;
+		float u1 = u0 + du;
+		V3 p[4] = {at(f0, BAND), at(f1, BAND), at(f0, -BAND), at(f1, -BAND)};
+		float uv[8] = {u0, box.v0, u1, box.v0, u0, box.v1, u1, box.v1};
+		quad(p, uv, grey(255 * w), tex);
 	}
 }
 
