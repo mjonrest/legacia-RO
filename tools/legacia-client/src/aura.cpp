@@ -101,7 +101,19 @@ bool g_texFailed;
 struct RingLook {
 	int style; // 0 full discs, 1 sweeping crescents, 2 thin dotted ring (a strip picture)
 	float v0, v1; // the lit rows
+	float tint[3] = {1, 1, 1}; // vertex colour: leans toward the picture's own colour
 };
+
+// ring colour: additive light of `a`, leaning toward the picture's colour so it reads
+// as rich as Gepard's instead of washing out grey-white (owner 2026-11-16)
+uint32_t tinted(float a, const RingLook& lk) {
+	int c[3];
+	for (int i = 0; i < 3; i++) {
+		float v = a * lk.tint[i];
+		c[i] = v < 0 ? 0 : v > 255 ? 255 : (int)(v + 0.5f);
+	}
+	return 0xff000000u | (uint32_t)c[0] << 16 | (uint32_t)c[1] << 8 | (uint32_t)c[2];
+}
 std::unordered_map<void*, RingLook> g_ringLook; // ring textures, worked out when loaded
 std::unordered_set<void*> g_alphaTex; // textures with a real alpha (ground circles)
 int g_loadsThisFrame;
@@ -190,14 +202,17 @@ void* texture(int part, int num) {
 			// (#6) sweeps round as crescents; anything else (#5) is a full disc
 			int y0 = h, y1 = -1;
 			std::vector<double> col(w, 0.0);
+			double mean[3] = {0, 0, 0};
 			for (int y = 0; y < h; y++)
 				for (int x = 0; x < w; x++) {
 					uint32_t c = px[(size_t)y * w + x];
 					int r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
 					int m = r > g ? (r > b ? r : b) : (g > b ? g : b);
 					col[x] += m;
-					if (m > 40)
+					if (m > 40) {
 						y0 = y < y0 ? y : y0, y1 = y > y1 ? y : y1;
+						mean[0] += r, mean[1] += g, mean[2] += b;
+					}
 				}
 			RingLook lk = {0, 0, 1};
 			double top = 0, ends = 0;
@@ -211,6 +226,15 @@ void* texture(int part, int num) {
 				lk = {2, (float)y0 / h, (float)(y1 + 1) / h};
 			else if (top > 0 && ends < 0.35 * top)
 				lk.style = 1;
+			// tint = (colour / its brightest channel) ^ 1.5, scaled to average 0.85
+			double big = mean[0] > mean[1] ? (mean[0] > mean[2] ? mean[0] : mean[2]) : (mean[1] > mean[2] ? mean[1] : mean[2]);
+			if (big > 0) {
+				float tv[3], avg = 0;
+				for (int i = 0; i < 3; i++)
+					tv[i] = powf((float)(mean[i] / big), 1.5f), avg += tv[i] / 3;
+				for (int i = 0; i < 3; i++)
+					lk.tint[i] = avg > 0 ? tv[i] / avg * 0.85f : 1;
+			}
 			g_ringLook[tex] = lk;
 		}
 		if (tex) {
@@ -371,14 +395,14 @@ void draw_rings(const V3& foot, void* tex, float t) {
 	// rings (#3) are centred on the player and wobble round the body at very different
 	// tilts: sizes, heights and tilts were fitted to where Gepard's ring shows up over
 	// the owner's whole clips (time-averaged coverage, 2026-11-16)
-	float R = 48, hole = 0, ecc = 0, bright = 60, off = 16, arc = 0, lift = 16;
+	float R = 48, hole = 0, ecc = 0, bright = 78, off = 16, arc = 0, lift = 16;
 	float tilts[3] = {0.4f, 0.8f, 1.1f}; // times TILT
 	float ringIn = 0.64f, ringOut = 0.8f; // dotted ring band, as part of R
 	if (lk.style == 1) {
 		R = 47.5f, hole = 0.6f, ecc = 0.25f, bright = 85, arc = -0.04f, off = 0, lift = 31.7f;
 		tilts[0] = 16.5f / 32, tilts[1] = 58.7f / 32, tilts[2] = 74.7f / 32;
 	} else if (lk.style == 2) {
-		R = 40.9f, bright = 55, off = 0, lift = 20.6f;
+		R = 40.9f, bright = 40, off = 0, lift = 20.6f;
 		tilts[0] = 14.2f / 32, tilts[1] = 63.3f / 32, tilts[2] = 89.2f / 32;
 	}
 	R *= g_scale, off *= g_scale, lift *= g_scale;
@@ -432,7 +456,7 @@ void draw_rings(const V3& foot, void* tex, float t) {
 			}
 			V3 p[4] = {at(in0, a0), at(in1, a1), at(out0, a0), at(out1, a1)};
 			float uv[8] = {u0, v0, u1, v0, u0, v1, u1, v1};
-			quad(p, uv, grey(bright * fade * w), tex);
+			quad(p, uv, tinted(bright * fade * w, lk), tex);
 		}
 	}
 }
@@ -445,10 +469,14 @@ void draw_rings(const V3& foot, void* tex, float t) {
 // like a spiral arm; the picture runs once along each blade.
 void draw_blades(const V3& foot, void* tex, float t) {
 	const int BLADES = 3, SEGS = 24, RS = 5;
-	const float R = 48 * g_scale, LIFT = 46 * g_scale, TILT = 6 * PI / 180;
+	const float R = 40 * g_scale, LIFT = 40 * g_scale, TILT = 6 * PI / 180;
 	const float TURN = 6.0f, SPIN = 2.1f;
-	const float WIDTH = 0.35f, SPAN = 1.3f, CURL = 0.4f, HEAD = 0.7f, TWIST = 0.1f;
-	const float CYCLE = 5.7f, GROW = 1.3f, FADE = 0.6f, BRIGHT = 110;
+	const float WIDTH = 0.3f, SPAN = 1.3f, CURL = 0.4f, HEAD = 0.7f, TWIST = 0.1f;
+	const float CYCLE = 5.7f, GROW = 1.3f, FADE = 0.6f, BRIGHT = 60; // thin and soft, like Gepard's
+	RingLook lk;
+	auto li = g_ringLook.find(tex);
+	if (li != g_ringLook.end())
+		lk = li->second;
 	float ph = fmodf(t, CYCLE);
 	float g = ph < GROW ? ph / GROW : 1.0f;
 	g = 1 - (1 - g) * (1 - g); // ease out
@@ -468,7 +496,7 @@ void draw_blades(const V3& foot, void* tex, float t) {
 		return V3{c.x + x, c.y - y, c.z + z};
 	};
 	float rot = 2 * PI * t / SPIN;
-	uint32_t col = grey(BRIGHT * fade);
+	uint32_t col = tinted(BRIGHT * fade, lk);
 	for (int b = 0; b < BLADES; b++) {
 		float base = rot + 2 * PI * b / BLADES, span = 2 * PI / BLADES * SPAN;
 		for (int s = 0; s < SEGS; s++) {
