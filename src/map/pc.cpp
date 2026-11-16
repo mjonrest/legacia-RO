@@ -3721,6 +3721,9 @@ void pc_reg_received(map_session_data *sd)
 
 	sd->aura_data = pc_readglobalreg(sd, add_str("AURA_DATA"));
 	sd->state.show_auras = pc_readglobalreg(sd, add_str("SHOW_AURAS_MODE"));
+	sd->aura_pack = static_cast<int32>(pc_readglobalreg(sd, add_str("AURA_PACK")));
+	if (sd->aura_pack < 0 || sd->aura_pack > AURA_PACK_MAX)
+		sd->aura_pack = 0;
 	pc_aura_apply(*sd);
 
 // (^~_~^) Auras End
@@ -17955,6 +17958,9 @@ void pc_aura_apply(map_session_data& sd) {
 				want.push_back(static_cast<int16>(HAT_EF_AURA_PART_BASE + i * HAT_EF_AURA_PART_STEP + parts[i]));
 		}
 	}
+	// the custom aura pack tells legacia.dll which pictures to put on the official aura
+	if (battle_config.aura_hateffect && sd.aura_pack > 0)
+		want.push_back(static_cast<int16>(HAT_EF_AURA_PACK_BASE + sd.aura_pack));
 
 	// Packets are only needed once the client is on the map; at login clif_hat_effects sends the list.
 	bool send = !sd.state.connect_new && sd.prev != nullptr && !pc_isinvisible(&sd) && !sd.sc.getSCE(SC_HIDING) && !sd.sc.getSCE(SC_CLOAKING) && !sd.sc.getSCE(SC_CHASEWALK);
@@ -17998,6 +18004,33 @@ TIMER_FUNC(pc_aura_resend_timer){
 	if (data > 0)
 		add_timer(tick + 4000, pc_aura_resend_timer, id, data - 1);
 	return 0;
+}
+
+/// Whether the character has an aura that travels as hat effects (Gepard-style parts or a custom aura pack).
+bool pc_aura_has(const map_session_data& sd) {
+	return sd.aura_data > 0x1000000 || sd.aura_pack > 0;
+}
+
+/**
+ * Wear custom aura pack n (0 = none). The pack is the official level 99 aura with other pictures:
+ * the map-server shows the official aura (level sent as max_lv) for pack wearers at base level >= max_lv,
+ * and legacia.dll swaps the aura's pictures for the pack's (data/texture/effect/legacia_aura_pack/NNN/).
+ */
+void pc_aura_set_pack(map_session_data& sd, int32 pack) {
+	if (pack < 0 || pack > AURA_PACK_MAX)
+		pack = 0;
+	if (pack == sd.aura_pack)
+		return;
+	bool aura_before = sd.aura_pack > 0 && sd.status.base_level >= battle_config.max_lv;
+	sd.aura_pack = pack;
+	pc_setglobalreg(&sd, add_str("AURA_PACK"), pack);
+	pc_aura_apply(sd);
+	bool aura_after = sd.aura_pack > 0 && sd.status.base_level >= battle_config.max_lv;
+	// the official aura comes with the level in the unit packets, so others need the unit again
+	if (aura_before != aura_after && sd.prev != nullptr && !pc_isinvisible(&sd)) {
+		clif_clearunit_area(sd, CLR_OUTSIGHT);
+		clif_spawn(&sd);
+	}
 }
 
 /// Hide or show the aura hat effects to others without changing the aura (hiding, cloaking, @hide).

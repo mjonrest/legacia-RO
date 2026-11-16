@@ -28197,6 +28197,43 @@ BUILDIN_FUNC(get_aura_part)
 	return SCRIPT_CMD_SUCCESS;
 }
 
+/// set_aura_pack(<pack>{,<char id>}): wear custom aura pack <pack> (0 = none). Returns 0, or -1 without a player.
+BUILDIN_FUNC(set_aura_pack)
+{
+	map_session_data* sd;
+
+	if (!script_charid2sd(3, sd)) {
+		script_pushint(st, -1);
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	int32 pack = script_getnum(st, 2);
+
+	if (pack < 0 || pack > AURA_PACK_MAX) {
+		ShowError("buildin_set_aura_pack: pack %d out of range (0-%d).\n", pack, AURA_PACK_MAX);
+		script_pushint(st, -2);
+		return SCRIPT_CMD_FAILURE;
+	}
+
+	pc_aura_set_pack(*sd, pack);
+	script_pushint(st, 0);
+	return SCRIPT_CMD_SUCCESS;
+}
+
+/// get_aura_pack({<char id>}): the custom aura pack worn (0 = none).
+BUILDIN_FUNC(get_aura_pack)
+{
+	map_session_data* sd;
+
+	if (!script_charid2sd(2, sd)) {
+		script_pushint(st, 0);
+		return SCRIPT_CMD_SUCCESS;
+	}
+
+	script_pushint(st, sd->aura_pack);
+	return SCRIPT_CMD_SUCCESS;
+}
+
 // (^~_~^) Auras End
 
 // (^~_~^) Color Nicks Start
@@ -28269,6 +28306,8 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(set_aura,"iii"),
 	BUILDIN_DEF(set_aura_part,"ii"),
 	BUILDIN_DEF(get_aura_part,"i"),
+	BUILDIN_DEF(set_aura_pack,"i?"),
+	BUILDIN_DEF(get_aura_pack,"?"),
 
 // (^~_~^) Auras End
 

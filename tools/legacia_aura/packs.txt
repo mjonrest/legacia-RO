@@ -1,0 +1,163 @@
+1	Abstract Flower	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+2	AiyuRo's Current	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+3	AiyuRo's Old	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+4	amulet	aurafloat.tga auraring.bmp
+5	Angelic Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+6	AniExiles_AniM0rph_Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+7	AniExiles_Crest_Moon_Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+8	AniExiles_Solestice_Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+9	Appel	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+10	Arcane Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+11	Arcane1	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+12	Arcane2	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+13	Arcane3	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+14	Arcane4	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+15	ArticGalaxyAura-by-Melz	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+16	Aura of King	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+17	AuraFlame-by-Melz	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+18	Autumnleaf by WP	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+19	beautiful_dolphin	aurafloat.tga auraring.bmp
+20	Big Bad Voodoo	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+21	Blood Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+22	bloody_sun	aurafloat.tga auraring.bmp
+23	Blubble	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+24	Blubble v.2	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+25	Blue Heaven Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+26	Blue Moon	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+27	blue_fume	aurafloat.tga auraring.bmp
+28	Blush Aura	aurafloat.tga auraring.bmp
+29	Butterfly Aura	aurafloat.tga auraring.bmp
+30	Butterfly v.2	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+31	Celestia Tattoo Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+32	Celtic	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+33	celtic green	aurafloat.tga auraring.bmp
+34	celtic protection	aurafloat.tga auraring.bmp
+35	celtic_flower2	aurafloat.tga auraring.bmp
+36	celtic_heart	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+37	Chococat	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+38	Circle of Power	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+39	Color Swirls	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+40	Crest Aura	aurafloat.tga auraring.bmp
+41	Cross Aura	aurafloat.tga auraring.bmp
+42	Daisy Aura	aurafloat.tga auraring.bmp
+43	Dark Summoning	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+44	Demon Symbol	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+45	Devotion	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+46	dolphin	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+47	Dragon	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+48	dragon_head	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+49	dragonflies	aurafloat.tga auraring.bmp
+50	Dream of Anime Aura	aurafloat.tga auraring.bmp
+51	Envy Aura	aurafloat.tga auraring.bmp
+52	fairy	aurafloat.tga auraring.bmp
+53	Fire Sun Aura	aurafloat.tga auraring.bmp
+54	flamy_sun	aurafloat.tga auraring.bmp
+55	flamy_sun_v2	aurafloat.tga auraring.bmp
+56	Flashy	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+57	Flashy2	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+58	Flashy3	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+59	Flower Aura	aurafloat.tga auraring.bmp
+60	force	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+61	Full Metal Alchemist	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+62	funky_colors	aurafloat.tga auraring.bmp
+63	Ghost1 Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+64	Ghost2 Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+65	Ghost3 Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+66	Ghost4 Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+67	Gluttony Aura	aurafloat.tga auraring.bmp
+68	grape	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+69	Greed Aura	aurafloat.tga auraring.bmp
+70	Green plant	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+71	green_swirls	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+72	green_wing	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+73	greeneffect12 aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+74	grunge_green	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+75	guiding_star	aurafloat.tga auraring.bmp
+76	Heart	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+77	HelloKitty	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+78	Hellsing Aura	aurafloat.tga auraring.bmp
+79	Holy 1	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+80	Holy Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+81	Human Emblem	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+82	lady_bug	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+83	lauriers	aurafloat.tga auraring.bmp
+84	Lead Circlet Aura	aurafloat.tga auraring.bmp
+85	Leal Life RO™ Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+86	Lifesource Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+87	Limitless Flowers Aura	aurafloat.tga auraring.bmp
+88	Lionheart_Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+89	little_rounds	aurafloat.tga auraring.bmp
+90	Lord of the Rings	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+91	lotus	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+92	love	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+93	Lust Aura	aurafloat.tga auraring.bmp
+94	magic_circle	aurafloat.tga auraring.bmp
+95	manic	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+96	Medieval Heart	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+97	Medieval Heart v.2	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+98	merlin	aurafloat.tga auraring.bmp
+99	metallic_butterfly	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+100	Midnight Fenrir Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+101	Mist Of Azure	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+102	Musical	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+103	Nature Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+104	Necromancy Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+105	phoenix	aurafloat.tga auraring.bmp
+106	pretty_lotus	aurafloat.tga auraring.bmp
+107	Pride Aura	aurafloat.tga auraring.bmp
+108	Pumpkin by WP	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+109	Purple Flower v1	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+110	Purple Space	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+111	purple_moon	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+112	PurpleStarsAura-by-melz	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+113	Red Smoke	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+114	Red Stars	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+115	Red Wave	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+116	red_cross	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+117	red_shield	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+118	red_splash	aurafloat.tga auraring.bmp
+119	Rose 2	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+120	Rose Aura	aurafloat.tga auraring.bmp
+121	rose_necklace	aurafloat.tga auraring.bmp
+122	scribble	aurafloat.tga auraring.bmp
+123	Server Current	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+124	Shadow Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+125	skull	aurafloat.tga auraring.bmp
+126	sleepy moon	aurafloat.tga auraring.bmp
+127	Sloth Aura	aurafloat.tga auraring.bmp
+128	Snow	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+129	SnowAura	aurafloat.tga auraring.bmp
+130	Solar	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+131	Solar v.2	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+132	Solar v.3	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+133	Solar v.4	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+134	Something	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+135	Spike Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+136	splash circle	aurafloat.tga auraring.bmp
+137	Square	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+138	Star	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+139	strawberry	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+140	Sun and Moon	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+141	triangle	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+142	Tribal Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+143	Tricky Sun	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+144	TriggerSymbol Aura	aurafloat.tga auraring.bmp
+145	Turquoise	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+146	Undead Green Sigil	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+147	Undead Sigil	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+148	Undead Sigil Red	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+149	Unholy Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+150	unicorn	aurafloat.tga auraring.bmp
+151	unknown	aurafloat.tga auraring.bmp
+152	Unwanted Happening Aura	aurafloat.tga auraring.bmp
+153	wavy_circle	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+154	Wedding by WP	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+155	White Feather Aura	aurafloat.tga auraring.bmp
+156	White Labyrinth	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+157	White Swirl	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+158	Wrath Aura	aurafloat.tga auraring.bmp
+159	Yellow Smoke	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+160	Zeet's Batman Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+161	Zeet's Blue Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+162	Zeet's Pink Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga
+163	Zeet's Red Aura	aurafloat.tga auraring.bmp freezing_circle.bmp whitelight.tga

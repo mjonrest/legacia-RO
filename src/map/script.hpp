@@ -2206,10 +2206,13 @@ enum e_hat_effects : int16{
 // (entries in HatEffectInfo.lub). They sit above the official IDs so new official
 // hat effects never clash with them.
 #define HAT_EF_CUSTOM_MIN 1001
-#define HAT_EF_CUSTOM_MAX 1999
+#define HAT_EF_CUSTOM_MAX 2299
 // Gepard-style aura parts map to: part 1 (ground) 1000+n, part 2 (pillar) 1300+n, part 3 (glow) 1600+n.
 #define HAT_EF_AURA_PART_BASE 1000
 #define HAT_EF_AURA_PART_STEP 300
+// Custom aura packs (the official level 99 aura with the pack's pictures, drawn by legacia.dll): pack n = 2000+n.
+#define HAT_EF_AURA_PACK_BASE 2000
+#define AURA_PACK_MAX 299
 
 static inline bool hateffect_id_valid( int32 effectID ){
 	return ( effectID > HAT_EF_MIN && effectID < HAT_EF_MAX ) || ( effectID >= HAT_EF_CUSTOM_MIN && effectID <= HAT_EF_CUSTOM_MAX );
