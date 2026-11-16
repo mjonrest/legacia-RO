@@ -385,7 +385,7 @@ bool ring_is_pillar(int num) {
 // breathes smaller and bigger, like the ground circle. Texture bottom at the
 // feet. Checked in the offline preview before shipping.
 void draw_pillar(const V3& foot, void* tex, float t) {
-	const int SEGS = 36, REP = 3, ROWS = 4; // texture runs three times round
+	const int SEGS = 36, REP = 1, ROWS = 4; // texture once round: a few broad soft tongues, not many spikes (owner: too pointy)
 	const float R0 = 14 * g_scale, R1 = 36 * g_scale, H = 58 * g_scale;
 	float grow = 0.9f + 0.1f * sinf(2 * PI * t / 3.0f); // breathes like the ground circle
 	for (int layer = 0; layer < 1; layer++) { // one flame only, like the Gepard video (owner 2026-11-16)
@@ -396,10 +396,10 @@ void draw_pillar(const V3& foot, void* tex, float t) {
 		float arc = 2 * PI * fmodf(t / (layer ? 6.5f : 5.0f), 1.0f) * -dir + layer * 1.3f; // bright patches go the other way
 		float bright = layer ? 120.0f : 190.0f;
 		auto at = [&](float a, float f) {
-			float lick = 0.7f + 0.14f * sinf(3 * a + 2 * PI * t / 1.1f + layer * 2.0f)
-				+ 0.12f * sinf(7 * a - 2 * PI * t / 0.7f + layer) + 0.06f * sinf(11 * a + 2 * PI * t / 0.45f);
+			// slow, broad licks only (the faster 7/11-lobe ripples made it look spiky)
+			float lick = 0.72f + 0.18f * sinf(2 * a + 2 * PI * t / 1.6f + layer * 2.0f) + 0.08f * sinf(3 * a - 2 * PI * t / 1.1f + layer);
 			float h = H * grow * hl * f * lick;
-			float ang = a + spin - 0.35f * f * f * dir; // tips trail behind the turn
+			float ang = a + spin - 0.2f * f * f * dir; // tips trail a little behind the turn
 			float r = grow * (R0 + (R1 * open - R0) * sqrtf(f) * (0.9f + 0.25f * (lick - 0.62f)));
 			return V3{foot.x + r * cosf(ang), foot.y - h, foot.z + r * sinf(ang)}; // up is -y
 		};
