@@ -915,10 +915,10 @@ void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 		auto li = g_ringLook.find(tex);
 		if (draw_replay(foot, a.part[1], t))
 			; // a recorded Gepard ring
-		else if (ring_is_pillar(a.part[1]))
-			draw_pillar(foot, tex, t);
 		else if (li != g_ringLook.end() && draw_kind_replay(foot, li->second, t))
 			; // the recorded ring of the same kind, in this ring's colour
+		else if (ring_is_pillar(a.part[1])) // no recordings installed: the old drawn looks
+			draw_pillar(foot, tex, t);
 		else if (li != g_ringLook.end() && li->second.style == 1)
 			draw_swirl(foot, tex, t, SWIRL_FADE, 0, 1);
 		else if (li != g_ringLook.end() && li->second.style == 2)
