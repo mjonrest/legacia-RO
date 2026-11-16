@@ -379,9 +379,8 @@ bool ring_is_pillar(int num) {
 
 // a flame bloom, matched to the owner's videos (2026-11-13/15): a ring of
 // flame round the feet about as wide as the player that opens out like a bowl
-// to about 3.5 player widths and rises to about head height. Two layers swirl
-// round the player in opposite directions (the flames themselves travel, their
-// tips trailing behind), brighter patches travel the other way, and the
+// to about 3.5 player widths and rises to about head height. One flame swirls
+// round the player (the flames themselves travel, their tips trailing behind), brighter patches travel the other way, and the
 // tongues lick up and down at three speeds like fire. The whole bloom slowly
 // breathes smaller and bigger, like the ground circle. Texture bottom at the
 // feet. Checked in the offline preview before shipping.
@@ -389,9 +388,9 @@ void draw_pillar(const V3& foot, void* tex, float t) {
 	const int SEGS = 36, REP = 3, ROWS = 4; // texture runs three times round
 	const float R0 = 14 * g_scale, R1 = 36 * g_scale, H = 58 * g_scale;
 	float grow = 0.9f + 0.1f * sinf(2 * PI * t / 3.0f); // breathes like the ground circle
-	for (int layer = 0; layer < 2; layer++) {
+	for (int layer = 0; layer < 1; layer++) { // one flame only, like the Gepard video (owner 2026-11-16)
 		float dir = layer ? -1.0f : 1.0f;
-		float open = layer ? 1.1f : 0.95f;   // outer layer opens wider and lower
+		float open = 1.0f;
 		float hl = layer ? 0.8f : 1.0f;
 		float spin = 2 * PI * fmodf(t / (layer ? 4.2f : 3.0f), 1.0f) * dir;          // the flames travel round the player
 		float arc = 2 * PI * fmodf(t / (layer ? 6.5f : 5.0f), 1.0f) * -dir + layer * 1.3f; // bright patches go the other way
