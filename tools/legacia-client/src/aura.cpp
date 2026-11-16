@@ -708,6 +708,18 @@ void* tex_get(const char* name) {
 	return tex_cached(name); // a file that is not there is not kept (the game hands back a stand-in)
 }
 
+// Packs with only aurafloat.tga + auraring.bmp (from tools/legacia_aura/packs.txt). Asking the
+// game for a file that is not there prints "Resource File Loading fail" in the chat, so the
+// floor pictures of these packs are never asked for (the official floor stays).
+const int PACK_NO_FLOOR[] = {4, 19, 22, 27, 28, 29, 33, 34, 35, 40, 41, 42, 49, 50, 51, 52, 53, 54, 55, 59, 62, 67, 69, 75, 78, 83, 84, 87, 89, 93, 94, 98, 105, 106, 107, 118, 120, 121, 122, 125, 126, 127, 129, 136, 144, 150, 151, 152, 155, 158};
+
+bool pack_has_floor(int n) {
+	for (int x : PACK_NO_FLOOR)
+		if (x == n)
+			return false;
+	return true;
+}
+
 Pack& pack_get(int n) {
 	auto it = g_packs.find(n);
 	if (it != g_packs.end())
@@ -718,7 +730,7 @@ Pack& pack_get(int n) {
 		char buf[96];
 		snprintf(buf, sizeof(buf), "effect\\legacia_aura_pack\\%03d\\%s", n, PACK_FILE[i]);
 		p.name[i] = _strdup(buf);
-		p.tex[i] = tex_get(p.name[i]);
+		p.tex[i] = i >= 2 && !pack_has_floor(n) ? nullptr : tex_get(p.name[i]);
 		p.missing[i] = !p.tex[i];
 		found += !p.missing[i];
 	}
@@ -835,6 +847,11 @@ void pack_actor(const uint8_t* actor, int n, bool self, int frame) {
 		lastSelf = n;
 		lastSelfPics = pics;
 		pack_apply(actor, n, true); // log what your own aura is made of when it changes
+		// the game shows your level 99 aura when your level (0x172d5a8, copied to +0x210) equals
+		// its aura level (0x1733e40); +0x2b4 is set while the aura is on (0xca86e0, 0xcb597e)
+		if (readable(0x172d5a8, 4) && readable(0x1733e40, 4) && readable((uintptr_t)actor + 0x2b4, 8))
+			log_line("aura: your level %d (actor %d), game aura level %d, aura on %d", *(const int*)0x172d5a8,
+			         *(const short*)(actor + 0x210), *(const int*)0x1733e40, *(const int*)(actor + 0x2b4));
 	}
 	if (n > 0)
 		g_packWorn[actor] = Worn{n, frame};
