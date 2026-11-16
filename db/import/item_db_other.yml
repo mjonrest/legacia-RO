@@ -27345,8 +27345,6 @@ Body:
       Crusader: true
       Knight: true
       Ninja: true
-      Sage: true
-      Wizard: true
     Locations:
       Right_Hand: true
     WeaponLevel: 4
