@@ -368,11 +368,11 @@ void draw_rings(const V3& foot, void* tex, float t) {
 	const float TILT = 32 * PI / 180;    // petals lean up, outward
 	const float TURN = 6.0f, SPIN = 2.0f;
 	const float CYCLE = 5.7f, GROW = 1.3f, FADE = 0.6f, STAGGER = 0.35f;
-	float R = 48, hole = 0.3f, ecc = 0.2f, bright = 70, off = 16, arc = 0;
+	float R = 48, hole = 0.3f, ecc = 0.2f, bright = 60, off = 16, arc = 0;
 	if (lk.style == 1)
-		R = 40, hole = 0.55f, ecc = 0.3f, bright = 105, arc = 0.2f;
+		R = 40, hole = 0.62f, ecc = 0.3f, bright = 85, arc = 0.15f, off = 21;
 	else if (lk.style == 2)
-		ecc = 0, bright = 75, off = 10;
+		ecc = 0, bright = 75, off = 5;
 	R *= g_scale, off *= g_scale;
 	float turn = 2 * PI * t / TURN;
 	for (int pi = 0; pi < PETALS; pi++) {
@@ -414,7 +414,7 @@ void draw_rings(const V3& foot, void* tex, float t) {
 			float u0 = uu - floorf(uu), u1 = u0 + 2.0f / SEGS;
 			float in0, in1, out0, out1, v0 = 0, v1 = 1;
 			if (lk.style == 2) {
-				in0 = in1 = r1 * 0.42f, out0 = out1 = r1 * 0.53f;
+				in0 = in1 = r1 * 0.45f, out0 = out1 = r1 * 0.56f;
 				v0 = lk.v0, v1 = lk.v1;
 			} else {
 				in0 = r0 + ex * cosf(a0 - holeAt), in1 = r0 + ex * cosf(a1 - holeAt);
