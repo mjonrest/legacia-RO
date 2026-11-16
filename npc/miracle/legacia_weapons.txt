@@ -3,9 +3,11 @@
 //===== Description: ==========================================
 //= Shared bonus for the Classic custom weapons, called from
 //= each weapon's item script:
-//=   callfunc "F_LegaciaWeapon",<caster>;
+//=   callfunc "F_LegaciaWeapon",<caster>{,<no class bonus>};
 //= <caster> 0 = physical weapon, 1 = caster weapon
-//= (staffs, Book of Battle, Senbon).
+//= (staffs, Book of Battle, Senbon, Blinkstrike).
+//= <no class bonus> 1 = skip the class bonus below (the weapon
+//= gives its own job bonus, e.g. Blinkstrike MATK +20%).
 //=
 //= 1) Refine bonus (renewal style, steps add up):
 //=    Refine  Physical                 Caster
@@ -39,6 +41,8 @@ function	script	F_LegaciaWeapon	{
 	}
 
 	// Class bonus
+	if (getarg(1, 0))
+		return;
 	switch (BaseJob) {
 	case Job_Knight:	// Lord Knight
 		bonus2 bAddClass, Class_All, 20;

@@ -263,6 +263,7 @@ function	script	F_WM_type	{
 		case 13011:	// Asura
 		case 13023:	// Ashura
 		case 13414:	// Elemental Sword
+		case 60005:	// Blinkstrike (Legacia Classic magic dagger)
 			return "Mystical";
 	}
 
