@@ -614,6 +614,41 @@ void draw_pillar(const V3& foot, void* tex, float t) {
 	}
 }
 
+// Every other ring picture uses the flame bloom's movement (owner 2026-11-16: the
+// rings should look as natural as the flame aura): a bowl of light that rises from
+// a ring round the feet (the floor at the feet stays empty), opens out to about head
+// height, licks up and down like fire, swirls round the player and breathes. The
+// picture fades out toward the top so plain pictures don't end in a hard edge.
+// v0/v1: the picture rows to use (thin strip pictures).
+void draw_bloom(const V3& foot, void* tex, float t, float v0, float v1) {
+	const int SEGS = 36, ROWS = 8;
+	const float R0 = 14 * g_scale, R1 = 36 * g_scale, H = 58 * g_scale, BRIGHT = 190;
+	float grow = 0.9f + 0.1f * sinf(2 * PI * t / 3.0f);
+	float spin = 2 * PI * fmodf(t / 3.0f, 1.0f);
+	float arc = -2 * PI * fmodf(t / 5.0f, 1.0f);
+	auto at = [&](float a, float f) {
+		float lick = 0.72f + 0.18f * sinf(2 * a + 2 * PI * t / 1.6f) + 0.08f * sinf(3 * a - 2 * PI * t / 1.1f);
+		float h = H * grow * f * lick;
+		float ang = a + spin - 0.2f * f * f;
+		float r = grow * (R0 + (R1 - R0) * sqrtf(f) * (0.9f + 0.25f * (lick - 0.62f)));
+		return V3{foot.x + r * cosf(ang), foot.y - h, foot.z + r * sinf(ang)};
+	};
+	for (int s = 0; s < SEGS; s++) {
+		float a0 = 2 * PI * s / SEGS, a1 = a0 + 2 * PI / SEGS;
+		float m = 0.82f + 0.18f * cosf(2 * ((a0 + a1) / 2 + spin - arc));
+		float u0 = (float)s / SEGS, u1 = (float)(s + 1) / SEGS;
+		for (int row = 0; row < ROWS; row++) {
+			float f0 = (float)row / ROWS, f1 = (float)(row + 1) / ROWS; // 0 feet .. 1 top
+			float fade = 1 - (f0 + f1) / 2;
+			fade = fade * fade * (3 - 2 * fade); // soft top
+			V3 p[4] = {at(a0, f1), at(a1, f1), at(a0, f0), at(a1, f0)};
+			float va = v0 + (v1 - v0) * (1 - f1), vb = v0 + (v1 - v0) * (1 - f0);
+			float uv[8] = {u0, va, u1, va, u0, vb, u1, vb};
+			quad(p, uv, grey(BRIGHT * m * fade), tex);
+		}
+	}
+}
+
 // part 3: small sparkles shooting out from the feet across the floor
 void draw_sparkles(const V3& foot, uint32_t aid, void* tex, float t) {
 	const float PERIOD = 5.0f, LIFE = 3.4f;
@@ -945,12 +980,12 @@ void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 	if (a.part[1] && (tex = texture(2, a.part[1]))) {
 		auto li = g_ringLook.find(tex);
 		// (owner 2026-11-16: no recorded replays, every ring is drawn)
-		if (li != g_ringLook.end() && li->second.style == 1)
-			draw_swirl(foot, tex, t, SWIRL_FADE, 0, 1);
+		if (ring_is_pillar(a.part[1]))
+			draw_pillar(foot, tex, t);
 		else if (li != g_ringLook.end() && li->second.style == 2)
-			draw_swirl(foot, tex, t, SWIRL_STRIP, li->second.v0, li->second.v1);
+			draw_bloom(foot, tex, t, li->second.v0, li->second.v1);
 		else
-			draw_petals(foot, tex, t, aid);
+			draw_bloom(foot, tex, t, 0, 1);
 	}
 	if (a.part[2] && (tex = texture(3, a.part[2])))
 		draw_sparkles(foot, aid, tex, t);
