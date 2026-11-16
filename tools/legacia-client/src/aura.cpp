@@ -342,8 +342,10 @@ void draw_ground(const V3& foot, void* tex, float t) {
 void draw_rings(const V3& foot, void* tex, float t) {
 	const int LINES = 3, K = 22;                      // fragments per line
 	const float TURNS = 0.8f, PERIOD = 1.6f;          // each line climbs one turn per PERIOD
-	const float H = 28 * g_scale, R0 = 16 * g_scale, R1 = 14 * g_scale;
-	const float LEN = 0.09f, BAND = 2.0f * g_scale;   // one fragment: angle along the line, half width across
+	// in game the first sizes (R 16, H 28) came out ~2x too small: the owner's clip showed a tight
+	// spiky burst at the legs. These match the Gepard video against the character's height.
+	const float H = 58 * g_scale, R0 = 34 * g_scale, R1 = 30 * g_scale;
+	const float LEN = 0.09f, BAND = 4.2f * g_scale;   // one fragment: angle along the line, half width across
 	TexBox box = {0, 0, 1, 1};
 	auto bi = g_texBox.find(tex);
 	if (bi != g_texBox.end())
@@ -353,13 +355,13 @@ void draw_rings(const V3& foot, void* tex, float t) {
 		float start = (float)line / LINES; // three lines, 120 degrees apart
 		for (int k = 0; k < K; k++) {
 			uint32_t seed = hash((uint32_t)(line * 131 + k) * 2654435761u + 17u);
-			float jr = rnd(seed, -0.8f, 0.8f) * g_scale, jh = rnd(seed, -0.8f, 0.8f) * g_scale;
+			float jr = rnd(seed, -1.7f, 1.7f) * g_scale, jh = rnd(seed, -1.7f, 1.7f) * g_scale;
 			float ph = rnd(seed, 0, 2 * PI), us = rnd(seed, 0, 0.955f);
 			float f = (k + 0.5f) / K;
 			float ang = 2 * PI * (TURNS * f - rise + start);
 			// each fragment drifts a little in and out and up and down on its own
-			float r = R0 + (R1 - R0) * f + jr + 0.8f * g_scale * sinf(2 * PI * t / 1.7f + ph);
-			float h = H * f + jh + 0.8f * g_scale * sinf(2 * PI * t / 2.3f + ph);
+			float r = R0 + (R1 - R0) * f + jr + 1.7f * g_scale * sinf(2 * PI * t / 1.7f + ph);
+			float h = H * f + jh + 1.7f * g_scale * sinf(2 * PI * t / 2.3f + ph);
 			// sections of the formation light up and fade as they go round
 			float pulse = 0.65f + 0.6f * sinf(3 * ang - 2 * PI * t / 1.3f + line * 2.0f);
 			pulse = pulse < 0 ? 0 : pulse > 1 ? 1 : pulse;
