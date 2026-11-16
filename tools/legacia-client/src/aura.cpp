@@ -102,7 +102,6 @@ struct RingLook {
 	int style; // 0 full discs, 1 sweeping crescents, 2 thin dotted ring (a strip picture)
 	float v0, v1; // the lit rows
 	float tint[3] = {1, 1, 1}; // vertex colour: leans toward the picture's own colour
-	float hue[3] = {1, 1, 1};  // the picture's mean colour over its brightest channel
 };
 
 // ring colour: additive light of `a`, leaning toward the picture's colour so it reads
@@ -235,8 +234,6 @@ void* texture(int part, int num) {
 					tv[i] = powf((float)(mean[i] / big), 1.5f), avg += tv[i] / 3;
 				for (int i = 0; i < 3; i++)
 					lk.tint[i] = avg > 0 ? tv[i] / avg * 0.85f : 1;
-				for (int i = 0; i < 3; i++)
-					lk.hue[i] = (float)(mean[i] / big);
 			}
 			g_ringLook[tex] = lk;
 		}
@@ -520,42 +517,6 @@ void draw_blades(const V3& foot, void* tex, float t) {
 	}
 }
 
-// #3-style rings (a thin strip picture): three slightly curved lines circling the
-// player (owner 2026-11-16, in their words: "a circle with 3 lines coming slowly from
-// the bottom of the player, then higher, moving round the player; thin at the bottom
-// but bolder on the other side; curved, but only about 15 degrees"). Each line lies
-// on a cylinder round the body, climbing at TILT, and the picture runs along it.
-void draw_strokes(const V3& foot, void* tex, float t, const RingLook& lk) {
-	const int LINES = 3, SEGS = 16;
-	const float R = 30 * g_scale, L = 50 * g_scale, W = 6 * g_scale, RISE = 60 * g_scale;
-	const float TILT = 30 * PI / 180, BEND = 15 * PI / 180, TAPER = 0.25f;
-	const float CYCLE = 5.7f, ORBIT = 2.4f, BRIGHT = 170;
-	float ph = fmodf(t, CYCLE) / CYCLE;
-	float alpha = fminf(1.0f, ph / 0.12f) * fminf(1.0f, (1 - ph) / 0.2f);
-	float h = RISE * ph; // the circle comes up slowly from the feet
-	uint32_t col = tinted(BRIGHT * alpha, lk);
-	for (int k = 0; k < LINES; k++) {
-		float a = 2 * PI * t / ORBIT + 2 * PI * k / LINES;
-		auto pt = [&](float f, float& up, V3& out) {
-			float sl = (f - 0.5f) * L;
-			float ang = sl * cosf(TILT) / R;
-			up = h + sl * sinf(TILT) - (f - 0.5f) * (f - 0.5f) * L * sinf(BEND); // a slight curve
-			out = V3{foot.x + R * cosf(a + ang), foot.y - up, foot.z + R * sinf(a + ang)};
-		};
-		for (int i = 0; i < SEGS; i++) {
-			float f0 = (float)i / SEGS, f1 = (float)(i + 1) / SEGS;
-			float up0, up1;
-			V3 c0, c1;
-			pt(f0, up0, c0), pt(f1, up1, c1);
-			float w0 = W * (TAPER + (1 - TAPER) * f0), w1 = W * (TAPER + (1 - TAPER) * f1); // thin bottom, bold top
-			V3 p[4] = {{c0.x, c0.y - w0, c0.z}, {c1.x, c1.y - w1, c1.z}, {c0.x, c0.y + w0, c0.z}, {c1.x, c1.y + w1, c1.z}};
-			float u0 = f0, u1 = f1;
-			float uv[8] = {u0, lk.v0, u1, lk.v0, u0, lk.v1, u1, lk.v1};
-			quad(p, uv, col, tex);
-		}
-	}
-}
-
 // Ring textures that are flame / spike strips (bright at the bottom, fading
 // up). Like a skill effect, these rise round the body as a glowing pillar
 // instead of the flower rings, opening like a flower of fire (owner 2026-11-13, see draw_pillar).
@@ -614,41 +575,6 @@ void draw_pillar(const V3& foot, void* tex, float t) {
 	}
 }
 
-// Every other ring picture uses the flame bloom's movement (owner 2026-11-16: the
-// rings should look as natural as the flame aura): a bowl of light that rises from
-// a ring round the feet (the floor at the feet stays empty), opens out to about head
-// height, licks up and down like fire, swirls round the player and breathes. The
-// picture fades out toward the top so plain pictures don't end in a hard edge.
-// v0/v1: the picture rows to use (thin strip pictures).
-void draw_bloom(const V3& foot, void* tex, float t, float v0, float v1) {
-	const int SEGS = 36, ROWS = 8;
-	const float R0 = 14 * g_scale, R1 = 36 * g_scale, H = 58 * g_scale, BRIGHT = 190;
-	float grow = 0.9f + 0.1f * sinf(2 * PI * t / 3.0f);
-	float spin = 2 * PI * fmodf(t / 3.0f, 1.0f);
-	float arc = -2 * PI * fmodf(t / 5.0f, 1.0f);
-	auto at = [&](float a, float f) {
-		float lick = 0.72f + 0.18f * sinf(2 * a + 2 * PI * t / 1.6f) + 0.08f * sinf(3 * a - 2 * PI * t / 1.1f);
-		float h = H * grow * f * lick;
-		float ang = a + spin - 0.2f * f * f;
-		float r = grow * (R0 + (R1 - R0) * sqrtf(f) * (0.9f + 0.25f * (lick - 0.62f)));
-		return V3{foot.x + r * cosf(ang), foot.y - h, foot.z + r * sinf(ang)};
-	};
-	for (int s = 0; s < SEGS; s++) {
-		float a0 = 2 * PI * s / SEGS, a1 = a0 + 2 * PI / SEGS;
-		float m = 0.82f + 0.18f * cosf(2 * ((a0 + a1) / 2 + spin - arc));
-		float u0 = (float)s / SEGS, u1 = (float)(s + 1) / SEGS;
-		for (int row = 0; row < ROWS; row++) {
-			float f0 = (float)row / ROWS, f1 = (float)(row + 1) / ROWS; // 0 feet .. 1 top
-			float fade = 1 - (f0 + f1) / 2;
-			fade = fade * fade * (3 - 2 * fade); // soft top
-			V3 p[4] = {at(a0, f1), at(a1, f1), at(a0, f0), at(a1, f0)};
-			float va = v0 + (v1 - v0) * (1 - f1), vb = v0 + (v1 - v0) * (1 - f0);
-			float uv[8] = {u0, va, u1, va, u0, vb, u1, vb};
-			quad(p, uv, grey(BRIGHT * m * fade), tex);
-		}
-	}
-}
-
 // part 3: small sparkles shooting out from the feet across the floor
 void draw_sparkles(const V3& foot, uint32_t aid, void* tex, float t) {
 	const float PERIOD = 5.0f, LIFE = 3.4f;
@@ -689,284 +615,6 @@ void draw_sparkles(const V3& foot, uint32_t aid, void* tex, float t) {
 	}
 }
 
-// ---- replayed Gepard rings ----
-// For rings the owner recorded in Gepard (#3, #5, #6), the plugin plays back the
-// recording itself: each frame of the video with the floor taken away (only the
-// light the aura adds) as plugins/auras/replay/<ring>/<frame>.bmp, one loop of the
-// effect. info.txt: frames fps width height footX footY pixelsPerUnit. The frames
-// are drawn flat on the screen at the player's feet, scaled with the camera zoom,
-// and added like Gepard's light (owner's choice 2026-11-16: an exact copy).
-struct ReplayInfo {
-	bool ok = false;
-	int frames = 0, w = 0, h = 0;
-	float fps = 15, fx = 0, fy = 0, ppu = 2.49f;
-	DWORD next_try = 0; // a missing folder is looked for again later (copied in while playing)
-};
-std::unordered_map<int, ReplayInfo> g_replay; // ring number -> info (ok false = none)
-
-const ReplayInfo& replay_info(int ring) {
-	auto it = g_replay.find(ring);
-	if (it != g_replay.end() && (it->second.ok || GetTickCount() < it->second.next_try))
-		return it->second;
-	bool first = it == g_replay.end();
-	ReplayInfo ri;
-	char path[MAX_PATH];
-	snprintf(path, sizeof(path), "%sreplay\\%03d\\info.txt", tex_folder().c_str(), ring);
-	if (FILE* f = fopen(path, "r")) {
-		ri.ok = fscanf(f, "%d %f %d %d %f %f %f", &ri.frames, &ri.fps, &ri.w, &ri.h, &ri.fx, &ri.fy, &ri.ppu) == 7 &&
-		        ri.frames > 0 && ri.fps > 0 && ri.ppu > 0;
-		fclose(f);
-		if (ri.ok)
-			log_line("aura: ring %d plays back %d recorded frames", ring, ri.frames);
-		else
-			log_line("aura: ring %d replay info.txt unreadable: %s", ring, path);
-	} else if (first && (ring == 3 || ring == 5 || ring == 6)) {
-		log_line("aura: ring %d has no recorded frames, looked for %s", ring, path);
-	}
-	if (!ri.ok)
-		ri.next_try = GetTickCount() + 5000;
-	return g_replay[ring] = ri;
-}
-
-// gray: the frame's brightness only, so another ring of the same kind can colour it
-void* replay_texture(int ring, int frame, bool gray = false) {
-	int key = 100000 + ring * 1000 + frame + (gray ? 500000 : 0);
-	auto it = g_tex.find(key);
-	if (it != g_tex.end())
-		return it->second;
-	if (g_texFailed || g_loadsThisFrame >= 3)
-		return nullptr;
-	g_loadsThisFrame++;
-	char path[MAX_PATH];
-	snprintf(path, sizeof(path), "%sreplay\\%03d\\%03d.bmp", tex_folder().c_str(), ring, frame);
-	std::vector<uint32_t> px;
-	int w = 0, h = 0;
-	void* tex = nullptr;
-	if (read_bmp32(path, px, w, h)) {
-		if (gray)
-			for (uint32_t& c : px) {
-				uint32_t r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
-				uint32_t m = r > g ? (r > b ? r : b) : (g > b ? g : b);
-				c = (c & 0xff000000u) | m << 16 | m << 8 | m;
-			}
-		void* dev = ((GetDeviceFn)GET_DEVICE)();
-		if (dev)
-			tex = ((CreateTextureFn)CREATE_TEXTURE)(dev, w, h, TEX_FORMAT_ARGB8888, 0, 0);
-		if (tex) {
-			void** vt = *(void***)tex;
-			((UpdateTextureFn)vt[8])(tex, 0, 0, w, h, px.data(), 0, 0);
-		}
-	} else {
-		log_line("aura: missing or bad replay frame %s", path);
-	}
-	g_tex[key] = tex;
-	return tex;
-}
-
-// gray/color: play another ring's recording in this ring's own colour
-bool draw_replay(const V3& foot, int ring, float t, bool gray = false, uint32_t color = 0xffffffffu) {
-	const ReplayInfo& ri = replay_info(ring);
-	if (!ri.ok)
-		return false;
-	// load every frame once (a few per game frame), so playback never stutters
-	for (int i = 0; i < ri.frames && g_loadsThisFrame < 3; i++)
-		replay_texture(ring, i, gray);
-	int frame = (int)(t * ri.fps) % ri.frames;
-	void* tex = replay_texture(ring, frame, gray);
-	TLV m;
-	if (!tex || !project(foot, m))
-		return true;
-	float hpc = fabsf(*(float*)(g_renderer + 4)), vpc = fabsf(*(float*)(g_renderer + 8));
-	float sx = g_scale * hpc * m.rhw / ri.ppu, sy = g_scale * vpc * m.rhw / ri.ppu;
-	float x0 = m.x - ri.fx * sx, x1 = m.x + (ri.w - ri.fx) * sx;
-	float y0 = m.y - ri.fy * sy, y1 = m.y + (ri.h - ri.fy) * sy;
-	const float xs[4] = {x0, x1, x0, x1}, ys[4] = {y0, y0, y1, y1};
-	const float uv[8] = {0, 0, 1, 0, 0, 1, 1, 1};
-	TLV v[4];
-	for (int i = 0; i < 4; i++) {
-		v[i] = m;
-		v[i].x = xs[i];
-		v[i].y = ys[i];
-		v[i].color = color;
-		v[i].specular = 0xff000000u;
-		v[i].u = uv[i * 2];
-		v[i].v = uv[i * 2 + 1];
-	}
-	emit(v, tex); // additive, like Gepard
-	return true;
-}
-
-// ---- Gepard swirl rings, measured from the owner's recordings (2026-11-16) ----
-// Gepard turns each ring picture into two brush-stroke blades that spiral round the
-// player on the screen, counter-clockwise: each blade starts thin near the body and
-// swings outward to a thick, feathered tip. The numbers are in pixels of the recorded
-// video (2.3435 px per aura unit, feet at y 197.65) and were fitted frame by frame
-// against #3 (thin strip pictures), #5 (full pictures) and #6 (edge-fading pictures).
-struct Swirl {
-	int n;          // blades
-	float cy;       // swirl centre, video y (feet at 197.65)
-	float w;        // turn speed, degrees a second (counter-clockwise)
-	float S;        // blade length, degrees
-	float Rs, Rt;   // centre-line radius at the blade's tail and tip
-	float W, W0;    // half-width at the tip and the tail
-	float q, cut;   // width growth curve; how soon the tip ends
-	float tip40;    // where a tip is at 40/15 s (phase)
-	float us;       // how much of the picture's width one blade uses
-	float tint[3];  // Gepard's colour on the picture (measured)
-};
-const Swirl SWIRL_FADE = {2, 158, 250, 190, 52, 90, 30, 5, 1.3f, 0.15f, 145, 1, {0.36f, 0.36f, 0.85f}};  // #6
-const Swirl SWIRL_STRIP = {2, 165, 250, 170, 48, 68, 8, 3, 1, 0.1f, 60, 1, {0.36f, 0.36f, 0.85f}};      // #3
-const Swirl SWIRL_FULL = {2, 150, 200, 300, 48, 72, 34, 20, 1, 0.1f, 5, 0.3f, {0.52f, 0.51f, 0.65f}};  // #5
-
-void draw_swirl(const V3& foot, void* tex, float t, const Swirl& sw, float v0, float v1) {
-	const float PPU = 2.3435f, FOOT_Y = 197.65f;
-	const int SEGS = 40;
-	TLV m;
-	if (!project(foot, m))
-		return;
-	float hpc = fabsf(*(float*)(g_renderer + 4)), vpc = fabsf(*(float*)(g_renderer + 8));
-	float sx = g_scale * hpc * m.rhw / PPU, sy = g_scale * vpc * m.rhw / PPU;
-	float cxs = m.x, cys = m.y - (FOOT_Y - sw.cy) * sy;
-	uint32_t col = 0xff000000u;
-	for (int i = 0; i < 3; i++) {
-		int c = (int)(sw.tint[i] * 255 + 0.5f);
-		col |= (uint32_t)(c > 255 ? 255 : c) << (16 - 8 * i);
-	}
-	float phi = sw.tip40 - sw.w * 40 / 15.0f;
-	for (int k = 0; k < sw.n; k++) {
-		float tip = phi + sw.w * t + k * 360.0f / sw.n;
-		TLV prev[2];
-		for (int i = 0; i <= SEGS; i++) {
-			float s = (float)i / SEGS; // 0 tail .. 1 tip
-			float th = (tip - (1 - s) * sw.S) * PI / 180;
-			float rc = sw.Rs + (sw.Rt - sw.Rs) * s;
-			float end = fminf(1.0f, (1 - s) / sw.cut);
-			float hw = sw.W0 + (sw.W - sw.W0) * powf(s, sw.q) * sqrtf(fmaxf(end, 0));
-			if (hw < 0.5f)
-				hw = 0.5f;
-			TLV cur[2];
-			for (int j = 0; j < 2; j++) {
-				float r = j ? rc + hw : rc - hw;
-				cur[j] = m;
-				cur[j].x = cxs + r * cosf(th) * sx;
-				cur[j].y = cys - r * sinf(th) * sy;
-				cur[j].color = col;
-				cur[j].specular = 0xff000000u;
-				cur[j].u = s * sw.us;
-				cur[j].v = j ? v1 : v0;
-			}
-			if (i) {
-				TLV v[4] = {prev[0], cur[0], prev[1], cur[1]};
-				emit(v, tex); // additive, like Gepard
-			}
-			prev[0] = cur[0], prev[1] = cur[1];
-		}
-	}
-}
-
-// #5-style rings (full pictures): Gepard draws three round discs ("bubbles"), each
-// hinged near the player's feet, tilted up and turning round the player. Every
-// 5.7 s they start again: one after another they come up from the feet and open.
-// Fitted to the owner's #5 recording in 3D (80% overlap of the shapes); sizes are
-// pixels of that video (2.3435 px per aura unit).
-void draw_petals(const V3& foot, void* tex, float t, uint32_t aid) {
-	const float PPU = 2.3435f;
-	const float R = 50.0f, D0 = 16.0f, H0 = 0.0f; // each bubble is hinged on the floor just outside the feet
-	// an empty dark circle round the feet (owner 2026-11-16), soft at its edge
-	const float HOLE = 0.0f, HOLE_SOFT = 10.0f; // the bubbles open outward, so the floor at the feet stays empty
-	// wavy: each bubble rises and dips, and grows and shrinks, out of step with the others
-	const float WAVE = 3.2f, TILT_LO = 40 * PI / 180, TILT_HI = 80 * PI / 180, SIZE_LO = 0.8f, SIZE_HI = 1.08f;
-	const float W = 219.9f, GAP = 0.45f, GROW = 1.6f, FADE = 0.3f;
-	const float TINT[3] = {0.36f, 0.36f, 0.45f};
-	const int NA = 36, NR = 8;
-	float k2w = g_scale / PPU; // video pixels -> world
-	// which way round looks counter-clockwise on this camera
-	TLV o, ox, oz;
-	V3 px = {foot.x + 10, foot.y, foot.z}, pz = {foot.x, foot.y, foot.z + 10};
-	if (!project(foot, o) || !project(px, ox) || !project(pz, oz))
-		return;
-	float cross = (ox.x - o.x) * (oz.y - o.y) - (ox.y - o.y) * (oz.x - o.x);
-	float dir = cross < 0 ? 1.0f : -1.0f;
-	// when this player's aura appeared (again): the bubbles rise once from the
-	// floor, small to full size, then keep circling with no fading (owner 2026-11-16)
-	static std::unordered_map<uint32_t, std::pair<float, float>> seen; // aid -> start, last drawn
-	auto& sl = seen[aid];
-	if (sl.second <= 0 || t - sl.second > 1.0f || t < sl.second)
-		sl.first = t;
-	sl.second = t;
-	float since = t - sl.first;
-	for (int k = 0; k < 3; k++) {
-		float age = since - k * GAP;
-		if (age < 0)
-			continue;
-		float g = fminf(1.0f, age / GROW);
-		g = g * g * (3 - 2 * g);
-		float alpha = fminf(1.0f, age / FADE);
-		auto colour = [&](float f) {
-			uint32_t col = 0xff000000u;
-			for (int i = 0; i < 3; i++) {
-				int c = (int)(TINT[i] * 255 * alpha * f + 0.5f);
-				col |= (uint32_t)(c > 255 ? 255 : c < 0 ? 0 : c) << (16 - 8 * i);
-			}
-			return col;
-		};
-		float wv = 0.5f + 0.5f * sinf(2 * PI * (t / WAVE + k / 3.0f));
-		float ps = dir * (W * t + k * 120.0f) * PI / 180, b = (TILT_LO + (TILT_HI - TILT_LO) * wv) * g;
-		float rx = cosf(ps), rz = sinf(ps); // out from the player
-		float tx = -rz, tz = rx;            // along the ground, sideways
-		float sz = (0.2f + 0.8f * g) * (SIZE_LO + (SIZE_HI - SIZE_LO) * (1 - wv)); // low ones big, high ones smaller
-		float Rg = R * sz, Dg = D0; // small to big, hinge stays at the feet
-		float cOut = (Dg + Rg * cosf(b)) * k2w, cUp = (H0 * g + Rg * sinf(b)) * k2w;
-		float e1o = cosf(b), e1u = sinf(b), r = Rg * k2w;
-		// a point of the disc, and how bright it may be (dark near the feet)
-		auto at = [&](float rr, float a, float& f) {
-			float ca = rr * cosf(a), sa = rr * sinf(a);
-			float out = cOut + r * ca * e1o, up = cUp + r * ca * e1u;
-			float d = sqrtf(out * out + up * up + r * sa * r * sa) / k2w;
-			f = fminf(1.0f, fmaxf(0.0f, (d - HOLE) / HOLE_SOFT));
-			return V3{foot.x + out * rx + r * sa * tx, foot.y - up, foot.z + out * rz + r * sa * tz};
-		};
-		for (int j = 0; j < NR; j++) {
-			float r0 = (float)j / NR, r1 = (float)(j + 1) / NR;
-			for (int i = 0; i < NA; i++) {
-				float a0 = 2 * PI * i / NA, a1 = 2 * PI * (i + 1) / NA;
-				float f[4];
-				V3 q[4] = {at(r0, a0, f[0]), at(r0, a1, f[1]), at(r1, a0, f[2]), at(r1, a1, f[3])};
-				if (f[0] + f[1] + f[2] + f[3] <= 0)
-					continue; // inside the dark circle
-				float u0 = (float)i / NA, u1 = (float)(i + 1) / NA;
-				float uv[8] = {u0, r0, u1, r0, u0, r1, u1, r1};
-				TLV v[4];
-				bool ok = true;
-				for (int n = 0; n < 4 && ok; n++) {
-					ok = project(q[n], v[n]);
-					v[n].color = colour(f[n]);
-					v[n].specular = 0xff000000u;
-					v[n].u = uv[n * 2];
-					v[n].v = uv[n * 2 + 1];
-				}
-				if (ok)
-					emit(v, tex);
-			}
-		}
-	}
-}
-
-// Every ring picture is one of the three kinds the owner recorded in Gepard: a thin
-// strip (#3), fading edges (#6) or a full picture (#5). A ring without its own
-// recording plays the recording of its kind, recoloured to its own colour (owner
-// 2026-11-16: it must move exactly like the replay).
-bool draw_kind_replay(const V3& foot, const RingLook& lk, float t) {
-	int ring = lk.style == 2 ? 3 : lk.style == 1 ? 6 : 5;
-	const float BRIGHT = 1.0f;
-	uint32_t col = 0xff000000u;
-	for (int i = 0; i < 3; i++) {
-		int c = (int)(lk.hue[i] * 255 * BRIGHT + 0.5f);
-		col |= (uint32_t)(c > 255 ? 255 : c < 0 ? 0 : c) << (16 - 8 * i);
-	}
-	return draw_replay(foot, ring, t, true, col);
-}
-
 void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 	if (!readable((uintptr_t)actor, 0x114))
 		return;
@@ -979,13 +627,12 @@ void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 		draw_ground(foot, tex, t);
 	if (a.part[1] && (tex = texture(2, a.part[1]))) {
 		auto li = g_ringLook.find(tex);
-		// (owner 2026-11-16: no recorded replays, every ring is drawn)
 		if (ring_is_pillar(a.part[1]))
 			draw_pillar(foot, tex, t);
-		else if (li != g_ringLook.end() && li->second.style == 2)
-			draw_bloom(foot, tex, t, li->second.v0, li->second.v1);
+		else if (li != g_ringLook.end() && li->second.style == 1)
+			draw_blades(foot, tex, t);
 		else
-			draw_bloom(foot, tex, t, 0, 1);
+			draw_rings(foot, tex, t);
 	}
 	if (a.part[2] && (tex = texture(3, a.part[2])))
 		draw_sparkles(foot, aid, tex, t);
