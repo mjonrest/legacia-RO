@@ -776,7 +776,7 @@ bool aura_effect_id(int id) {
 int pack_apply(const uint8_t* actor, int n, bool log) {
 	if (!readable((uintptr_t)actor + ACTOR_EFFECTS, 8))
 		return 0;
-	Pack* p = n > 0 ? &pack_get(n) : nullptr;
+	Pack* p = n >= 0 ? &pack_get(n) : nullptr; // pack 0 = blank pictures (hides the aura)
 	// std::list<CRagEffect*>: head node, size; node = next, prev, value
 	const uint8_t* head = *(const uint8_t* const*)(actor + ACTOR_EFFECTS);
 	int size = *(const int*)(actor + ACTOR_EFFECTS + 4);
@@ -834,11 +834,18 @@ int pack_apply(const uint8_t* actor, int n, bool log) {
 }
 
 // once a frame for each player in sight: their pack (0 = none)
+// Your own level 99 aura is drawn by the game whatever the server sends (it only checks
+// your level), so without a pack it gets pack 0, blank pictures: like everyone else's,
+// it stays hidden. Other players get no aura from the server unless they wear a pack.
 void pack_actor(const uint8_t* actor, int n, bool self, int frame) {
+	if (n <= 0 && self)
+		n = 0;
+	else if (n <= 0)
+		n = -1;
 	if (!g_packOk)
 		return;
 	auto it = g_packWorn.find(actor);
-	if (n <= 0 && it == g_packWorn.end())
+	if (n < 0 && it == g_packWorn.end())
 		return; // never had a pack: leave the official aura alone
 	pack_frame(frame);
 	static int lastSelf = -1, lastSelfPics = -1;
@@ -853,7 +860,7 @@ void pack_actor(const uint8_t* actor, int n, bool self, int frame) {
 			log_line("aura: your level %d (actor %d), game aura level %d, aura on %d", *(const int*)0x172d5a8,
 			         *(const short*)(actor + 0x210), *(const int*)0x1733e40, *(const int*)(actor + 0x2b4));
 	}
-	if (n > 0)
+	if (n >= 0)
 		g_packWorn[actor] = Worn{n, frame};
 	else
 		g_packWorn.erase(actor); // pictures are back to the official ones
