@@ -17,6 +17,7 @@
 // aura textures by tools/legacia_aura/genplugin.py, drawn additively.
 #include "voice.h"
 
+#include <ctype.h>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -737,6 +738,8 @@ Pack& pack_get(int n) {
 		p.tex[i] = i >= 2 && !pack_has_floor(n) ? nullptr : tex_get(p.name[i]);
 		p.missing[i] = !p.tex[i];
 		found += !p.missing[i];
+		if (p.tex[i])
+			g_picRole[p.tex[i]] = i; // known at once, not only from the next frame
 	}
 	log_line("aura: pack %d has %d of %d pictures (data\\texture\\effect\\legacia_aura_pack\\%03d)", n, found, PACK_PICS, n);
 	return p;
@@ -824,7 +827,20 @@ void efx_scan(const uint8_t* p, int depth, std::vector<void**>& out, int& budget
 		if (!v)
 			continue;
 		if (g_picRole.count(v)) {
-			out.push_back((void**)(p + off));
+			// not the texture manager's own list (map node: name +0x10, texture +0x14):
+			// changing that would change the picture for everyone
+			const char* const* name = (const char* const*)(p + off - 4);
+			bool cacheNode = false;
+			if (off >= 4 && readable_fast((uintptr_t)*name, 8)) {
+				char buf[128];
+				int k = 0;
+				for (; k < 127 && readable_fast((uintptr_t)*name + k, 1) && (*name)[k]; k++)
+					buf[k] = (char)tolower((unsigned char)(*name)[k]);
+				buf[k] = 0;
+				cacheNode = strstr(buf, ".tga") || strstr(buf, ".bmp");
+			}
+			if (!cacheNode)
+				out.push_back((void**)(p + off));
 			continue;
 		}
 		uintptr_t u = (uintptr_t)v;
