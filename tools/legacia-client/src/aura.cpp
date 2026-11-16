@@ -750,6 +750,74 @@ bool draw_replay(const V3& foot, int ring, float t) {
 	return true;
 }
 
+// ---- Gepard swirl rings, measured from the owner's recordings (2026-11-16) ----
+// Gepard turns each ring picture into two brush-stroke blades that spiral round the
+// player on the screen, counter-clockwise: each blade starts thin near the body and
+// swings outward to a thick, feathered tip. The numbers are in pixels of the recorded
+// video (2.3435 px per aura unit, feet at y 197.65) and were fitted frame by frame
+// against #3 (thin strip pictures), #5 (full pictures) and #6 (edge-fading pictures).
+struct Swirl {
+	int n;          // blades
+	float cy;       // swirl centre, video y (feet at 197.65)
+	float w;        // turn speed, degrees a second (counter-clockwise)
+	float S;        // blade length, degrees
+	float Rs, Rt;   // centre-line radius at the blade's tail and tip
+	float W, W0;    // half-width at the tip and the tail
+	float q, cut;   // width growth curve; how soon the tip ends
+	float tip40;    // where a tip is at 40/15 s (phase)
+	float us;       // how much of the picture's width one blade uses
+	float tint[3];  // Gepard's colour on the picture (measured)
+};
+const Swirl SWIRL_FADE = {2, 158, 250, 190, 52, 90, 30, 5, 1.3f, 0.15f, 145, 1, {0.36f, 0.36f, 0.85f}};  // #6
+const Swirl SWIRL_STRIP = {2, 165, 250, 170, 48, 68, 8, 3, 1, 0.1f, 60, 1, {0.36f, 0.36f, 0.85f}};      // #3
+const Swirl SWIRL_FULL = {2, 150, 200, 300, 48, 72, 34, 20, 1, 0.1f, 5, 0.3f, {0.52f, 0.51f, 0.65f}};  // #5
+
+void draw_swirl(const V3& foot, void* tex, float t, const Swirl& sw, float v0, float v1) {
+	const float PPU = 2.3435f, FOOT_Y = 197.65f;
+	const int SEGS = 40;
+	TLV m;
+	if (!project(foot, m))
+		return;
+	float hpc = fabsf(*(float*)(g_renderer + 4)), vpc = fabsf(*(float*)(g_renderer + 8));
+	float sx = g_scale * hpc * m.rhw / PPU, sy = g_scale * vpc * m.rhw / PPU;
+	float cxs = m.x, cys = m.y - (FOOT_Y - sw.cy) * sy;
+	uint32_t col = 0xff000000u;
+	for (int i = 0; i < 3; i++) {
+		int c = (int)(sw.tint[i] * 255 + 0.5f);
+		col |= (uint32_t)(c > 255 ? 255 : c) << (16 - 8 * i);
+	}
+	float phi = sw.tip40 - sw.w * 40 / 15.0f;
+	for (int k = 0; k < sw.n; k++) {
+		float tip = phi + sw.w * t + k * 360.0f / sw.n;
+		TLV prev[2];
+		for (int i = 0; i <= SEGS; i++) {
+			float s = (float)i / SEGS; // 0 tail .. 1 tip
+			float th = (tip - (1 - s) * sw.S) * PI / 180;
+			float rc = sw.Rs + (sw.Rt - sw.Rs) * s;
+			float end = fminf(1.0f, (1 - s) / sw.cut);
+			float hw = sw.W0 + (sw.W - sw.W0) * powf(s, sw.q) * sqrtf(fmaxf(end, 0));
+			if (hw < 0.5f)
+				hw = 0.5f;
+			TLV cur[2];
+			for (int j = 0; j < 2; j++) {
+				float r = j ? rc + hw : rc - hw;
+				cur[j] = m;
+				cur[j].x = cxs + r * cosf(th) * sx;
+				cur[j].y = cys - r * sinf(th) * sy;
+				cur[j].color = col;
+				cur[j].specular = 0xff000000u;
+				cur[j].u = s * sw.us;
+				cur[j].v = j ? v1 : v0;
+			}
+			if (i) {
+				TLV v[4] = {prev[0], cur[0], prev[1], cur[1]};
+				emit(v, tex); // additive, like Gepard
+			}
+			prev[0] = cur[0], prev[1] = cur[1];
+		}
+	}
+}
+
 void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 	if (!readable((uintptr_t)actor, 0x114))
 		return;
@@ -767,11 +835,11 @@ void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 		else if (ring_is_pillar(a.part[1]))
 			draw_pillar(foot, tex, t);
 		else if (li != g_ringLook.end() && li->second.style == 1)
-			draw_blades(foot, tex, t);
+			draw_swirl(foot, tex, t, SWIRL_FADE, 0, 1);
 		else if (li != g_ringLook.end() && li->second.style == 2)
-			draw_strokes(foot, tex, t, li->second);
+			draw_swirl(foot, tex, t, SWIRL_STRIP, li->second.v0, li->second.v1);
 		else
-			draw_rings(foot, tex, t);
+			draw_swirl(foot, tex, t, SWIRL_FULL, 0, 1);
 	}
 	if (a.part[2] && (tex = texture(3, a.part[2])))
 		draw_sparkles(foot, aid, tex, t);
