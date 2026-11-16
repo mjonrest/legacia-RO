@@ -437,55 +437,52 @@ void draw_rings(const V3& foot, void* tex, float t) {
 	}
 }
 
-// #6-style rings (pictures that fade at their left and right edges): Gepard draws them
-// as one crescent blade that orbits the player on a tilted circle round the waist,
-// thick in the middle and tapering to points, with a fainter blade opposite. Traced
-// frame by frame from the owner's Gepard #6 video at 30 fps (2026-11-16): one orbit
-// in about 2.1 s, same turning direction as Gepard.
+// #6-style rings (pictures that fade at their left and right edges): like the other
+// rings they come up from the feet and circle the player, but as a fan of three
+// curved blades (owner 2026-11-16, compared with the Gepard #6 video). The fan lies
+// almost flat, grows from small at the feet while rising to chest height, and spins.
+// Each blade is thick near its head and tapers to a point, and its tail curls inward
+// like a spiral arm; the picture runs once along each blade.
 void draw_blades(const V3& foot, void* tex, float t) {
-	const int BLADES = 2, SEGS = 64, RS = 4;
-	const float R = 47.5f * g_scale, LIFT = 31.7f * g_scale, TILT = 35 * PI / 180;
-	const float TURN = 6.0f, ORBIT = 2.1f, WIDTH = 0.5f, TWIST = 0.1f;
-	const float CYCLE = 5.7f, GROW = 1.3f, FADE = 0.6f;
-	const float BRIGHT[BLADES] = {110, 66};
-	// the plane's tilt slowly goes round the player
-	float dir = 2 * PI * t / TURN;
+	const int BLADES = 3, SEGS = 24, RS = 5;
+	const float R = 48 * g_scale, LIFT = 46 * g_scale, TILT = 6 * PI / 180;
+	const float TURN = 6.0f, SPIN = 2.1f;
+	const float WIDTH = 0.35f, SPAN = 1.3f, CURL = 0.4f, HEAD = 0.7f, TWIST = 0.1f;
+	const float CYCLE = 5.7f, GROW = 1.3f, FADE = 0.6f, BRIGHT = 110;
+	float ph = fmodf(t, CYCLE);
+	float g = ph < GROW ? ph / GROW : 1.0f;
+	g = 1 - (1 - g) * (1 - g); // ease out
+	float fade = ph > CYCLE - FADE ? (CYCLE - ph) / FADE : 1.0f;
+	fade *= fminf(1.0f, ph / 0.15f);
+	float r1 = R * (0.2f + 0.8f * g);
+	V3 c = {foot.x, foot.y - LIFT * g * g, foot.z}; // up is -y in the client
+	float dir = 2 * PI * t / TURN; // the slight tilt slowly goes round
 	V3 d = {cosf(dir), 0, sinf(dir)};
 	V3 e1 = {-d.z, 0, d.x};
 	V3 e2 = {cosf(TILT) * d.x, sinf(TILT), cosf(TILT) * d.z};
-	for (int k = 0; k < BLADES; k++) {
-		float ph = fmodf(t, CYCLE);
-		float g = ph < GROW ? ph / GROW : 1.0f;
-		g = 1 - (1 - g) * (1 - g); // ease out
-		float fade = ph > CYCLE - FADE ? (CYCLE - ph) / FADE : 1.0f;
-		fade *= fminf(1.0f, ph / 0.15f);
-		float r1 = R * (0.2f + 0.8f * g);
-		V3 c = {foot.x, foot.y - LIFT * g, foot.z};
-		float orbit = t / ORBIT + 0.5f * k;   // the blade's place on the circle (turns)
-		float head = 2 * PI * orbit + k;      // where the blade is thickest
-		auto at = [&](float rr, float ang) {
-			float ca = cosf(ang), sa = sinf(ang);
-			float x = rr * (ca * e1.x + sa * e2.x);
-			float y = rr * (sa * e2.y);
-			float z = rr * (ca * e1.z + sa * e2.z);
-			return V3{c.x + x, c.y - y, c.z + z}; // up is -y in the client
-		};
-		// inner edge: on the rim (no blade) on the far side, WIDTH * r1 inside at the head
-		auto inner = [&](float ang) { return r1 * (1 + WIDTH * cosf(ang - head - PI)); };
-		uint32_t col = grey(BRIGHT[k] * fade);
+	auto at = [&](float rr, float ang) {
+		float ca = cosf(ang), sa = sinf(ang);
+		float x = rr * (ca * e1.x + sa * e2.x);
+		float y = rr * (sa * e2.y);
+		float z = rr * (ca * e1.z + sa * e2.z);
+		return V3{c.x + x, c.y - y, c.z + z};
+	};
+	float rot = 2 * PI * t / SPIN;
+	uint32_t col = grey(BRIGHT * fade);
+	for (int b = 0; b < BLADES; b++) {
+		float base = rot + 2 * PI * b / BLADES, span = 2 * PI / BLADES * SPAN;
 		for (int s = 0; s < SEGS; s++) {
-			float a0 = 2 * PI * ((float)s / SEGS + orbit), a1 = a0 + 2 * PI / SEGS;
-			float in0 = inner(a0), in1 = inner(a1);
-			if (in0 >= r1 * 0.96f && in1 >= r1 * 0.96f)
-				continue;
-			in0 = fminf(in0, r1), in1 = fminf(in1, r1);
-			float u0 = (float)s / SEGS, u1 = (float)(s + 1) / SEGS; // the picture once along the blade
+			float f0 = (float)s / SEGS, f1 = (float)(s + 1) / SEGS;
+			float a0 = base + span * f0, a1 = base + span * f1;
+			float w0 = powf(sinf(PI * powf(f0, HEAD)), 0.8f), w1 = powf(sinf(PI * powf(f1, HEAD)), 0.8f);
+			float o0 = r1 * (1 - CURL * f0), o1 = r1 * (1 - CURL * f1);
+			float in0 = o0 * (1 - WIDTH * w0), in1 = o1 * (1 - WIDTH * w1);
 			for (int j = 0; j < RS; j++) {
-				float f0 = (float)j / RS, f1 = (float)(j + 1) / RS;
-				V3 p[4] = {at(in0 + (r1 - in0) * f0, a0), at(in1 + (r1 - in1) * f0, a1),
-				           at(in0 + (r1 - in0) * f1, a0), at(in1 + (r1 - in1) * f1, a1)};
-				float tw0 = TWIST * f0, tw1 = TWIST * f1; // a slight swirl across the blade
-				float uv[8] = {u0 + tw0, f0, u1 + tw0, f0, u0 + tw1, f1, u1 + tw1, f1};
+				float g0 = (float)j / RS, g1 = (float)(j + 1) / RS;
+				V3 p[4] = {at(in0 + (o0 - in0) * g0, a0), at(in1 + (o1 - in1) * g0, a1),
+				           at(in0 + (o0 - in0) * g1, a0), at(in1 + (o1 - in1) * g1, a1)};
+				float tw0 = TWIST * g0, tw1 = TWIST * g1;
+				float uv[8] = {f0 + tw0, g0, f1 + tw0, g0, f0 + tw1, g1, f1 + tw1, g1};
 				quad(p, uv, col, tex);
 			}
 		}
