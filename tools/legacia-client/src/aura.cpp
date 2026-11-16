@@ -836,10 +836,12 @@ void draw_swirl(const V3& foot, void* tex, float t, const Swirl& sw, float v0, f
 // pixels of that video (2.3435 px per aura unit).
 void draw_petals(const V3& foot, void* tex, float t) {
 	const float PPU = 2.3435f;
-	const float R = 90.5f, D0 = -49.2f, H0 = 34.7f, BETA = 26.5f * PI / 180;
+	const float R = 90.5f, D0 = -54.0f, H0 = 0.0f, BETA = 26.5f * PI / 180;
+	// an empty dark circle round the feet (owner 2026-11-16), soft at its edge
+	const float HOLE = 34.0f, HOLE_SOFT = 10.0f;
 	const float W = 219.9f, CYC = 5.733f, GAP = 0.45f, GROW = 1.0f, FADE = 0.25f;
 	const float TINT[3] = {0.3f, 0.3f, 0.38f};
-	const int NA = 32, NR = 5;
+	const int NA = 36, NR = 8;
 	float k2w = g_scale / PPU; // video pixels -> world
 	// which way round looks counter-clockwise on this camera
 	TLV o, ox, oz;
@@ -858,29 +860,48 @@ void draw_petals(const V3& foot, void* tex, float t) {
 		float alpha = fminf(1.0f, age / FADE) * fminf(1.0f, (CYC - tc) / FADE);
 		if (alpha <= 0)
 			continue;
-		uint32_t col = 0xff000000u;
-		for (int i = 0; i < 3; i++) {
-			int c = (int)(TINT[i] * 255 * alpha + 0.5f);
-			col |= (uint32_t)(c > 255 ? 255 : c) << (16 - 8 * i);
-		}
+		auto colour = [&](float f) {
+			uint32_t col = 0xff000000u;
+			for (int i = 0; i < 3; i++) {
+				int c = (int)(TINT[i] * 255 * alpha * f + 0.5f);
+				col |= (uint32_t)(c > 255 ? 255 : c < 0 ? 0 : c) << (16 - 8 * i);
+			}
+			return col;
+		};
 		float ps = dir * (W * t + k * 120.0f) * PI / 180, b = BETA * g;
 		float rx = cosf(ps), rz = sinf(ps); // out from the player
 		float tx = -rz, tz = rx;            // along the ground, sideways
 		float cOut = (D0 + R * cosf(b)) * k2w, cUp = (H0 * g + R * sinf(b)) * k2w;
 		float e1o = cosf(b), e1u = sinf(b), r = R * k2w;
-		auto at = [&](float rr, float a) {
+		// a point of the disc, and how bright it may be (dark near the feet)
+		auto at = [&](float rr, float a, float& f) {
 			float ca = rr * cosf(a), sa = rr * sinf(a);
 			float out = cOut + r * ca * e1o, up = cUp + r * ca * e1u;
+			float d = sqrtf(out * out + up * up + r * sa * r * sa) / k2w;
+			f = fminf(1.0f, fmaxf(0.0f, (d - HOLE) / HOLE_SOFT));
 			return V3{foot.x + out * rx + r * sa * tx, foot.y - up, foot.z + out * rz + r * sa * tz};
 		};
 		for (int j = 0; j < NR; j++) {
 			float r0 = (float)j / NR, r1 = (float)(j + 1) / NR;
 			for (int i = 0; i < NA; i++) {
 				float a0 = 2 * PI * i / NA, a1 = 2 * PI * (i + 1) / NA;
-				V3 q[4] = {at(r0, a0), at(r0, a1), at(r1, a0), at(r1, a1)};
+				float f[4];
+				V3 q[4] = {at(r0, a0, f[0]), at(r0, a1, f[1]), at(r1, a0, f[2]), at(r1, a1, f[3])};
+				if (f[0] + f[1] + f[2] + f[3] <= 0)
+					continue; // inside the dark circle
 				float u0 = (float)i / NA, u1 = (float)(i + 1) / NA;
 				float uv[8] = {u0, r0, u1, r0, u0, r1, u1, r1};
-				quad(q, uv, col, tex);
+				TLV v[4];
+				bool ok = true;
+				for (int n = 0; n < 4 && ok; n++) {
+					ok = project(q[n], v[n]);
+					v[n].color = colour(f[n]);
+					v[n].specular = 0xff000000u;
+					v[n].u = uv[n * 2];
+					v[n].v = uv[n * 2 + 1];
+				}
+				if (ok)
+					emit(v, tex);
 			}
 		}
 	}
