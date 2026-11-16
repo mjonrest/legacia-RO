@@ -793,12 +793,19 @@ int pack_apply(const uint8_t* actor, int n, bool log) {
 			break;
 		uint8_t* eff = *(uint8_t* const*)(node + 8);
 		node = *(const uint8_t* const*)node;
-		if (!eff || !readable((uintptr_t)eff, EFFECT_SIZE))
+		// only the fields used are checked: a whole effect (0x11ca8 bytes) can span two
+		// memory regions, and checking it at once skipped the aura's effects
+		if (!eff || !readable((uintptr_t)eff + EFFECT_ID, 4)) {
+			if (log && idsLen < (int)sizeof(ids) - 12)
+				idsLen += snprintf(ids + idsLen, sizeof(ids) - idsLen, " ?");
 			continue;
+		}
 		int id = *(int*)(eff + EFFECT_ID);
 		if (log && idsLen < (int)sizeof(ids) - 12)
 			idsLen += snprintf(ids + idsLen, sizeof(ids) - idsLen, " %d", id);
 		if (!aura_effect_id(id))
+			continue;
+		if (!readable((uintptr_t)eff + EFFECT_PRIMS, 8))
 			continue;
 		const uint8_t* phead = *(const uint8_t* const*)(eff + EFFECT_PRIMS);
 		int psize = *(const int*)(eff + EFFECT_PRIMS + 4);
@@ -810,7 +817,7 @@ int pack_apply(const uint8_t* actor, int n, bool log) {
 				break;
 			uint8_t* prim = *(uint8_t* const*)(pn + 8);
 			pn = *(const uint8_t* const*)pn;
-			if (!prim || !readable((uintptr_t)prim, PRIM_TEX_COUNT + 4))
+			if (!prim || !readable((uintptr_t)prim + PRIM_TEX, 4) || !readable((uintptr_t)prim + PRIM_TEX_COUNT, 4))
 				continue;
 			void** tex = *(void***)(prim + PRIM_TEX);
 			int count = *(int*)(prim + PRIM_TEX_COUNT);
@@ -830,8 +837,34 @@ int pack_apply(const uint8_t* actor, int n, bool log) {
 		}
 	}
 	if (log)
-		log_line("aura: pack %d on an aura of %d pictures (%d changed); effects:%s", n, pics, swapped, ids);
+		log_line("aura: pack %d on an aura of %d pictures (%d changed); %d effects:%s", n, pics, swapped, size, ids);
 	return pics;
+}
+
+// Diagnostics: the world's object list (std::list at CWorld +8, effects and polygons, see
+// LaunchEffect 0xcabf18) - log the effects whose owner (+0x138) is this actor.
+const uint8_t* g_packWorld;
+void pack_log_world(const uint8_t* actor) {
+	if (!g_packWorld || !readable((uintptr_t)g_packWorld + 8, 8))
+		return;
+	const uint8_t* head = *(const uint8_t* const*)(g_packWorld + 8);
+	int size = *(const int*)(g_packWorld + 12);
+	if (!head || size < 0 || size > 20000 || !readable((uintptr_t)head, 12))
+		return;
+	char ids[200];
+	int len = 0;
+	ids[0] = 0;
+	const uint8_t* node = *(const uint8_t* const*)head;
+	for (int i = 0; node && node != head && i <= size; i++) {
+		if (!readable((uintptr_t)node, 12))
+			break;
+		const uint8_t* o = *(const uint8_t* const*)(node + 8);
+		node = *(const uint8_t* const*)node;
+		if (o && readable((uintptr_t)o + 0x138, 4) && readable((uintptr_t)o + EFFECT_ID, 4) &&
+		    *(const uint8_t* const*)(o + 0x138) == actor && len < (int)sizeof(ids) - 12)
+			len += snprintf(ids + len, sizeof(ids) - len, " %d", *(const int*)(o + EFFECT_ID));
+	}
+	log_line("aura: world has %d objects; yours:%s", size, ids);
 }
 
 // once a frame for each player in sight: their pack (0 = none)
@@ -855,6 +888,7 @@ void pack_actor(const uint8_t* actor, int n, bool self, int frame) {
 		lastSelf = n;
 		lastSelfPics = pics;
 		pack_apply(actor, n, true); // log what your own aura is made of when it changes
+		pack_log_world(actor);
 		// the game shows your level 99 aura when your level (0x172d5a8, copied to +0x210) equals
 		// its aura level (0x1733e40); +0x2b4 is set while the aura is on (0xca86e0, 0xcb597e)
 		if (readable(0x172d5a8, 4) && readable(0x1733e40, 4) && readable((uintptr_t)actor + 0x2b4, 8))
@@ -1099,6 +1133,7 @@ void aura_draw(void* view) {
 	if (!mode || !readable((uintptr_t)mode + 0xcc, 4))
 		return;
 	uint8_t* world = *(uint8_t**)(mode + 0xcc);
+	g_packWorld = world;
 	if (!world || !readable((uintptr_t)world, 0x34))
 		return;
 
