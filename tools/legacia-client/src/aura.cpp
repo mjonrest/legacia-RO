@@ -99,11 +99,6 @@ bool readable(uintptr_t at, int len) {
 std::unordered_map<int, void*> g_tex; // part * 1000 + number -> client texture, null = could not load
 bool g_texFailed;
 std::unordered_set<void*> g_alphaTex; // textures with a real alpha (ground circles)
-struct TexBox { float u0, v0, u1, v1; };
-std::unordered_map<void*, TexBox> g_texBox; // ring textures: the lit part of the picture
-std::unordered_map<void*, uint32_t> g_texCol; // ring textures: their main colour (0xRRGGBB)
-std::unordered_set<void*> g_lineTex;          // ring textures that are a thin strip (comets)
-void* g_glow;                                 // soft white dot for comet tails (made here)
 int g_loadsThisFrame;
 
 std::string tex_folder() {
@@ -147,8 +142,6 @@ bool read_bmp32(const char* path, std::vector<uint32_t>& px, int& w, int& h) {
 	return ok;
 }
 
-bool ring_is_pillar(int num);
-
 void* texture(int part, int num) {
 	int key = part * 1000 + num;
 	auto it = g_tex.find(key);
@@ -166,44 +159,8 @@ void* texture(int part, int num) {
 		void* dev = ((GetDeviceFn)GET_DEVICE)();
 		if (dev) {
 			tex = ((CreateTextureFn)CREATE_TEXTURE)(dev, w, h, TEX_FORMAT_ARGB8888, 0, 0);
-			bool line = false;
-			if (tex && part == 2) {
-				// the lit part of the picture: many ring pictures are a thin strip in a big
-				// black square (e.g. #3 is a dotted line 4 pixels high). Strips are "line
-				// pictures" and fly round as comets; their tail colour is the picture's
-				// most colourful pixels
-				int x0 = w, y0 = h, x1 = -1, y1 = -1;
-				double sum[3] = {0, 0, 0}, all[3] = {0, 0, 0};
-				int nsat = 0, nlit = 0;
-				for (int y = 0; y < h; y++)
-					for (int x = 0; x < w; x++) {
-						uint32_t c = px[(size_t)y * w + x];
-						int r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
-						int mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
-						int mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
-						if (mx > 40) {
-							x0 = x < x0 ? x : x0, x1 = x > x1 ? x : x1;
-							y0 = y < y0 ? y : y0, y1 = y > y1 ? y : y1;
-							all[0] += r, all[1] += g, all[2] += b, nlit++;
-							if (mx - mn > 60)
-								sum[0] += r, sum[1] += g, sum[2] += b, nsat++;
-						}
-					}
-				if (x1 >= 0) {
-					g_texBox[tex] = {(float)x0 / w, (float)y0 / h, (float)(x1 + 1) / w, (float)(y1 + 1) / h};
-					line = (x1 - x0 + 1) > 2.5f * (y1 - y0 + 1);
-					double* m = nsat > 20 ? sum : all;
-					double big = m[0] > m[1] ? (m[0] > m[2] ? m[0] : m[2]) : (m[1] > m[2] ? m[1] : m[2]);
-					if (big > 0)
-						g_texCol[tex] = (uint32_t)(m[0] * 255 / big) << 16 | (uint32_t)(m[1] * 255 / big) << 8 | (uint32_t)(m[2] * 255 / big);
-				}
-				if (ring_is_pillar(num))
-					line = false; // the flame rings keep their own (additive) look
-				if (line)
-					g_lineTex.insert(tex);
-			}
-			if (tex && (part == 1 || line)) {
-				// ground circles and line rings are mixed by alpha (see emit): the brightness
+			if (tex && part == 1) {
+				// ground circles are mixed by alpha (see emit): the brightness
 				// becomes the alpha (a bit stronger, so the circle reads clearly)
 				// and the colour is un-darkened to match
 				for (uint32_t& c : px) {
@@ -356,157 +313,60 @@ void draw_ground(const V3& foot, void* tex, float t) {
 	}
 }
 
-// part 2: rings. Three styles, picked from the ring's picture:
+// part 2: rings. Two styles:
 //  - flame / spike strips (ring_is_pillar): draw_pillar, a soft fire bloom round the body
-//  - line pictures (a thin strip, e.g. #2 #3 #7): draw_comets, three comets on tilted
-//    orbits with the picture running along each tail (owner picked design A, 2026-11-16)
-//  - all other (shape) pictures: draw_flower, three tilted flower-petal rings turning
-//    round the player (the earlier ring look)
+//  - every other picture: draw_rings, Gepard's look (owner's videos of rings #3, #5, #6,
+//    2026-11-16): three wide, see-through discs ("petals") round the player, each a
+//    fat ring with a hole in the middle, the picture wrapped once round it with its
+//    top row at the hole and its bottom row at the rim. They grow from small at the
+//    feet to full size in about 1.2 s, turn round the player and spin, and start
+//    again every few seconds (one after the other). A thin picture such as #3 becomes
+//    a thin dotted circle inside the disc, as in Gepard.
 // Sizes: g_scale * 4 = 1 world unit; a cell is 5 units.
-void draw_flower(const V3& foot, void* tex, float t) {
-	const float CYCLE = 4.0f;            // one turn round the player
-	const int PETALS = 3, SEGS = 32;
-	const float R = 25 * g_scale;        // petal ring radius (owner 2026-11-13: 28 too wide, 21 too small)
-	const float BAND = 6 * g_scale;      // thin lines (the texture fades at its edges)
-	const float LIFT = 22 * g_scale;     // centre at the waist
-	const float OFF = 11 * g_scale;      // petal centres a little off the player
-	const float TILT = 30 * PI / 180;
-	float turn = 2 * PI * fmodf(t / CYCLE, 1.0f);
+void draw_rings(const V3& foot, void* tex, float t) {
+	const int PETALS = 3, SEGS = 40;
+	const float R = 42 * g_scale;        // outer edge of a petal
+	const float HOLE = 0.25f;            // inner edge, as part of R
+	const float OFF = 16 * g_scale;      // petal centres off the player
+	const float LIFT = 16 * g_scale;     // petal centres above the feet
+	const float TILT = 32 * PI / 180;    // petals lean up, outward
+	const float TURN = 6.0f;             // the flower turns round the player once in TURN s
+	const float CYCLE = 4.5f, GROW = 1.2f, FADE = 0.45f;
+	const float BRIGHT = 110;            // additive, like Gepard (whiter floors wash out a bit)
+	float turn = 2 * PI * t / TURN;
 	for (int pi = 0; pi < PETALS; pi++) {
-		float dir = turn + 2 * PI / 3 * pi; // 120 degrees apart
-		float breathe = 0.85f + 0.15f * sinf(2 * PI * t / 1.6f + pi * 2.1f);
-		float r = R * breathe;
-		V3 c = {foot.x + OFF * cosf(dir), foot.y - LIFT, foot.z + OFF * sinf(dir)};
-		// the petal leans out, toward its own side
+		// each petal's own life: grow from the feet, stay, fade, start again
+		float ph = fmodf(t + pi * 0.35f, CYCLE);
+		float g = ph < GROW ? ph / GROW : 1.0f;
+		g = 1 - (1 - g) * (1 - g); // ease out
+		float fade = ph > CYCLE - FADE ? (CYCLE - ph) / FADE : 1.0f;
+		fade *= fminf(1.0f, ph / 0.15f);
+		float size = 0.2f + 0.8f * g;
+		float dir = turn + 2 * PI / 3 * pi;
+		V3 c = {foot.x + OFF * g * cosf(dir), foot.y - LIFT * g, foot.z + OFF * g * sinf(dir)};
 		V3 d = {cosf(dir), 0, sinf(dir)};
 		V3 e1 = {-d.z, 0, d.x};
-		V3 e2 = {cosf(TILT) * d.x, sinf(TILT), cosf(TILT) * d.z};
-		float spin = fmodf(t / 2.6f + pi * 0.31f, 1.0f) * (pi == 1 ? -1.0f : 1.0f);
+		float tilt = TILT * (pi == 0 ? 0.4f : pi == 1 ? 0.8f : 1.1f); // not all the same, like Gepard
+		V3 e2 = {cosf(tilt) * d.x, sinf(tilt), cosf(tilt) * d.z};
+		float spin = (t / 2.6f + pi * 0.31f) * (pi == 1 ? -1.0f : 1.0f);
+		float r1 = R * size, r0 = r1 * HOLE;
 		auto at = [&](float rr, float ang) {
-			if (rr < 0.5f * g_scale)
-				rr = 0.5f * g_scale;
 			float ca = cosf(ang), sa = sinf(ang);
 			float x = rr * (ca * e1.x + sa * e2.x);
 			float y = rr * (sa * e2.y);
 			float z = rr * (ca * e1.z + sa * e2.z);
 			return V3{c.x + x, c.y - y, c.z + z}; // up is -y in the client
 		};
-		uint32_t col = grey(100); // dim like the ground circle (owner 2026-11-13)
+		uint32_t col = grey(BRIGHT * fade);
 		for (int s = 0; s < SEGS; s++) {
-			float a0 = 2 * PI * ((float)s / SEGS + spin), a1 = a0 + 2 * PI / SEGS;
+			float a0 = 2 * PI * ((float)s / SEGS) + 2 * PI * spin, a1 = a0 + 2 * PI / SEGS;
 			float u0 = (float)s / SEGS, u1 = (float)(s + 1) / SEGS;
-			V3 p[4] = {at(r + BAND, a0), at(r + BAND, a1), at(r - BAND, a0), at(r - BAND, a1)};
+			V3 p[4] = {at(r0, a0), at(r0, a1), at(r1, a0), at(r1, a1)};
 			float uv[8] = {u0, 0, u1, 0, u0, 1, u1, 1};
 			quad(p, uv, col, tex);
 		}
 	}
 }
-
-// a soft round white dot (alpha falls off like a glow), tinted by the vertex colour
-void* glow_texture() {
-	if (g_glow || g_texFailed)
-		return g_glow;
-	void* dev = ((GetDeviceFn)GET_DEVICE)();
-	if (!dev)
-		return nullptr;
-	const int N = 32;
-	void* tex = ((CreateTextureFn)CREATE_TEXTURE)(dev, N, N, TEX_FORMAT_ARGB8888, 0, 0);
-	if (!tex)
-		return nullptr;
-	std::vector<uint32_t> px(N * N);
-	for (int y = 0; y < N; y++)
-		for (int x = 0; x < N; x++) {
-			float dx = (x + 0.5f) / N * 2 - 1, dy = (y + 0.5f) / N * 2 - 1;
-			float d2 = (dx * dx + dy * dy) * 2.2f * 2.2f;
-			float a = expf(-1.6f * d2);
-			if (dx * dx + dy * dy > 1)
-				a = 0;
-			px[(size_t)y * N + x] = (uint32_t)(a * 255 + 0.5f) << 24 | 0xffffffu;
-		}
-	void** vt = *(void***)tex;
-	((UpdateTextureFn)vt[8])(tex, 0, 0, N, N, px.data(), 0, 0);
-	g_glow = tex;
-	return tex;
-}
-
-// one point of comet k, `f` of the way back along its tail (0 = head)
-V3 comet_at(const V3& foot, int k, float t, float f) {
-	const float R = 21 * g_scale, LIFT = 42 * g_scale, TILT = 32 * PI / 180;
-	const float PERIOD = 1.7f, TAIL = 2.1f;
-	float yaw = 2 * PI * k / 3 + 2 * PI * t / 12; // each orbit's tilt slowly goes round
-	float a = 2 * PI * t / PERIOD + 2 * PI * k / 3 - f * TAIL;
-	float px = cosf(a) * R, py = sinf(a) * R;
-	float x = px, up = py * sinf(TILT), z = py * cosf(TILT);
-	float xr = x * cosf(yaw) - z * sinf(yaw), zr = x * sinf(yaw) + z * cosf(yaw);
-	return V3{foot.x + xr, foot.y - LIFT - up, foot.z + zr}; // up is -y in the client
-}
-
-void draw_comets(const V3& foot, void* tex, float t) {
-	TexBox box = {0, 0, 1, 1};
-	auto bi = g_texBox.find(tex);
-	if (bi != g_texBox.end())
-		box = bi->second;
-	uint32_t rgb = 0xffc41e;
-	auto ci = g_texCol.find(tex);
-	if (ci != g_texCol.end())
-		rgb = ci->second;
-	bool blended = g_alphaTex.count(tex) != 0;
-	void* glow = glow_texture();
-	float hpc = fabsf(*(float*)(g_renderer + 4)), vpc = fabsf(*(float*)(g_renderer + 8));
-	for (int k = 0; k < 3; k++) {
-		// glowing tail in the picture's colour: soft dots, big and strong at the head
-		if (glow) {
-			const int DOTS = 18;
-			for (int j = 0; j < DOTS; j++) {
-				float f = (float)j / (DOTS - 1);
-				float size = 2.6f * g_scale * (1 - 0.7f * f) * 2.2f;
-				float al = powf(1 - f, 1.3f) * 0.9f * 1.35f;
-				al = al > 1 ? 1 : al;
-				TLV m;
-				if (al < 0.02f || !project(comet_at(foot, k, t, f), m))
-					continue;
-				for (int core = 0; core < (j < 4 ? 2 : 1); core++) {
-					// the first dots get a smaller, paler core: the head looks hot
-					float sz = core ? size * 0.45f : size;
-					uint32_t c = rgb;
-					if (core) {
-						int r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
-						c = (uint32_t)((r + 255) / 2) << 16 | (uint32_t)((g + 255) / 2) << 8 | (uint32_t)((b + 255) / 2);
-					}
-					float hx = sz * hpc * m.rhw, hy = sz * vpc * m.rhw;
-					const float dx[4] = {-hx, hx, -hx, hx}, dy[4] = {-hy, -hy, hy, hy};
-					const float uv[8] = {0, 0, 1, 0, 0, 1, 1, 1};
-					TLV v[4];
-					for (int i = 0; i < 4; i++) {
-						v[i] = m;
-						v[i].x += dx[i];
-						v[i].y += dy[i];
-						v[i].color = (uint32_t)(al * (core ? 0.8f : 1.0f) * 255) << 24 | c;
-						v[i].specular = 0xff000000u;
-						v[i].u = uv[i * 2];
-						v[i].v = uv[i * 2 + 1];
-					}
-					emit(v, glow, true);
-				}
-			}
-		}
-		// the ring's own picture runs along the tail as a ribbon
-		const int SEGS = 16;
-		const float LEN = 0.85f;
-		for (int s = 0; s < SEGS; s++) {
-			float f0 = (float)s / SEGS * LEN, f1 = (float)(s + 1) / SEGS * LEN;
-			V3 p0 = comet_at(foot, k, t, f0), p1 = comet_at(foot, k, t, f1);
-			float w0 = 2.2f * g_scale * (1 - 0.6f * f0), w1 = 2.2f * g_scale * (1 - 0.6f * f1);
-			V3 p[4] = {{p0.x, p0.y - w0, p0.z}, {p1.x, p1.y - w1, p1.z}, {p0.x, p0.y + w0, p0.z}, {p1.x, p1.y + w1, p1.z}};
-			float u0 = box.u0 + (box.u1 - box.u0) * f0 / LEN, u1 = box.u0 + (box.u1 - box.u0) * f1 / LEN;
-			float uv[8] = {u0, box.v0, u1, box.v0, u0, box.v1, u1, box.v1};
-			float al = 255 * powf(1 - f0, 1.2f);
-			uint32_t col = blended ? ((uint32_t)al << 24 | 0xffffffu) : grey(al);
-			quad(p, uv, col, tex, 0, blended);
-		}
-	}
-}
-
 
 // Ring textures that are flame / spike strips (bright at the bottom, fading
 // up). Like a skill effect, these rise round the body as a glowing pillar
@@ -619,10 +479,8 @@ void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 	if (a.part[1] && (tex = texture(2, a.part[1]))) {
 		if (ring_is_pillar(a.part[1]))
 			draw_pillar(foot, tex, t);
-		else if (g_lineTex.count(tex))
-			draw_comets(foot, tex, t);
 		else
-			draw_flower(foot, tex, t);
+			draw_rings(foot, tex, t);
 	}
 	if (a.part[2] && (tex = texture(3, a.part[2])))
 		draw_sparkles(foot, aid, tex, t);
@@ -797,10 +655,6 @@ void aura_draw(void* view) {
 			log_line("aura: left the game or device reset, reloading %d aura textures", (int)g_tex.size());
 		g_tex.clear(); // the game freed them (char select / reset); not released here
 		g_alphaTex.clear();
-		g_texBox.clear();
-		g_texCol.clear();
-		g_lineTex.clear();
-		g_glow = nullptr;
 		g_texFailed = false;
 	}
 	uint8_t* r = *(uint8_t**)RENDERER_PTR;
