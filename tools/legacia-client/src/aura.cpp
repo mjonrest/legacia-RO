@@ -517,6 +517,42 @@ void draw_blades(const V3& foot, void* tex, float t) {
 	}
 }
 
+// #3-style rings (a thin strip picture): three slightly curved lines circling the
+// player (owner 2026-11-16, in their words: "a circle with 3 lines coming slowly from
+// the bottom of the player, then higher, moving round the player; thin at the bottom
+// but bolder on the other side; curved, but only about 15 degrees"). Each line lies
+// on a cylinder round the body, climbing at TILT, and the picture runs along it.
+void draw_strokes(const V3& foot, void* tex, float t, const RingLook& lk) {
+	const int LINES = 3, SEGS = 16;
+	const float R = 30 * g_scale, L = 50 * g_scale, W = 6 * g_scale, RISE = 60 * g_scale;
+	const float TILT = 30 * PI / 180, BEND = 15 * PI / 180, TAPER = 0.25f;
+	const float CYCLE = 5.7f, ORBIT = 2.4f, BRIGHT = 170;
+	float ph = fmodf(t, CYCLE) / CYCLE;
+	float alpha = fminf(1.0f, ph / 0.12f) * fminf(1.0f, (1 - ph) / 0.2f);
+	float h = RISE * ph; // the circle comes up slowly from the feet
+	uint32_t col = tinted(BRIGHT * alpha, lk);
+	for (int k = 0; k < LINES; k++) {
+		float a = 2 * PI * t / ORBIT + 2 * PI * k / LINES;
+		auto pt = [&](float f, float& up, V3& out) {
+			float sl = (f - 0.5f) * L;
+			float ang = sl * cosf(TILT) / R;
+			up = h + sl * sinf(TILT) - (f - 0.5f) * (f - 0.5f) * L * sinf(BEND); // a slight curve
+			out = V3{foot.x + R * cosf(a + ang), foot.y - up, foot.z + R * sinf(a + ang)};
+		};
+		for (int i = 0; i < SEGS; i++) {
+			float f0 = (float)i / SEGS, f1 = (float)(i + 1) / SEGS;
+			float up0, up1;
+			V3 c0, c1;
+			pt(f0, up0, c0), pt(f1, up1, c1);
+			float w0 = W * (TAPER + (1 - TAPER) * f0), w1 = W * (TAPER + (1 - TAPER) * f1); // thin bottom, bold top
+			V3 p[4] = {{c0.x, c0.y - w0, c0.z}, {c1.x, c1.y - w1, c1.z}, {c0.x, c0.y + w0, c0.z}, {c1.x, c1.y + w1, c1.z}};
+			float u0 = f0, u1 = f1;
+			float uv[8] = {u0, lk.v0, u1, lk.v0, u0, lk.v1, u1, lk.v1};
+			quad(p, uv, col, tex);
+		}
+	}
+}
+
 // Ring textures that are flame / spike strips (bright at the bottom, fading
 // up). Like a skill effect, these rise round the body as a glowing pillar
 // instead of the flower rings, opening like a flower of fire (owner 2026-11-13, see draw_pillar).
@@ -631,6 +667,8 @@ void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 			draw_pillar(foot, tex, t);
 		else if (li != g_ringLook.end() && li->second.style == 1)
 			draw_blades(foot, tex, t);
+		else if (li != g_ringLook.end() && li->second.style == 2)
+			draw_strokes(foot, tex, t, li->second);
 		else
 			draw_rings(foot, tex, t);
 	}
