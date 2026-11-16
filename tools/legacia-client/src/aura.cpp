@@ -98,6 +98,11 @@ bool readable(uintptr_t at, int len) {
 // ---- textures ----
 std::unordered_map<int, void*> g_tex; // part * 1000 + number -> client texture, null = could not load
 bool g_texFailed;
+struct RingLook {
+	int style; // 0 full discs, 1 sweeping crescents, 2 thin dotted ring (a strip picture)
+	float v0, v1; // the lit rows
+};
+std::unordered_map<void*, RingLook> g_ringLook; // ring textures, worked out when loaded
 std::unordered_set<void*> g_alphaTex; // textures with a real alpha (ground circles)
 int g_loadsThisFrame;
 
@@ -178,6 +183,35 @@ void* texture(int part, int num) {
 			}
 			if (!tex) // the alpha isn't needed (drawn additively), so the format Graymap uses works too
 				tex = ((CreateTextureFn)CREATE_TEXTURE)(dev, w, h, TEX_FORMAT_ARGB1555, 0, 0);
+		}
+		if (tex && part == 2) {
+			// how Gepard shows this picture (owner's videos of #3, #5, #6): a thin strip
+			// (#3) is a dotted ring; a picture that fades out at its left and right edges
+			// (#6) sweeps round as crescents; anything else (#5) is a full disc
+			int y0 = h, y1 = -1;
+			std::vector<double> col(w, 0.0);
+			for (int y = 0; y < h; y++)
+				for (int x = 0; x < w; x++) {
+					uint32_t c = px[(size_t)y * w + x];
+					int r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
+					int m = r > g ? (r > b ? r : b) : (g > b ? g : b);
+					col[x] += m;
+					if (m > 40)
+						y0 = y < y0 ? y : y0, y1 = y > y1 ? y : y1;
+				}
+			RingLook lk = {0, 0, 1};
+			double top = 0, ends = 0;
+			for (int x = 0; x < w; x++)
+				top = col[x] > top ? col[x] : top;
+			int e = w / 16 > 1 ? w / 16 : 1;
+			for (int x = 0; x < e; x++)
+				ends += col[x] + col[w - 1 - x];
+			ends /= 2 * e;
+			if (y1 >= 0 && (y1 - y0 + 1) < h / 4)
+				lk = {2, (float)y0 / h, (float)(y1 + 1) / h};
+			else if (top > 0 && ends < 0.35 * top)
+				lk.style = 1;
+			g_ringLook[tex] = lk;
 		}
 		if (tex) {
 			void** vt = *(void***)tex;
@@ -313,43 +347,51 @@ void draw_ground(const V3& foot, void* tex, float t) {
 	}
 }
 
-// part 2: rings. Two styles:
+// part 2: rings. Two families:
 //  - flame / spike strips (ring_is_pillar): draw_pillar, a soft fire bloom round the body
-//  - every other picture: draw_rings, Gepard's look (owner's videos of rings #3, #5, #6,
-//    2026-11-16): three wide, see-through discs ("petals") round the player, each a
-//    fat ring with a hole in the middle, the picture wrapped once round it with its
-//    top row at the hole and its bottom row at the rim. They grow from small at the
-//    feet to full size in about 1.2 s, turn round the player and spin, and start
-//    again every few seconds (one after the other). A thin picture such as #3 becomes
-//    a thin dotted circle inside the disc, as in Gepard.
+//  - every other picture: draw_rings, matched side by side to the owner's Gepard videos
+//    of rings #3, #5 and #6 (2026-11-16). Three discs ("petals") round the player, each
+//    a wide ring with the picture wrapped twice round it (top row at the hole, bottom
+//    row at the rim). They grow from small at the feet to full size in 1.3 s, the
+//    flower turns round the player, each disc spins (one turn in 2 s), and they start
+//    again every 5.7 s, one after the other. How a disc looks depends on the picture
+//    (see RingLook): full discs (#5), sweeping crescents with an off-centre hole that
+//    fade out on their thin side (#6), or a thin dotted ring of the picture's lit rows (#3).
 // Sizes: g_scale * 4 = 1 world unit; a cell is 5 units.
 void draw_rings(const V3& foot, void* tex, float t) {
+	RingLook lk = {0, 0, 1};
+	auto li = g_ringLook.find(tex);
+	if (li != g_ringLook.end())
+		lk = li->second;
 	const int PETALS = 3, SEGS = 40;
-	const float R = 42 * g_scale;        // outer edge of a petal
-	const float HOLE = 0.25f;            // inner edge, as part of R
-	const float OFF = 16 * g_scale;      // petal centres off the player
 	const float LIFT = 16 * g_scale;     // petal centres above the feet
 	const float TILT = 32 * PI / 180;    // petals lean up, outward
-	const float TURN = 6.0f;             // the flower turns round the player once in TURN s
-	const float CYCLE = 4.5f, GROW = 1.2f, FADE = 0.45f;
-	const float BRIGHT = 110;            // additive, like Gepard (whiter floors wash out a bit)
+	const float TURN = 6.0f, SPIN = 2.0f;
+	const float CYCLE = 5.7f, GROW = 1.3f, FADE = 0.6f, STAGGER = 0.35f;
+	float R = 48, hole = 0.3f, ecc = 0.2f, bright = 70, off = 16, arc = 0;
+	if (lk.style == 1)
+		R = 40, hole = 0.55f, ecc = 0.3f, bright = 105, arc = 0.2f;
+	else if (lk.style == 2)
+		ecc = 0, bright = 75, off = 10;
+	R *= g_scale, off *= g_scale;
 	float turn = 2 * PI * t / TURN;
 	for (int pi = 0; pi < PETALS; pi++) {
 		// each petal's own life: grow from the feet, stay, fade, start again
-		float ph = fmodf(t + pi * 0.35f, CYCLE);
+		float ph = fmodf(t + pi * STAGGER, CYCLE);
 		float g = ph < GROW ? ph / GROW : 1.0f;
 		g = 1 - (1 - g) * (1 - g); // ease out
 		float fade = ph > CYCLE - FADE ? (CYCLE - ph) / FADE : 1.0f;
 		fade *= fminf(1.0f, ph / 0.15f);
 		float size = 0.2f + 0.8f * g;
 		float dir = turn + 2 * PI / 3 * pi;
-		V3 c = {foot.x + OFF * g * cosf(dir), foot.y - LIFT * g, foot.z + OFF * g * sinf(dir)};
+		V3 c = {foot.x + off * g * cosf(dir), foot.y - LIFT * g, foot.z + off * g * sinf(dir)};
 		V3 d = {cosf(dir), 0, sinf(dir)};
 		V3 e1 = {-d.z, 0, d.x};
 		float tilt = TILT * (pi == 0 ? 0.4f : pi == 1 ? 0.8f : 1.1f); // not all the same, like Gepard
 		V3 e2 = {cosf(tilt) * d.x, sinf(tilt), cosf(tilt) * d.z};
-		float spin = (t / 2.6f + pi * 0.31f) * (pi == 1 ? -1.0f : 1.0f);
-		float r1 = R * size, r0 = r1 * HOLE;
+		float spin = (t / SPIN + pi * 0.31f) * (pi == 1 ? -1.0f : 1.0f);
+		float r1 = R * size, r0 = r1 * hole, ex = r1 * ecc;
+		float holeAt = 2 * PI * spin + pi; // where the off-centre hole leans (turns with the spin)
 		auto at = [&](float rr, float ang) {
 			float ca = cosf(ang), sa = sinf(ang);
 			float x = rr * (ca * e1.x + sa * e2.x);
@@ -357,13 +399,30 @@ void draw_rings(const V3& foot, void* tex, float t) {
 			float z = rr * (ca * e1.z + sa * e2.z);
 			return V3{c.x + x, c.y - y, c.z + z}; // up is -y in the client
 		};
-		uint32_t col = grey(BRIGHT * fade);
 		for (int s = 0; s < SEGS; s++) {
-			float a0 = 2 * PI * ((float)s / SEGS) + 2 * PI * spin, a1 = a0 + 2 * PI / SEGS;
-			float u0 = (float)s / SEGS, u1 = (float)(s + 1) / SEGS;
-			V3 p[4] = {at(r0, a0), at(r0, a1), at(r1, a0), at(r1, a1)};
-			float uv[8] = {u0, 0, u1, 0, u0, 1, u1, 1};
-			quad(p, uv, col, tex);
+			float a0 = 2 * PI * ((float)s / SEGS + spin), a1 = a0 + 2 * PI / SEGS;
+			float w = 1;
+			if (lk.style == 1) {
+				// crescent: bright on the wide side, fading out on the thin side
+				w = (-cosf((a0 + a1) / 2 - holeAt) + arc) / 0.8f;
+				w = w < 0 ? 0 : w > 1 ? 1 : powf(w, 1.2f);
+				if (w < 0.01f)
+					continue;
+			}
+			// the picture goes round twice (each half of the segments is one copy)
+			float uu = 2.0f * s / SEGS;
+			float u0 = uu - floorf(uu), u1 = u0 + 2.0f / SEGS;
+			float in0, in1, out0, out1, v0 = 0, v1 = 1;
+			if (lk.style == 2) {
+				in0 = in1 = r1 * 0.42f, out0 = out1 = r1 * 0.53f;
+				v0 = lk.v0, v1 = lk.v1;
+			} else {
+				in0 = r0 + ex * cosf(a0 - holeAt), in1 = r0 + ex * cosf(a1 - holeAt);
+				out0 = out1 = r1;
+			}
+			V3 p[4] = {at(in0, a0), at(in1, a1), at(out0, a0), at(out1, a1)};
+			float uv[8] = {u0, v0, u1, v0, u0, v1, u1, v1};
+			quad(p, uv, grey(bright * fade * w), tex);
 		}
 	}
 }
@@ -655,6 +714,7 @@ void aura_draw(void* view) {
 			log_line("aura: left the game or device reset, reloading %d aura textures", (int)g_tex.size());
 		g_tex.clear(); // the game freed them (char select / reset); not released here
 		g_alphaTex.clear();
+		g_ringLook.clear();
 		g_texFailed = false;
 	}
 	uint8_t* r = *(uint8_t**)RENDERER_PTR;
