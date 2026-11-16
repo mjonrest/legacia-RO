@@ -335,45 +335,42 @@ void draw_ground(const V3& foot, void* tex, float t) {
 
 // part 2: rings. Two styles:
 //  - flame / spike strips: draw_pillar (a soft fire bloom round the body)
-//  - everything else: draw_rings, three petals circling the player, each a
-//    curved dashed line of the ring's picture (owner 2026-11-16: "like the
-//    other ring, surrounding the player, but a line that looks curved")
+//  - everything else: draw_rings, three curved dashed lines of the ring's
+//    picture low round the feet, travelling round the player
 // Sizes: g_scale * 4 = 1 world unit; a cell is 5 units.
 void draw_rings(const V3& foot, void* tex, float t) {
-	// the three-petal flower the owner liked (sizes tuned in game 2026-11-13),
-	// but each petal is now a curved dashed line: a partial arc of the picture
-	// (its lit rows only) that sweeps round inside the petal, fading at its ends
-	const float CYCLE = 4.0f;            // the flower turns round the player once per CYCLE
-	const int PETALS = 3, SEGS = 40;
-	const float R = 25 * g_scale;        // petal radius
+	// owner 2026-11-16: the line stays at the bottom and moves round the player.
+	// Three curved dashed lines low round the feet, 120 degrees apart, each a
+	// partial arc of the ring's picture (its lit rows only) that sweeps round
+	// the player; each arc is tipped a little so it curves up toward its middle.
+	const int LINES = 3, SEGS = 36;
+	const float PERIOD = 3.0f;           // one turn round the player
+	const float R = 28 * g_scale;        // inside the ground circle (R 37)
 	const float BAND = 2.0f * g_scale;   // half width of the line
-	const float LIFT = 22 * g_scale;     // centre at the waist
-	const float OFF = 11 * g_scale;      // petal centres a little off the player
-	const float TILT = 30 * PI / 180;
-	const float ARC = 0.7f, REP = 3.0f;  // the curve covers 70% of the petal; picture repeats along it
+	const float LIFT = 4 * g_scale;      // just above the floor
+	const float TILT = 18 * PI / 180;    // how much each arc curves up
+	const float ARC = 0.55f, REP = 2.5f; // part of the circle each line covers; picture repeats along it
 	TexBox box = {0, 0, 1, 1};
 	auto bi = g_texBox.find(tex);
 	if (bi != g_texBox.end())
 		box = bi->second;
 	bool blended = g_alphaTex.count(tex) != 0;
-	float turn = 2 * PI * fmodf(t / CYCLE, 1.0f);
-	for (int pi = 0; pi < PETALS; pi++) {
-		float dir = turn + 2 * PI / 3 * pi; // 120 degrees apart
-		float r = R * (0.85f + 0.15f * sinf(2 * PI * t / 1.6f + pi * 2.1f)); // breathing out of step
-		V3 c = {foot.x + OFF * cosf(dir), foot.y - LIFT, foot.z + OFF * sinf(dir)};
-		// the petal leans out, toward its own side
-		V3 d = {cosf(dir), 0, sinf(dir)};
-		V3 e1 = {-d.z, 0, d.x};
-		V3 e2 = {cosf(TILT) * d.x, sinf(TILT), cosf(TILT) * d.z};
-		float spin = fmodf(t / 2.6f + pi * 0.31f, 1.0f) * (pi == 1 ? -1.0f : 1.0f);
-		auto at = [&](float rr, float ang) {
-			float ca = cosf(ang), sa = sinf(ang);
-			return V3{c.x + rr * (ca * e1.x + sa * e2.x), c.y - rr * (sa * e2.y), c.z + rr * (ca * e1.z + sa * e2.z)}; // up is -y
+	float turn = 2 * PI * fmodf(t / PERIOD, 1.0f);
+	for (int line = 0; line < LINES; line++) {
+		float mid = turn + 2 * PI * line / LINES; // the middle of this arc
+		float r = R * (0.92f + 0.08f * sinf(2 * PI * t / 3.0f + line * 2.1f)); // breathes like the ground circle
+		// tip the circle about the axis across the arc's middle so its middle is raised
+		V3 m = {cosf(mid), 0, sinf(mid)};          // toward the arc's middle
+		V3 q = {-m.z, 0, m.x};                      // along the arc at its middle
+		V3 mt = {cosf(TILT) * m.x, sinf(TILT), cosf(TILT) * m.z};
+		auto at = [&](float rr, float a) { // a = angle from the arc's middle
+			float ca = cosf(a), sa = sinf(a);
+			return V3{foot.x + rr * (ca * mt.x + sa * q.x), foot.y - LIFT - rr * ca * mt.y, foot.z + rr * (ca * mt.z + sa * q.z)}; // up is -y
 		};
 		for (int s = 0; s < SEGS; s++) {
 			float f0 = (float)s / SEGS, f1 = (float)(s + 1) / SEGS, fm = (f0 + f1) / 2;
-			float w = fminf(1, fminf(fm / 0.2f, (1 - fm) / 0.2f)); // the curve fades in and out at its ends
-			float a0 = 2 * PI * (ARC * f0 + spin), a1 = 2 * PI * (ARC * f1 + spin);
+			float w = fminf(1, fminf(fm / 0.2f, (1 - fm) / 0.2f)); // fades in and out at its ends
+			float a0 = 2 * PI * ARC * (f0 - 0.5f), a1 = 2 * PI * ARC * (f1 - 0.5f);
 			// keep u inside 0..1 (the game may clamp textures instead of repeating them)
 			float u0 = REP * f0, du = REP / SEGS;
 			u0 -= floorf(u0);
