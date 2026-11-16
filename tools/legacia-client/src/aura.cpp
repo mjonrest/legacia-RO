@@ -651,6 +651,97 @@ void draw_sparkles(const V3& foot, uint32_t aid, void* tex, float t) {
 	}
 }
 
+// ---- replayed Gepard rings ----
+// For rings the owner recorded in Gepard (#3, #5, #6), the plugin plays back the
+// recording itself: each frame of the video with the floor taken away (only the
+// light the aura adds) as plugins/auras/replay/<ring>/<frame>.bmp, one loop of the
+// effect. info.txt: frames fps width height footX footY pixelsPerUnit. The frames
+// are drawn flat on the screen at the player's feet, scaled with the camera zoom,
+// and added like Gepard's light (owner's choice 2026-11-16: an exact copy).
+struct ReplayInfo {
+	bool ok = false;
+	int frames = 0, w = 0, h = 0;
+	float fps = 15, fx = 0, fy = 0, ppu = 2.49f;
+};
+std::unordered_map<int, ReplayInfo> g_replay; // ring number -> info (ok false = none)
+
+const ReplayInfo& replay_info(int ring) {
+	auto it = g_replay.find(ring);
+	if (it != g_replay.end())
+		return it->second;
+	ReplayInfo ri;
+	char path[MAX_PATH];
+	snprintf(path, sizeof(path), "%sreplay\\%03d\\info.txt", tex_folder().c_str(), ring);
+	if (FILE* f = fopen(path, "r")) {
+		ri.ok = fscanf(f, "%d %f %d %d %f %f %f", &ri.frames, &ri.fps, &ri.w, &ri.h, &ri.fx, &ri.fy, &ri.ppu) == 7 &&
+		        ri.frames > 0 && ri.fps > 0 && ri.ppu > 0;
+		fclose(f);
+		if (ri.ok)
+			log_line("aura: ring %d plays back %d recorded frames", ring, ri.frames);
+	}
+	return g_replay[ring] = ri;
+}
+
+void* replay_texture(int ring, int frame) {
+	int key = 100000 + ring * 1000 + frame;
+	auto it = g_tex.find(key);
+	if (it != g_tex.end())
+		return it->second;
+	if (g_texFailed || g_loadsThisFrame >= 3)
+		return nullptr;
+	g_loadsThisFrame++;
+	char path[MAX_PATH];
+	snprintf(path, sizeof(path), "%sreplay\\%03d\\%03d.bmp", tex_folder().c_str(), ring, frame);
+	std::vector<uint32_t> px;
+	int w = 0, h = 0;
+	void* tex = nullptr;
+	if (read_bmp32(path, px, w, h)) {
+		void* dev = ((GetDeviceFn)GET_DEVICE)();
+		if (dev)
+			tex = ((CreateTextureFn)CREATE_TEXTURE)(dev, w, h, TEX_FORMAT_ARGB8888, 0, 0);
+		if (tex) {
+			void** vt = *(void***)tex;
+			((UpdateTextureFn)vt[8])(tex, 0, 0, w, h, px.data(), 0, 0);
+		}
+	} else {
+		log_line("aura: missing or bad replay frame %s", path);
+	}
+	g_tex[key] = tex;
+	return tex;
+}
+
+bool draw_replay(const V3& foot, int ring, float t) {
+	const ReplayInfo& ri = replay_info(ring);
+	if (!ri.ok)
+		return false;
+	// load every frame once (a few per game frame), so playback never stutters
+	for (int i = 0; i < ri.frames && g_loadsThisFrame < 3; i++)
+		replay_texture(ring, i);
+	int frame = (int)(t * ri.fps) % ri.frames;
+	void* tex = replay_texture(ring, frame);
+	TLV m;
+	if (!tex || !project(foot, m))
+		return true;
+	float hpc = fabsf(*(float*)(g_renderer + 4)), vpc = fabsf(*(float*)(g_renderer + 8));
+	float sx = g_scale * hpc * m.rhw / ri.ppu, sy = g_scale * vpc * m.rhw / ri.ppu;
+	float x0 = m.x - ri.fx * sx, x1 = m.x + (ri.w - ri.fx) * sx;
+	float y0 = m.y - ri.fy * sy, y1 = m.y + (ri.h - ri.fy) * sy;
+	const float xs[4] = {x0, x1, x0, x1}, ys[4] = {y0, y0, y1, y1};
+	const float uv[8] = {0, 0, 1, 0, 0, 1, 1, 1};
+	TLV v[4];
+	for (int i = 0; i < 4; i++) {
+		v[i] = m;
+		v[i].x = xs[i];
+		v[i].y = ys[i];
+		v[i].color = 0xffffffffu;
+		v[i].specular = 0xff000000u;
+		v[i].u = uv[i * 2];
+		v[i].v = uv[i * 2 + 1];
+	}
+	emit(v, tex); // additive, like Gepard
+	return true;
+}
+
 void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 	if (!readable((uintptr_t)actor, 0x114))
 		return;
@@ -663,7 +754,9 @@ void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 		draw_ground(foot, tex, t);
 	if (a.part[1] && (tex = texture(2, a.part[1]))) {
 		auto li = g_ringLook.find(tex);
-		if (ring_is_pillar(a.part[1]))
+		if (draw_replay(foot, a.part[1], t))
+			; // a recorded Gepard ring
+		else if (ring_is_pillar(a.part[1]))
 			draw_pillar(foot, tex, t);
 		else if (li != g_ringLook.end() && li->second.style == 1)
 			draw_blades(foot, tex, t);
