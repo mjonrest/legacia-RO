@@ -397,7 +397,7 @@ void draw_pillar(const V3& foot, void* tex, float t) {
 		float arc = 2 * PI * fmodf(t / (layer ? 6.5f : 5.0f), 1.0f) * -dir + layer * 1.3f; // bright patches go the other way
 		float bright = layer ? 120.0f : 190.0f;
 		auto at = [&](float a, float f) {
-			float lick = 0.62f + 0.2f * sinf(3 * a + 2 * PI * t / 1.1f + layer * 2.0f)
+			float lick = 0.7f + 0.14f * sinf(3 * a + 2 * PI * t / 1.1f + layer * 2.0f)
 				+ 0.12f * sinf(7 * a - 2 * PI * t / 0.7f + layer) + 0.06f * sinf(11 * a + 2 * PI * t / 0.45f);
 			float h = H * grow * hl * f * lick;
 			float ang = a + spin - 0.35f * f * f * dir; // tips trail behind the turn
@@ -406,7 +406,8 @@ void draw_pillar(const V3& foot, void* tex, float t) {
 		};
 		for (int s = 0; s < SEGS; s++) {
 			float a0 = 2 * PI * s / SEGS, a1 = a0 + 2 * PI / SEGS;
-			float m = 0.5f + 0.7f * cosf(2 * ((a0 + a1) / 2 + spin - arc));
+			// no dark gaps: the ring burns all the way round (owner 2026-11-16), only a little brighter in places
+			float m = 0.82f + 0.18f * cosf(2 * ((a0 + a1) / 2 + spin - arc));
 			m = m < 0 ? 0 : m > 1 ? 1 : m;
 			if (m < 0.02f)
 				continue;
