@@ -342,13 +342,13 @@ void draw_rings(const V3& foot, void* tex, float t) {
 	// owner 2026-11-16: the line stays at the bottom and moves round the player.
 	// Three curved dashed lines low round the feet, 120 degrees apart, each a
 	// partial arc of the ring's picture (its lit rows only) that sweeps round
-	// the player; each arc is tipped a little so it curves up toward its middle.
+	// the player; the leading end of each line tilts up a little.
 	const int LINES = 3, SEGS = 36;
 	const float PERIOD = 3.0f;           // one turn round the player
 	const float R = 28 * g_scale;        // inside the ground circle (R 37)
 	const float BAND = 2.0f * g_scale;   // half width of the line
 	const float LIFT = 4 * g_scale;      // just above the floor
-	const float TILT = 18 * PI / 180;    // how much each arc curves up
+	const float HEAD = 9 * g_scale;      // the leading end of each line tilts up this much (owner 2026-11-16)
 	const float ARC = 0.55f, REP = 2.5f; // part of the circle each line covers; picture repeats along it
 	TexBox box = {0, 0, 1, 1};
 	auto bi = g_texBox.find(tex);
@@ -359,13 +359,10 @@ void draw_rings(const V3& foot, void* tex, float t) {
 	for (int line = 0; line < LINES; line++) {
 		float mid = turn + 2 * PI * line / LINES; // the middle of this arc
 		float r = R * (0.92f + 0.08f * sinf(2 * PI * t / 3.0f + line * 2.1f)); // breathes like the ground circle
-		// tip the circle about the axis across the arc's middle so its middle is raised
-		V3 m = {cosf(mid), 0, sinf(mid)};          // toward the arc's middle
-		V3 q = {-m.z, 0, m.x};                      // along the arc at its middle
-		V3 mt = {cosf(TILT) * m.x, sinf(TILT), cosf(TILT) * m.z};
-		auto at = [&](float rr, float a) { // a = angle from the arc's middle
-			float ca = cosf(a), sa = sinf(a);
-			return V3{foot.x + rr * (ca * mt.x + sa * q.x), foot.y - LIFT - rr * ca * mt.y, foot.z + rr * (ca * mt.z + sa * q.z)}; // up is -y
+		// a flat arc round the feet whose leading end (the way it travels) rises a little
+		auto at = [&](float rr, float a, float f) { // a = angle from the arc's middle, f = 0 tail .. 1 head
+			float ang = mid + a;
+			return V3{foot.x + rr * cosf(ang), foot.y - LIFT - HEAD * f * f, foot.z + rr * sinf(ang)}; // up is -y
 		};
 		for (int s = 0; s < SEGS; s++) {
 			float f0 = (float)s / SEGS, f1 = (float)(s + 1) / SEGS, fm = (f0 + f1) / 2;
@@ -377,7 +374,7 @@ void draw_rings(const V3& foot, void* tex, float t) {
 			if (u0 + du > 1)
 				u0 = 1 - du;
 			float u1 = u0 + du;
-			V3 p[4] = {at(r + BAND, a0), at(r + BAND, a1), at(r - BAND, a0), at(r - BAND, a1)};
+			V3 p[4] = {at(r + BAND, a0, f0), at(r + BAND, a1, f1), at(r - BAND, a0, f0), at(r - BAND, a1, f1)};
 			float uv[8] = {u0, box.v0, u1, box.v0, u0, box.v1, u1, box.v1};
 			// mixed by alpha like the ground circle so the colour stays true on light floors
 			uint32_t col = blended ? ((uint32_t)(255 * w) << 24 | 0xffffffu) : grey(200 * w);
