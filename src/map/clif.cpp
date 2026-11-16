@@ -1270,6 +1270,9 @@ static int32 clif_setlevel_sub(int32 lv) {
 
 static int32 clif_setlevel(const block_list* bl) {
 	int32 lv = status_get_lv(bl);
+	// Legacia: a custom aura pack wearer at max level shows the official aura (its pictures come from legacia.dll)
+	if( bl->type == BL_PC && reinterpret_cast<const map_session_data*>( bl )->aura_pack > 0 && lv >= battle_config.max_lv )
+		return battle_config.max_lv;
 	if( battle_config.client_limit_unit_lv&bl->type )
 		return clif_setlevel_sub(lv);
 	switch( bl->type ) {
@@ -11618,7 +11621,7 @@ void clif_parse_LoadEndAck(int32 fd,map_session_data *sd)
 #endif
 
 	// Legacia auras: the client loses its own hat effects sent while it loads, so repeat them shortly after
-	if( battle_config.aura_hateffect && sd->aura_data > 0x1000000 )
+	if( battle_config.aura_hateffect && pc_aura_has( *sd ) )
 		add_timer( gettick() + 1500, pc_aura_resend_timer, sd->id, 1 ); // at 1.5 s and 5.5 s
 
 	sd->state.connect_new = 0;

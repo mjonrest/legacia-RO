@@ -8,6 +8,14 @@
 // Browsing works like the hair Stylist: Next / Previous show each
 // part on the character right away, then Pick (or Unlock) it.
 //
+// Classic Auras (part 4): the official level 99 aura with the
+// pictures of one of 163 custom aura packs (set_aura_pack). The
+// game draws it with its own motion; legacia.dll swaps in the
+// pack's pictures (data/texture/effect/legacia_aura_pack/NNN/,
+// made by tools/legacia_aura/genpacks.py, list in packs.txt).
+// It shows at base level 99 (max_lv) only. Players without the
+// plugin see the normal blue level 99 aura on pack wearers.
+//
 // How it works
 //  - The aura is still stored by the Gepard commands
 //    (set_aura_part / AURA_DATA), so old auras, @auras and the
@@ -41,17 +49,50 @@ OnInit:
 	// ---- settings ----
 	.Zeny = 50000000;	// zeny per aura part (0 = can't pay with zeny)
 	.Cash = 51;		// Cash Points (#CASHPOINTS) per aura part, the other way to pay (0 = off)
+	.PackZeny = 50000000;	// zeny per Classic Aura (0 = can't pay with zeny)
+	.PackCash = 51;		// Cash Points per Classic Aura (0 = off)
+	.PackLv = 99;		// base level the Classic Aura shows at (the server's max_lv)
 	// ------------------
-	setarray .PartMax[1], 152, 117, 35;
-	setarray .PartName$[1], "Ground Circle", "Ring", "Sparkle";
-	setarray .PartBase[1], 0, 152, 269;	// bit slot of #1 of each part
-	.Price$ = "";
-	if (.Zeny)
-		.Price$ = callfunc("F_InsertComma", .Zeny) + " zeny";
-	if (.Cash)
-		.Price$ += (.Price$ == "" ? "" : " or ") + .Cash + " Cash Points";
-	if (.Price$ == "")
-		.Price$ = "free";
+	setarray .PartMax[1], 152, 117, 35, 163;
+	setarray .PartName$[1], "Ground Circle", "Ring", "Sparkle", "Classic Aura";
+	setarray .PartBase[1], 0, 152, 269, 304;	// bit slot of #1 of each part
+	// Classic Aura names, same order as tools/legacia_aura/packs.txt
+	setarray .PackName$[1], "Abstract Flower", "Aiyu Current", "Aiyu Old", "Amulet", "Angelic Aura", "AniM0rph Aura", "Crest Moon Aura", "Solestice Aura";
+	setarray .PackName$[9], "Appel", "Arcane Aura", "Arcane1", "Arcane2", "Arcane3", "Arcane4", "ArticGalaxyAura-by-Melz", "Aura of King";
+	setarray .PackName$[17], "AuraFlame-by-Melz", "Autumnleaf by WP", "Beautiful dolphin", "Big Bad Voodoo", "Blood Aura", "Bloody sun", "Blubble", "Blubble v.2";
+	setarray .PackName$[25], "Blue Heaven Aura", "Blue Moon", "Blue fume", "Blush Aura", "Butterfly Aura", "Butterfly v.2", "Celestia Tattoo Aura", "Celtic";
+	setarray .PackName$[33], "Celtic green", "Celtic protection", "Celtic flower2", "Celtic heart", "Chococat", "Circle of Power", "Color Swirls", "Crest Aura";
+	setarray .PackName$[41], "Cross Aura", "Daisy Aura", "Dark Summoning", "Demon Symbol", "Devotion", "Dolphin", "Dragon", "Dragon head";
+	setarray .PackName$[49], "Dragonflies", "Dream of Anime Aura", "Envy Aura", "Fairy", "Fire Sun Aura", "Flamy sun", "Flamy sun v2", "Flashy";
+	setarray .PackName$[57], "Flashy2", "Flashy3", "Flower Aura", "Force", "Full Metal Alchemist", "Funky colors", "Ghost1 Aura", "Ghost2 Aura";
+	setarray .PackName$[65], "Ghost3 Aura", "Ghost4 Aura", "Gluttony Aura", "Grape", "Greed Aura", "Green plant", "Green swirls", "Green wing";
+	setarray .PackName$[73], "Greeneffect12 aura", "Grunge green", "Guiding star", "Heart", "HelloKitty", "Hellsing Aura", "Holy 1", "Holy Aura";
+	setarray .PackName$[81], "Human Emblem", "Lady bug", "Lauriers", "Lead Circlet Aura", "Leal Life Aura", "Lifesource Aura", "Limitless Flowers Aura", "Lionheart Aura";
+	setarray .PackName$[89], "Little rounds", "Lord of the Rings", "Lotus", "Love", "Lust Aura", "Magic circle", "Manic", "Medieval Heart";
+	setarray .PackName$[97], "Medieval Heart v.2", "Merlin", "Metallic butterfly", "Midnight Fenrir Aura", "Mist Of Azure", "Musical", "Nature Aura", "Necromancy Aura";
+	setarray .PackName$[105], "Phoenix", "Pretty lotus", "Pride Aura", "Pumpkin by WP", "Purple Flower v1", "Purple Space", "Purple moon", "PurpleStarsAura-by-melz";
+	setarray .PackName$[113], "Red Smoke", "Red Stars", "Red Wave", "Red cross", "Red shield", "Red splash", "Rose 2", "Rose Aura";
+	setarray .PackName$[121], "Rose necklace", "Scribble", "Server Current", "Shadow Aura", "Skull", "Sleepy moon", "Sloth Aura", "Snow";
+	setarray .PackName$[129], "SnowAura", "Solar", "Solar v.2", "Solar v.3", "Solar v.4", "Something", "Spike Aura", "Splash circle";
+	setarray .PackName$[137], "Square", "Star", "Strawberry", "Sun and Moon", "Triangle", "Tribal Aura", "Tricky Sun", "TriggerSymbol Aura";
+	setarray .PackName$[145], "Turquoise", "Undead Green Sigil", "Undead Sigil", "Undead Sigil Red", "Unholy Aura", "Unicorn", "Unknown", "Unwanted Happening Aura";
+	setarray .PackName$[153], "Wavy circle", "Wedding by WP", "White Feather Aura", "White Labyrinth", "White Swirl", "Wrath Aura", "Yellow Smoke", "Zeet's Batman Aura";
+	setarray .PackName$[161], "Zeet's Blue Aura", "Zeet's Pink Aura", "Zeet's Red Aura";
+	for (.@k = 0; .@k < 2; .@k++) {
+		.@z = .@k ? .PackZeny : .Zeny;
+		.@c = .@k ? .PackCash : .Cash;
+		.@p$ = "";
+		if (.@z)
+			.@p$ = callfunc("F_InsertComma", .@z) + " zeny";
+		if (.@c)
+			.@p$ += (.@p$ == "" ? "" : " or ") + .@c + " Cash Points";
+		if (.@p$ == "")
+			.@p$ = "free";
+		if (.@k)
+			.PackPrice$ = .@p$;
+		else
+			.Price$ = .@p$;
+	}
 	bindatcmd "aura", strnpcinfo(3) + "::OnCmd", 0, 99;
 	waitingroom "[ Auras ]", 0;
 	end;
@@ -68,7 +109,7 @@ OnPCLoginEvent:
 	// Logged out during a preview: put the part worn before back.
 	// (Only previews are undone, so auras given with the GM command @auras stay.)
 	if (AURA_PREVIEW) {
-		set_aura_part AURA_PREVIEW / 1000, AURA_PREVIEW % 1000;
+		callsub S_Set, AURA_PREVIEW / 1000, AURA_PREVIEW % 1000;
 		AURA_PREVIEW = 0;
 	}
 	end;
@@ -79,13 +120,15 @@ S_Menu:
 		clear;
 		mes "[Aura Master]";
 		mes "Your aura:";
-		for (.@p = 1; .@p <= 3; .@p++)
-			mes " " + .PartName$[.@p] + ": " + (get_aura_part(.@p) ? "^0000FF#" + get_aura_part(.@p) + "^000000" : "none");
+		for (.@p = 1; .@p <= 4; .@p++)
+			mes " " + .PartName$[.@p] + ": " + (callsub(S_Get, .@p) ? "^0000FF" + callsub(S_Label, .@p, callsub(S_Get, .@p)) + "^000000" : "none");
 		mes "Price per part: " + .Price$;
+		mes "Classic Aura: " + .PackPrice$ + " (shows at base level " + .PackLv + ")";
 		.@s = select(
 			"Try ground circles (" + callsub(S_CountOwned, 1) + "/" + .PartMax[1] + " owned)",
 			"Try rings (" + callsub(S_CountOwned, 2) + "/" + .PartMax[2] + " owned)",
 			"Try sparkles (" + callsub(S_CountOwned, 3) + "/" + .PartMax[3] + " owned)",
+			"Try Classic Auras (" + callsub(S_CountOwned, 4) + "/" + .PartMax[4] + " owned)",
 			"My auras",
 			"Remove a part",
 			"Close");
@@ -93,12 +136,13 @@ S_Menu:
 		case 1:
 		case 2:
 		case 3:
+		case 4:
 			callsub S_Browse, .@s;
 			break;
-		case 4:
+		case 5:
 			callsub S_Mine;
 			break;
-		case 5:
+		case 6:
 			clear;
 			mes "[Aura Master]";
 			mes "Which part should I remove?";
@@ -106,12 +150,15 @@ S_Menu:
 				(get_aura_part(1) ? "Ground circle #" + get_aura_part(1) : ""),
 				(get_aura_part(2) ? "Ring #" + get_aura_part(2) : ""),
 				(get_aura_part(3) ? "Sparkle #" + get_aura_part(3) : ""),
+				(get_aura_pack() ? "Classic Aura " + callsub(S_Label, 4, get_aura_pack()) : ""),
 				"All parts",
 				"Back");
-			if (.@r <= 3)
-				set_aura_part .@r, 0;
-			else if (.@r == 4)
+			if (.@r <= 4)
+				callsub S_Set, .@r, 0;
+			else if (.@r == 5) {
 				set_aura 0, 0, 0;
+				set_aura_pack 0;
+			}
 			break;
 		default:
 			close;
@@ -125,17 +172,19 @@ S_Menu:
 S_Browse:
 	.@part = getarg(0);
 	.@max = .PartMax[.@part];	// plain copy: min()/max() given an array element walk the array
-	.@old = get_aura_part(.@part);
+	.@old = callsub(S_Get, .@part);
 	.@cur = (.@old > 0 && .@old <= .@max) ? .@old : 1;
 	AURA_PREVIEW = .@part * 1000 + .@old;	// undone at login if the player logs out mid-browse
 	while (1) {
-		set_aura_part .@part, .@cur;
+		callsub S_Set, .@part, .@cur;
 		.@next = (.@cur % .@max) + 1;
 		.@prev = ((.@cur + .@max - 2) % .@max) + 1;
 		.@own = callsub(S_Owned, .@part, .@cur);
 		clear;
 		mes "[Aura Master]";
-		mes "^0000FF" + .PartName$[.@part] + " #" + .@cur + "^000000 (of " + .@max + ")";
+		mes "^0000FF" + .PartName$[.@part] + " " + callsub(S_Label, .@part, .@cur) + "^000000 (of " + .@max + ")";
+		if (.@part == 4 && BaseLevel < .PackLv)
+			mes "^FF0000It shows once you reach base level " + .PackLv + ".^000000";
 		if (.@cur == .@old)
 			mes "^0000FFYou are wearing this one.^000000";
 		else if (.@own)
@@ -171,14 +220,14 @@ S_Browse:
 				AURA_PREVIEW = 0;
 				clear;
 				mes "[Aura Master]";
-				mes "Unlocked! You are now wearing " + .PartName$[.@part] + " #" + .@cur + ".";
+				mes "Unlocked! You are now wearing " + .PartName$[.@part] + " " + callsub(S_Label, .@part, .@cur) + ".";
 				next;
 				return;
 			}
 			AURA_PREVIEW = 0;
 			return;
 		default:	// Cancel or closed the window
-			set_aura_part .@part, .@old;
+			callsub S_Set, .@part, .@old;
 			AURA_PREVIEW = 0;
 			if (.@s == 255)
 				end;
@@ -191,8 +240,8 @@ S_Mine:
 	clear;
 	mes "[Aura Master]";
 	mes "Which part do you want to change?";
-	.@part = select("Ground circles:Rings:Sparkles:Back");
-	if (.@part == 4)
+	.@part = select("Ground circles:Rings:Sparkles:Classic Auras:Back");
+	if (.@part == 5)
 		return;
 	.@c = 0;
 	for (.@i = 1; .@i <= .PartMax[.@part]; .@i++)
@@ -208,51 +257,72 @@ S_Mine:
 	mes "Pick one to wear. Switching is free.";
 	.@menu$ = "";
 	for (.@i = 0; .@i < .@c; .@i++)
-		.@menu$ += .PartName$[.@part] + " #" + .@ids[.@i] + (.@ids[.@i] == get_aura_part(.@part) ? " ^0000FF[wearing]^000000" : "") + ":";
+		.@menu$ += .PartName$[.@part] + " " + callsub(S_Label, .@part, .@ids[.@i]) + (.@ids[.@i] == callsub(S_Get, .@part) ? " ^0000FF[wearing]^000000" : "") + ":";
 	.@menu$ += "Back";
 	.@s = select(.@menu$) - 1;
 	if (.@s < .@c)
-		set_aura_part .@part, .@ids[.@s];
+		callsub S_Set, .@part, .@ids[.@s];
 	return;
 
 // ---------------- helpers ----------------
 S_Pay:
-	if (!.Zeny && !.Cash)
+	.@zeny = getarg(0) == 4 ? .PackZeny : .Zeny;
+	.@cash = getarg(0) == 4 ? .PackCash : .Cash;
+	if (!.@zeny && !.@cash)
 		return 1;	// free
 	clear;
 	mes "[Aura Master]";
-	mes "Unlock " + .PartName$[getarg(0)] + " #" + getarg(1) + "?";
-	mes "Price: " + .Price$;
+	mes "Unlock " + .PartName$[getarg(0)] + " " + callsub(S_Label, getarg(0), getarg(1)) + "?";
+	mes "Price: " + (getarg(0) == 4 ? .PackPrice$ : .Price$);
 	.@how = select(
-		(.Zeny ? "Pay " + callfunc("F_InsertComma", .Zeny) + " zeny" : ""),
-		(.Cash ? "Pay " + .Cash + " Cash Points (you have " + #CASHPOINTS + ")" : ""),
+		(.@zeny ? "Pay " + callfunc("F_InsertComma", .@zeny) + " zeny" : ""),
+		(.@cash ? "Pay " + .@cash + " Cash Points (you have " + #CASHPOINTS + ")" : ""),
 		"No");
 	if (.@how == 1) {
-		if (Zeny < .Zeny) {
+		if (Zeny < .@zeny) {
 			mes "You don't have enough zeny.";
 			next;
 			return 0;
 		}
-		Zeny -= .Zeny;
+		Zeny -= .@zeny;
 		return 1;
 	}
 	if (.@how == 2) {
-		if (#CASHPOINTS < .Cash) {
+		if (#CASHPOINTS < .@cash) {
 			mes "You don't have enough Cash Points.";
 			next;
 			return 0;
 		}
-		#CASHPOINTS -= .Cash;
-		dispbottom "Used " + .Cash + " Cash Points. Left: " + #CASHPOINTS + ".";
+		#CASHPOINTS -= .@cash;
+		dispbottom "Used " + .@cash + " Cash Points. Left: " + #CASHPOINTS + ".";
 		return 1;
 	}
 	return 0;
+
+// worn number of a part (4 = Classic Aura pack)
+S_Get:
+	if (getarg(0) == 4)
+		return get_aura_pack();
+	return get_aura_part(getarg(0));
+
+S_Set:
+	if (getarg(0) == 4)
+		set_aura_pack getarg(1);
+	else
+		set_aura_part getarg(0), getarg(1);
+	return;
+
+// "#n" or "#n Name" for Classic Auras
+S_Label:
+	if (getarg(0) == 4)
+		return "#" + getarg(1) + " " + .PackName$[getarg(1)];
+	return "#" + getarg(1);
 
 // slot of (part, number), -1 if out of range
 S_Slot:
 	.@part = getarg(0);
 	.@num = getarg(1);
-	if (.@part < 1 || .@part > 3 || .@num < 1 || .@num > .PartMax[.@part])
+	if (.@part < 1 || .@part > 4 || .@num < 1 || .@num > .PartMax[.@part])
 		return -1;
 	return .PartBase[.@part] + .@num - 1;
 

@@ -791,6 +791,7 @@ public:
 
 		unsigned int aura_data;
 	};
+	int32 aura_pack; // Legacia custom aura pack (AURA_PACK char var), 0 = none
 
 	// (^~_~^) Auras End
 
@@ -1853,6 +1854,8 @@ bool pc_autohunt_start(map_session_data& sd);
 void pc_autohunt_stop(map_session_data& sd, const char* reason = nullptr);
 void pc_aura_apply(map_session_data& sd);
 void pc_aura_show(map_session_data& sd, bool show);
+bool pc_aura_has(const map_session_data& sd);
+void pc_aura_set_pack(map_session_data& sd, int32 pack);
 TIMER_FUNC(pc_aura_resend_timer);
 void pc_autohunt_skilllist(map_session_data& sd, bool buffs);
 void pc_autohunt_moblist(map_session_data& sd);
