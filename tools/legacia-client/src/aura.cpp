@@ -838,7 +838,9 @@ void draw_petals(const V3& foot, void* tex, float t, uint32_t aid) {
 	const float PPU = 2.3435f;
 	const float R = 90.5f, D0 = -54.0f, H0 = 0.0f, BETA = 26.5f * PI / 180;
 	// an empty dark circle round the feet (owner 2026-11-16), soft at its edge
-	const float HOLE = 34.0f, HOLE_SOFT = 10.0f;
+	const float HOLE = 46.0f, HOLE_SOFT = 10.0f;
+	// wavy: each bubble rises and dips, and grows and shrinks, out of step with the others
+	const float WAVE = 3.2f, TILT_LO = 8 * PI / 180, TILT_HI = 44 * PI / 180, SIZE_LO = 0.8f, SIZE_HI = 1.08f;
 	const float W = 219.9f, GAP = 0.45f, GROW = 1.6f, FADE = 0.3f;
 	const float TINT[3] = {0.3f, 0.3f, 0.38f};
 	const int NA = 36, NR = 8;
@@ -873,10 +875,12 @@ void draw_petals(const V3& foot, void* tex, float t, uint32_t aid) {
 			}
 			return col;
 		};
-		float ps = dir * (W * t + k * 120.0f) * PI / 180, b = BETA * g;
+		float wv = 0.5f + 0.5f * sinf(2 * PI * (t / WAVE + k / 3.0f));
+		float ps = dir * (W * t + k * 120.0f) * PI / 180, b = (TILT_LO + (TILT_HI - TILT_LO) * wv) * g;
 		float rx = cosf(ps), rz = sinf(ps); // out from the player
 		float tx = -rz, tz = rx;            // along the ground, sideways
-		float Rg = R * (0.2f + 0.8f * g), Dg = D0 * (0.2f + 0.8f * g); // small to big, hinge stays at the feet
+		float sz = (0.2f + 0.8f * g) * (SIZE_LO + (SIZE_HI - SIZE_LO) * (1 - wv)); // low ones big, high ones smaller
+		float Rg = R * sz, Dg = D0 * sz; // small to big, hinge stays at the feet
 		float cOut = (Dg + Rg * cosf(b)) * k2w, cUp = (H0 * g + Rg * sinf(b)) * k2w;
 		float e1o = cosf(b), e1u = sinf(b), r = Rg * k2w;
 		// a point of the disc, and how bright it may be (dark near the feet)
