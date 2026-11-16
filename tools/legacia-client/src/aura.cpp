@@ -99,6 +99,8 @@ bool readable(uintptr_t at, int len) {
 std::unordered_map<int, void*> g_tex; // part * 1000 + number -> client texture, null = could not load
 bool g_texFailed;
 std::unordered_set<void*> g_alphaTex; // textures with a real alpha (ground circles)
+struct TexBox { float u0, v0, u1, v1; };
+std::unordered_map<void*, TexBox> g_texBox; // ring textures: the part of the picture that isn't black
 int g_loadsThisFrame;
 
 std::string tex_folder() {
@@ -178,6 +180,22 @@ void* texture(int part, int num) {
 			}
 			if (!tex) // the alpha isn't needed (drawn additively), so the format Graymap uses works too
 				tex = ((CreateTextureFn)CREATE_TEXTURE)(dev, w, h, TEX_FORMAT_ARGB1555, 0, 0);
+		}
+		if (tex && part == 2) {
+			// many ring pictures are a thin strip in a big black square (e.g. #3 is a
+			// dotted line 4 pixels high); the ring sprites show only the lit part
+			int x0 = w, y0 = h, x1 = -1, y1 = -1;
+			for (int y = 0; y < h; y++)
+				for (int x = 0; x < w; x++) {
+					uint32_t c = px[(size_t)y * w + x];
+					int r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255;
+					if ((r > g ? (r > b ? r : b) : (g > b ? g : b)) > 40) {
+						x0 = x < x0 ? x : x0, x1 = x > x1 ? x : x1;
+						y0 = y < y0 ? y : y0, y1 = y > y1 ? y : y1;
+					}
+				}
+			if (x1 >= 0)
+				g_texBox[tex] = {(float)x0 / w, (float)y0 / h, (float)(x1 + 1) / w, (float)(y1 + 1) / h};
 		}
 		if (tex) {
 			void** vt = *(void***)tex;
@@ -313,76 +331,69 @@ void draw_ground(const V3& foot, void* tex, float t) {
 	}
 }
 
-// part 2: rings. The 117 ring textures are very different pictures (flames,
-// stripes, swirls, symbols, round images), so they get one of three styles
-// (owner 2026-11-16: drawing them all as thin flower rings made many look
-// the same and hard to see):
-//  - flame / spike strips: draw_pillar (a fire bloom round the body)
-//  - stripes: draw_belt (glowing belts round the waist)
-//  - everything else: draw_rings, three tilted discs that each show the whole
-//    picture, circling the player like flower petals and spinning
+// part 2: rings. Two styles:
+//  - flame / spike strips: draw_pillar (a soft fire bloom round the body)
+//  - everything else: draw_rings, matched to the owner's Gepard video
+//    (2026-11-16): curved lines of small copies of the picture that wrap
+//    round the body at three tilts, each line a partial arc sweeping round
+//    while the tilts slowly turn, like a gyroscope
 // Sizes: g_scale * 4 = 1 world unit; a cell is 5 units.
 void draw_rings(const V3& foot, void* tex, float t) {
-	const int PETALS = 3, SEGS = 20;
-	const float R = 17 * g_scale, OFF = 16 * g_scale, LIFT = 24 * g_scale;
-	const float TILT = 35 * PI / 180;
-	float turn = 2 * PI * fmodf(t / 5.0f, 1.0f); // the flower circles the player, one turn per 5 s
-	uint32_t col = grey(150);
-	for (int k = 0; k < PETALS; k++) {
-		float dir = turn + 2 * PI / 3 * k;
-		float r = R * (0.9f + 0.1f * sinf(2 * PI * t / 2.0f + k * 2.1f)); // breathing out of step
-		float lift = LIFT + 3 * g_scale * sinf(2 * PI * t / 2.4f + k * 2.1f);
-		V3 c = {foot.x + OFF * cosf(dir), foot.y - lift, foot.z + OFF * sinf(dir)};
-		// the disc leans out, toward its own side
-		V3 d = {cosf(dir), 0, sinf(dir)};
-		V3 e1 = {-d.z, 0, d.x};
-		V3 e2 = {cosf(TILT) * d.x, sinf(TILT), cosf(TILT) * d.z};
-		float spin = 2 * PI * fmodf(t / 3.0f + k * 0.31f, 1.0f) * (k == 1 ? -1.0f : 1.0f);
-		auto at = [&](float rr, float ang) {
-			float ca = cosf(ang), sa = sinf(ang);
-			return V3{c.x + rr * (ca * e1.x + sa * e2.x), c.y - rr * (sa * e2.y), c.z + rr * (ca * e1.z + sa * e2.z)}; // up is -y
+	struct Ring { float tilt, yaw0, yawPeriod, spinPeriod, r, lift, arc; };
+	static const Ring rings[3] = {
+		{25, 0.0f, 9.0f, 3.2f, 23, 20, 0.8f},
+		{62, 2.1f, -11.0f, -2.6f, 21, 22, 0.7f},
+		{78, 4.2f, 13.0f, 2.9f, 19, 22, 0.65f},
+	};
+	const int N = 18;              // copies on a full circle
+	const float SIZE = 3.4f;       // half width of one copy
+	TexBox box = {0, 0, 1, 1};
+	auto bi = g_texBox.find(tex);
+	if (bi != g_texBox.end())
+		box = bi->second;
+	float aspect = (box.v1 - box.v0) / fmaxf(1e-4f, box.u1 - box.u0);
+	aspect = aspect < 0.3f ? 0.3f : aspect > 1 ? 1 : aspect; // thin strips become dashes
+	float hpc = fabsf(*(float*)(g_renderer + 4));
+	float grow = 0.92f + 0.08f * sinf(2 * PI * t / 3.0f); // breathes like the ground circle
+	for (const Ring& g : rings) {
+		float yaw = g.yaw0 + 2 * PI * t / g.yawPeriod, tl = g.tilt * PI / 180;
+		V3 e1 = {cosf(yaw), 0, sinf(yaw)};
+		V3 e2 = {-sinf(yaw) * cosf(tl), sinf(tl), cosf(yaw) * cosf(tl)};
+		float R = g.r * g_scale * grow, lift = g.lift * g_scale;
+		float head = 2 * PI * t / g.spinPeriod;
+		auto at = [&](float a) {
+			float ca = cosf(a), sa = sinf(a);
+			return V3{foot.x + R * (ca * e1.x + sa * e2.x), foot.y - lift - R * sa * e2.y, foot.z + R * (ca * e1.z + sa * e2.z)}; // up is -y
 		};
-		for (int s = 0; s < SEGS; s++) {
-			float a0 = 2 * PI * s / SEGS, a1 = a0 + 2 * PI / SEGS;
-			// a pie slice: centre (twice) + two rim points, the picture turning inside the disc
-			V3 p[4] = {at(0, a0), at(0, a1), at(r, a0), at(r, a1)};
-			float uv[8] = {0.5f, 0.5f, 0.5f, 0.5f,
-				0.5f + 0.5f * cosf(a0 - spin), 0.5f + 0.5f * sinf(a0 - spin),
-				0.5f + 0.5f * cosf(a1 - spin), 0.5f + 0.5f * sinf(a1 - spin)};
-			quad(p, uv, col, tex);
+		int n = (int)(N * g.arc);
+		for (int i = 0; i < n; i++) {
+			float a = head + 2 * PI * i / N;
+			float fm = (i + 0.5f) / n;
+			float w = fminf(1, fminf(fm / 0.25f, (1 - fm) / 0.25f)); // the arc fades in and out at its ends
+			TLV p, q;
+			if (!project(at(a), p) || !project(at(a + 0.05f), q))
+				continue;
+			float tx = q.x - p.x, ty = q.y - p.y, len = sqrtf(tx * tx + ty * ty);
+			if (len < 1e-4f)
+				continue;
+			tx /= len, ty /= len;
+			float rx = -ty, ry = tx; // the picture's width lies across the line
+			float hx = SIZE * g_scale * hpc * p.rhw * (0.5f + 0.5f * w), hy = hx * aspect;
+			const float sx[4] = {-1, 1, -1, 1}, sy[4] = {-1, -1, 1, 1};
+			const float uv[8] = {box.u0, box.v0, box.u1, box.v0, box.u0, box.v1, box.u1, box.v1};
+			TLV v[4];
+			for (int k = 0; k < 4; k++) {
+				v[k] = p;
+				v[k].x += sx[k] * rx * hx + sy[k] * tx * hy;
+				v[k].y += sx[k] * ry * hx + sy[k] * ty * hy;
+				v[k].color = grey(255 * w);
+				v[k].specular = 0xff000000u;
+				v[k].u = uv[k * 2];
+				v[k].v = uv[k * 2 + 1];
+			}
+			emit(v, tex);
 		}
 	}
-}
-
-// stripe textures: two glowing belts round the body, the upper one at the
-// chest turning one way, a wider, dimmer one lower turning the other way
-void draw_belt(const V3& foot, void* tex, float t) {
-	const int SEGS = 36, REP = 3; // the stripe runs three times round
-	const float R = 20 * g_scale, HB = 14 * g_scale;
-	for (int k = 0; k < 2; k++) {
-		float turn = 2 * PI * fmodf(t / (k ? 7.0f : 5.0f), 1.0f) * (k ? -1.0f : 1.0f);
-		float lift = (k ? 12 : 30) * g_scale + 2 * g_scale * sinf(2 * PI * t / 2.5f + k * 1.5f);
-		float r = R * (k ? 1.15f : 1.0f), h = HB * (k ? 0.7f : 1.0f);
-		uint32_t col = grey(k ? 140.0f : 230.0f);
-		for (int s = 0; s < SEGS; s++) {
-			float a0 = turn + 2 * PI * s / SEGS, a1 = a0 + 2 * PI / SEGS;
-			int kk = s % (SEGS / REP);
-			float u0 = (float)kk / (SEGS / REP), u1 = (float)(kk + 1) / (SEGS / REP);
-			float top = foot.y - lift - h / 2, bot = foot.y - lift + h / 2; // up is -y
-			V3 p[4] = {{foot.x + r * cosf(a0), top, foot.z + r * sinf(a0)}, {foot.x + r * cosf(a1), top, foot.z + r * sinf(a1)},
-				{foot.x + r * cosf(a0), bot, foot.z + r * sinf(a0)}, {foot.x + r * cosf(a1), bot, foot.z + r * sinf(a1)}};
-			float uv[8] = {u0, 0, u1, 0, u0, 1, u1, 1};
-			quad(p, uv, col, tex);
-		}
-	}
-}
-
-bool ring_is_belt(int num) {
-	static const unsigned char list[] = {3, 4, 5, 6, 7, 8, 11, 31, 32, 35, 52, 60, 89};
-	for (unsigned char n : list)
-		if (n == num)
-			return true;
-	return false;
 }
 
 // Ring textures that are flame / spike strips (bright at the bottom, fading
@@ -496,8 +507,6 @@ void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 	if (a.part[1] && (tex = texture(2, a.part[1]))) {
 		if (ring_is_pillar(a.part[1]))
 			draw_pillar(foot, tex, t);
-		else if (ring_is_belt(a.part[1]))
-			draw_belt(foot, tex, t);
 		else
 			draw_rings(foot, tex, t);
 	}
@@ -674,6 +683,7 @@ void aura_draw(void* view) {
 			log_line("aura: left the game or device reset, reloading %d aura textures", (int)g_tex.size());
 		g_tex.clear(); // the game freed them (char select / reset); not released here
 		g_alphaTex.clear();
+		g_texBox.clear();
 		g_texFailed = false;
 	}
 	uint8_t* r = *(uint8_t**)RENDERER_PTR;
