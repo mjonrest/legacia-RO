@@ -23,6 +23,7 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 namespace {
 
@@ -772,6 +773,137 @@ bool aura_effect_id(int id) {
 	return false;
 }
 
+// ---- the newer effect system ----
+// The level 99 aura is not a CRagEffect on the actor: before LaunchEffect the aura code
+// (0xcb5b20) asks the effect manager at [0x16f0a44] (0xb23440), which draws the effects it
+// knows itself. The manager keeps the live effects per unit: std::map<gid, list head> at
+// +0x10 (0xb241b0 / 0xb24140; node key +0x10, value +0x14), each list node's value (+8)
+// an effect object with its effect id at +4. Where such an object keeps its pictures is not
+// known yet, so the plugin looks for them: the object's memory and what it points to (3
+// levels) are searched for the official aura pictures, and every place found gets the pack's.
+const uintptr_t EFX_MGR = 0x16f0a44;
+
+struct Region {
+	uintptr_t lo, hi;
+};
+Region g_regions[16];
+int g_regionNext;
+
+bool readable_fast(uintptr_t at, int len) {
+	for (const Region& r : g_regions)
+		if (at >= r.lo && at + len <= r.hi)
+			return true;
+	MEMORY_BASIC_INFORMATION mi;
+	if (!VirtualQuery((void*)at, &mi, sizeof(mi)) || mi.State != MEM_COMMIT ||
+	    (mi.Protect & (PAGE_NOACCESS | PAGE_GUARD)) || !(mi.Protect & (PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READWRITE)))
+		return false;
+	Region& r = g_regions[g_regionNext++ % 16];
+	r.lo = (uintptr_t)mi.BaseAddress;
+	r.hi = r.lo + mi.RegionSize;
+	return at + len <= r.hi;
+}
+
+struct EfxSlots {
+	std::vector<void**> slots; // places that held an official aura picture
+	int frame = 0;
+	int scans = 0, scanFrame = 0; // looked again a few times while nothing is found (pictures load late)
+};
+std::unordered_map<const uint8_t*, EfxSlots> g_efxSlots; // effect object -> its picture places
+
+void efx_scan(const uint8_t* p, int depth, std::vector<void**>& out, int& budget, std::unordered_set<const uint8_t*>& seen) {
+	const int SPAN = 0x300;
+	if (!seen.insert(p).second || !readable_fast((uintptr_t)p, SPAN))
+		return;
+	for (int off = 0; off < SPAN && budget > 0; off += 4) {
+		budget--;
+		void* v = *(void* const*)(p + off);
+		if (!v)
+			continue;
+		if (g_picRole.count(v)) {
+			out.push_back((void**)(p + off));
+			continue;
+		}
+		uintptr_t u = (uintptr_t)v;
+		if (depth > 0 && (u & 3) == 0 && u > 0x10000 && (u < 0x400000 || u >= 0x3880000))
+			efx_scan((const uint8_t*)v, depth - 1, out, budget, seen);
+	}
+}
+
+const uint8_t* efx_list(uint32_t gid) {
+	if (!readable(EFX_MGR, 4))
+		return nullptr;
+	const uint8_t* mgr = *(const uint8_t* const*)EFX_MGR;
+	if (!mgr || !readable((uintptr_t)mgr + 0x10, 8))
+		return nullptr;
+	const uint8_t* head = *(const uint8_t* const*)(mgr + 0x10);
+	if (!head || !readable((uintptr_t)head, 0x18))
+		return nullptr;
+	const uint8_t* n = *(const uint8_t* const*)(head + 4); // root
+	for (int g = 0; g < 64 && n && readable((uintptr_t)n, 0x18) && !n[0xd]; g++) {
+		uint32_t key = *(const uint32_t*)(n + 0x10);
+		if (key == gid)
+			return *(const uint8_t* const*)(n + 0x14);
+		n = *(const uint8_t* const*)(n + (gid < key ? 0 : 8));
+	}
+	return nullptr;
+}
+
+// the aura pictures in the actor's effects of the newer system; returns pictures found
+int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLen, int idsCap, bool log, int frame) {
+	if (!readable((uintptr_t)actor + 0x110, 4))
+		return 0;
+	const uint8_t* lh = efx_list(*(const uint32_t*)(actor + 0x110));
+	if (!lh || !readable((uintptr_t)lh, 12))
+		return 0;
+	int pics = 0;
+	const uint8_t* node = *(const uint8_t* const*)lh;
+	for (int i = 0; node && node != lh && i < 200; i++) {
+		if (!readable((uintptr_t)node, 12))
+			break;
+		const uint8_t* obj = *(const uint8_t* const*)(node + 8);
+		node = *(const uint8_t* const*)node;
+		if (!obj || !readable((uintptr_t)obj, 8))
+			continue;
+		int id = *(const int*)(obj + 4);
+		if (log && idsLen < idsCap - 24)
+			idsLen += snprintf(ids + idsLen, idsCap - idsLen, " new:%d", id);
+		if (!aura_effect_id(id))
+			continue;
+		EfxSlots& es = g_efxSlots[obj];
+		if (es.scans == 0 || (es.slots.empty() && es.scans < 5 && frame - es.scanFrame > 300)) {
+			es.scans++;
+			es.scanFrame = frame;
+			int budget = 60000;
+			std::unordered_set<const uint8_t*> seen;
+			efx_scan(obj, 3, es.slots, budget, seen);
+			log_line("aura: effect %d (object %p, class %p): %d picture places found", id, obj,
+				         readable((uintptr_t)obj, 4) ? *(void* const*)obj : nullptr, (int)es.slots.size());
+			if (log) {
+				char hex[3 * 64 + 1];
+				int hl = 0;
+				for (int b = 0; b < 64 && readable((uintptr_t)obj + b, 1); b++)
+					hl += snprintf(hex + hl, sizeof(hex) - hl, "%02x ", obj[b]);
+				log_line("aura: effect %d starts %s", id, hex);
+			}
+		}
+		es.frame = frame;
+		for (void** s : es.slots) {
+			if (!readable((uintptr_t)s, 4))
+				continue;
+			auto role = g_picRole.find(*s);
+			if (role == g_picRole.end())
+				continue;
+			pics++;
+			void* want = p && p->tex[role->second] ? p->tex[role->second] : g_official[role->second];
+			if (want && *s != want) {
+				*s = want;
+				swapped++;
+			}
+		}
+	}
+	return pics;
+}
+
 // Point the pictures of the actor's level 99 aura at pack n (0 = back to the official ones).
 // Returns how many pictures the aura has (0 = no aura on this actor now).
 int pack_apply(const uint8_t* actor, int n, bool log) {
@@ -836,6 +968,7 @@ int pack_apply(const uint8_t* actor, int n, bool log) {
 			}
 		}
 	}
+	pics += efx_apply(actor, p, swapped, ids, idsLen, (int)sizeof(ids), log, g_packFrame);
 	if (log)
 		log_line("aura: pack %d on an aura of %d pictures (%d changed); %d effects:%s", n, pics, swapped, size, ids);
 	return pics;
@@ -903,6 +1036,12 @@ void pack_actor(const uint8_t* actor, int n, bool self, int frame) {
 
 // forget actors that are gone (not seen this frame)
 void pack_frame_end(int frame) {
+	for (auto it = g_efxSlots.begin(); it != g_efxSlots.end();) {
+		if (frame - it->second.frame > 2)
+			it = g_efxSlots.erase(it);
+		else
+			++it;
+	}
 	for (auto it = g_packWorn.begin(); it != g_packWorn.end();) {
 		if (it->second.frame != frame)
 			it = g_packWorn.erase(it);
