@@ -1269,3 +1269,40 @@ Body:
     DamageMotion: 192
     Class: Boss
     Ai: 21
+  # Legacia Damage Tester dummies (npc/miracle/damage_tester.txt).
+  # Renewal dummy IDs so the client already has their sprites. Stats are
+  # changed by the tester NPC after spawn; these are only the defaults.
+  - Id: 2409
+    AegisName: DUMMY_50
+    Name: Damage Dummy
+    Level: 99
+    Hp: 1000000000
+    Size: Medium
+    Race: Formless
+    Element: Neutral
+    ElementLevel: 1
+    WalkSpeed: 1000
+    AttackDelay: 1000
+    AttackMotion: 500
+    DamageMotion: 1
+    Ai: 06
+    Modes:
+      KnockBackImmune: true
+      TeleportBlock: true
+  - Id: 2410
+    AegisName: DUMMY_100
+    Name: Damage Dummy (Boss)
+    Level: 99
+    Hp: 1000000000
+    Size: Large
+    Race: Formless
+    Element: Neutral
+    ElementLevel: 1
+    WalkSpeed: 1000
+    AttackDelay: 1000
+    AttackMotion: 500
+    DamageMotion: 1
+    Ai: 06
+    Class: Boss
+    Modes:
+      TeleportBlock: true
