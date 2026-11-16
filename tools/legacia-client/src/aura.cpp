@@ -334,18 +334,18 @@ void draw_ground(const V3& foot, void* tex, float t) {
 // part 2: rings. Two styles:
 //  - flame / spike strips: draw_pillar (a soft fire bloom round the body)
 //  - everything else: draw_rings, matched to the owner's Gepard video of
-//    ring #3 and the owner's description (2026-11-16): glowing fragments of
-//    the picture in three lines, 120 degrees apart, that come up from the feet
-//    and orbit round the player; each fragment floats a little on its own and
-//    sections pulse in and out as they go round.
+//    ring #3 (2026-11-16): three dotted lines, 120 degrees apart, that come
+//    up from the feet and wind round the player again and again. The picture
+//    runs along each line using only its lit rows, so a dotted strip shows as
+//    separate dashes; sections pulse brighter and dimmer as they go round.
 // Sizes: g_scale * 4 = 1 world unit; a cell is 5 units.
 void draw_rings(const V3& foot, void* tex, float t) {
-	const int LINES = 3, K = 22;                      // fragments per line
+	// sizes measured against the character in the owner's in-game clips (the
+	// game draws ~2x smaller than the offline preview suggested)
+	const int LINES = 3, SEGS = 48;
 	const float TURNS = 0.8f, PERIOD = 1.6f;          // each line climbs one turn per PERIOD
-	// in game the first sizes (R 16, H 28) came out ~2x too small: the owner's clip showed a tight
-	// spiky burst at the legs. These match the Gepard video against the character's height.
 	const float H = 58 * g_scale, R0 = 34 * g_scale, R1 = 30 * g_scale;
-	const float LEN = 0.09f, BAND = 4.2f * g_scale;   // one fragment: angle along the line, half width across
+	const float BAND = 2.1f * g_scale, REP = 1.5f;     // half width; picture repeats per turn
 	TexBox box = {0, 0, 1, 1};
 	auto bi = g_texBox.find(tex);
 	if (bi != g_texBox.end())
@@ -353,30 +353,27 @@ void draw_rings(const V3& foot, void* tex, float t) {
 	float rise = fmodf(t / PERIOD, 1.0f);
 	for (int line = 0; line < LINES; line++) {
 		float start = (float)line / LINES; // three lines, 120 degrees apart
-		for (int k = 0; k < K; k++) {
-			uint32_t seed = hash((uint32_t)(line * 131 + k) * 2654435761u + 17u);
-			float jr = rnd(seed, -1.7f, 1.7f) * g_scale, jh = rnd(seed, -1.7f, 1.7f) * g_scale;
-			float ph = rnd(seed, 0, 2 * PI), us = rnd(seed, 0, 0.955f);
-			float f = (k + 0.5f) / K;
+		auto at = [&](float f, float off) {
 			float ang = 2 * PI * (TURNS * f - rise + start);
-			// each fragment drifts a little in and out and up and down on its own
-			float r = R0 + (R1 - R0) * f + jr + 1.7f * g_scale * sinf(2 * PI * t / 1.7f + ph);
-			float h = H * f + jh + 1.7f * g_scale * sinf(2 * PI * t / 2.3f + ph);
-			// sections of the formation light up and fade as they go round
-			float pulse = 0.65f + 0.6f * sinf(3 * ang - 2 * PI * t / 1.3f + line * 2.0f);
-			pulse = pulse < 0 ? 0 : pulse > 1 ? 1 : pulse;
-			float edge = fminf(1, fminf(f / 0.12f, (1 - f) / 0.3f)); // fades in at the feet, out at the top
-			float a = 255 * pulse * edge;
-			if (a < 3)
-				continue;
-			float da = LEN * R0 / r;
-			auto at = [&](float an, float off) {
-				return V3{foot.x + (r + off) * cosf(an), foot.y - h, foot.z + (r + off) * sinf(an)}; // up is -y
-			};
-			V3 p[4] = {at(ang - da, BAND), at(ang + da, BAND), at(ang - da, -BAND), at(ang + da, -BAND)};
-			// a thin slice of the picture (about one dot of a dotted strip), so each fragment is one bold dash
-			float uv[8] = {us, box.v0, us + 0.045f, box.v0, us, box.v1, us + 0.045f, box.v1};
-			quad(p, uv, grey(a), tex);
+			float r = R0 + (R1 - R0) * f + off;
+			return V3{foot.x + r * cosf(ang), foot.y - H * f, foot.z + r * sinf(ang)}; // up is -y
+		};
+		for (int s = 0; s < SEGS; s++) {
+			float f0 = (float)s / SEGS, f1 = (float)(s + 1) / SEGS, fm = (f0 + f1) / 2;
+			float w = fminf(1, fminf(fm / 0.12f, (1 - fm) / 0.3f)); // fades in at the feet, out at the top
+			// sections pulse brighter and dimmer as they go round
+			float ang = 2 * PI * (TURNS * fm - rise + start);
+			float pulse = 0.75f + 0.35f * sinf(3 * ang - 2 * PI * t / 1.3f + line * 2.0f);
+			pulse = pulse > 1 ? 1 : pulse;
+			// keep u inside 0..1 (the game may clamp textures instead of repeating them)
+			float u0 = REP * (TURNS * f0 - rise), du = REP * TURNS / SEGS;
+			u0 -= floorf(u0);
+			if (u0 + du > 1)
+				u0 = 1 - du;
+			float u1 = u0 + du;
+			V3 p[4] = {at(f0, BAND), at(f1, BAND), at(f0, -BAND), at(f1, -BAND)};
+			float uv[8] = {u0, box.v0, u1, box.v0, u0, box.v1, u1, box.v1};
+			quad(p, uv, grey(255 * w * pulse), tex);
 		}
 	}
 }
