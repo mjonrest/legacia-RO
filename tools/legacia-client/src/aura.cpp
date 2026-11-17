@@ -925,10 +925,18 @@ const uint8_t* efx_list(uint32_t gid) {
 // which the search does not follow) that the effect keeps in std::vectors: effect 200 at +0xe4
 // (pikapika2) and +0xf0 (ring_blue), 976 at +0x18c (whitelight); a part's picture is at +0x18
 // (0xb3ead0). New parts are added all the time, so they are gone through every frame.
-int efx_prims(const uint8_t* obj, Pack* p, int& swapped) {
+int g_regionFrame = -1;
+int efx_prims(const uint8_t* obj, int id, Pack* p, int& swapped, int frame) {
 	int pics = 0;
-	memset(g_regions, 0, sizeof(g_regions)); // parts come and go: never trust an old answer
-	for (int off = 0xc0; off <= 0x1a0; off += 4) {
+	if (frame != g_regionFrame) {
+		g_regionFrame = frame;
+		memset(g_regions, 0, sizeof(g_regions)); // parts come and go: never trust last frame's answer
+	}
+	static const int V200[] = {0xe4, 0xf0}, V976[] = {0x18c};
+	const int* offs = id == 976 ? V976 : V200;
+	int nOffs = id == 976 ? 1 : 2;
+	for (int vi = 0; vi < nOffs; vi++) {
+		int off = offs[vi];
 		if (!readable_fast((uintptr_t)obj + off, 12))
 			continue;
 		const uintptr_t b = *(const uintptr_t*)(obj + off), e = *(const uintptr_t*)(obj + off + 4),
@@ -976,7 +984,7 @@ int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLe
 		if (!aura_effect_id(id))
 			continue;
 		EfxSlots& es = g_efxSlots[obj];
-		if (es.scans == 0 || frame - es.scanFrame >= 30) {
+		if (es.scans == 0 || (es.slots.empty() && es.scans < 5 && frame - es.scanFrame > 300)) {
 			es.scans++;
 			es.scanFrame = frame;
 			int budget = 60000;
@@ -1020,7 +1028,7 @@ int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLe
 		// (other pictures found by the search are left alone: the game's aura classes use only
 		// ring_blue + pikapika2 (effect 200) and whitelight (976); the rest belonged to other effects)
 		(void)blank;
-		pics += efx_prims(obj, p, swapped);
+		pics += efx_prims(obj, id, p, swapped, frame);
 		for (void** s : es.slots) {
 			if (!readable((uintptr_t)s, 4))
 				continue;
@@ -1210,7 +1218,6 @@ void pack_world(int frame) {
 }
 
 void pack_frame_end(int frame) {
-	pack_world(frame);
 	for (auto it = g_efxSlots.begin(); it != g_efxSlots.end();) {
 		if (frame - it->second.frame > 2)
 			it = g_efxSlots.erase(it);
