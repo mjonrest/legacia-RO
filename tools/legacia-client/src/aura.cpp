@@ -853,7 +853,7 @@ struct EfxSlots {
 	std::vector<void**> extra; // places holding another picture of the aura (not one of the 4 a pack has): hidden
 	std::vector<void**> slots; // places that held an official aura picture
 	int frame = 0;
-	int scans = 0, scanFrame = 0; // looked again every few frames: the rings (effect 200) keep spawning new parts
+	int scans = 0, scanFrame = 0; // looked again every 30 frames (pictures load late, parts come and go)
 	int logs = 0, maxSlots = -1, maxExtra = -1;
 };
 std::unordered_map<const uint8_t*, EfxSlots> g_efxSlots; // effect object -> its picture places
@@ -897,22 +897,8 @@ void efx_scan(const uint8_t* p, int depth, std::vector<void**>& out, std::vector
 			continue;
 		}
 		uintptr_t u = (uintptr_t)v;
-		if (depth > 0 && (u & 3) == 0 && u > 0x10000 && (u < 0x400000 || u >= 0x3880000) && u < 0xfffe0000u) {
-			// a std::list node (next, prev, value; next's prev is this node): the effect's parts
-			// (each ring of effect 200) sit in a list, so walk all of it as one step
-			const uint8_t* n = (const uint8_t*)v;
-			const uint8_t* nx = readable_fast(u, 12) ? *(const uint8_t* const*)n : nullptr;
-			if (nx && nx != n && ((uintptr_t)nx & 3) == 0 && readable_fast((uintptr_t)nx, 12) &&
-			    *(const uint8_t* const*)(nx + 4) == n) {
-				for (int k = 0; n && k < 400 && budget > 0 && readable_fast((uintptr_t)n, 12); k++) {
-					efx_scan(n, depth - 1, out, extra, budget, seen);
-					n = *(const uint8_t* const*)n;
-					if (n == (const uint8_t*)v)
-						break;
-				}
-			} else
-				efx_scan((const uint8_t*)v, depth - 1, out, extra, budget, seen);
-		}
+		if (depth > 0 && (u & 3) == 0 && u > 0x10000 && (u < 0x400000 || u >= 0x3880000) && u < 0xfffe0000u)
+			efx_scan((const uint8_t*)v, depth - 1, out, extra, budget, seen);
 	}
 }
 
@@ -957,33 +943,32 @@ int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLe
 		if (!aura_effect_id(id))
 			continue;
 		EfxSlots& es = g_efxSlots[obj];
-		if (es.scans == 0 || frame - es.scanFrame >= 15) {
+		if (es.scans == 0 || frame - es.scanFrame >= 30) {
 			es.scans++;
 			es.scanFrame = frame;
-			int budget = 200000;
+			int budget = 60000;
 			std::unordered_set<const uint8_t*> seen;
 			memset(g_regions, 0, sizeof(g_regions)); // memory may have been freed since the last search
 			tex_names_load();
-			// a hidden picture now holds the blank pack picture, which looks like an aura picture: keep it hidden
-			std::unordered_set<void**> wasExtra(es.extra.begin(), es.extra.end());
+			std::unordered_set<void**> wasExtra(es.extra.begin(), es.extra.end()); // hidden ones now hold the blank picture
 			std::vector<void**> slots, extra;
 			efx_scan(obj, 3, slots, extra, budget, seen);
 			es.slots.clear();
 			for (void** x : slots)
 				(wasExtra.count(x) ? extra : es.slots).push_back(x);
 			es.extra.swap(extra);
-			if (es.logs >= 12 || ((int)es.slots.size() <= es.maxSlots && (int)es.extra.size() <= es.maxExtra))
-				goto scanned;
-			es.logs++;
+			bool grew = (int)es.slots.size() > es.maxSlots || (int)es.extra.size() > es.maxExtra;
 			es.maxSlots = std::max(es.maxSlots, (int)es.slots.size());
 			es.maxExtra = std::max(es.maxExtra, (int)es.extra.size());
-			log_line("aura: effect %d (object %p, class %p): %d picture places found, %d other pictures", id, obj,
+			if (grew && es.logs++ < 6) {
+				log_line("aura: effect %d (object %p, class %p): %d picture places found, %d other pictures", id, obj,
 				         readable((uintptr_t)obj, 4) ? *(void* const*)obj : nullptr, (int)es.slots.size(), (int)es.extra.size());
-			std::unordered_map<std::string, int> other;
-			for (void** x : es.extra)
-				other[g_texNames[*x]]++;
-			for (auto& kv : other)
-				log_line("aura: effect %d also uses %s (%d places), hidden", id, kv.first.c_str(), kv.second);
+				std::unordered_map<std::string, int> other;
+				for (void** x : es.extra)
+					other[g_texNames[*x]]++;
+				for (auto& kv : other)
+					log_line("aura: effect %d also uses %s (%d places), hidden", id, kv.first.c_str(), kv.second);
+			}
 			if (log) {
 				char hex[3 * 64 + 1];
 				int hl = 0;
@@ -992,7 +977,6 @@ int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLe
 				log_line("aura: effect %d starts %s", id, hex);
 			}
 		}
-	scanned:
 		es.frame = frame;
 		void* blank = pack_get(0).tex[0]; // a fully see-through picture
 		static bool blankWarned;
@@ -1016,6 +1000,42 @@ int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLe
 			void* want = p && p->tex[role->second] ? p->tex[role->second] : g_official[role->second];
 			if (want && *s != want) {
 				*s = want;
+				swapped++;
+			}
+		}
+	}
+	return pics;
+}
+
+// the aura pictures in an old-style effect's primitives (+0x1a4 list, textures +0x144, count +0x204)
+int prims_apply(uint8_t* eff, Pack* p, int& swapped, bool dry = false) {
+	if (!readable((uintptr_t)eff + EFFECT_PRIMS, 8))
+		return 0;
+	const uint8_t* phead = *(const uint8_t* const*)(eff + EFFECT_PRIMS);
+	int psize = *(const int*)(eff + EFFECT_PRIMS + 4);
+	if (!phead || psize < 0 || psize > 200 || !readable((uintptr_t)phead, 12))
+		return 0;
+	int pics = 0;
+	const uint8_t* pn = *(const uint8_t* const*)phead;
+	for (int j = 0; pn && pn != phead && j <= psize; j++) {
+		if (!readable((uintptr_t)pn, 12))
+			break;
+		uint8_t* prim = *(uint8_t* const*)(pn + 8);
+		pn = *(const uint8_t* const*)pn;
+		if (!prim || !readable((uintptr_t)prim + PRIM_TEX, 4) || !readable((uintptr_t)prim + PRIM_TEX_COUNT, 4))
+			continue;
+		void** tex = *(void***)(prim + PRIM_TEX);
+		int count = *(int*)(prim + PRIM_TEX_COUNT);
+		if (!tex || count <= 0 || count > 64 || !readable((uintptr_t)tex, count * 4))
+			continue;
+		for (int k = 0; k < count; k++) {
+			auto role = g_picRole.find(tex[k]);
+			if (role == g_picRole.end())
+				continue;
+			pics++;
+			void* want = p && p->tex[role->second] ? p->tex[role->second] : g_official[role->second];
+			if (!dry && want && tex[k] != want) {
+				tex[k] = want;
 				swapped++;
 			}
 		}
@@ -1056,36 +1076,7 @@ int pack_apply(const uint8_t* actor, int n, bool log) {
 			idsLen += snprintf(ids + idsLen, sizeof(ids) - idsLen, " %d", id);
 		if (!aura_effect_id(id))
 			continue;
-		if (!readable((uintptr_t)eff + EFFECT_PRIMS, 8))
-			continue;
-		const uint8_t* phead = *(const uint8_t* const*)(eff + EFFECT_PRIMS);
-		int psize = *(const int*)(eff + EFFECT_PRIMS + 4);
-		if (!phead || psize < 0 || psize > 200 || !readable((uintptr_t)phead, 12))
-			continue;
-		const uint8_t* pn = *(const uint8_t* const*)phead;
-		for (int j = 0; pn && pn != phead && j <= psize; j++) {
-			if (!readable((uintptr_t)pn, 12))
-				break;
-			uint8_t* prim = *(uint8_t* const*)(pn + 8);
-			pn = *(const uint8_t* const*)pn;
-			if (!prim || !readable((uintptr_t)prim + PRIM_TEX, 4) || !readable((uintptr_t)prim + PRIM_TEX_COUNT, 4))
-				continue;
-			void** tex = *(void***)(prim + PRIM_TEX);
-			int count = *(int*)(prim + PRIM_TEX_COUNT);
-			if (!tex || count <= 0 || count > 64 || !readable((uintptr_t)tex, count * 4))
-				continue;
-			for (int k = 0; k < count; k++) {
-				auto role = g_picRole.find(tex[k]);
-				if (role == g_picRole.end())
-					continue;
-				pics++;
-				void* want = p && p->tex[role->second] ? p->tex[role->second] : g_official[role->second];
-				if (want && tex[k] != want) {
-					tex[k] = want;
-					swapped++;
-				}
-			}
-		}
+		pics += prims_apply(eff, p, swapped);
 	}
 	pics += efx_apply(actor, p, swapped, ids, idsLen, (int)sizeof(ids), log, g_packFrame);
 	if (log)
@@ -1154,7 +1145,41 @@ void pack_actor(const uint8_t* actor, int n, bool self, int frame) {
 }
 
 // forget actors that are gone (not seen this frame)
+// The rings of the level 99 aura can be separate effects in the world's object list
+// (CWorld +8, std::list), launched again and again. Those owned (+0x138) by an actor with a
+// pack get its pictures too; any world effect holding aura pictures is logged once.
+void pack_world(int frame) {
+	if (!g_packWorld || !readable((uintptr_t)g_packWorld + 8, 8))
+		return;
+	const uint8_t* head = *(const uint8_t* const*)(g_packWorld + 8);
+	int size = *(const int*)(g_packWorld + 12);
+	if (!head || size < 0 || size > 20000 || !readable((uintptr_t)head, 12))
+		return;
+	static std::unordered_set<const uint8_t*> logged;
+	static int logs;
+	const uint8_t* node = *(const uint8_t* const*)head;
+	for (int i = 0; node && node != head && i <= size; i++) {
+		if (!readable((uintptr_t)node, 12))
+			break;
+		uint8_t* o = *(uint8_t* const*)(node + 8);
+		node = *(const uint8_t* const*)node;
+		if (!o || !readable((uintptr_t)o + 0x138, 4) || !readable((uintptr_t)o + EFFECT_ID, 4))
+			continue;
+		const uint8_t* owner = *(const uint8_t* const*)(o + 0x138);
+		auto w = g_packWorn.find(owner);
+		int swapped = 0;
+		int pics = w != g_packWorn.end() && w->second.frame == frame ? prims_apply(o, &pack_get(w->second.pack), swapped)
+		                                                              : prims_apply(o, nullptr, swapped, true);
+		if (pics > 0 && logs < 40 && logged.insert(o).second) {
+			logs++;
+			log_line("aura: world effect %d (object %p, owner %p%s) has %d aura pictures", *(const int*)(o + EFFECT_ID), o,
+			         owner, w != g_packWorn.end() ? ", wears a pack" : "", pics);
+		}
+	}
+}
+
 void pack_frame_end(int frame) {
+	pack_world(frame);
 	for (auto it = g_efxSlots.begin(); it != g_efxSlots.end();) {
 		if (frame - it->second.frame > 2)
 			it = g_efxSlots.erase(it);
