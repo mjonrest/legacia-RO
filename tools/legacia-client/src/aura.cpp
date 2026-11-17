@@ -967,6 +967,11 @@ int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLe
 		}
 		es.frame = frame;
 		void* blank = pack_get(0).tex[0]; // a fully see-through picture
+		static bool blankWarned;
+		if (!blank && !blankWarned) {
+			blankWarned = true;
+			log_line("aura: blank pack 000 is missing (data\\texture\\effect\\legacia_aura_pack\\000), so your own aura cannot be hidden");
+		}
 		for (void** x : es.extra) {
 			if (blank && readable((uintptr_t)x, 4) && *x != blank && g_texNames.count(*x)) {
 				*x = blank;
