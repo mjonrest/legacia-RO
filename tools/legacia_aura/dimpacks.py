@@ -1,6 +1,6 @@
 """Tone down the Classic Aura pack pictures (owner 2026-11-17: too bright, but faint grey parts must stay).
 
-usage: python3 dimpacks.py <folder with data/> <out folder> <scale> <gamma>   (used: 0.45 0.6)
+usage: python3 dimpacks.py <folder with data/> <out folder> <scale> <gamma>   (owner 2026-11-17: 0.45 0.6 still too bright, now 0.225 0.6)
 out = 255*scale*(in/255)^gamma per channel: highlights drop a lot (255 -> 115), dark parts barely (40 -> 38).
 Pack 000 (blank) is skipped; pure magenta (see-through in BMPs) is kept.
 """
