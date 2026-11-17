@@ -984,7 +984,10 @@ int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLe
 		if (!aura_effect_id(id))
 			continue;
 		EfxSlots& es = g_efxSlots[obj];
-		if (es.scans == 0 || (es.slots.empty() && es.scans < 5 && frame - es.scanFrame > 300)) {
+		// The wide memory search is diagnostics only now (and off): the places it found also
+		// belonged to other players' auras, so writing there flashed one aura's pack inside another.
+		// The aura's real parts are the effect's own part vectors (efx_prims).
+		if (false && es.scans == 0) {
 			es.scans++;
 			es.scanFrame = frame;
 			int budget = 60000;
@@ -1030,6 +1033,7 @@ int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLe
 		(void)blank;
 		pics += efx_prims(obj, id, p, swapped, frame);
 		for (void** s : es.slots) {
+			break; // see above: never write the search's places
 			if (!readable((uintptr_t)s, 4))
 				continue;
 			auto role = g_picRole.find(*s);
