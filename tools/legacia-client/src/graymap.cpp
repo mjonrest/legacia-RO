@@ -478,8 +478,35 @@ void lgp_draw_alone(void* ground, void* view, const int* area) {
 	}
 }
 
+// RenderAttrTile pulls each cell a little toward the camera (depth - [0x1110748], 1/32768),
+// which is right for the ground cursor drawn over the real ground, but with Graymap the cells
+// are the ground, and the pull hid what lies on it, like the level 99 aura. So the pull is
+// set to 0 while Graymap draws its cells, and put back right after.
+const uintptr_t TILE_DEPTH_BIAS = 0x1110748;
+struct NoTileBias {
+	float* p = nullptr;
+	float old = 0;
+	DWORD prot = 0;
+	NoTileBias() {
+		float* f = (float*)TILE_DEPTH_BIAS;
+		if (!readable(TILE_DEPTH_BIAS, 4) || *f != 1.0f / 32768.0f || !VirtualProtect(f, 4, PAGE_READWRITE, &prot))
+			return;
+		p = f;
+		old = *f;
+		*f = 0.0f;
+	}
+	~NoTileBias() {
+		if (!p)
+			return;
+		*p = old;
+		DWORD x;
+		VirtualProtect(p, 4, prot, &x);
+	}
+};
+
 void draw_cells(void* ground, void* view, const int* area) {
 	make_textures();
+	NoTileBias noBias;
 	uint8_t* attr = (uint8_t*)world_attr();
 	if (!g_cellTex[0] || !attr)
 		return;
