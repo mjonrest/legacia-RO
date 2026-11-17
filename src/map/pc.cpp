@@ -17950,14 +17950,8 @@ bool pc_autohunt_device_ok( map_session_data& sd, bool offline ){
 void pc_aura_apply(map_session_data& sd) {
 	std::vector<int16> want;
 
-	if (battle_config.aura_hateffect && sd.aura_data > 0x1000000) {
-		const uint8 parts[3] = { sd.aura.part_1, sd.aura.part_2, sd.aura.part_3 };
-
-		for (int32 i = 0; i < 3; i++) {
-			if (parts[i] > 0)
-				want.push_back(static_cast<int16>(HAT_EF_AURA_PART_BASE + i * HAT_EF_AURA_PART_STEP + parts[i]));
-		}
-	}
+	// The Gepard-style 3-part auras (ground circle, rings, sparkles) were dropped on 2026-11-17 in favour
+	// of the Classic Auras below; worn parts are no longer shown (the Aura Master takes them off at login).
 	// the custom aura pack tells legacia.dll which pictures to put on the official aura
 	if (battle_config.aura_hateffect && sd.aura_pack > 0)
 		want.push_back(static_cast<int16>(HAT_EF_AURA_PACK_BASE + sd.aura_pack));
@@ -18006,9 +18000,9 @@ TIMER_FUNC(pc_aura_resend_timer){
 	return 0;
 }
 
-/// Whether the character has an aura that travels as hat effects (Gepard-style parts or a custom aura pack).
+/// Whether the character has an aura that travels as hat effects (a custom aura pack; the old 3-part auras are gone).
 bool pc_aura_has(const map_session_data& sd) {
-	return sd.aura_data > 0x1000000 || sd.aura_pack > 0;
+	return sd.aura_pack > 0;
 }
 
 /**

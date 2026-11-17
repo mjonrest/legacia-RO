@@ -1,42 +1,35 @@
 //==============================================================
-// LegaciaRO - Aura Master (our own aura system)
+// LegaciaRO - Aura Master (Classic Auras)
 //==============================================================
-// Replaces the Gepard aura renderer. An aura has 3 parts, same
-// as Gepard: Ground circle (part 1), Rings (part 2) and Sparkles
-// (part 3). Players unlock a part once (account-wide) and can
-// switch between owned parts for free. @aura opens the menu.
-// Browsing works like the hair Stylist: Next / Previous show each
-// part on the character right away, then Pick (or Unlock) it.
-//
-// Classic Auras (part 4): the official level 99 aura with the
+// Sells the Classic Auras: the official level 99 aura with the
 // pictures of one of 163 custom aura packs (set_aura_pack). The
 // game draws it with its own motion; legacia.dll swaps in the
 // pack's pictures (data/texture/effect/legacia_aura_pack/NNN/,
 // made by tools/legacia_aura/genpacks.py, list in packs.txt).
 // It shows at base level 99 (max_lv) only. Players without the
 // plugin see the normal blue level 99 aura on pack wearers.
+// A Classic Aura is unlocked once (account-wide); switching
+// between owned ones is free. @aura opens the menu. Browsing works
+// like the hair Stylist: Next / Previous show each aura on the
+// character right away, then Pick (or Unlock) it.
 //
-// How it works
-//  - The aura is still stored by the Gepard commands
-//    (set_aura_part / AURA_DATA), so old auras, @auras and the
-//    old Princess Mary NPC (npc/miracle/aura.txt) keep working.
-//  - The client plugin legacia.dll draws it in 3D (ground circle,
-//    rings, sparkles); the map-server sends the auras around each
-//    player through the voice server (src/map/voice.cpp, AURAS).
-//    Textures: plugins/auras/ next to legacia_plugin.dll.
-//  - Old way, off by default: pc_aura_apply() in src/map/pc.cpp shows
-//    it as hat effects (aura_hateffect in conf/battle/feature.conf).
+// The old Gepard-style 3-part auras (ground circle, rings,
+// sparkles) were dropped on 2026-11-17 (owner's choice, no refund):
+// every login takes off worn parts (set_aura 0,0,0) and unlocked
+// parts are cleared from #AURA_OWN.
 //
 // Variables
-//  #AURA_OWN[n] : account bitmask of unlocked parts (31 per entry)
-//  AURA_GRANDF  : 1 once the character's old aura was marked owned
+//  #AURA_OWN[n]   : account bitmask of unlocked auras (31 per entry);
+//                   Classic Aura n is bit slot 304 + n - 1 (slots
+//                   0-303 were the old parts)
+//  #AURA_OLDGONE  : 1 once the account's old parts were cleared
+//  AURA_PREVIEW   : 4000 + old pack while browsing (undone at login)
 //==============================================================
 
 prontera,142,223,4	script	Aura Master	4_M_SAGE_C,{
 	mes "[Aura Master]";
-	mes "I can surround you with a lasting aura.";
-	mes "An aura has three parts: a ground circle, rings and sparkles. Mix them as you like.";
-	mes "Unlock a part once and every character on your account can wear it.";
+	mes "I can give you a Classic Aura: the level " + .PackLv + " aura in one of " + .Max + " looks.";
+	mes "Unlock one once and every character on your account can wear it.";
 	next;
 	callsub S_Menu;
 	end;
@@ -47,15 +40,12 @@ OnCmd:
 
 OnInit:
 	// ---- settings ----
-	.Zeny = 50000000;	// zeny per aura part (0 = can't pay with zeny)
-	.Cash = 51;		// Cash Points (#CASHPOINTS) per aura part, the other way to pay (0 = off)
 	.PackZeny = 50000000;	// zeny per Classic Aura (0 = can't pay with zeny)
-	.PackCash = 51;		// Cash Points per Classic Aura (0 = off)
+	.PackCash = 51;		// Cash Points (#CASHPOINTS) per Classic Aura (0 = off)
 	.PackLv = 99;		// base level the Classic Aura shows at (the server's max_lv)
 	// ------------------
-	setarray .PartMax[1], 152, 117, 35, 163;
-	setarray .PartName$[1], "Ground Circle", "Ring", "Sparkle", "Classic Aura";
-	setarray .PartBase[1], 0, 152, 269, 304;	// bit slot of #1 of each part
+	.Max = 163;
+	.Base = 304;	// bit slot of Classic Aura #1 in #AURA_OWN
 	// Classic Aura names, same order as tools/legacia_aura/packs.txt
 	setarray .PackName$[1], "Abstract Flower", "Aiyu Current", "Aiyu Old", "Amulet", "Angelic Aura", "AniM0rph Aura", "Crest Moon Aura", "Solestice Aura";
 	setarray .PackName$[9], "Appel", "Arcane Aura", "Arcane1", "Arcane2", "Arcane3", "Arcane4", "ArticGalaxyAura-by-Melz", "Aura of King";
@@ -78,38 +68,30 @@ OnInit:
 	setarray .PackName$[145], "Turquoise", "Undead Green Sigil", "Undead Sigil", "Undead Sigil Red", "Unholy Aura", "Unicorn", "Unknown", "Unwanted Happening Aura";
 	setarray .PackName$[153], "Wavy circle", "Wedding by WP", "White Feather Aura", "White Labyrinth", "White Swirl", "Wrath Aura", "Yellow Smoke", "Zeet's Batman Aura";
 	setarray .PackName$[161], "Zeet's Blue Aura", "Zeet's Pink Aura", "Zeet's Red Aura";
-	for (.@k = 0; .@k < 2; .@k++) {
-		.@z = .@k ? .PackZeny : .Zeny;
-		.@c = .@k ? .PackCash : .Cash;
-		.@p$ = "";
-		if (.@z)
-			.@p$ = callfunc("F_InsertComma", .@z) + " zeny";
-		if (.@c)
-			.@p$ += (.@p$ == "" ? "" : " or ") + .@c + " Cash Points";
-		if (.@p$ == "")
-			.@p$ = "free";
-		if (.@k)
-			.PackPrice$ = .@p$;
-		else
-			.Price$ = .@p$;
-	}
+	.@p$ = "";
+	if (.PackZeny)
+		.@p$ = callfunc("F_InsertComma", .PackZeny) + " zeny";
+	if (.PackCash)
+		.@p$ += (.@p$ == "" ? "" : " or ") + .PackCash + " Cash Points";
+	.Price$ = .@p$ == "" ? "free" : .@p$;
 	bindatcmd "aura", strnpcinfo(3) + "::OnCmd", 0, 99;
-	waitingroom "[ Auras ]", 0;
+	waitingroom "[ Classic Auras ]", 0;
 	end;
 
 OnPCLoginEvent:
-	// Auras bought before this NPC (Princess Mary / GM) become owned once.
-	if (!AURA_GRANDF) {
-		for (.@p = 1; .@p <= 3; .@p++)
-			if (get_aura_part(.@p) > 0)
-				callsub S_Give, .@p, get_aura_part(.@p);
-		AURA_GRANDF = 1;
-		end;
+	// The old 3-part auras are gone: take off worn parts, forget unlocked ones (no refund).
+	if (get_aura_part(1) || get_aura_part(2) || get_aura_part(3))
+		set_aura 0, 0, 0;
+	if (!#AURA_OLDGONE) {
+		for (.@i = 0; .@i < 9; .@i++)
+			#AURA_OWN[.@i] = 0;	// slots 0-278
+		#AURA_OWN[9] = #AURA_OWN[9] & ~((1 << 25) - 1);	// slots 279-303
+		#AURA_OLDGONE = 1;
 	}
-	// Logged out during a preview: put the part worn before back.
-	// (Only previews are undone, so auras given with the GM command @auras stay.)
+	// Logged out while browsing: put the aura worn before back.
 	if (AURA_PREVIEW) {
-		callsub S_Set, AURA_PREVIEW / 1000, AURA_PREVIEW % 1000;
+		if (AURA_PREVIEW / 1000 == 4)
+			set_aura_pack AURA_PREVIEW % 1000;
 		AURA_PREVIEW = 0;
 	}
 	end;
@@ -119,46 +101,23 @@ S_Menu:
 	while (1) {
 		clear;
 		mes "[Aura Master]";
-		mes "Your aura:";
-		for (.@p = 1; .@p <= 4; .@p++)
-			mes " " + .PartName$[.@p] + ": " + (callsub(S_Get, .@p) ? "^0000FF" + callsub(S_Label, .@p, callsub(S_Get, .@p)) + "^000000" : "none");
-		mes "Price per part: " + .Price$;
-		mes "Classic Aura: " + .PackPrice$ + " (shows at base level " + .PackLv + ")";
+		mes "Your Classic Aura: " + (get_aura_pack() ? "^0000FF" + callsub(S_Label, get_aura_pack()) + "^000000" : "none");
+		mes "Price: " + .Price$;
+		mes "It shows at base level " + .PackLv + ".";
 		.@s = select(
-			"Try ground circles (" + callsub(S_CountOwned, 1) + "/" + .PartMax[1] + " owned)",
-			"Try rings (" + callsub(S_CountOwned, 2) + "/" + .PartMax[2] + " owned)",
-			"Try sparkles (" + callsub(S_CountOwned, 3) + "/" + .PartMax[3] + " owned)",
-			"Try Classic Auras (" + callsub(S_CountOwned, 4) + "/" + .PartMax[4] + " owned)",
-			"My auras",
-			"Remove a part",
+			"Try Classic Auras (" + callsub(S_CountOwned) + "/" + .Max + " owned)",
+			"My Classic Auras",
+			(get_aura_pack() ? "Take off my aura" : ""),
 			"Close");
 		switch (.@s) {
 		case 1:
-		case 2:
-		case 3:
-		case 4:
-			callsub S_Browse, .@s;
+			callsub S_Browse;
 			break;
-		case 5:
+		case 2:
 			callsub S_Mine;
 			break;
-		case 6:
-			clear;
-			mes "[Aura Master]";
-			mes "Which part should I remove?";
-			.@r = select(
-				(get_aura_part(1) ? "Ground circle #" + get_aura_part(1) : ""),
-				(get_aura_part(2) ? "Ring #" + get_aura_part(2) : ""),
-				(get_aura_part(3) ? "Sparkle #" + get_aura_part(3) : ""),
-				(get_aura_pack() ? "Classic Aura " + callsub(S_Label, 4, get_aura_pack()) : ""),
-				"All parts",
-				"Back");
-			if (.@r <= 4)
-				callsub S_Set, .@r, 0;
-			else if (.@r == 5) {
-				set_aura 0, 0, 0;
-				set_aura_pack 0;
-			}
+		case 3:
+			set_aura_pack 0;
 			break;
 		default:
 			close;
@@ -170,20 +129,19 @@ S_Menu:
 // with Next / Previous, like the hair Stylist. "Pick this one"
 // wears it (unlocks it first if needed); Cancel puts the old one back.
 S_Browse:
-	.@part = getarg(0);
-	.@max = .PartMax[.@part];	// plain copy: min()/max() given an array element walk the array
-	.@old = callsub(S_Get, .@part);
+	.@max = .Max;
+	.@old = get_aura_pack();
 	.@cur = (.@old > 0 && .@old <= .@max) ? .@old : 1;
-	AURA_PREVIEW = .@part * 1000 + .@old;	// undone at login if the player logs out mid-browse
+	AURA_PREVIEW = 4000 + .@old;	// undone at login if the player logs out mid-browse
 	while (1) {
-		callsub S_Set, .@part, .@cur;
+		set_aura_pack .@cur;
 		.@next = (.@cur % .@max) + 1;
 		.@prev = ((.@cur + .@max - 2) % .@max) + 1;
-		.@own = callsub(S_Owned, .@part, .@cur);
+		.@own = callsub(S_Owned, .@cur);
 		clear;
 		mes "[Aura Master]";
-		mes "^0000FF" + .PartName$[.@part] + " " + callsub(S_Label, .@part, .@cur) + "^000000 (of " + .@max + ")";
-		if (.@part == 4 && BaseLevel < .PackLv)
+		mes "^0000FFClassic Aura " + callsub(S_Label, .@cur) + "^000000 (of " + .@max + ")";
+		if (BaseLevel < .PackLv)
 			mes "^FF0000It shows once you reach base level " + .PackLv + ".^000000";
 		if (.@cur == .@old)
 			mes "^0000FFYou are wearing this one.^000000";
@@ -208,26 +166,26 @@ S_Browse:
 		case 3:
 			clear;
 			mes "[Aura Master]";
-			mes "Which " + .PartName$[.@part] + " number? (1-" + .@max + ")";
+			mes "Which Classic Aura number? (1-" + .@max + ")";
 			if (input(.@j, 1, .@max) == 0)
 				.@cur = .@j;
 			break;
 		case 4:
 			if (!.@own) {
-				if (!callsub(S_Pay, .@part, .@cur))
+				if (!callsub(S_Pay, .@cur))
 					break;	// no money or said No: keep browsing
-				callsub S_Give, .@part, .@cur;
+				callsub S_Give, .@cur;
 				AURA_PREVIEW = 0;
 				clear;
 				mes "[Aura Master]";
-				mes "Unlocked! You are now wearing " + .PartName$[.@part] + " " + callsub(S_Label, .@part, .@cur) + ".";
+				mes "Unlocked! You are now wearing Classic Aura " + callsub(S_Label, .@cur) + ".";
 				next;
 				return;
 			}
 			AURA_PREVIEW = 0;
 			return;
 		default:	// Cancel or closed the window
-			callsub S_Set, .@part, .@old;
+			set_aura_pack .@old;
 			AURA_PREVIEW = 0;
 			if (.@s == 255)
 				end;
@@ -237,112 +195,86 @@ S_Browse:
 
 // ---------------- owned list ----------------
 S_Mine:
-	clear;
-	mes "[Aura Master]";
-	mes "Which part do you want to change?";
-	.@part = select("Ground circles:Rings:Sparkles:Classic Auras:Back");
-	if (.@part == 5)
-		return;
 	.@c = 0;
-	for (.@i = 1; .@i <= .PartMax[.@part]; .@i++)
-		if (callsub(S_Owned, .@part, .@i))
+	for (.@i = 1; .@i <= .Max; .@i++)
+		if (callsub(S_Owned, .@i))
 			.@ids[.@c++] = .@i;
 	clear;
 	mes "[Aura Master]";
 	if (!.@c) {
-		mes "You have not unlocked any " + .PartName$[.@part] + " yet.";
+		mes "You have not unlocked any Classic Aura yet.";
 		next;
 		return;
 	}
 	mes "Pick one to wear. Switching is free.";
 	.@menu$ = "";
 	for (.@i = 0; .@i < .@c; .@i++)
-		.@menu$ += .PartName$[.@part] + " " + callsub(S_Label, .@part, .@ids[.@i]) + (.@ids[.@i] == callsub(S_Get, .@part) ? " ^0000FF[wearing]^000000" : "") + ":";
+		.@menu$ += callsub(S_Label, .@ids[.@i]) + (.@ids[.@i] == get_aura_pack() ? " ^0000FF[wearing]^000000" : "") + ":";
 	.@menu$ += "Back";
 	.@s = select(.@menu$) - 1;
 	if (.@s < .@c)
-		callsub S_Set, .@part, .@ids[.@s];
+		set_aura_pack .@ids[.@s];
 	return;
 
 // ---------------- helpers ----------------
 S_Pay:
-	.@zeny = getarg(0) == 4 ? .PackZeny : .Zeny;
-	.@cash = getarg(0) == 4 ? .PackCash : .Cash;
-	if (!.@zeny && !.@cash)
+	if (!.PackZeny && !.PackCash)
 		return 1;	// free
 	clear;
 	mes "[Aura Master]";
-	mes "Unlock " + .PartName$[getarg(0)] + " " + callsub(S_Label, getarg(0), getarg(1)) + "?";
-	mes "Price: " + (getarg(0) == 4 ? .PackPrice$ : .Price$);
+	mes "Unlock Classic Aura " + callsub(S_Label, getarg(0)) + "?";
+	mes "Price: " + .Price$;
 	.@how = select(
-		(.@zeny ? "Pay " + callfunc("F_InsertComma", .@zeny) + " zeny" : ""),
-		(.@cash ? "Pay " + .@cash + " Cash Points (you have " + #CASHPOINTS + ")" : ""),
+		(.PackZeny ? "Pay " + callfunc("F_InsertComma", .PackZeny) + " zeny" : ""),
+		(.PackCash ? "Pay " + .PackCash + " Cash Points (you have " + #CASHPOINTS + ")" : ""),
 		"No");
 	if (.@how == 1) {
-		if (Zeny < .@zeny) {
+		if (Zeny < .PackZeny) {
 			mes "You don't have enough zeny.";
 			next;
 			return 0;
 		}
-		Zeny -= .@zeny;
+		Zeny -= .PackZeny;
 		return 1;
 	}
 	if (.@how == 2) {
-		if (#CASHPOINTS < .@cash) {
+		if (#CASHPOINTS < .PackCash) {
 			mes "You don't have enough Cash Points.";
 			next;
 			return 0;
 		}
-		#CASHPOINTS -= .@cash;
-		dispbottom "Used " + .@cash + " Cash Points. Left: " + #CASHPOINTS + ".";
+		#CASHPOINTS -= .PackCash;
+		dispbottom "Used " + .PackCash + " Cash Points. Left: " + #CASHPOINTS + ".";
 		return 1;
 	}
 	return 0;
 
-// worn number of a part (4 = Classic Aura pack)
-S_Get:
-	if (getarg(0) == 4)
-		return get_aura_pack();
-	return get_aura_part(getarg(0));
-
-S_Set:
-	if (getarg(0) == 4)
-		set_aura_pack getarg(1);
-	else
-		set_aura_part getarg(0), getarg(1);
-	return;
-
-// "#n" or "#n Name" for Classic Auras
+// "#n Name"
 S_Label:
-	if (getarg(0) == 4)
-		return "#" + getarg(1) + " " + .PackName$[getarg(1)];
-	return "#" + getarg(1);
+	return "#" + getarg(0) + " " + .PackName$[getarg(0)];
 
-// slot of (part, number), -1 if out of range
+// bit slot of Classic Aura n, -1 if out of range
 S_Slot:
-	.@part = getarg(0);
-	.@num = getarg(1);
-	if (.@part < 1 || .@part > 4 || .@num < 1 || .@num > .PartMax[.@part])
+	if (getarg(0) < 1 || getarg(0) > .Max)
 		return -1;
-	return .PartBase[.@part] + .@num - 1;
+	return .Base + getarg(0) - 1;
 
 S_Owned:
-	.@s = callsub(S_Slot, getarg(0), getarg(1));
+	.@s = callsub(S_Slot, getarg(0));
 	if (.@s < 0)
 		return 0;
 	return (#AURA_OWN[.@s / 31] & (1 << (.@s % 31))) ? 1 : 0;
 
 S_Give:
-	.@s = callsub(S_Slot, getarg(0), getarg(1));
+	.@s = callsub(S_Slot, getarg(0));
 	if (.@s >= 0)
 		#AURA_OWN[.@s / 31] = #AURA_OWN[.@s / 31] | (1 << (.@s % 31));
 	return;
 
 S_CountOwned:
-	.@part = getarg(0);
 	.@c = 0;
-	for (.@i = 1; .@i <= .PartMax[.@part]; .@i++)
-		if (callsub(S_Owned, .@part, .@i))
+	for (.@i = 1; .@i <= .Max; .@i++)
+		if (callsub(S_Owned, .@i))
 			.@c++;
 	return .@c;
 }
