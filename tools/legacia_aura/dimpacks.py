@@ -2,7 +2,7 @@
 
 usage: python3 dimpacks.py <folder with data/> <out folder> <scale> <gamma> [sharp]
 Owner 2026-11-17: 0.225 0.6 sharp. out = 255*scale*(in/255)^gamma per channel after an
-unsharp mask (radius 1.2, 180%). Pack 000 is skipped; pure magenta (see-through) is kept.
+unsharp mask (env SHARP_R / SHARP_P, default radius 1.5, 360%; 1.2/180% was not sharp enough). Pack 000 is skipped; pure magenta (see-through) is kept.
 """
 import sys, os, glob
 from PIL import Image, ImageFilter
@@ -24,7 +24,7 @@ for f in glob.glob(os.path.join(src, 'data/texture/effect/legacia_aura_pack/*/*'
             if r >= 250 and gg <= 5 and b >= 250:
                 key.add((x, y)); px[x, y] = (0, 0, 0, a)  # black adds nothing: no pink fringes when sharpening
     if sharp:
-        rgb = im.convert('RGB').filter(ImageFilter.UnsharpMask(radius=1.2, percent=180, threshold=2))
+        rgb = im.convert('RGB').filter(ImageFilter.UnsharpMask(radius=float(os.environ.get("SHARP_R","1.5")), percent=int(os.environ.get("SHARP_P","360")), threshold=2))
         rgb.putalpha(im.getchannel('A')); im = rgb; px = im.load()
     for y in range(h):
         for x in range(w):
