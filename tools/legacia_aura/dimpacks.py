@@ -1,12 +1,13 @@
-"""Tone down the Classic Aura pack pictures (owner 2026-11-17: too bright, but faint grey parts must stay).
+"""Tone down (and optionally sharpen) the Classic Aura pack pictures.
 
-usage: python3 dimpacks.py <folder with data/> <out folder> <scale> <gamma>   (owner 2026-11-17: 0.45 0.6 still too bright, now 0.225 0.6)
-out = 255*scale*(in/255)^gamma per channel: highlights drop a lot (255 -> 115), dark parts barely (40 -> 38).
-Pack 000 (blank) is skipped; pure magenta (see-through in BMPs) is kept.
+usage: python3 dimpacks.py <folder with data/> <out folder> <scale> <gamma> [sharp]
+Owner 2026-11-17: 0.225 0.6 sharp. out = 255*scale*(in/255)^gamma per channel after an
+unsharp mask (radius 1.2, 180%). Pack 000 is skipped; pure magenta (see-through) is kept.
 """
 import sys, os, glob
-from PIL import Image
+from PIL import Image, ImageFilter
 src, out, c, g = sys.argv[1], sys.argv[2], float(sys.argv[3]), float(sys.argv[4])
+sharp = len(sys.argv) > 5 and sys.argv[5] == 'sharp'
 lut = [min(255, int(round(255 * c * (v / 255) ** g))) for v in range(256)]
 n = 0
 for f in glob.glob(os.path.join(src, 'data/texture/effect/legacia_aura_pack/*/*')):
@@ -14,13 +15,21 @@ for f in glob.glob(os.path.join(src, 'data/texture/effect/legacia_aura_pack/*/*'
     if '/000/' in rel:
         continue
     im = Image.open(f); im.load(); mode = im.mode
-    im = im.convert('RGBA'); px = im.load(); w, h = im.size
+    im = im.convert('RGBA'); w, h = im.size
+    px = im.load()
+    key = set()
     for y in range(h):
         for x in range(w):
             r, gg, b, a = px[x, y]
             if r >= 250 and gg <= 5 and b >= 250:
-                continue
-            px[x, y] = (lut[r], lut[gg], lut[b], a)
+                key.add((x, y)); px[x, y] = (0, 0, 0, a)  # black adds nothing: no pink fringes when sharpening
+    if sharp:
+        rgb = im.convert('RGB').filter(ImageFilter.UnsharpMask(radius=1.2, percent=180, threshold=2))
+        rgb.putalpha(im.getchannel('A')); im = rgb; px = im.load()
+    for y in range(h):
+        for x in range(w):
+            r, gg, b, a = px[x, y]
+            px[x, y] = (255, 0, 255, a) if (x, y) in key else (lut[r], lut[gg], lut[b], a)
     dst = os.path.join(out, rel); os.makedirs(os.path.dirname(dst), exist_ok=True)
     (im if mode == 'RGBA' else im.convert('RGB')).save(dst); n += 1
-print(n, 'pictures; 40->%d 100->%d 180->%d 255->%d' % (lut[40], lut[100], lut[180], lut[255]))
+print(n, 'pictures')
