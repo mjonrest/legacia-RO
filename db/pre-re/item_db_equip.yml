@@ -31537,7 +31537,7 @@ Body:
     Type: Armor
     Buy: 20
     Weight: 500
-    Defense: 2
+    Defense: 5
     Locations:
       Head_Top: true
     ArmorLevel: 1
@@ -31546,7 +31546,7 @@ Body:
     Script: |
       bonus bStr,2;
       bonus bUnbreakableHelm;
-      if (readparam(bDex)<56 && (BaseClass == Job_Swordman || BaseClass == Job_Merchant || BaseClass == Job_Thief))
+      if (readparam(bDex)<55 && (BaseClass == Job_Swordman || BaseClass == Job_Merchant || BaseClass == Job_Thief))
          bonus bDex,JobLevel/7;
   - Id: 5263
     AegisName: Ati_Atihan_Hat
