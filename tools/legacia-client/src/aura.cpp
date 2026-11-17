@@ -921,6 +921,39 @@ const uint8_t* efx_list(uint32_t gid) {
 	return nullptr;
 }
 
+// The aura's parts (rings, sparkles, glow) are primitives from the game's pool (static memory,
+// which the search does not follow) that the effect keeps in std::vectors: effect 200 at +0xe4
+// (pikapika2) and +0xf0 (ring_blue), 976 at +0x18c (whitelight); a part's picture is at +0x18
+// (0xb3ead0). New parts are added all the time, so they are gone through every frame.
+int efx_prims(const uint8_t* obj, Pack* p, int& swapped) {
+	int pics = 0;
+	memset(g_regions, 0, sizeof(g_regions)); // parts come and go: never trust an old answer
+	for (int off = 0xc0; off <= 0x1a0; off += 4) {
+		if (!readable_fast((uintptr_t)obj + off, 12))
+			continue;
+		const uintptr_t b = *(const uintptr_t*)(obj + off), e = *(const uintptr_t*)(obj + off + 4),
+		                c = *(const uintptr_t*)(obj + off + 8);
+		if (!b || (b & 3) || b > e || e > c || ((e - b) & 3) || e - b > 4 * 4096 || !readable_fast(b, (int)(e - b)))
+			continue;
+		for (uintptr_t q = b; q < e; q += 4) {
+			uintptr_t prim = *(const uintptr_t*)q;
+			if (!prim || (prim & 3) || !readable_fast(prim + 0x18, 4))
+				continue;
+			void** t = (void**)(prim + 0x18);
+			auto role = g_picRole.find(*t);
+			if (role == g_picRole.end())
+				continue;
+			pics++;
+			void* want = p && p->tex[role->second] ? p->tex[role->second] : g_official[role->second];
+			if (want && *t != want) {
+				*t = want;
+				swapped++;
+			}
+		}
+	}
+	return pics;
+}
+
 // the aura pictures in the actor's effects of the newer system; returns pictures found
 int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLen, int idsCap, bool log, int frame) {
 	if (!readable((uintptr_t)actor + 0x110, 4))
@@ -967,7 +1000,7 @@ int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLe
 				for (void** x : es.extra)
 					other[g_texNames[*x]]++;
 				for (auto& kv : other)
-					log_line("aura: effect %d also uses %s (%d places), hidden", id, kv.first.c_str(), kv.second);
+					log_line("aura: effect %d search also met %s (%d places), left alone", id, kv.first.c_str(), kv.second);
 			}
 			if (log) {
 				char hex[3 * 64 + 1];
@@ -984,12 +1017,10 @@ int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLe
 			blankWarned = true;
 			log_line("aura: blank pack 000 is missing (data\\texture\\effect\\legacia_aura_pack\\000), so your own aura cannot be hidden");
 		}
-		for (void** x : es.extra) {
-			if (blank && readable((uintptr_t)x, 4) && *x != blank && g_texNames.count(*x)) {
-				*x = blank;
-				swapped++;
-			}
-		}
+		// (other pictures found by the search are left alone: the game's aura classes use only
+		// ring_blue + pikapika2 (effect 200) and whitelight (976); the rest belonged to other effects)
+		(void)blank;
+		pics += efx_prims(obj, p, swapped);
 		for (void** s : es.slots) {
 			if (!readable((uintptr_t)s, 4))
 				continue;
