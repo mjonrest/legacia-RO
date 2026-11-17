@@ -478,6 +478,59 @@ void lgp_draw_alone(void* ground, void* view, const int* area) {
 	}
 }
 
+// Graymap's own cell drawing: RenderAttrTile (0xac0130) step by step, except that the polygon
+// goes to the renderer's solid list (AddRP flags 0) instead of the see-through one (flags 1).
+// The see-through list is drawn after the effects, so Graymap cells drawn there painted over
+// whatever effect stood on them, like the level 99 aura; the real ground is drawn first.
+const uintptr_t TILE_CORNERS = 0xabf4a0; // C3dGround: (x, y, vector3d out[4]) -> the ground tile's corners
+const uintptr_t BORROW_RP = 0x543060, PROJECT_VERTEX = 0x55c750, ADD_RP = 0x558da0;
+typedef bool(__thiscall* CornersFn)(void* ground, int x, int y, float* out);
+typedef uint8_t*(__thiscall* BorrowFn)(void* renderer);
+typedef void(__thiscall* ProjectFn)(void* renderer, const float* world, const void* view, void* out);
+typedef void(__thiscall* AddRpFn)(void* renderer, void* face, int flags);
+
+float tex_ratio(void* tex, int num, int den) {
+	int a = *(int*)((uint8_t*)tex + num), b = *(int*)((uint8_t*)tex + den);
+	return b ? (float)a / (float)b : 1.0f;
+}
+
+void solid_tile(void* ground, void* view, int x, int y, uint32_t argb, void* tex, const float* uv) {
+	float c[12];
+	if (!((CornersFn)TILE_CORNERS)(ground, x, y, c))
+		return;
+	// a tile is 2x2 cells: keep this cell's half on each axis
+	for (int k = 0; k < 4; k++) {
+		float* px = &c[k * 3];
+		if (x & 1) {
+			if (c[3] > px[0]) px[0] += (c[3] - px[0]) * 0.5f;
+		} else if (px[0] > c[0]) {
+			px[0] -= (px[0] - c[0]) * 0.5f;
+		}
+		if (y & 1) {
+			if (c[8] > px[2]) px[2] += (c[8] - px[2]) * 0.5f;
+		} else if (px[2] > c[2]) {
+			px[2] -= (px[2] - c[2]) * 0.5f;
+		}
+	}
+	void* r = *(void**)RENDERER_PTR;
+	uint8_t* face = ((BorrowFn)BORROW_RP)(r);
+	if (!face)
+		return;
+	uint8_t* v = *(uint8_t**)face; // 4 vertices of 0x20: x y z rhw, colour +0x10, u +0x18, v +0x1c
+	for (int k = 0; k < 4; k++)
+		((ProjectFn)PROJECT_VERTEX)(r, &c[k * 3], view, v + k * 0x20);
+	float su = tex_ratio(tex, 0x14, 0xc), sv = tex_ratio(tex, 0x18, 0x10);
+	for (int k = 0; k < 4; k++) {
+		*(float*)(v + k * 0x20 + 0x18) = su * uv[k * 2];
+		*(float*)(v + k * 0x20 + 0x1c) = sv * uv[k * 2 + 1];
+		*(uint32_t*)(v + k * 0x20 + 0x10) = argb;
+	}
+	*(int*)(face + 0x18) = 5; // SRCALPHA
+	*(int*)(face + 0x1c) = 6; // INVSRCALPHA
+	*(void**)(face + 8) = tex;
+	((AddRpFn)ADD_RP)(r, face, 0);
+}
+
 void draw_cells(void* ground, void* view, const int* area) {
 	make_textures();
 	uint8_t* attr = (uint8_t*)world_attr();
@@ -509,7 +562,7 @@ void draw_cells(void* ground, void* view, const int* area) {
 				continue;
 			g_stamp[i] = frame;
 			void* lgp = lgp_tex_at(x, y);
-			tile(ground, view, x, y, 0xffffffff, lgp ? lgp : g_cellTex[cell_kind(cells[i].flag)], (void*)UV_FULL);
+			solid_tile(ground, view, x, y, 0xffffffff, lgp ? lgp : g_cellTex[cell_kind(cells[i].flag)], (const float*)UV_FULL);
 		}
 	}
 }

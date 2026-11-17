@@ -17,12 +17,15 @@
 // aura textures by tools/legacia_aura/genplugin.py, drawn additively.
 #include "voice.h"
 
+#include <ctype.h>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
 
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 namespace {
 
@@ -90,6 +93,8 @@ DWORD g_aurasAt;                             // when the last answer came
 bool g_none;                                 // the map-server can't answer
 
 bool readable(uintptr_t at, int len) {
+	if (at + (uintptr_t)len < at)
+		return false;
 	MEMORY_BASIC_INFORMATION mi;
 	if (!VirtualQuery((void*)at, &mi, sizeof(mi)) || mi.State != MEM_COMMIT || (mi.Protect & (PAGE_NOACCESS | PAGE_GUARD)))
 		return false;
@@ -657,6 +662,7 @@ void draw_actor(const uint8_t* actor, const Aura& a, uint32_t aid, float t) {
 // manager 0x1382ff4: GetTexture 0x5708a0 (name, 0, 0, 1, 0) loads and caches,
 // a std::map<const char*, CTexture*> (find 0x571370; node key +0x10, value +0x14).
 const uintptr_t TEX_MGR = 0x1382ff4, GET_TEXTURE = 0x5708a0, TEX_FIND = 0x571370;
+const uintptr_t AURA_LEVEL = 0x1733e40; // MaxLevelTable.BaseLevel: level that gets the level 99 aura
 const uintptr_t AURA_EFFECT_IDS = 0x1733e78; // the game's own overrides (0 = default), 8 ints
 const int ACTOR_EFFECTS = 0x144, EFFECT_ID = 0x168, EFFECT_PRIMS = 0x1a4, PRIM_TEX = 0x144, PRIM_TEX_COUNT = 0x204;
 const int EFFECT_SIZE = 0x11ca8, PRIM_SIZE = 0xfa18;
@@ -708,6 +714,18 @@ void* tex_get(const char* name) {
 	return tex_cached(name); // a file that is not there is not kept (the game hands back a stand-in)
 }
 
+// Packs with only aurafloat.tga + auraring.bmp (from tools/legacia_aura/packs.txt). Asking the
+// game for a file that is not there prints "Resource File Loading fail" in the chat, so the
+// floor pictures of these packs are never asked for (the official floor stays).
+const int PACK_NO_FLOOR[] = {4, 19, 22, 27, 28, 29, 33, 34, 35, 40, 41, 42, 49, 50, 51, 52, 53, 54, 55, 59, 62, 67, 69, 75, 78, 83, 84, 87, 89, 93, 94, 98, 105, 106, 107, 118, 120, 121, 122, 125, 126, 127, 129, 136, 144, 150, 151, 152, 155, 158};
+
+bool pack_has_floor(int n) {
+	for (int x : PACK_NO_FLOOR)
+		if (x == n)
+			return false;
+	return true;
+}
+
 Pack& pack_get(int n) {
 	auto it = g_packs.find(n);
 	if (it != g_packs.end())
@@ -718,9 +736,11 @@ Pack& pack_get(int n) {
 		char buf[96];
 		snprintf(buf, sizeof(buf), "effect\\legacia_aura_pack\\%03d\\%s", n, PACK_FILE[i]);
 		p.name[i] = _strdup(buf);
-		p.tex[i] = tex_get(p.name[i]);
+		p.tex[i] = i >= 2 && !pack_has_floor(n) ? nullptr : tex_get(p.name[i]);
 		p.missing[i] = !p.tex[i];
 		found += !p.missing[i];
+		if (p.tex[i])
+			g_picRole[p.tex[i]] = i; // known at once, not only from the next frame
 	}
 	log_line("aura: pack %d has %d of %d pictures (data\\texture\\effect\\legacia_aura_pack\\%03d)", n, found, PACK_PICS, n);
 	return p;
@@ -759,12 +779,315 @@ bool aura_effect_id(int id) {
 	return false;
 }
 
+// ---- the newer effect system ----
+// The level 99 aura is not a CRagEffect on the actor: before LaunchEffect the aura code
+// (0xcb5b20) asks the effect manager at [0x16f0a44] (0xb23440), which draws the effects it
+// knows itself. The manager keeps the live effects per unit: std::map<gid, list head> at
+// +0x10 (0xb241b0 / 0xb24140; node key +0x10, value +0x14), each list node's value (+8)
+// an effect object with its effect id at +4. Where such an object keeps its pictures is not
+// known yet, so the plugin looks for them: the object's memory and what it points to (3
+// levels) are searched for the official aura pictures, and every place found gets the pack's.
+const uintptr_t EFX_MGR = 0x16f0a44;
+
+struct Region {
+	uintptr_t lo, hi;
+};
+Region g_regions[16];
+int g_regionNext;
+
+bool readable_fast(uintptr_t at, int len) {
+	if (at + (uintptr_t)len < at || at + (uintptr_t)len > 0xfffe0000u)
+		return false; // a wrapped range (a value like 0xffffff00 taken for a pointer) once crashed the game
+	for (const Region& r : g_regions)
+		if (at >= r.lo && at + len <= r.hi)
+			return true;
+	MEMORY_BASIC_INFORMATION mi;
+	if (!VirtualQuery((void*)at, &mi, sizeof(mi)) || mi.State != MEM_COMMIT ||
+	    (mi.Protect & (PAGE_NOACCESS | PAGE_GUARD)) || !(mi.Protect & (PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READWRITE)))
+		return false;
+	Region& r = g_regions[g_regionNext++ % 16];
+	r.lo = (uintptr_t)mi.BaseAddress;
+	r.hi = r.lo + mi.RegionSize;
+	return at + len <= r.hi;
+}
+
+// every texture the game has loaded -> its name (the texture manager's map, walked when an aura is searched)
+std::unordered_map<void*, std::string> g_texNames;
+void tex_names_load() {
+	g_texNames.clear();
+	if (!readable(TEX_MGR, 8))
+		return;
+	const uint8_t* head = *(const uint8_t* const*)TEX_MGR;
+	int size = *(const int*)(TEX_MGR + 4);
+	if (!head || size <= 0 || size > 100000 || !readable((uintptr_t)head, 0x18))
+		return;
+	// in-order walk of the MSVC tree (left +0, parent +4, right +8, isnil +0xd, key +0x10, value +0x14)
+	std::vector<const uint8_t*> stack;
+	const uint8_t* n = *(const uint8_t* const*)(head + 4);
+	int guard = 0;
+	while ((n && readable((uintptr_t)n, 0x18) && !n[0xd]) || !stack.empty()) {
+		if (++guard > 200000)
+			break;
+		while (n && readable((uintptr_t)n, 0x18) && !n[0xd]) {
+			stack.push_back(n);
+			n = *(const uint8_t* const*)n;
+		}
+		if (stack.empty())
+			break;
+		n = stack.back();
+		stack.pop_back();
+		const char* key = *(const char* const*)(n + 0x10);
+		void* tex = *(void* const*)(n + 0x14);
+		char buf[128];
+		int k = 0;
+		for (; key && k < 127 && readable((uintptr_t)key + k, 1) && key[k]; k++)
+			buf[k] = key[k];
+		buf[k] = 0;
+		if (tex)
+			g_texNames[tex] = buf;
+		n = *(const uint8_t* const*)(n + 8);
+	}
+}
+
+struct EfxSlots {
+	std::vector<void**> extra; // places holding another picture of the aura (not one of the 4 a pack has): hidden
+	std::vector<void**> slots; // places that held an official aura picture
+	int frame = 0;
+	int scans = 0, scanFrame = 0; // looked again every 30 frames (pictures load late, parts come and go)
+	int logs = 0, maxSlots = -1, maxExtra = -1;
+};
+std::unordered_map<const uint8_t*, EfxSlots> g_efxSlots; // effect object -> its picture places
+
+void efx_scan(const uint8_t* p, int depth, std::vector<void**>& out, std::vector<void**>& extra, int& budget,
+              std::unordered_set<const uint8_t*>& seen) {
+	const int SPAN = 0x300;
+	if (!seen.insert(p).second || !readable_fast((uintptr_t)p, SPAN))
+		return;
+	for (int off = 0; off < SPAN && budget > 0; off += 4) {
+		budget--;
+		void* v = *(void* const*)(p + off);
+		if (!v)
+			continue;
+		if (g_picRole.count(v)) {
+			// not the texture manager's own list (map node: name +0x10, texture +0x14):
+			// changing that would change the picture for everyone
+			const char* const* name = (const char* const*)(p + off - 4);
+			bool cacheNode = false;
+			if (off >= 4 && readable_fast((uintptr_t)*name, 8)) {
+				char buf[128];
+				int k = 0;
+				for (; k < 127 && readable_fast((uintptr_t)*name + k, 1) && (*name)[k]; k++)
+					buf[k] = (char)tolower((unsigned char)(*name)[k]);
+				buf[k] = 0;
+				cacheNode = strstr(buf, ".tga") || strstr(buf, ".bmp");
+			}
+			if (!cacheNode)
+				out.push_back((void**)(p + off));
+			continue;
+		}
+		auto tn = g_texNames.find(v);
+		// only effect pictures (never UI or map textures that a pointer chain might reach), not our own packs
+		if (tn != g_texNames.end() && _strnicmp(tn->second.c_str(), "effect\\", 7) == 0 &&
+		    _strnicmp(tn->second.c_str(), "effect\\legacia_aura_pack", 25) != 0) {
+			const std::string& nm = tn->second;
+			// a texture of the aura that a pack has no picture for (not a cache node: its name sits 4 bytes before)
+			const char* const* name = (const char* const*)(p + off - 4);
+			if (!(off >= 4 && *name && readable_fast((uintptr_t)*name, 4) && strncmp(*name, nm.c_str(), 3) == 0))
+				extra.push_back((void**)(p + off));
+			continue;
+		}
+		uintptr_t u = (uintptr_t)v;
+		if (depth > 0 && (u & 3) == 0 && u > 0x10000 && (u < 0x400000 || u >= 0x3880000) && u < 0xfffe0000u)
+			efx_scan((const uint8_t*)v, depth - 1, out, extra, budget, seen);
+	}
+}
+
+const uint8_t* efx_list(uint32_t gid) {
+	if (!readable(EFX_MGR, 4))
+		return nullptr;
+	const uint8_t* mgr = *(const uint8_t* const*)EFX_MGR;
+	if (!mgr || !readable((uintptr_t)mgr + 0x10, 8))
+		return nullptr;
+	const uint8_t* head = *(const uint8_t* const*)(mgr + 0x10);
+	if (!head || !readable((uintptr_t)head, 0x18))
+		return nullptr;
+	const uint8_t* n = *(const uint8_t* const*)(head + 4); // root
+	for (int g = 0; g < 64 && n && readable((uintptr_t)n, 0x18) && !n[0xd]; g++) {
+		uint32_t key = *(const uint32_t*)(n + 0x10);
+		if (key == gid)
+			return *(const uint8_t* const*)(n + 0x14);
+		n = *(const uint8_t* const*)(n + (gid < key ? 0 : 8));
+	}
+	return nullptr;
+}
+
+// The aura's parts (rings, sparkles, glow) are primitives from the game's pool (static memory,
+// which the search does not follow) that the effect keeps in std::vectors: effect 200 at +0xe4
+// (pikapika2) and +0xf0 (ring_blue), 976 at +0x18c (whitelight); a part's picture is at +0x18
+// (0xb3ead0). New parts are added all the time, so they are gone through every frame.
+int g_regionFrame = -1;
+int efx_prims(const uint8_t* obj, int id, Pack* p, int& swapped, int frame) {
+	int pics = 0;
+	if (frame != g_regionFrame) {
+		g_regionFrame = frame;
+		memset(g_regions, 0, sizeof(g_regions)); // parts come and go: never trust last frame's answer
+	}
+	static const int V200[] = {0xe4, 0xf0}, V976[] = {0x18c};
+	const int* offs = id == 976 ? V976 : V200;
+	int nOffs = id == 976 ? 1 : 2;
+	for (int vi = 0; vi < nOffs; vi++) {
+		int off = offs[vi];
+		if (!readable_fast((uintptr_t)obj + off, 12))
+			continue;
+		const uintptr_t b = *(const uintptr_t*)(obj + off), e = *(const uintptr_t*)(obj + off + 4),
+		                c = *(const uintptr_t*)(obj + off + 8);
+		if (!b || (b & 3) || b > e || e > c || ((e - b) & 3) || e - b > 4 * 4096 || !readable_fast(b, (int)(e - b)))
+			continue;
+		for (uintptr_t q = b; q < e; q += 4) {
+			uintptr_t prim = *(const uintptr_t*)q;
+			if (!prim || (prim & 3) || !readable_fast(prim + 0x18, 4))
+				continue;
+			void** t = (void**)(prim + 0x18);
+			auto role = g_picRole.find(*t);
+			if (role == g_picRole.end())
+				continue;
+			pics++;
+			void* want = p && p->tex[role->second] ? p->tex[role->second] : g_official[role->second];
+			if (want && *t != want) {
+				*t = want;
+				swapped++;
+			}
+		}
+	}
+	return pics;
+}
+
+// the aura pictures in the actor's effects of the newer system; returns pictures found
+int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLen, int idsCap, bool log, int frame) {
+	if (!readable((uintptr_t)actor + 0x110, 4))
+		return 0;
+	const uint8_t* lh = efx_list(*(const uint32_t*)(actor + 0x110));
+	if (!lh || !readable((uintptr_t)lh, 12))
+		return 0;
+	int pics = 0;
+	const uint8_t* node = *(const uint8_t* const*)lh;
+	for (int i = 0; node && node != lh && i < 200; i++) {
+		if (!readable((uintptr_t)node, 12))
+			break;
+		const uint8_t* obj = *(const uint8_t* const*)(node + 8);
+		node = *(const uint8_t* const*)node;
+		if (!obj || !readable((uintptr_t)obj, 8))
+			continue;
+		int id = *(const int*)(obj + 4);
+		if (log && idsLen < idsCap - 24)
+			idsLen += snprintf(ids + idsLen, idsCap - idsLen, " new:%d", id);
+		if (!aura_effect_id(id))
+			continue;
+		EfxSlots& es = g_efxSlots[obj];
+		if (es.scans == 0 || (es.slots.empty() && es.scans < 5 && frame - es.scanFrame > 300)) {
+			es.scans++;
+			es.scanFrame = frame;
+			int budget = 60000;
+			std::unordered_set<const uint8_t*> seen;
+			memset(g_regions, 0, sizeof(g_regions)); // memory may have been freed since the last search
+			tex_names_load();
+			std::unordered_set<void**> wasExtra(es.extra.begin(), es.extra.end()); // hidden ones now hold the blank picture
+			std::vector<void**> slots, extra;
+			efx_scan(obj, 3, slots, extra, budget, seen);
+			es.slots.clear();
+			for (void** x : slots)
+				(wasExtra.count(x) ? extra : es.slots).push_back(x);
+			es.extra.swap(extra);
+			bool grew = (int)es.slots.size() > es.maxSlots || (int)es.extra.size() > es.maxExtra;
+			es.maxSlots = std::max(es.maxSlots, (int)es.slots.size());
+			es.maxExtra = std::max(es.maxExtra, (int)es.extra.size());
+			if (grew && es.logs++ < 6) {
+				log_line("aura: effect %d (object %p, class %p): %d picture places found, %d other pictures", id, obj,
+				         readable((uintptr_t)obj, 4) ? *(void* const*)obj : nullptr, (int)es.slots.size(), (int)es.extra.size());
+				std::unordered_map<std::string, int> other;
+				for (void** x : es.extra)
+					other[g_texNames[*x]]++;
+				for (auto& kv : other)
+					log_line("aura: effect %d search also met %s (%d places), left alone", id, kv.first.c_str(), kv.second);
+			}
+			if (log) {
+				char hex[3 * 64 + 1];
+				int hl = 0;
+				for (int b = 0; b < 64 && readable((uintptr_t)obj + b, 1); b++)
+					hl += snprintf(hex + hl, sizeof(hex) - hl, "%02x ", obj[b]);
+				log_line("aura: effect %d starts %s", id, hex);
+			}
+		}
+		es.frame = frame;
+		void* blank = pack_get(0).tex[0]; // a fully see-through picture
+		static bool blankWarned;
+		if (!blank && !blankWarned) {
+			blankWarned = true;
+			log_line("aura: blank pack 000 is missing (data\\texture\\effect\\legacia_aura_pack\\000), so your own aura cannot be hidden");
+		}
+		// (other pictures found by the search are left alone: the game's aura classes use only
+		// ring_blue + pikapika2 (effect 200) and whitelight (976); the rest belonged to other effects)
+		(void)blank;
+		pics += efx_prims(obj, id, p, swapped, frame);
+		for (void** s : es.slots) {
+			if (!readable((uintptr_t)s, 4))
+				continue;
+			auto role = g_picRole.find(*s);
+			if (role == g_picRole.end())
+				continue;
+			pics++;
+			void* want = p && p->tex[role->second] ? p->tex[role->second] : g_official[role->second];
+			if (want && *s != want) {
+				*s = want;
+				swapped++;
+			}
+		}
+	}
+	return pics;
+}
+
+// the aura pictures in an old-style effect's primitives (+0x1a4 list, textures +0x144, count +0x204)
+int prims_apply(uint8_t* eff, Pack* p, int& swapped, bool dry = false) {
+	if (!readable((uintptr_t)eff + EFFECT_PRIMS, 8))
+		return 0;
+	const uint8_t* phead = *(const uint8_t* const*)(eff + EFFECT_PRIMS);
+	int psize = *(const int*)(eff + EFFECT_PRIMS + 4);
+	if (!phead || psize < 0 || psize > 200 || !readable((uintptr_t)phead, 12))
+		return 0;
+	int pics = 0;
+	const uint8_t* pn = *(const uint8_t* const*)phead;
+	for (int j = 0; pn && pn != phead && j <= psize; j++) {
+		if (!readable((uintptr_t)pn, 12))
+			break;
+		uint8_t* prim = *(uint8_t* const*)(pn + 8);
+		pn = *(const uint8_t* const*)pn;
+		if (!prim || !readable((uintptr_t)prim + PRIM_TEX, 4) || !readable((uintptr_t)prim + PRIM_TEX_COUNT, 4))
+			continue;
+		void** tex = *(void***)(prim + PRIM_TEX);
+		int count = *(int*)(prim + PRIM_TEX_COUNT);
+		if (!tex || count <= 0 || count > 64 || !readable((uintptr_t)tex, count * 4))
+			continue;
+		for (int k = 0; k < count; k++) {
+			auto role = g_picRole.find(tex[k]);
+			if (role == g_picRole.end())
+				continue;
+			pics++;
+			void* want = p && p->tex[role->second] ? p->tex[role->second] : g_official[role->second];
+			if (!dry && want && tex[k] != want) {
+				tex[k] = want;
+				swapped++;
+			}
+		}
+	}
+	return pics;
+}
+
 // Point the pictures of the actor's level 99 aura at pack n (0 = back to the official ones).
 // Returns how many pictures the aura has (0 = no aura on this actor now).
 int pack_apply(const uint8_t* actor, int n, bool log) {
 	if (!readable((uintptr_t)actor + ACTOR_EFFECTS, 8))
 		return 0;
-	Pack* p = n > 0 ? &pack_get(n) : nullptr;
+	Pack* p = n >= 0 ? &pack_get(n) : nullptr; // pack 0 = blank pictures (hides the aura)
 	// std::list<CRagEffect*>: head node, size; node = next, prev, value
 	const uint8_t* head = *(const uint8_t* const*)(actor + ACTOR_EFFECTS);
 	int size = *(const int*)(actor + ACTOR_EFFECTS + 4);
@@ -780,53 +1103,65 @@ int pack_apply(const uint8_t* actor, int n, bool log) {
 			break;
 		uint8_t* eff = *(uint8_t* const*)(node + 8);
 		node = *(const uint8_t* const*)node;
-		if (!eff || !readable((uintptr_t)eff, EFFECT_SIZE))
+		// only the fields used are checked: a whole effect (0x11ca8 bytes) can span two
+		// memory regions, and checking it at once skipped the aura's effects
+		if (!eff || !readable((uintptr_t)eff + EFFECT_ID, 4)) {
+			if (log && idsLen < (int)sizeof(ids) - 12)
+				idsLen += snprintf(ids + idsLen, sizeof(ids) - idsLen, " ?");
 			continue;
+		}
 		int id = *(int*)(eff + EFFECT_ID);
 		if (log && idsLen < (int)sizeof(ids) - 12)
 			idsLen += snprintf(ids + idsLen, sizeof(ids) - idsLen, " %d", id);
 		if (!aura_effect_id(id))
 			continue;
-		const uint8_t* phead = *(const uint8_t* const*)(eff + EFFECT_PRIMS);
-		int psize = *(const int*)(eff + EFFECT_PRIMS + 4);
-		if (!phead || psize < 0 || psize > 200 || !readable((uintptr_t)phead, 12))
-			continue;
-		const uint8_t* pn = *(const uint8_t* const*)phead;
-		for (int j = 0; pn && pn != phead && j <= psize; j++) {
-			if (!readable((uintptr_t)pn, 12))
-				break;
-			uint8_t* prim = *(uint8_t* const*)(pn + 8);
-			pn = *(const uint8_t* const*)pn;
-			if (!prim || !readable((uintptr_t)prim, PRIM_TEX_COUNT + 4))
-				continue;
-			void** tex = *(void***)(prim + PRIM_TEX);
-			int count = *(int*)(prim + PRIM_TEX_COUNT);
-			if (!tex || count <= 0 || count > 64 || !readable((uintptr_t)tex, count * 4))
-				continue;
-			for (int k = 0; k < count; k++) {
-				auto role = g_picRole.find(tex[k]);
-				if (role == g_picRole.end())
-					continue;
-				pics++;
-				void* want = p && p->tex[role->second] ? p->tex[role->second] : g_official[role->second];
-				if (want && tex[k] != want) {
-					tex[k] = want;
-					swapped++;
-				}
-			}
-		}
+		pics += prims_apply(eff, p, swapped);
 	}
+	pics += efx_apply(actor, p, swapped, ids, idsLen, (int)sizeof(ids), log, g_packFrame);
 	if (log)
-		log_line("aura: pack %d on an aura of %d pictures (%d changed); effects:%s", n, pics, swapped, ids);
+		log_line("aura: pack %d on an aura of %d pictures (%d changed); %d effects:%s", n, pics, swapped, size, ids);
 	return pics;
 }
 
+// Diagnostics: the world's object list (std::list at CWorld +8, effects and polygons, see
+// LaunchEffect 0xcabf18) - log the effects whose owner (+0x138) is this actor.
+const uint8_t* g_packWorld;
+void pack_log_world(const uint8_t* actor) {
+	if (!g_packWorld || !readable((uintptr_t)g_packWorld + 8, 8))
+		return;
+	const uint8_t* head = *(const uint8_t* const*)(g_packWorld + 8);
+	int size = *(const int*)(g_packWorld + 12);
+	if (!head || size < 0 || size > 20000 || !readable((uintptr_t)head, 12))
+		return;
+	char ids[200];
+	int len = 0;
+	ids[0] = 0;
+	const uint8_t* node = *(const uint8_t* const*)head;
+	for (int i = 0; node && node != head && i <= size; i++) {
+		if (!readable((uintptr_t)node, 12))
+			break;
+		const uint8_t* o = *(const uint8_t* const*)(node + 8);
+		node = *(const uint8_t* const*)node;
+		if (o && readable((uintptr_t)o + 0x138, 4) && readable((uintptr_t)o + EFFECT_ID, 4) &&
+		    *(const uint8_t* const*)(o + 0x138) == actor && len < (int)sizeof(ids) - 12)
+			len += snprintf(ids + len, sizeof(ids) - len, " %d", *(const int*)(o + EFFECT_ID));
+	}
+	log_line("aura: world has %d objects; yours:%s", size, ids);
+}
+
 // once a frame for each player in sight: their pack (0 = none)
+// Your own level 99 aura is drawn by the game whatever the server sends (it only checks
+// your level), so without a pack it gets pack 0, blank pictures: like everyone else's,
+// it stays hidden. Other players get no aura from the server unless they wear a pack.
 void pack_actor(const uint8_t* actor, int n, bool self, int frame) {
+	if (n <= 0 && self)
+		n = 0;
+	else if (n <= 0)
+		n = -1;
 	if (!g_packOk)
 		return;
 	auto it = g_packWorn.find(actor);
-	if (n <= 0 && it == g_packWorn.end())
+	if (n < 0 && it == g_packWorn.end())
 		return; // never had a pack: leave the official aura alone
 	pack_frame(frame);
 	static int lastSelf = -1, lastSelfPics = -1;
@@ -835,15 +1170,60 @@ void pack_actor(const uint8_t* actor, int n, bool self, int frame) {
 		lastSelf = n;
 		lastSelfPics = pics;
 		pack_apply(actor, n, true); // log what your own aura is made of when it changes
+		pack_log_world(actor);
+		// the game shows your level 99 aura when your level (0x172d5a8, copied to +0x210) equals
+		// its aura level (0x1733e40); +0x2b4 is set while the aura is on (0xca86e0, 0xcb597e)
+		if (readable(0x172d5a8, 4) && readable(0x1733e40, 4) && readable((uintptr_t)actor + 0x2b4, 8))
+			log_line("aura: your level %d (actor %d), game aura level %d, aura on %d", *(const int*)0x172d5a8,
+			         *(const short*)(actor + 0x210), *(const int*)0x1733e40, *(const int*)(actor + 0x2b4));
 	}
-	if (n > 0)
+	if (n >= 0)
 		g_packWorn[actor] = Worn{n, frame};
 	else
 		g_packWorn.erase(actor); // pictures are back to the official ones
 }
 
 // forget actors that are gone (not seen this frame)
+// The rings of the level 99 aura can be separate effects in the world's object list
+// (CWorld +8, std::list), launched again and again. Those owned (+0x138) by an actor with a
+// pack get its pictures too; any world effect holding aura pictures is logged once.
+void pack_world(int frame) {
+	if (!g_packWorld || !readable((uintptr_t)g_packWorld + 8, 8))
+		return;
+	const uint8_t* head = *(const uint8_t* const*)(g_packWorld + 8);
+	int size = *(const int*)(g_packWorld + 12);
+	if (!head || size < 0 || size > 20000 || !readable((uintptr_t)head, 12))
+		return;
+	static std::unordered_set<const uint8_t*> logged;
+	static int logs;
+	const uint8_t* node = *(const uint8_t* const*)head;
+	for (int i = 0; node && node != head && i <= size; i++) {
+		if (!readable((uintptr_t)node, 12))
+			break;
+		uint8_t* o = *(uint8_t* const*)(node + 8);
+		node = *(const uint8_t* const*)node;
+		if (!o || !readable((uintptr_t)o + 0x138, 4) || !readable((uintptr_t)o + EFFECT_ID, 4))
+			continue;
+		const uint8_t* owner = *(const uint8_t* const*)(o + 0x138);
+		auto w = g_packWorn.find(owner);
+		int swapped = 0;
+		int pics = w != g_packWorn.end() && w->second.frame == frame ? prims_apply(o, &pack_get(w->second.pack), swapped)
+		                                                              : prims_apply(o, nullptr, swapped, true);
+		if (pics > 0 && logs < 40 && logged.insert(o).second) {
+			logs++;
+			log_line("aura: world effect %d (object %p, owner %p%s) has %d aura pictures", *(const int*)(o + EFFECT_ID), o,
+			         owner, w != g_packWorn.end() ? ", wears a pack" : "", pics);
+		}
+	}
+}
+
 void pack_frame_end(int frame) {
+	for (auto it = g_efxSlots.begin(); it != g_efxSlots.end();) {
+		if (frame - it->second.frame > 2)
+			it = g_efxSlots.erase(it);
+		else
+			++it;
+	}
 	for (auto it = g_packWorn.begin(); it != g_packWorn.end();) {
 		if (it->second.frame != frame)
 			it = g_packWorn.erase(it);
@@ -1019,6 +1399,17 @@ bool g_dropTextures = false;
 void aura_frame() {
 	if (!g_ok)
 		return;
+	// The game draws the level 99 aura when a character's level equals MaxLevelTable.BaseLevel
+	// (ExternalSettings lub, kept at 0x1733e40). Legacia's max level is 99; a client set to 100
+	// shows no level 99 aura at all, so Classic Auras could not show. The server decides who
+	// gets the aura (aura_lv 255, packs only), so the game's value is kept at 99.
+	if (g_packOk && readable(AURA_LEVEL, 4)) {
+		int* lv = (int*)AURA_LEVEL;
+		if (*lv > 99 && *lv <= 200) {
+			log_line("aura: game aura level was %d, set to 99 (Legacia max level)", *lv);
+			*lv = 99;
+		}
+	}
 	uint8_t* mm = (uint8_t*)MODE_MGR;
 	if (*(int*)(mm + 0x58) != 1)
 		g_dropTextures = true;
@@ -1063,6 +1454,7 @@ void aura_draw(void* view) {
 	if (!mode || !readable((uintptr_t)mode + 0xcc, 4))
 		return;
 	uint8_t* world = *(uint8_t**)(mode + 0xcc);
+	g_packWorld = world;
 	if (!world || !readable((uintptr_t)world, 0x34))
 		return;
 
