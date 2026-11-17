@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -810,14 +811,54 @@ bool readable_fast(uintptr_t at, int len) {
 	return at + len <= r.hi;
 }
 
+// every texture the game has loaded -> its name (the texture manager's map, walked when an aura is searched)
+std::unordered_map<void*, std::string> g_texNames;
+void tex_names_load() {
+	g_texNames.clear();
+	if (!readable(TEX_MGR, 8))
+		return;
+	const uint8_t* head = *(const uint8_t* const*)TEX_MGR;
+	int size = *(const int*)(TEX_MGR + 4);
+	if (!head || size <= 0 || size > 100000 || !readable((uintptr_t)head, 0x18))
+		return;
+	// in-order walk of the MSVC tree (left +0, parent +4, right +8, isnil +0xd, key +0x10, value +0x14)
+	std::vector<const uint8_t*> stack;
+	const uint8_t* n = *(const uint8_t* const*)(head + 4);
+	int guard = 0;
+	while ((n && readable((uintptr_t)n, 0x18) && !n[0xd]) || !stack.empty()) {
+		if (++guard > 200000)
+			break;
+		while (n && readable((uintptr_t)n, 0x18) && !n[0xd]) {
+			stack.push_back(n);
+			n = *(const uint8_t* const*)n;
+		}
+		if (stack.empty())
+			break;
+		n = stack.back();
+		stack.pop_back();
+		const char* key = *(const char* const*)(n + 0x10);
+		void* tex = *(void* const*)(n + 0x14);
+		char buf[128];
+		int k = 0;
+		for (; key && k < 127 && readable((uintptr_t)key + k, 1) && key[k]; k++)
+			buf[k] = key[k];
+		buf[k] = 0;
+		if (tex)
+			g_texNames[tex] = buf;
+		n = *(const uint8_t* const*)(n + 8);
+	}
+}
+
 struct EfxSlots {
+	std::vector<void**> extra; // places holding another picture of the aura (not one of the 4 a pack has): hidden
 	std::vector<void**> slots; // places that held an official aura picture
 	int frame = 0;
 	int scans = 0, scanFrame = 0; // looked again a few times while nothing is found (pictures load late)
 };
 std::unordered_map<const uint8_t*, EfxSlots> g_efxSlots; // effect object -> its picture places
 
-void efx_scan(const uint8_t* p, int depth, std::vector<void**>& out, int& budget, std::unordered_set<const uint8_t*>& seen) {
+void efx_scan(const uint8_t* p, int depth, std::vector<void**>& out, std::vector<void**>& extra, int& budget,
+              std::unordered_set<const uint8_t*>& seen) {
 	const int SPAN = 0x300;
 	if (!seen.insert(p).second || !readable_fast((uintptr_t)p, SPAN))
 		return;
@@ -843,9 +884,20 @@ void efx_scan(const uint8_t* p, int depth, std::vector<void**>& out, int& budget
 				out.push_back((void**)(p + off));
 			continue;
 		}
+		auto tn = g_texNames.find(v);
+		// only effect pictures (never UI or map textures that a pointer chain might reach), not our own packs
+		if (tn != g_texNames.end() && _strnicmp(tn->second.c_str(), "effect\\", 7) == 0 &&
+		    _strnicmp(tn->second.c_str(), "effect\\legacia_aura_pack", 25) != 0) {
+			const std::string& nm = tn->second;
+			// a texture of the aura that a pack has no picture for (not a cache node: its name sits 4 bytes before)
+			const char* const* name = (const char* const*)(p + off - 4);
+			if (!(off >= 4 && *name && readable_fast((uintptr_t)*name, 4) && strncmp(*name, nm.c_str(), 3) == 0))
+				extra.push_back((void**)(p + off));
+			continue;
+		}
 		uintptr_t u = (uintptr_t)v;
 		if (depth > 0 && (u & 3) == 0 && u > 0x10000 && (u < 0x400000 || u >= 0x3880000) && u < 0xfffe0000u)
-			efx_scan((const uint8_t*)v, depth - 1, out, budget, seen);
+			efx_scan((const uint8_t*)v, depth - 1, out, extra, budget, seen);
 	}
 }
 
@@ -896,9 +948,15 @@ int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLe
 			int budget = 60000;
 			std::unordered_set<const uint8_t*> seen;
 			memset(g_regions, 0, sizeof(g_regions)); // memory may have been freed since the last search
-			efx_scan(obj, 3, es.slots, budget, seen);
-			log_line("aura: effect %d (object %p, class %p): %d picture places found", id, obj,
-				         readable((uintptr_t)obj, 4) ? *(void* const*)obj : nullptr, (int)es.slots.size());
+			tex_names_load();
+			efx_scan(obj, 3, es.slots, es.extra, budget, seen);
+			log_line("aura: effect %d (object %p, class %p): %d picture places found, %d other pictures", id, obj,
+				         readable((uintptr_t)obj, 4) ? *(void* const*)obj : nullptr, (int)es.slots.size(), (int)es.extra.size());
+			std::unordered_map<std::string, int> other;
+			for (void** x : es.extra)
+				other[g_texNames[*x]]++;
+			for (auto& kv : other)
+				log_line("aura: effect %d also uses %s (%d places), hidden", id, kv.first.c_str(), kv.second);
 			if (log) {
 				char hex[3 * 64 + 1];
 				int hl = 0;
@@ -908,6 +966,13 @@ int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLe
 			}
 		}
 		es.frame = frame;
+		void* blank = pack_get(0).tex[0]; // a fully see-through picture
+		for (void** x : es.extra) {
+			if (blank && readable((uintptr_t)x, 4) && *x != blank && g_texNames.count(*x)) {
+				*x = blank;
+				swapped++;
+			}
+		}
 		for (void** s : es.slots) {
 			if (!readable((uintptr_t)s, 4))
 				continue;
