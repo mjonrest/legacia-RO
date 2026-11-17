@@ -27598,15 +27598,15 @@ Body:
     AegisName: Chaos_Sword
     Name: Chaos Sword
     Type: Weapon
-    SubType: 1hSword
+    SubType: 2hSword
     Weight: 1000
-    Attack: 140
+    Attack: 190
     Range: 1
     Slots: 2
     Jobs:
       Knight: true
     Locations:
-      Right_Hand: true
+      Both_Hand: true
     WeaponLevel: 4
     EquipLevelMin: 2
     Refineable: true

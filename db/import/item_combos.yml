@@ -707,7 +707,7 @@ Body:
   - Combos:
       - Combo:
           - Chaos_Sword    # 60015
-          - Khalitzburg_Card    # 4136
+          - Grand_Peco_Card    # 4161
     Script: |
       .@r = getequiprefinerycnt(EQI_HAND_R);
       .@b = (.@r > 5) ? .@r - 5 : 0;
