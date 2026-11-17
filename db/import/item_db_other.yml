@@ -27345,6 +27345,7 @@ Body:
       Crusader: true
       Knight: true
       Ninja: true
+      Rogue: true
     Locations:
       Right_Hand: true
     WeaponLevel: 4
