@@ -853,7 +853,8 @@ struct EfxSlots {
 	std::vector<void**> extra; // places holding another picture of the aura (not one of the 4 a pack has): hidden
 	std::vector<void**> slots; // places that held an official aura picture
 	int frame = 0;
-	int scans = 0, scanFrame = 0; // looked again a few times while nothing is found (pictures load late)
+	int scans = 0, scanFrame = 0; // looked again every few frames: the rings (effect 200) keep spawning new parts
+	int logs = 0, maxSlots = -1, maxExtra = -1;
 };
 std::unordered_map<const uint8_t*, EfxSlots> g_efxSlots; // effect object -> its picture places
 
@@ -896,8 +897,22 @@ void efx_scan(const uint8_t* p, int depth, std::vector<void**>& out, std::vector
 			continue;
 		}
 		uintptr_t u = (uintptr_t)v;
-		if (depth > 0 && (u & 3) == 0 && u > 0x10000 && (u < 0x400000 || u >= 0x3880000) && u < 0xfffe0000u)
-			efx_scan((const uint8_t*)v, depth - 1, out, extra, budget, seen);
+		if (depth > 0 && (u & 3) == 0 && u > 0x10000 && (u < 0x400000 || u >= 0x3880000) && u < 0xfffe0000u) {
+			// a std::list node (next, prev, value; next's prev is this node): the effect's parts
+			// (each ring of effect 200) sit in a list, so walk all of it as one step
+			const uint8_t* n = (const uint8_t*)v;
+			const uint8_t* nx = readable_fast(u, 12) ? *(const uint8_t* const*)n : nullptr;
+			if (nx && nx != n && ((uintptr_t)nx & 3) == 0 && readable_fast((uintptr_t)nx, 12) &&
+			    *(const uint8_t* const*)(nx + 4) == n) {
+				for (int k = 0; n && k < 400 && budget > 0 && readable_fast((uintptr_t)n, 12); k++) {
+					efx_scan(n, depth - 1, out, extra, budget, seen);
+					n = *(const uint8_t* const*)n;
+					if (n == (const uint8_t*)v)
+						break;
+				}
+			} else
+				efx_scan((const uint8_t*)v, depth - 1, out, extra, budget, seen);
+		}
 	}
 }
 
@@ -942,14 +957,26 @@ int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLe
 		if (!aura_effect_id(id))
 			continue;
 		EfxSlots& es = g_efxSlots[obj];
-		if (es.scans == 0 || (es.slots.empty() && es.scans < 5 && frame - es.scanFrame > 300)) {
+		if (es.scans == 0 || frame - es.scanFrame >= 15) {
 			es.scans++;
 			es.scanFrame = frame;
-			int budget = 60000;
+			int budget = 200000;
 			std::unordered_set<const uint8_t*> seen;
 			memset(g_regions, 0, sizeof(g_regions)); // memory may have been freed since the last search
 			tex_names_load();
-			efx_scan(obj, 3, es.slots, es.extra, budget, seen);
+			// a hidden picture now holds the blank pack picture, which looks like an aura picture: keep it hidden
+			std::unordered_set<void**> wasExtra(es.extra.begin(), es.extra.end());
+			std::vector<void**> slots, extra;
+			efx_scan(obj, 3, slots, extra, budget, seen);
+			es.slots.clear();
+			for (void** x : slots)
+				(wasExtra.count(x) ? extra : es.slots).push_back(x);
+			es.extra.swap(extra);
+			if (es.logs >= 12 || ((int)es.slots.size() <= es.maxSlots && (int)es.extra.size() <= es.maxExtra))
+				goto scanned;
+			es.logs++;
+			es.maxSlots = std::max(es.maxSlots, (int)es.slots.size());
+			es.maxExtra = std::max(es.maxExtra, (int)es.extra.size());
 			log_line("aura: effect %d (object %p, class %p): %d picture places found, %d other pictures", id, obj,
 				         readable((uintptr_t)obj, 4) ? *(void* const*)obj : nullptr, (int)es.slots.size(), (int)es.extra.size());
 			std::unordered_map<std::string, int> other;
@@ -965,6 +992,7 @@ int efx_apply(const uint8_t* actor, Pack* p, int& swapped, char* ids, int& idsLe
 				log_line("aura: effect %d starts %s", id, hex);
 			}
 		}
+	scanned:
 		es.frame = frame;
 		void* blank = pack_get(0).tex[0]; // a fully see-through picture
 		static bool blankWarned;
