@@ -6,6 +6,8 @@
 //=   callfunc "F_LegaciaWeapon",<caster>{,<no class bonus>};
 //= <caster> 0 = physical weapon, 1 = caster weapon
 //= (staffs, Book of Battle, Senbon, Blinkstrike).
+//= Book of Battle passes 0 for Star Gladiator (physical
+//= refine bonus, plus +5% damage vs all class in its item script).
 //= <no class bonus> 1 = skip the class bonus below (the weapon
 //= gives its own job bonus, e.g. Blinkstrike MATK +20%).
 //=
