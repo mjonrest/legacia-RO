@@ -3,7 +3,8 @@ prontera,145,197,6	script	Kafra Employee::kaf_miracle	894,{
 		set .@name$,"[Kafra Emplyoee]";
 		mes "Hello Master "+strcharinfo(0)+", what can i help you?";
 		next;
-		switch(select("Save Position:Storage:Vip Storage:Claim Freebies:Reset Skill/Stats:Platinum Skill:Renter:Promotional Code")){
+		.@IsSG = ((eaclass()&EAJ_UPPERMASK) == EAJ_STAR_GLADIATOR);
+		switch(select("Save Position:Storage:Vip Storage:Claim Freebies:Reset Skill/Stats:Platinum Skill:Renter:Promotional Code:" + (.@IsSG ? "Reset Feeling/Hatred" : ""))){
 		case 1:
 			mes .@name$;
 			mes "Saving position in the city of Prontera";
@@ -45,6 +46,9 @@ prontera,145,197,6	script	Kafra Employee::kaf_miracle	894,{
 		case 8:
 			callsub OnPromo;
 			end;
+		case 9:
+			callsub OnSGReset;
+			end;
 		}
 
 OnInit:
@@ -62,8 +66,6 @@ setarray .message$[0], "Kafra Legacia","Reset Stats&Skill","Rent Mount","Platinu
 OnReset:
 	//	 		Skills,	Stats,	Both,	Limit
 	setarray .@Reset,	5000000,	5000000,	5000000,	0;
-	.@SGReset = 1000000;	// Star Gladiator Feeling / Hatred reset, per reset
-	.@IsSG = ((eaclass()&EAJ_UPPERMASK) == EAJ_STAR_GLADIATOR);
 	mes "[Reset Girl]";
 	if(.@Reset[3] && reset_limit > .@Reset[3]) {
 		mes "Sorry you can only reset "+callfunc("F_InsertPlural",.@Reset[3],"time")+" in your life.";
@@ -73,39 +75,12 @@ OnReset:
 	mes "Reset Stats: "+ callfunc("F_InsertComma",.@Reset[1]) +"z";
 	mes "Reset Skills: "+ callfunc("F_InsertComma",.@Reset[0]) +"z";
 	mes "Reset Both: "+ callfunc("F_InsertComma",.@Reset[2]) +"z";
-	if (.@IsSG) {
-		mes "Reset Feeling (Sun/Moon/Star maps): "+ callfunc("F_InsertComma",.@SGReset) +"z";
-		mes "Reset Hatred (Sun/Moon/Star targets): "+ callfunc("F_InsertComma",.@SGReset) +"z";
-	}
 	if(.@Reset[3]) mes "You may only reset "+callfunc("F_InsertPlural",.@Reset[3],"time")+", so use "+((.@Reset[3]>1)?"them":"it")+" wisely.";
 	mes "Please select the service you want:";
 	next;
-	set .@i,(select("^FF3355Reset Skills:Reset Stats:Reset Both^000000:" + (.@IsSG ? "^0055FFReset Feeling:Reset Hatred^000000" : ":") + ":Cancel"));
-	if(.@i > 5) close;
+	set .@i,(select("^FF3355Reset Skills:Reset Stats:Reset Both^000000:Cancel"));
+	if(.@i > 3) close;
 	mes "[Reset Girl]";
-	if (.@i > 3) {
-		// Star Gladiator Feeling (4) / Hatred (5) reset
-		if (!.@IsSG) close;
-		if (Zeny < .@SGReset) {
-			mes "Sorry, you don't have enough Zeny.";
-			close;
-		}
-		mes "This will clear all your "+ ((.@i == 4) ? "Feeling maps" : "Hatred targets") +" (Sun, Moon and Star).";
-		mes "It costs "+ callfunc("F_InsertComma",.@SGReset) +"z. Are you sure?";
-		next;
-		if (select("Let me think:That's fine") == 1) close;
-		mes "[Reset Girl]";
-		if (Zeny < .@SGReset) {
-			mes "Sorry, you don't have enough Zeny.";
-			close;
-		}
-		set Zeny, Zeny-.@SGReset;
-		if (.@i == 4) resetfeel;
-		else resethate;
-		mes "There you go! You can choose your "+ ((.@i == 4) ? "Feeling maps" : "Hatred targets") +" again.";
-		mes "Please relog if your skill window still shows the old ones.";
-		close;
-	}
 	if (Zeny < .@Reset[.@i-1]) {
 		mes "Sorry, you don't have enough Zeny.";
 		close;
@@ -122,6 +97,37 @@ OnReset:
 	if(.@i&2) ResetStatus;
 	mes "There you go!";
 	if(.@Reset[3]) set reset_limit,reset_limit + 1;
+	close;
+
+OnSGReset:
+	// Star Gladiator Feeling / Hatred reset (Sun, Moon, Star)
+	.@Cost = 1000000;	// zeny per reset
+	mes "[Kafra Employee]";
+	if ((eaclass()&EAJ_UPPERMASK) != EAJ_STAR_GLADIATOR) {
+		mes "Only Star Gladiators can use this service.";
+		close;
+	}
+	mes "I can reset your Feeling maps or your Hatred targets.";
+	mes "Each reset costs "+ callfunc("F_InsertComma",.@Cost) +"z.";
+	next;
+	.@i = select("Reset Feeling (maps):Reset Hatred (targets):Cancel");
+	if (.@i == 3) close;
+	.@what$ = (.@i == 1) ? "Feeling maps" : "Hatred targets";
+	mes "[Kafra Employee]";
+	mes "This will clear all your "+ .@what$ +" (Sun, Moon and Star).";
+	mes "It costs "+ callfunc("F_InsertComma",.@Cost) +"z. Are you sure?";
+	next;
+	if (select("Let me think:That's fine") == 1) close;
+	mes "[Kafra Employee]";
+	if (Zeny < .@Cost) {
+		mes "Sorry, you don't have enough Zeny.";
+		close;
+	}
+	set Zeny, Zeny-.@Cost;
+	if (.@i == 1) resetfeel;
+	else resethate;
+	mes "There you go! You can choose your "+ .@what$ +" again.";
+	mes "Please relog if your skill window still shows the old ones.";
 	close;
 
 OnPlatinum:
