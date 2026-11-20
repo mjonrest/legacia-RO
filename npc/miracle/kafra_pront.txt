@@ -3,7 +3,8 @@ prontera,145,197,6	script	Kafra Employee::kaf_miracle	894,{
 		set .@name$,"[Kafra Emplyoee]";
 		mes "Hello Master "+strcharinfo(0)+", what can i help you?";
 		next;
-		switch(select("Save Position:Storage:Vip Storage:Claim Freebies:Reset Skill/Stats:Platinum Skill:Renter:Promotional Code")){
+		.@IsSG = ((eaclass()&EAJ_UPPERMASK) == EAJ_STAR_GLADIATOR);
+		switch(select("Save Position:Storage:Vip Storage:Claim Freebies:Reset Skill/Stats:Platinum Skill:Renter:Promotional Code:" + (.@IsSG ? "Reset Feeling/Hatred" : ""))){
 		case 1:
 			mes .@name$;
 			mes "Saving position in the city of Prontera";
@@ -44,6 +45,9 @@ prontera,145,197,6	script	Kafra Employee::kaf_miracle	894,{
 			end;
 		case 8:
 			callsub OnPromo;
+			end;
+		case 9:
+			callsub OnSGReset;
 			end;
 		}
 
@@ -93,6 +97,37 @@ OnReset:
 	if(.@i&2) ResetStatus;
 	mes "There you go!";
 	if(.@Reset[3]) set reset_limit,reset_limit + 1;
+	close;
+
+OnSGReset:
+	// Star Gladiator Feeling / Hatred reset (Sun, Moon, Star)
+	.@Cost = 1000000;	// zeny per reset
+	mes "[Kafra Employee]";
+	if ((eaclass()&EAJ_UPPERMASK) != EAJ_STAR_GLADIATOR) {
+		mes "Only Star Gladiators can use this service.";
+		close;
+	}
+	mes "I can reset your Feeling maps or your Hatred targets.";
+	mes "Each reset costs "+ callfunc("F_InsertComma",.@Cost) +"z.";
+	next;
+	.@i = select("Reset Feeling (maps):Reset Hatred (targets):Cancel");
+	if (.@i == 3) close;
+	.@what$ = (.@i == 1) ? "Feeling maps" : "Hatred targets";
+	mes "[Kafra Employee]";
+	mes "This will clear all your "+ .@what$ +" (Sun, Moon and Star).";
+	mes "It costs "+ callfunc("F_InsertComma",.@Cost) +"z. Are you sure?";
+	next;
+	if (select("Let me think:That's fine") == 1) close;
+	mes "[Kafra Employee]";
+	if (Zeny < .@Cost) {
+		mes "Sorry, you don't have enough Zeny.";
+		close;
+	}
+	set Zeny, Zeny-.@Cost;
+	if (.@i == 1) resetfeel;
+	else resethate;
+	mes "There you go! You can choose your "+ .@what$ +" again.";
+	mes "Please relog if your skill window still shows the old ones.";
 	close;
 
 OnPlatinum:
