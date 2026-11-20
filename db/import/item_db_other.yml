@@ -27670,7 +27670,12 @@ Body:
          bonus bAspdRate,5;
       if (readparam(bInt)>=70)
          bonus bMatkRate,5;
-      callfunc "F_LegaciaWeapon",1;
+      if (BaseJob == Job_Star_Gladiator) {
+         // Star Gladiator: physical refine bonus + small ATK bonus
+         bonus2 bAddClass,Class_All,5;
+         callfunc "F_LegaciaWeapon",0;
+      } else
+         callfunc "F_LegaciaWeapon",1;
     EquipScript: |
       callfunc "WM_Refresh";
     UnEquipScript: |
