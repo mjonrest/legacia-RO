@@ -213,6 +213,21 @@ func (h *Hub) PendingShort(addr netip.AddrPort, now time.Time) (string, bool) {
 	return pd.short, true
 }
 
+// EndpointKnown reports whether addr waits for a claim or has a session.
+func (h *Hub) EndpointKnown(addr netip.AddrPort) bool {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if _, ok := h.pendByAddr[addr]; ok {
+		return true
+	}
+	for _, s := range h.sessions {
+		if s.Addr == addr {
+			return true
+		}
+	}
+	return false
+}
+
 // HasSession reports whether the character already has a voice client.
 func (h *Hub) HasSession(charID uint32) bool {
 	h.mu.Lock()

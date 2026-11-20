@@ -142,7 +142,7 @@ After HELLO_ACK the voice server forgets all players and the map-server sends ev
 | `0x07` CELLS | client -> voice | `B type, L session`: ask for the skill cells around the player (LGP, twice a second, at most one every 250 ms) |
 | `0x89` CELLS | voice -> client | `B type, W count, count * {W x, W y, W skill_id, B kind}` |
 | `0x8a` NO_CELLS | voice -> client | `B type`: no map-server is linked, or it is too old to answer |
-| `0x09` IDENT | client -> voice | `B type, L account_id, L char_id, L login_id1`: the game's own login (read from the client, `game_login.cpp`), sent every 2.5 s while waiting for a claim. Signs in without `@voice`, also when several players share an address |
+| `0x09` IDENT | client -> voice | `B type, L account_id, L char_id, L login_id1`: the game's own login (read from the client, `game_login.cpp`), sent every 2.5 s while waiting for a claim. Signs in without `@voice`, also when several players share an address. From an address with no code and no session the voice server answers DENIED (2), so a client whose router changed its port asks for a new code. The plugin also asks for a fresh code once the game login appears if its code came from before the login, and again after 20 s without a welcome (3 times, then every 60 s, then every 9 min) |
 | `0x08` AURAS | client -> voice | `B type, L session`: ask for the auras of the players around (once a second, at most one every 400 ms) |
 | `0x8b` AURAS | voice -> client | `B type, W count, count * {L account_id, B part1, B part2, B part3}` |
 | `0x8c` NO_AURAS | voice -> client | `B type`: no map-server is linked, or it is too old to answer |
