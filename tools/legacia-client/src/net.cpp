@@ -46,6 +46,13 @@ static char g_statusText[64];
 // the session was signed in for the character the game says is playing, so a
 // different character there later means the player switched characters
 static bool g_loginMatched;
+// the game login was readable when the current sign-in code arrived; a code
+// fetched before the player logged in is replaced once they are in game
+static bool g_codeHadLogin;
+// sign-in tries in a row without a welcome, for spacing out new codes
+static int g_claimTries;
+// packets heard since the last hello, logged when a sign-in is retried
+static unsigned g_heard;
 
 NetState net_state() {
 	Lock l(g_netLock);
@@ -266,6 +273,8 @@ static void snap_tick(DWORD now, DWORD& lastSnapSend) {
 		return;
 	}
 	if (now - started > SNAP_GIVE_UP_MS) {
+		log_line("stats: no full answer in %u s (pages %02x of ff, %s, heard %u packet(s) since the last hello)",
+		         SNAP_GIVE_UP_MS / 1000, got, useSession ? "over the voice session" : "by game login", g_heard);
 		Lock l(g_netLock);
 		g_snapState = SNAP_NO_ANSWER;
 		return;
@@ -365,8 +374,10 @@ static void on_snap_no(const uint8_t* p) {
 		return;
 	if (p[5] == SNAP_NO_UNAVAILABLE && connected)
 		g_snapUseSession = true; // the map-server is too old for snapshots
-	else
+	else {
 		g_snapState = p[5] == SNAP_NO_NOT_IN_GAME ? SNAP_NOT_IN_GAME : SNAP_UNAVAILABLE;
+		log_line("stats: the server says %s", p[5] == SNAP_NO_NOT_IN_GAME ? "this login is not in game" : "the map-server can't answer");
+	}
 }
 
 static bool open_socket() {
@@ -405,6 +416,12 @@ static void handle_packet(const uint8_t* p, int n, DWORD now, DWORD& lastHeard) 
 				if (n >= 23)
 					memcpy(g_shortCode, p + 17, 6);
 			}
+			{
+				GameLogin gl;
+				bool haveLogin = game_login(gl);
+				Lock l(g_netLock);
+				g_codeHadLogin = haveLogin;
+			}
 			if (n >= 23)
 				log_line("voice: sign-in code %.6s (type @voice %.6s in game chat)", p + 17, p + 17);
 			// sent by the game hook if it sees the game connection, else the
@@ -423,12 +440,15 @@ static void handle_packet(const uint8_t* p, int n, DWORD now, DWORD& lastHeard) 
 			memcpy(&g_charId, p + 5, 4);
 			g_state = NET_CONNECTED;
 			g_loginMatched = haveLogin && gl.charId == g_charId;
+			g_claimTries = 0;
 			log_line("voice: connected as char %u", g_charId);
 		}
 		break;
 	case S_DENIED:
-		if (net_state() == NET_CONNECTED || net_state() == NET_CLAIMING)
+		if (net_state() == NET_CONNECTED || net_state() == NET_CLAIMING) {
+			log_line("voice: the server doesn't know this client (reason %d), signing in again", n >= 2 ? p[1] : 0);
 			set_state(NET_HELLO);
+		}
 		break;
 	case S_PONG:
 		break;
@@ -511,6 +531,7 @@ static void handle_packet(const uint8_t* p, int n, DWORD now, DWORD& lastHeard) 
 		break;
 	}
 	lastHeard = now;
+	g_heard++;
 }
 
 static DWORD WINAPI net_thread(LPVOID) {
@@ -572,10 +593,40 @@ static DWORD WINAPI net_thread(LPVOID) {
 			continue;
 		}
 
+		GameLogin claimLogin;
+		bool claimHaveLogin = st == NET_CLAIMING && game_login(claimLogin);
+		bool codeHadLogin;
+		{
+			Lock l(g_netLock);
+			codeHadLogin = g_codeHadLogin;
+		}
 		if (st == NET_HELLO && now - lastSend > 3000) {
 			uint8_t hello = C_HELLO;
 			send_raw(&hello, 1);
 			lastSend = now;
+			g_heard = 0;
+		} else if (st == NET_CLAIMING && claimHaveLogin && !codeHadLogin) {
+			// The code was fetched at game start, before the login screen, and
+			// nothing went to the voice server while the player logged in.
+			// Home routers drop a quiet UDP mapping after some seconds and may
+			// give the socket a new port, so the server's welcome for that
+			// code went nowhere and our later packets came from an address it
+			// had no code for. A fresh code from the current address signs in
+			// right away.
+			log_line("voice: in game now, asking for a fresh sign-in code");
+			set_state(NET_HELLO);
+			lastSend = 0;
+			continue;
+		} else if (st == NET_CLAIMING && claimHaveLogin &&
+		           now - stateSince > (g_claimTries < 3 ? 20000u : g_claimTries < 6 ? 60000u : 9u * 60 * 1000)) {
+			// in game and the login went out, but no welcome: try a new code,
+			// soon at first, then less often (the @voice code changes each time)
+			log_line("voice: no welcome after %u s (heard %u packet(s)), asking for a new code",
+			         (unsigned)((now - stateSince) / 1000), g_heard);
+			g_claimTries++;
+			set_state(NET_HELLO);
+			lastSend = 0;
+			continue;
 		} else if (st == NET_CLAIMING && now - stateSince > 9 * 60 * 1000) {
 			// codes last 10 minutes on the server: get a new one before it runs out
 			set_state(NET_HELLO);
@@ -647,6 +698,15 @@ static DWORD WINAPI net_thread(LPVOID) {
 			int n = recv(g_sock, (char*)buf, sizeof(buf), 0);
 			if (n > 0)
 				handle_packet(buf, n, GetTickCount(), lastHeard);
+			else if (n < 0) {
+				// e.g. 10054: the server's port answered "unreachable" (voice-server down)
+				static int lastErr;
+				int err = WSAGetLastError();
+				if (err != lastErr) {
+					lastErr = err;
+					log_line("voice: receive error %d", err);
+				}
+			}
 		}
 	}
 }

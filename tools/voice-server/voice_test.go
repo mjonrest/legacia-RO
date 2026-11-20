@@ -899,6 +899,19 @@ func TestIdentSignIn(t *testing.T) {
 	if _, ok := m.next(linkIdentQuery, 200*time.Millisecond); ok {
 		t.Fatal("ident query for a signed-in client")
 	}
+	// ... and are not told to sign in again
+	c.expectNothing()
+
+	// a login from an address with no code (the router gave the client a new
+	// port after its hello): told to ask for a new code, no query
+	d := dialClient(t, udpAddr)
+	d.ident(1002, 2, 0xdeadbeef)
+	if p := d.read(time.Second); p == nil || p[0] != sDenied || p[1] != deniedUnknownSession {
+		t.Fatalf("no denial for a login without a code: %x", p)
+	}
+	if _, ok := m.next(linkIdentQuery, 200*time.Millisecond); ok {
+		t.Fatal("ident query without a code")
+	}
 }
 
 func TestIdentOldMapServer(t *testing.T) {
