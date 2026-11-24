@@ -72,15 +72,6 @@ Body:
       Y: 15
     AdditionalMaps:
       2@orcs: true
-  - Id: 4
-    Name: Nidhoggur's Nest
-    TimeLimit: 14400
-    Enter:
-      Map: 1@nyd
-      X: 32
-      Y: 36
-    AdditionalMaps:
-      2@nyd: true
   - Id: 5
     Name: Mistwood Maze
     TimeLimit: 7200

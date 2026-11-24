@@ -4,8 +4,9 @@
 //= The old instance maps 1@nyd / 2@nyd are used as permanent,
 //= shared maps. Anyone can enter from the Yggdrasil Gatekeeper
 //= (nyd_dun02 100,201) or from the Warper (Dungeons >
-//= Nidhogg's Dungeon). The instance NPCs were removed from
-//= npc/instances/NydhoggsNest.txt.
+//= Nidhoggur's Nest). The instance version is gone:
+//= npc/instances/NydhoggsNest.txt is unloaded and the instance
+//= is removed from db/*/instance_db.yml.
 //=
 //= Mob list follows ratemyserver (pre-re) and the official
 //= instance spawns. Nidhoggr's Shadow respawns 6 hours after it
@@ -15,6 +16,23 @@
 // Mapflags (teleport, memo, party lock etc. were removed in npc/mapflag)
 1@nyd	mapflag	nomemo
 2@nyd	mapflag	nomemo
+
+// Entrance (replaces the instance Gatekeeper)
+nyd_dun02,100,201,3	script	Yggdrasil Gatekeeper	111,8,8,{
+	mes "[Yggdrasil Gatekeeper]";
+	mes "Beyond this gate lies Nidhoggur's Nest.";
+	mes "Nidhoggr's Shadow awakens there every 6 hours.";
+	next;
+	if (select("Enter Nidhoggur's Nest.:Step back.") == 2)
+		close;
+	close2;
+	warp "1@nyd",32,36;
+	end;
+
+OnTouch_:
+	specialeffect2 EF_CHANGECOLD;
+	end;
+}
 
 //==================================================
 // 1@nyd - Nidhoggur's Nest, 1st floor
