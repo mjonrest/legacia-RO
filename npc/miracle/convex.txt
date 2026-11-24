@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS `mvp_monitor` (
 //=
 //= Only two things ever run this script:
 //=   OnInit          - runs ONCE at server/npc load. Loops over the
-//=                      fixed 40-map list ONE TIME (not a runtime/
+//=                      fixed 41-map list ONE TIME (not a runtime/
 //=                      repeating loop) and force-spawns + records
 //=                      every map immediately, so every row exists
 //=                      from the moment the server is up, whether
@@ -103,7 +103,8 @@ OnInit:
 		"thor_v03","ama_dun03","kh_dun02","ayo_dun02","anthell02",
 		"mjolnir_04","pay_dun04","gef_fild02","gef_fild10","moc_pryd04",
 		"in_sphinx5","moc_fild17","ein_dun02","xmas_dun02","beach_dun",
-		"tur_dun04","odin_tem03","jupe_core","lhz_dun02","moc_fild22";
+		"tur_dun04","odin_tem03","jupe_core","lhz_dun02","moc_fild22",
+		"2@nyd"; // Nidhoggr's Shadow (npc/miracle/nidhoggur_nest.txt)
 	.@size = getarraysize(.@mvp_map$);
 	for (.@i = 0; .@i < .@size; .@i++) {
 		forcemapspawn(.@mvp_map$[.@i]);
