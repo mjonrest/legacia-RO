@@ -9,7 +9,8 @@
 			"[System]: Don't force yourself to donate. This game is free to Play.",
 			"[System]: You can get Random Option from every equipment drop by Monster",
 			"[System]: Costumes obtain from Gacha and Monster is not tradeable.",
-			"[System]: You can use autohunt by using command @ah, 1 hr free everyday";
+			"[System]: You can use autohunt by using command @ah, 1 hr free everyday",
+			"[System]: Visit the Hunting Board in Prontera (168, 186) for daily EXP missions. Check progress with @mission";
 		.news_list_size = getarraysize(.news_list$);
 		initnpctimer;
 		

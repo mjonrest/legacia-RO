@@ -1,0 +1,512 @@
+//===== Legacia RO Script ====================================
+//= Hunting Mission Board
+//===== Description: =========================================
+//= Daily kill missions for Base / Job EXP.
+//=
+//= - The board keeps 3 missions per character, picked from
+//=   normal field/dungeon monsters near the player's Base Level
+//=   (list built from the loaded pre-re spawn files).
+//= - Turning in a mission gives a % of the EXP needed for the
+//=   next Base / Job level, so it is useful from Lv 1 to 99.
+//= - Daily cap (.daily_max) is shared by the account AND the
+//=   Gepard device (get_unique_id), so alts can't farm it.
+//= - Finishing every mission of the day pays a bonus: Miracle
+//=   Tonic (12259) + extra EXP.
+//= - One free reroll per account per day, extra rerolls cost zeny.
+//= - Party kills count for party members near the killer, but only
+//=   one member per Gepard device gets the credit for a kill, and
+//=   only members within .party_lv_gap levels of the killer.
+//= - Kills made while autohunting count at .ah_rate % (default 50,
+//=   same as the autohunt EXP penalty; 0 = they don't count).
+//= - @mission shows your missions from anywhere.
+//=
+//= Variables: HM_MOB/HM_NEED/HM_HAVE/HM_AHP (char, per slot),
+//= #HM_DAY/#HM_DONE/#HM_RR (account), $HM_DEV_<uid> = day*100+done.
+//= Settings are in OnInit. GM (level >= .gm_level) gets test tools.
+//============================================================
+
+prontera,168,186,4	script	Hunting Board	4_BOARD3,{
+	.@n$ = "[Hunting Board]";
+	callsub S_Fill;
+
+	if (getgmlevel() >= .gm_level) {
+		mes .@n$;
+		mes "GM tools are available.";
+		next;
+		switch (select("Normal menu:Reset today's count (account + device):Finish my missions:Reroll my missions")) {
+		case 2:
+			#HM_DAY = 0; #HM_DONE = 0; #HM_RR = 0;
+			.@uid = get_unique_id();
+			if (.@uid)
+				setd callsub(S_DevVar, .@uid), 0;
+			mes .@n$;
+			mes "Today's count reset.";
+			close;
+		case 3:
+			for (.@i = 0; .@i < .slots; .@i++)
+				HM_HAVE[.@i] = HM_NEED[.@i];
+			mes .@n$;
+			mes "All missions filled.";
+			close;
+		case 4:
+			for (.@i = 0; .@i < .slots; .@i++)
+				callsub S_Roll, .@i;
+			mes .@n$;
+			mes "Missions rerolled.";
+			close;
+		}
+	}
+
+	while (1) {
+		.@done = callsub(S_Done);
+		mes .@n$;
+		mes "Hello, " + strcharinfo(0) + "!";
+		mes "Missions done today: ^0055FF" + .@done + "/" + .daily_max + "^000000";
+		mes " ";
+		callsub S_List;
+		next;
+		.@rr$ = (#HM_RR == callsub(S_Today)) ? "Reroll missions (" + callfunc("F_InsertComma", .reroll_zeny) + " z)" : "Reroll missions (free today)";
+		switch (select("Turn in finished missions:" + .@rr$ + ":How does it work?:Leave")) {
+		case 1:
+			callsub S_TurnIn;
+			break;
+		case 2:
+			callsub S_Reroll;
+			break;
+		case 3:
+			mes .@n$;
+			mes "I always hold ^0055FF" + .slots + " missions^000000 for you,";
+			mes "picked for your Base Level.";
+			mes "Kill the monsters, then come back";
+			mes "to turn them in for ^0055FFBase/Job EXP^000000";
+			mes "(" + .exp_pct + "% of your next level each).";
+			mes " ";
+			mes "You can turn in ^0055FF" + .daily_max + " missions a day^000000";
+			mes "per account and per computer.";
+			mes "Finish all " + .daily_max + " for a bonus:";
+			mes "^0055FF" + .bonus_amt + "x " + getitemname(.bonus_item) + "^000000 + " + .bonus_exp_pct + "% EXP.";
+			next;
+			mes .@n$;
+			mes "^0055FFParty:^000000 kills by party members";
+			mes "near you count too (one character";
+			mes "per computer, level gap " + .party_lv_gap + " max).";
+			if (.ah_rate < 100) {
+				mes " ";
+				if (.ah_rate > 0)
+					mes "^0055FFAutohunt:^000000 kills count at " + .ah_rate + "%.";
+				else
+					mes "^0055FFAutohunt:^000000 kills don't count.";
+			}
+			mes " ";
+			mes "You get one ^0055FFfree reroll^000000 a day.";
+			mes "Type ^0055FF@mission^000000 to see your progress.";
+			next;
+			break;
+		default:
+			close;
+		}
+	}
+	end;
+
+// Today's date as YYYYMMDD.
+S_Today:
+	return atoi(gettimestr("%Y%m%d", 9));
+
+// Name of the device counter variable for a Gepard id.
+S_DevVar:
+	.@dv_uid = getarg(0);
+	return "$HM_DEV_" + (.@dv_uid < 0 ? "n" + (-.@dv_uid) : "" + .@dv_uid);
+
+// Missions turned in today by this account or this device (higher one).
+S_Done:
+	.@sd_today = callsub(S_Today);
+	if (#HM_DAY != .@sd_today) {
+		#HM_DAY = .@sd_today;
+		#HM_DONE = 0;
+	}
+	.@sd_done = #HM_DONE;
+	.@sd_uid = get_unique_id();
+	if (.@sd_uid) {
+		.@sd_v = getd(callsub(S_DevVar, .@sd_uid));
+		if (.@sd_v / 100 == .@sd_today) {
+			if (.@sd_v % 100 > .@sd_done)
+				.@sd_done = .@sd_v % 100;
+		}
+	}
+	return .@sd_done;
+
+// Gives every empty slot a mission.
+S_Fill:
+	for (.@sf_i = 0; .@sf_i < .slots; .@sf_i++) {
+		if (!HM_MOB[.@sf_i])
+			callsub S_Roll, .@sf_i;
+	}
+	return;
+
+// Picks a new monster for slot getarg(0).
+S_Roll:
+	.@r_slot = getarg(0);
+	.@r_lo = BaseLevel - .lv_below;
+	.@r_hi = BaseLevel + .lv_above;
+	for (.@r_try = 0; .@r_try < 6; .@r_try++) {
+		deletearray .@r_c;
+		.@r_cn = 0;
+		for (.@r_i = 0; .@r_i < .mob_count; .@r_i++) {
+			.@r_lv = .mob_lv[.@r_i];
+			if (.@r_lv < .@r_lo || .@r_lv > .@r_hi)
+				continue;
+			// no monster twice on the board
+			.@r_dup = 0;
+			for (.@r_j = 0; .@r_j < .slots; .@r_j++) {
+				if (.@r_j != .@r_slot) {
+					if (HM_MOB[.@r_j] == .mob_id[.@r_i])
+						.@r_dup = 1;
+				}
+			}
+			if (.@r_dup)
+				continue;
+			.@r_c[.@r_cn] = .@r_i;
+			.@r_cn++;
+		}
+		if (.@r_cn >= .slots)
+			break;
+		.@r_lo -= 5;
+		.@r_hi += 5;
+	}
+	if (.@r_cn < 1) {
+		HM_MOB[.@r_slot] = 0;
+		HM_NEED[.@r_slot] = 0;
+		HM_HAVE[.@r_slot] = 0;
+		HM_AHP[.@r_slot] = 0;
+		return;
+	}
+	.@r_pick = 0;
+	if (.@r_cn > 1)
+		.@r_pick = rand(.@r_cn);
+	.@r_steps = (.kill_max - .kill_min) / 10 + 1;
+	.@r_need = .kill_min;
+	if (.@r_steps > 1)
+		.@r_need += rand(.@r_steps) * 10;
+	HM_MOB[.@r_slot] = .mob_id[.@r_c[.@r_pick]];
+	HM_NEED[.@r_slot] = .@r_need;
+	HM_HAVE[.@r_slot] = 0;
+	HM_AHP[.@r_slot] = 0;
+	return;
+
+// Index in .mob_id of a monster id (-1 if not found).
+S_MobIdx:
+	.@mi_id = getarg(0);
+	for (.@mi_i = 0; .@mi_i < .mob_count; .@mi_i++) {
+		if (.mob_id[.@mi_i] == .@mi_id)
+			return .@mi_i;
+	}
+	return -1;
+
+// Prints the missions (works with mes, used by the board and @mission).
+S_List:
+	for (.@sl_i = 0; .@sl_i < .slots; .@sl_i++) {
+		if (!HM_MOB[.@sl_i]) {
+			mes (.@sl_i + 1) + ". ^777777(no monster for your level)^000000";
+			continue;
+		}
+		.@sl_k = callsub(S_MobIdx, HM_MOB[.@sl_i]);
+		.@sl_where$ = (.@sl_k >= 0) ? .mob_map$[.@sl_k] : "?";
+		.@sl_col$ = (HM_HAVE[.@sl_i] >= HM_NEED[.@sl_i]) ? "^00AA00" : "^000000";
+		mes (.@sl_i + 1) + ". " + .@sl_col$ + "Kill " + HM_NEED[.@sl_i] + " " + getmonsterinfo(HM_MOB[.@sl_i], MOB_NAME) + " (" + HM_HAVE[.@sl_i] + "/" + HM_NEED[.@sl_i] + ")^000000";
+		mes "    ^777777Lv " + getmonsterinfo(HM_MOB[.@sl_i], MOB_LV) + ", found in " + .@sl_where$ + "^000000";
+	}
+	return;
+
+S_TurnIn:
+	.@n$ = "[Hunting Board]";
+	.@t_uid = get_unique_id();
+	if (!.@t_uid) {
+		mes .@n$;
+		mes "I can't see your Gepard ID.";
+		mes "Please relog and try again.";
+		next;
+		return;
+	}
+	.@t_today = callsub(S_Today);
+	.@t_got = 0;
+	.@t_bexp = 0;
+	.@t_jexp = 0;
+	.@t_bonus = 0;
+	for (.@t_i = 0; .@t_i < .slots; .@t_i++) {
+		if (!HM_MOB[.@t_i])
+			continue;
+		if (HM_HAVE[.@t_i] < HM_NEED[.@t_i])
+			continue;
+		.@t_done = callsub(S_Done);
+		if (.@t_done >= .daily_max)
+			break;
+		.@t_done++;
+		#HM_DONE = .@t_done;
+		setd callsub(S_DevVar, .@t_uid), .@t_today * 100 + .@t_done;
+		.@t_b = NextBaseExp * .exp_pct / 100;
+		.@t_j = NextJobExp * .exp_pct / 100;
+		.@t_bexp += .@t_b;
+		.@t_jexp += .@t_j;
+		if (.@t_b > 0 || .@t_j > 0)
+			getexp2 .@t_b, .@t_j;
+		.@t_got++;
+		HM_MOB[.@t_i] = 0;
+		if (.@t_done == .daily_max)
+			.@t_bonus = 1;
+	}
+	mes .@n$;
+	if (!.@t_got) {
+		if (callsub(S_Done) >= .daily_max) {
+			mes "You already did ^FF0000" + .daily_max + " missions^000000 today";
+			mes "on this account or computer.";
+			mes "Come back tomorrow!";
+		} else {
+			mes "None of your missions are";
+			mes "finished yet. Keep hunting!";
+		}
+		next;
+		return;
+	}
+	if (.@t_bonus) {
+		.@t_b = NextBaseExp * .bonus_exp_pct / 100;
+		.@t_j = NextJobExp * .bonus_exp_pct / 100;
+		if (.@t_b > 0 || .@t_j > 0)
+			getexp2 .@t_b, .@t_j;
+		if (.bonus_item)
+			getitem .bonus_item, .bonus_amt;
+	}
+	specialeffect2 EF_ANGEL2;
+	mes "^00AA00" + .@t_got + " mission" + (.@t_got > 1 ? "s" : "") + " turned in!^000000";
+	mes "+" + callfunc("F_InsertComma", .@t_bexp) + " Base EXP";
+	mes "+" + callfunc("F_InsertComma", .@t_jexp) + " Job EXP";
+	if (.@t_bonus) {
+		mes " ";
+		mes "^0055FFAll " + .daily_max + " missions done today!^000000";
+		mes "Bonus: +" + .bonus_exp_pct + "% Base/Job EXP";
+		if (.bonus_item)
+			mes "and " + .bonus_amt + "x " + getitemname(.bonus_item) + ".";
+	}
+	callsub S_Fill;
+	next;
+	return;
+
+S_Reroll:
+	.@n$ = "[Hunting Board]";
+	.@rr_today = callsub(S_Today);
+	.@rr_free = (#HM_RR != .@rr_today);
+	mes .@n$;
+	mes "Reroll all ^0055FFunfinished^000000 missions?";
+	mes "Their progress is lost.";
+	if (.@rr_free)
+		mes "This one is ^00AA00free^000000 (1 per day).";
+	else
+		mes "It costs ^FF0000" + callfunc("F_InsertComma", .reroll_zeny) + " zeny^000000.";
+	next;
+	if (select("Yes, reroll:No") == 2)
+		return;
+	if (!.@rr_free) {
+		if (.reroll_zeny <= 0) {
+			mes .@n$;
+			mes "You already used today's reroll.";
+			next;
+			return;
+		}
+		if (Zeny < .reroll_zeny) {
+			mes .@n$;
+			mes "You don't have enough zeny.";
+			next;
+			return;
+		}
+		Zeny -= .reroll_zeny;
+	} else
+		#HM_RR = .@rr_today;
+	for (.@rr_i = 0; .@rr_i < .slots; .@rr_i++) {
+		if (!HM_MOB[.@rr_i]) {
+			callsub S_Roll, .@rr_i;
+			continue;
+		}
+		if (HM_HAVE[.@rr_i] < HM_NEED[.@rr_i])
+			callsub S_Roll, .@rr_i;
+	}
+	return;
+
+// Adds a kill of monster name getarg(0) to the attached player.
+// getarg(1) = 1 when the kill was made while autohunting.
+S_Credit:
+	.@cr_name$ = getarg(0);
+	.@cr_ah = getarg(1);
+	for (.@cr_i = 0; .@cr_i < .slots; .@cr_i++) {
+		if (!HM_MOB[.@cr_i])
+			continue;
+		if (HM_HAVE[.@cr_i] >= HM_NEED[.@cr_i])
+			continue;
+		if (getmonsterinfo(HM_MOB[.@cr_i], MOB_NAME) != .@cr_name$)
+			continue;
+		if (.@cr_ah) {
+			if (.ah_rate <= 0)
+				return;
+			HM_AHP[.@cr_i] += .ah_rate;
+			if (HM_AHP[.@cr_i] < 100)
+				return;
+			HM_AHP[.@cr_i] -= 100;
+		}
+		HM_HAVE[.@cr_i]++;
+		if (HM_HAVE[.@cr_i] >= HM_NEED[.@cr_i])
+			dispbottom "[Hunting Board] Mission done: " + .@cr_name$ + " " + HM_NEED[.@cr_i] + "/" + HM_NEED[.@cr_i] + ". Turn it in at the board in Prontera.", 0x00CC00;
+		else if (HM_HAVE[.@cr_i] % 10 == 0)
+			dispbottom "[Hunting Board] " + .@cr_name$ + ": " + HM_HAVE[.@cr_i] + "/" + HM_NEED[.@cr_i], 0x00CCFF;
+		return;
+	}
+	return;
+
+OnNPCKillEvent:
+	.@name$ = getmonsterinfo(killedrid, MOB_NAME);
+	.@ah = isautohunting();
+	.@kcid = getcharid(0);
+	.@kaid = getcharid(3);
+	.@kuid = get_unique_id();
+	.@klv = BaseLevel;
+	.@pid = getcharid(1);
+	getmapxy(.@km$, .@kx, .@ky);
+	callsub S_Credit, .@name$, .@ah;
+	if (!.@pid)
+		end;
+	if (.party_range <= 0)
+		end;
+
+	// Party credit: one member per Gepard device (the killer's device included).
+	.@un = 0;
+	if (.@kuid) {
+		.@uids[0] = .@kuid;
+		.@un = 1;
+	}
+	getpartymember .@pid, 1, .@pcid;
+	getpartymember .@pid, 2, .@paid;
+	.@pc = $@partymembercount;
+	for (.@m = 0; .@m < .@pc; .@m++) {
+		if (.@pcid[.@m] == .@kcid)
+			continue;
+		if (!isloggedin(.@paid[.@m], .@pcid[.@m]))
+			continue;
+		if (!attachrid(.@paid[.@m]))
+			continue;
+		if (getcharid(0) != .@pcid[.@m])
+			continue;
+		if (Hp < 1)
+			continue;
+		if (.party_lv_gap > 0) {
+			if (BaseLevel - .@klv > .party_lv_gap || .@klv - BaseLevel > .party_lv_gap)
+				continue;
+		}
+		getmapxy(.@mm$, .@mx, .@my);
+		if (.@mm$ != .@km$)
+			continue;
+		if (distance(.@kx, .@ky, .@mx, .@my) > .party_range)
+			continue;
+		.@uid = get_unique_id();
+		if (!.@uid)
+			continue;
+		if (inarray(.@uids, .@uid) != -1)
+			continue;
+		.@uids[.@un] = .@uid;
+		.@un++;
+		.@mah = .@ah;
+		if (isautohunting())
+			.@mah = 1;
+		callsub S_Credit, .@name$, .@mah;
+	}
+	end;
+
+OnCmd:
+	mes "[Hunting Board]";
+	mes "Missions done today: ^0055FF" + callsub(S_Done) + "/" + .daily_max + "^000000";
+	mes " ";
+	callsub S_Fill;
+	callsub S_List;
+	mes " ";
+	mes "Turn in at the ^0055FFHunting Board^000000";
+	mes "in Prontera (168, 186).";
+	close;
+
+OnInit:
+	// ---------------- Settings ----------------
+	.slots = 3;              // missions on the board at once (max 10)
+	.daily_max = 10;         // missions per day, per account AND per Gepard device (max 99)
+	.exp_pct = 5;            // % of next Base/Job level EXP per mission
+	.bonus_exp_pct = 10;     // extra % EXP when all .daily_max missions are done
+	.bonus_item = 12259;     // Miracle Tonic, 0 = none
+	.bonus_amt = 1;
+	.kill_min = 40;          // kills needed per mission, rounded to 10
+	.kill_max = 80;
+	.lv_below = 5;           // monster level window around Base Level
+	.lv_above = 5;           // (widens by 5 when there are too few monsters)
+	.reroll_zeny = 100000;   // cost after the free daily reroll, 0 = no paid rerolls
+	.ah_rate = 50;           // % a kill counts while autohunting (0 = not at all, 100 = full)
+	.party_range = 14;       // party kills count for members within this many cells (0 = off)
+	.party_lv_gap = 15;      // and within this many Base Levels of the killer (0 = no limit)
+	.gm_level = 99;
+	bindatcmd "mission", strnpcinfo(3) + "::OnCmd";
+	// ------------------------------------------
+
+	// Monster pool: normal field/dungeon monsters from the loaded pre-re
+	// spawn files (no boss/MVP, no immobile mobs, no Bio Lab 3, 15+ spawned), one per name,
+	// with the map that spawns the most of them.
+	setarray .mob_id[0], 1002, 1007, 1049, 1063, 1113, 1010, 1011, 1009, 1012, 1051, 1167, 1004;
+	setarray .mob_id[12], 1005, 1052, 1107, 1053, 1076, 1161, 1070, 1175, 1094, 1024, 1031, 1015;
+	setarray .mob_id[24], 1025, 1074, 1242, 1014, 1018, 1174, 1042, 1055, 1095, 1104, 1162, 1056;
+	setarray .mob_id[36], 1128, 1145, 1160, 1266, 1019, 1054, 1066, 1077, 1105, 1033, 1073, 1176;
+	setarray .mob_id[48], 1057, 1114, 1141, 1254, 1034, 1058, 1126, 1030, 1067, 1103, 1178, 1627;
+	setarray .mob_id[60], 1784, 1001, 1023, 1064, 1111, 1116, 1153, 1013, 1040, 1060, 1071, 1100;
+	setarray .mob_id[72], 1265, 1127, 1138, 1139, 1158, 1166, 1613, 1106, 1409, 1152, 1246, 1258;
+	setarray .mob_id[84], 1619, 1028, 1121, 1026, 1069, 1119, 1169, 1243, 1400, 1016, 1044, 1134;
+	setarray .mob_id[96], 1144, 1146, 1177, 1273, 1782, 1188, 1279, 1415, 1110, 1170, 1282, 1404;
+	setarray .mob_id[108], 1129, 1165, 1179, 1494, 1164, 1248, 1280, 1417, 1620, 1045, 1509, 1628;
+	setarray .mob_id[120], 1041, 1032, 1130, 1151, 1249, 1261, 1586, 1498, 1881, 1036, 1140, 1215;
+	setarray .mob_id[132], 1255, 1256, 1508, 1836, 1099, 1143, 1406, 1499, 1035, 1271, 1495, 1715;
+	setarray .mob_id[144], 1776, 1880, 1037, 1199, 1281, 1367, 1616, 1102, 1156, 1680, 1109, 1211;
+	setarray .mob_id[156], 1383, 1402, 1413, 1029, 1403, 1065, 1253, 1517, 1061, 1189, 1882, 1101;
+	setarray .mob_id[168], 1493, 1587, 1615, 1838, 1180, 1191, 1257, 1263, 1267, 1497, 1510, 1516;
+	setarray .mob_id[180], 1149, 1163, 1196, 1213, 1276, 1380, 1584, 1192, 1197, 1264, 1410, 1632;
+	setarray .mob_id[192], 1514, 1687, 1408, 1506, 1682, 1738, 1778, 1209, 1375, 1378, 1412, 1512;
+	setarray .mob_id[204], 1614, 1633, 1692, 1693, 1216, 1117, 1193, 1306, 1322, 1369, 1503, 1652;
+	setarray .mob_id[216], 1194, 1195, 1260, 1323, 1655, 1771, 1072, 1269, 1278, 1656, 1699, 1775;
+	setarray .mob_id[228], 1777, 1869, 1154, 1206, 1207, 1301, 1321, 1391, 1657, 1773, 1883, 1275;
+	setarray .mob_id[240], 1293, 1298, 1504, 1513, 1653, 1772, 1796, 1797, 1132, 1314, 1317, 1416;
+	setarray .mob_id[252], 1884, 1297, 1300, 1377, 1371, 1385, 1405, 1698, 1774, 1310, 1365, 1654;
+	setarray .mob_id[264], 1382, 1386, 1292, 1318, 1381, 1617, 1372, 1401, 1737, 1753, 1770, 1316;
+	setarray .mob_id[276], 1376, 1714, 1752, 1975, 1201, 1315, 1505, 1622, 1866, 1319, 1676, 1976;
+	setarray .mob_id[288], 1769, 1977, 1208, 1291, 1098, 1374, 1390, 1735, 1736, 1865, 1716, 1837;
+	setarray .mob_id[300], 1366, 1864, 1379, 1148, 1219, 1668, 1670, 1995, 1999, 1867, 1979, 2013;
+	setarray .mob_id[312], 2016, 1974, 1370, 1978, 2024, 1994, 1989, 1986, 1992, 1987, 1993;
+	setarray .mob_map$[0], "prt_fild05", "gef_fild07", "moc_fild12", "prt_fild01", "ra_fild11", "pay_fild08", "moc_fild18", "cmd_fild09", "gef_fild01", "prt_sewb2", "prt_fild09", "mjolnir_04";
+	setarray .mob_map$[12], "moc_pryd01", "prt_fild07", "moc_fild01", "prt_sewb3", "pay_dun00", "iz_dun00", "iz_dun01", "mjo_dun01", "gef_fild09", "pay_fild06", "yuno_fild03", "gef_dun01";
+	setarray .mob_map$[24], "moc_fild13", "cmd_fild02", "xmas_fild01", "pay_fild01", "gef_fild13", "mjolnir_06", "moc_fild18", "moc_fild18", "anthell02", "mjolnir_01", "yuno_fild05", "pay_fild09";
+	setarray .mob_map$[36], "mjolnir_09", "mjo_dun02", "anthell01", "cmd_fild04", "moc_fild02", "prt_sewb4", "iz_dun01", "pay_fild05", "anthell01", "moc_fild03", "cmd_fild02", "anthell02";
+	setarray .mob_map$[48], "prt_fild03", "mjolnir_12", "iz_dun00", "ve_fild07", "beach_dun3", "moc_fild20", "prt_fild11", "moc_fild13", "iz_dun02", "mjolnir_01", "in_sphinx2", "lhz_dun01";
+	setarray .mob_map$[60], "ra_fild08", "moc_fild20", "gef_fild02", "beach_dun3", "alde_dun03", "pay_fild07", "orcsdun01", "pay_fild02", "moc_fild11", "pay_fild09", "treasure01", "mjolnir_10";
+	setarray .mob_map$[72], "xmas_dun01", "moc_fild17", "moc_fild16", "mjolnir_08", "iz_dun03", "prt_fild10", "lhz_fild01", "ve_fild04", "gon_fild01", "orcsdun02", "xmas_dun01", "cmd_fild06";
+	setarray .mob_map$[84], "ein_fild09", "pay_dun01", "mjo_dun02", "pay_dun02", "iz_dun03", "cmd_fild05", "mjo_dun03", "xmas_fild01", "ama_fild01", "moc_pryd02", "iz_dun02", "gef_fild08";
+	setarray .mob_map$[96], "iz_dun02", "in_sphinx2", "orcsdun02", "gef_fild10", "ra_fild04", "pay_dun02", "beach_dun2", "gon_fild01", "pay_fild10", "pay_dun03", "cmd_fild08", "ama_dun01";
+	setarray .mob_map$[108], "pay_dun04", "moc_fild16", "gl_sew01", "um_fild04", "in_sphinx2", "xmas_dun02", "prt_fild11", "gon_dun01", "ein_dun01", "iz_dun03", "niflheim", "hu_fild06";
+	setarray .mob_map$[120], "moc_pryd03", "moc_pryd05", "gef_dun01", "mjo_dun03", "xmas_dun02", "gef_fild05", "ayo_dun01", "um_dun02", "mosk_dun02", "abbey01", "in_sphinx3", "lhz_fild03";
+	setarray .mob_map$[132], "beach_dun", "cmd_fild03", "nif_fild01", "thor_v01", "mjolnir_05", "gef_dun02", "ama_fild01", "um_fild02", "gef_dun00", "cmd_fild01", "um_dun01", "hu_fild03";
+	setarray .mob_map$[144], "ice_dun01", "mosk_dun01", "ve_fild07", "c_tower1", "gl_in01", "mag_dun01", "ein_dun01", "alde_dun04", "mjolnir_03", "ra_fild05", "gef_dun02", "alde_dun02";
+	setarray .mob_map$[156], "mag_dun01", "ama_dun02", "gon_dun03", "moc_pryd04", "ama_dun01", "iz_dun04", "gl_sew02", "lou_dun01", "gef_dun02", "gef_fild14", "mosk_dun03", "prt_maze03";
+	setarray .mob_map$[168], "um_fild01", "ayo_dun02", "ein_dun02", "thor_v02", "pay_fild11", "tha_t02", "gl_prison1", "gl_step", "gl_cas01", "um_dun02", "nif_fild01", "lou_fild01";
+	setarray .mob_map$[180], "moc_pryd05", "gl_knt01", "gl_prison1", "gef_fild14", "gl_cas02", "ein_fild02", "ayo_dun02", "gl_chyard", "gl_prison", "iz_dun04", "gon_dun01", "ra_san01";
+	setarray .mob_map$[192], "lou_dun03", "hu_fild03", "gon_dun01", "nif_fild01", "lhz_dun01", "kh_dun02", "ice_dun03", "alde_dun03", "ama_dun03", "ein_fild01", "gon_dun03", "lou_dun02";
+	setarray .mob_map$[204], "ein_dun02", "ra_san02", "hu_fild04", "odin_tem03", "alde_dun03", "gl_church", "c_tower3", "gld_dun03", "tur_dun01", "yuno_fild08", "nif_fild02", "lhz_dun02";
+	setarray .mob_map$[216], "alde_dun01", "c_tower1", "gl_cas01", "cmd_fild04", "lhz_dun02", "ra_san01", "mag_dun01", "c_tower2", "beach_dun2", "lhz_dun02", "tha_t02", "ice_dun02";
+	setarray .mob_map$[228], "ice_dun03", "abbey03", "in_sphinx5", "gl_sew04", "gl_sew03", "gld_dun01", "pay_fild11", "cmd_fild02", "lhz_dun02", "ra_san03", "mosk_dun03", "kh_dun01";
+	setarray .mob_map$[240], "gld_dun03", "gld_dun04", "nif_fild01", "lou_dun03", "lhz_dun02", "ra_san02", "arug_dun01", "arug_dun01", "gl_knt02", "tur_dun02", "cmd_fild02", "gon_dun03";
+	setarray .mob_map$[252], "mosk_dun03", "moc_pryd06", "gld_dun03", "tha_t04", "gefenia01", "mag_dun02", "ama_dun03", "tha_t03", "ra_san03", "gl_dun02", "juperos_02", "lhz_dun02";
+	setarray .mob_map$[264], "mag_dun02", "yuno_fild06", "gefenia02", "tur_dun04", "lou_dun01", "ein_dun02", "ein_fild06", "ama_dun03", "kh_dun01", "odin_tem02", "ra_san04", "tur_dun02";
+	setarray .mob_map$[276], "yuno_fild07", "abyss_02", "odin_tem02", "arug_dun01", "gl_prison", "tur_dun04", "nif_fild02", "ein_dun02", "abbey01", "tur_dun03", "juperos_01", "schg_dun01";
+	setarray .mob_map$[288], "ra_san05", "schg_dun01", "gl_cas02", "gld_dun04", "in_sphinx4", "gefenia03", "gefenia02", "kh_dun02", "kh_dun02", "abbey02", "abyss_02", "thor_v01";
+	setarray .mob_map$[300], "moc_fild21", "abbey02", "mag_dun02", "beach_dun", "gefenia01", "jupe_core", "jupe_core", "spl_fild02", "man_fild01", "abbey01", "schg_dun01", "nyd_dun01";
+	setarray .mob_map$[312], "nyd_dun01", "arug_dun01", "gefenia02", "schg_dun01", "man_fild02", "spl_fild03", "man_fild03", "man_fild02", "spl_fild01", "man_fild02", "spl_fild01";
+	.mob_count = getarraysize(.mob_id);
+	for (.@i = 0; .@i < .mob_count; .@i++)
+		.mob_lv[.@i] = getmonsterinfo(.mob_id[.@i], MOB_LV);
+	end;
+}
