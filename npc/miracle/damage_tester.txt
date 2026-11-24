@@ -501,11 +501,11 @@ OnInit:
 }
 
 // Booths: trainer NPC 3 cells south of its dummy spot
-prontera,224,76,4	duplicate(Dummy Trainer#0)	Dummy Trainer#1	JT_4_M_JOB_KNIGHT1
-prontera,216,76,4	duplicate(Dummy Trainer#0)	Dummy Trainer#2	JT_4_M_JOB_KNIGHT1
-prontera,224,67,4	duplicate(Dummy Trainer#0)	Dummy Trainer#3	JT_4_M_JOB_KNIGHT1
-prontera,216,55,4	duplicate(Dummy Trainer#0)	Dummy Trainer#4	JT_4_M_JOB_KNIGHT1
-prontera,224,55,4	duplicate(Dummy Trainer#0)	Dummy Trainer#5	JT_4_M_JOB_KNIGHT1
+prontera,224,76,4	duplicate(Dummy Trainer#0)	Dummy Trainer#1	4_M_JOB_KNIGHT1
+prontera,216,76,4	duplicate(Dummy Trainer#0)	Dummy Trainer#2	4_M_JOB_KNIGHT1
+prontera,224,67,4	duplicate(Dummy Trainer#0)	Dummy Trainer#3	4_M_JOB_KNIGHT1
+prontera,216,55,4	duplicate(Dummy Trainer#0)	Dummy Trainer#4	4_M_JOB_KNIGHT1
+prontera,224,55,4	duplicate(Dummy Trainer#0)	Dummy Trainer#5	4_M_JOB_KNIGHT1
 
 // @dummy: go to the training booths
 -	script	dummy_cmd#dt	-1,{
