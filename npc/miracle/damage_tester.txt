@@ -500,12 +500,13 @@ OnInit:
 	end;
 }
 
-// Booths: trainer NPC 3 cells south of its dummy spot
-prontera,224,76,4	duplicate(Dummy Trainer#0)	Dummy Trainer#1	4_M_JOB_KNIGHT1
-prontera,216,76,4	duplicate(Dummy Trainer#0)	Dummy Trainer#2	4_M_JOB_KNIGHT1
-prontera,224,67,4	duplicate(Dummy Trainer#0)	Dummy Trainer#3	4_M_JOB_KNIGHT1
-prontera,216,55,4	duplicate(Dummy Trainer#0)	Dummy Trainer#4	4_M_JOB_KNIGHT1
-prontera,224,55,4	duplicate(Dummy Trainer#0)	Dummy Trainer#5	4_M_JOB_KNIGHT1
+// Booths: trainer NPC 3 cells south of its dummy spot (CLEAR_NPC = 844,
+// unseen but clickable, like the old punching bag "Set Parameters")
+prontera,224,76,4	duplicate(Dummy Trainer#0)	Dummy Trainer#1	CLEAR_NPC
+prontera,216,76,4	duplicate(Dummy Trainer#0)	Dummy Trainer#2	CLEAR_NPC
+prontera,224,67,4	duplicate(Dummy Trainer#0)	Dummy Trainer#3	CLEAR_NPC
+prontera,216,55,4	duplicate(Dummy Trainer#0)	Dummy Trainer#4	CLEAR_NPC
+prontera,224,55,4	duplicate(Dummy Trainer#0)	Dummy Trainer#5	CLEAR_NPC
 
 // @dummy: go to the training booths
 -	script	dummy_cmd#dt	-1,{
