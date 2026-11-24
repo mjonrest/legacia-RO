@@ -901,3 +901,109 @@ Body:
       .@r = getequiprefinerycnt(EQI_HAND_R);
       .@b = (.@r > 5) ? .@r - 5 : 0;
       bonus2 bSkillAtk,"NJ_HUUJIN",10+.@b;
+
+# Legacia story guns 13190/13192/13197 (one combo per gear slot:
+# head, armor, garment, shoes, accessory). Skill combos +1% per refine above +5.
+  - Combos:
+      - Combo:
+          - Crownwarden_Rifle    # 13190
+          - Vanberk_Card    # 4411
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"GS_TRACKING",5+.@b;
+  - Combos:
+      - Combo:
+          - Crownwarden_Rifle    # 13190
+          - Novus_Card    # 4383
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"GS_PIERCINGSHOT",5+.@b;
+  - Combos:
+      - Combo:
+          - Crownwarden_Rifle    # 13190
+          - Whisper_Boss_Card    # 4303
+    Script: |
+      bonus bLongAtkRate,3;
+  - Combos:
+      - Combo:
+          - Crownwarden_Rifle    # 13190
+          - Alarm_Card    # 4244
+    Script: |
+      bonus bHit,10;
+      bonus bCritical,5;
+  - Combos:
+      - Combo:
+          - Crownwarden_Rifle    # 13190
+          - Owl_Baron_Card    # 4238
+    Script: |
+      bonus bCritAtkRate,5;
+  - Combos:
+      - Combo:
+          - Oathbreaker_Shotgun    # 13192
+          - Knocker_Card    # 4434
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"GS_SPREADATTACK",5+.@b;
+  - Combos:
+      - Combo:
+          - Oathbreaker_Shotgun    # 13192
+          - Byorgue_Card    # 4426
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"GS_FULLBUSTER",5+.@b;
+  - Combos:
+      - Combo:
+          - Oathbreaker_Shotgun    # 13192
+          - Salamander_Card    # 4429
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"GS_DUST",5+.@b;
+  - Combos:
+      - Combo:
+          - Oathbreaker_Shotgun    # 13192
+          - Zombie_Slaughter_Card    # 4435
+    Script: |
+      bonus bMaxHPrate,5;
+  - Combos:
+      - Combo:
+          - Oathbreaker_Shotgun    # 13192
+          - Imp_Card    # 4433
+    Script: |
+      bonus bAspdRate,3;
+  - Combos:
+      - Combo:
+          - Hollow_King_Gatling    # 13197
+          - Isilla_Card    # 4412
+    Script: |
+      bonus bCritical,5;
+  - Combos:
+      - Combo:
+          - Hollow_King_Gatling    # 13197
+          - Agav_Card    # 4409
+    Script: |
+      bonus bLongAtkRate,3;
+  - Combos:
+      - Combo:
+          - Hollow_King_Gatling    # 13197
+          - Aliot_Card    # 4402
+    Script: |
+      bonus bAspdRate,3;
+  - Combos:
+      - Combo:
+          - Hollow_King_Gatling    # 13197
+          - Ice_Titan_Card    # 4417
+    Script: |
+      .@r = getequiprefinerycnt(EQI_HAND_R);
+      .@b = (.@r > 5) ? .@r - 5 : 0;
+      bonus2 bSkillAtk,"GS_TRIPLEACTION",5+.@b;
+  - Combos:
+      - Combo:
+          - Hollow_King_Gatling    # 13197
+          - Siroma_Card    # 4416
+    Script: |
+      bonus bCritAtkRate,5;

@@ -27785,6 +27785,88 @@ Body:
       callfunc "WM_Refresh";
     UnEquipScript: |
       callfunc "WM_Unequip";
+#//Legacia story guns (Legacy Shard Exchange). These IDs are renewal
+#//guns (RAG203, Death Fire, Mini Mei) that pre-re does not define,
+#//so the client already has their gun sprites.
+  - Id: 13190
+    AegisName: Crownwarden_Rifle
+    Name: Crownwarden Rifle
+    Type: Weapon
+    SubType: Rifle
+    Weight: 1000
+    Attack: 175
+    Range: 9
+    Slots: 2
+    Jobs:
+      Gunslinger: true
+    Locations:
+      Both_Hand: true
+    WeaponLevel: 4
+    EquipLevelMin: 10
+    Refineable: true
+    Script: |
+      // Copies Lever Action Rifle
+      bonus bHit,20;
+      bonus bCritical,50;
+      bonus bAspdRate,-5;
+      callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
+  - Id: 13192
+    AegisName: Oathbreaker_Shotgun
+    Name: Oathbreaker Shotgun
+    Type: Weapon
+    SubType: Shotgun
+    Weight: 1300
+    Attack: 210
+    Range: 9
+    Slots: 2
+    Jobs:
+      Gunslinger: true
+    Locations:
+      Both_Hand: true
+    WeaponLevel: 4
+    EquipLevelMin: 10
+    Refineable: true
+    Script: |
+      // Copies Gate Keeper-DD
+      bonus bSplashRange,1;
+      bonus3 bAutoSpell,"GS_SPREADATTACK",6,50;
+      bonus bDef,getrefine();
+      bonus bDex,1;
+      callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
+  - Id: 13197
+    AegisName: Hollow_King_Gatling
+    Name: Hollow King Gatling
+    Type: Weapon
+    SubType: Gatling
+    Weight: 2000
+    Attack: 95
+    Range: 9
+    Slots: 2
+    Jobs:
+      Gunslinger: true
+    Locations:
+      Both_Hand: true
+    WeaponLevel: 4
+    EquipLevelMin: 10
+    Refineable: true
+    Script: |
+      // Legacia gatling (stronger than Butcher, below renewal Tempest's ranged +30%)
+      bonus bHit,10;
+      bonus bCritical,15;
+      bonus bLongAtkRate,10;
+      callfunc "F_LegaciaWeapon",0;
+    EquipScript: |
+      callfunc "WM_Refresh";
+    UnEquipScript: |
+      callfunc "WM_Unequip";
 
 #//Red Dragon Weapon Set
   - Id: 60022

@@ -21,7 +21,8 @@
 //=   Reward: 30 Legacy Shards.
 //=
 //= Sera also upgrades the Legacy Emblem and runs the Legacy Shard
-//= Exchange (classic custom weapons 60001-60021 and Legacia utility
+//= Exchange (classic custom weapons 60001-60021, Legacia guns
+//= 13190/13192/13197 and Legacia utility
 //= mid/lower headgears 300032-300038), given unidentified so they
 //= roll random options; exchanging again is a reroll.
 //= After chapter 2, clearing the rift again pays .daily_shards once per reset
@@ -369,7 +370,7 @@ OnBuyItem:
 	if (BaseLevel < .min_lv)
 		end;
 	// weapons: only the classes that can wear them (and get the class bonus)
-	.@k = .@id - 60000;
+	.@k = .@id;
 	if (.@c == 0 && .ex_jobs$[.@k] != "" && !compare(.ex_jobs$[.@k], "|" + BaseJob + "|")) {
 		mes .@n$;
 		mes "<ITEM>" + getitemname(.@id) + "<INFO>" + .@id + "</INFO></ITEM>";
@@ -518,6 +519,8 @@ OnInit:
 	setarray .price[0], 50, 150;
 	// classic custom weapons (db/import/item_db_other.yml), 60007 is a shield
 	for (.@i = 60001; .@i <= 60021; .@i++) .ex_weapons[getarraysize(.ex_weapons)] = .@i;
+	// Legacia story guns (rifle, shotgun, gatling)
+	setarray .ex_weapons[getarraysize(.ex_weapons)], 13190, 13192, 13197;
 	// who can use each one (BaseJob, so transcendent and baby jobs count too);
 	// keep in sync with Jobs in db/import/item_db_other.yml
 	callsub S_ExJobs, 60001, "Archer, Hunter, Bard, Dancer, Rogue", Job_Archer, Job_Hunter, Job_Bard, Job_Dancer, Job_Rogue;
@@ -541,6 +544,9 @@ OnInit:
 	callsub S_ExJobs, 60019, "Dancer", Job_Dancer;
 	callsub S_ExJobs, 60020, "Knight", Job_Knight;
 	callsub S_ExJobs, 60021, "Ninja", Job_Ninja;
+	callsub S_ExJobs, 13190, "Gunslinger", Job_Gunslinger;
+	callsub S_ExJobs, 13192, "Gunslinger", Job_Gunslinger;
+	callsub S_ExJobs, 13197, "Gunslinger", Job_Gunslinger;
 	// Legacia utility mid/lower headgears (db/import/item_db_legacia.yml)
 	setarray .ex_heads[0], 300032, 300033, 300034, 300035, 300036, 300037, 300038;
 	// preview shops (lgs_shop_w / lgs_shop_h below), price shown as 0
@@ -555,7 +561,7 @@ OnInit:
 
 // callsub S_ExJobs, <item id>, "<names shown>", <BaseJob>, ...;
 S_ExJobs:
-	.@k = getarg(0) - 60000;
+	.@k = getarg(0);
 	.ex_who$[.@k] = getarg(1);
 	.ex_jobs$[.@k] = "|";
 	for (.@i = 2; .@i < getargcount(); .@i++)
