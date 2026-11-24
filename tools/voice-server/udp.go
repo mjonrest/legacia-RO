@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/rand"
 	"encoding/binary"
+	"log"
 	"net"
 	"net/netip"
 	"sync"
@@ -83,6 +84,10 @@ type UDPServer struct {
 
 	snapMu      sync.Mutex
 	snapTickets map[uint32]snapTicket // ticket -> who asked
+
+	// logins (cIdent) from addresses without a code, logged once a minute
+	identNoCode    int
+	identNoCodeLog time.Time
 }
 
 // snapTicket remembers where to send a snapshot the map-server answers.
@@ -195,6 +200,20 @@ func (u *UDPServer) Serve() error {
 		}
 		u.handle(buf[:n], addr, time.Now())
 	}
+}
+
+// logIdentNoCode notes, at most once a minute, a login from an address with
+// no code, to see in the journal how often clients change ports.
+func (u *UDPServer) logIdentNoCode(addr netip.AddrPort, now time.Time) {
+	u.snapMu.Lock()
+	defer u.snapMu.Unlock()
+	u.identNoCode++
+	if now.Sub(u.identNoCodeLog) < time.Minute {
+		return
+	}
+	log.Printf("ident: %d login(s) from an address with no code (last %s), told to ask for a new code", u.identNoCode, addr)
+	u.identNoCode = 0
+	u.identNoCodeLog = now
 }
 
 func (u *UDPServer) send(addr netip.AddrPort, b []byte) {
@@ -349,7 +368,19 @@ func (u *UDPServer) handle(pkt []byte, addr netip.AddrPort, now time.Time) {
 		// only for an endpoint that is waiting for a claim; the map-server
 		// checks the login, so a wrong one only wastes this client's query
 		short, ok := u.hub.PendingShort(addr, now)
-		if !ok || u.IdentQuery == nil {
+		if !ok {
+			// No code for this address: usually the player's router gave the
+			// client a new port while it sat at the login screen, so the code
+			// it got at game start belongs to the old port (and so would its
+			// welcome). Tell it to ask again, unless this address has a
+			// working session (a forged packet must not cut that off).
+			if !u.hub.EndpointKnown(addr) {
+				u.send(addr, []byte{sDenied, deniedUnknownSession})
+				u.logIdentNoCode(addr, now)
+			}
+			return
+		}
+		if u.IdentQuery == nil {
 			return
 		}
 		u.IdentQuery(addr.Addr(), binary.LittleEndian.Uint32(pkt[1:]), binary.LittleEndian.Uint32(pkt[5:]),
