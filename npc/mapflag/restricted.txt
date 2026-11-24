@@ -74,8 +74,6 @@ arug_cas05	mapflag	restricted	4
 //============================================================
 // Nidhoggr's Instance
 //============================================================
-1@nyd	mapflag	restricted	6
-2@nyd	mapflag	restricted	6
 
 //============================================================
 // Municipality (Cities/Towns/Villages)

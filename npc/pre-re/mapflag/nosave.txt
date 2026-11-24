@@ -33,5 +33,3 @@ e_tower	mapflag	nosave	SavePoint
 //============================================================
 // Nidhoggr's Instance
 //============================================================
-1@nyd	mapflag	nosave	SavePoint
-2@nyd	mapflag	nosave	SavePoint

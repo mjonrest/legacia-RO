@@ -1,0 +1,78 @@
+//===== Legacia Script ========================================
+//= Nidhoggur's Nest as a normal dungeon
+//===== Description: ==========================================
+//= The old instance maps 1@nyd / 2@nyd are used as permanent,
+//= shared maps. Anyone can enter from the Yggdrasil Gatekeeper
+//= (nyd_dun02 100,201) or from the Warper (Dungeons >
+//= Nidhoggur's Nest). The instance version is gone:
+//= npc/instances/NydhoggsNest.txt is unloaded and the instance
+//= is removed from db/*/instance_db.yml.
+//=
+//= Mob list follows ratemyserver (pre-re) and the official
+//= instance spawns. Nidhoggr's Shadow respawns 6 hours after it
+//= dies; its drops go through OnMVPKillEvent like other MVPs.
+//=============================================================
+
+// Mapflags (teleport, memo, party lock etc. were removed in npc/mapflag)
+1@nyd	mapflag	nomemo
+2@nyd	mapflag	nomemo
+
+// Entrance (replaces the instance Gatekeeper)
+nyd_dun02,100,201,3	script	Yggdrasil Gatekeeper	111,8,8,{
+	mes "[Yggdrasil Gatekeeper]";
+	mes "Beyond this gate lies Nidhoggur's Nest.";
+	mes "Nidhoggr's Shadow awakens there every 6 hours.";
+	next;
+	if (select("Enter Nidhoggur's Nest.:Step back.") == 2)
+		close;
+	close2;
+	warp "1@nyd",32,36;
+	end;
+
+OnTouch_:
+	specialeffect2 EF_CHANGECOLD;
+	end;
+}
+
+//==================================================
+// 1@nyd - Nidhoggur's Nest, 1st floor
+//==================================================
+1@nyd,0,0	monster	Ancient Tree	2019,40
+1@nyd,0,0	monster	Rhyncho	2020,30
+1@nyd,0,0	monster	Phylla	2021,30
+1@nyd,0,0	monster	Aqua Elemental	2016,30
+1@nyd,0,0	monster	Dark Pinguicula	2015,30
+
+// 1F -> 2F (the waterfall north of the big World Tree)
+1@nyd,195,320,0	warp	nyd_nest_1f_2f	2,2,2@nyd,200,10
+
+//==================================================
+// 2@nyd - Nidhoggur's Nest, 2nd floor
+//==================================================
+// Lower area (x 20-380, y 12-172), same area the instance used
+2@nyd,200,92,180,80	monster	Rhyncho	2020,40
+2@nyd,200,92,180,80	monster	Phylla	2021,40
+2@nyd,200,92,180,80	monster	Dark Shadow	2023,40
+2@nyd,200,92,180,80	monster	Dark Pinguicula	2015,40
+
+// Lower area -> Nidhoggur's lair
+2@nyd,199,178,0	warp	nyd_nest_2f_boss	2,2,2@nyd,199,255
+
+// MVP: respawns 6 hours after it is killed (also spawns at server start)
+2@nyd,199,327,0,0	boss_monster	Nidhoggr's Shadow	2022,1,21600000,0
+
+// Exit from the lair
+2@nyd,202,324,5	script	World Tree Yggdrasil#nest	437,{
+	mes "[World Tree Yggdrasil]";
+	mes "Servant of the Guardian... where do you wish to go?";
+	next;
+	switch(select("Leave the nest (Yggdrasil Root).:Back to the 2nd floor entrance.:Stay here.")) {
+	case 1:
+		warp "nyd_dun02",98,196;
+		end;
+	case 2:
+		warp "2@nyd",200,10;
+		end;
+	}
+	close;
+}

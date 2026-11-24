@@ -362,7 +362,7 @@ menu	//"Abandoned Lab Amicitia",D1,
 	//"Lasagna Dungeon",D28,
 	"Luoyang Dungeon",D29, "Magma Dungeon",D30,
 	//	"Malangdo Dungeon",D31, "Mjolnir Cave ^00FF00[New]^000000",D54,
-	"Moscovia Dungeon",D32,
+	"Moscovia Dungeon",D32, "Nidhoggur's Nest",D55,
 	//"Nidhogg's Dungeon",D33,
 	//	"Niflheim Dungeon",D34,
 	"Odin Temple",D35, "Orc Dungeon",D36,
@@ -536,6 +536,8 @@ D53: Restrict("RE");
 D54: Restrict("RE");
 	 setarray @c[2],205,385;
 	 Disp("Mjolnir Underground Cave",1,1); Pick("mjo_wst");
+D55: setarray @c[2],32,36,200,10;
+	 Disp("Nidhoggur's Nest 1st Floor:Nidhoggur's Nest 2nd Floor"); Pick("","1@nyd","2@nyd");
 // --------------------------------------------------
 	WoE_Castle:
 // --------------------------------------------------
@@ -1298,6 +1300,10 @@ OnNaviGenerate:
 	naviregisterwarp("Warper > Nidhogg's Dungeon 1", "nyd_dun01", 61, 239);
 	if (!.OnlyFirstDun) {
 		naviregisterwarp("Warper > Nidhogg's Dungeon 2", "nyd_dun02", 60, 271);
+	}
+	naviregisterwarp("Warper > Nidhoggur's Nest 1", "1@nyd", 32, 36);
+	if (!.OnlyFirstDun) {
+		naviregisterwarp("Warper > Nidhoggur's Nest 2", "2@nyd", 200, 10);
 	}
 	naviregisterwarp("Warper > Odin Temple 1", "odin_tem01", 298, 167);
 	if (!.OnlyFirstDun) {
