@@ -27858,9 +27858,10 @@ Body:
     EquipLevelMin: 10
     Refineable: true
     Script: |
-      // Copies Butcher
-      bonus2 bCriticalAddRace,RC_Brute,10;
-      bonus2 bCriticalAddRace,RC_Player_Doram,10;
+      // Legacia gatling (stronger than Butcher, below renewal Tempest's ranged +30%)
+      bonus bHit,10;
+      bonus bCritical,15;
+      bonus bLongAtkRate,10;
       callfunc "F_LegaciaWeapon",0;
     EquipScript: |
       callfunc "WM_Refresh";
