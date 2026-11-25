@@ -18,6 +18,8 @@
 //=   only members within .party_lv_gap levels of the killer.
 //= - Kills made while autohunting count at .ah_rate % (default 50,
 //=   same as the autohunt EXP penalty; 0 = they don't count).
+//= - On Fri/Sat/Sun (weekend double EXP) mission EXP is x2
+//=   (.weekend_rate), since getexp2 ignores the server EXP rate.
 //= - @mission shows your missions from anywhere.
 //=
 //= Variables: HM_MOB/HM_NEED/HM_HAVE/HM_AHP (char, per slot),
@@ -62,6 +64,8 @@ prontera,168,186,4	script	Hunting Board	4_BOARD3,{
 		mes .@n$;
 		mes "Hello, " + strcharinfo(0) + "!";
 		mes "Missions done today: ^0055FF" + .@done + "/" + .daily_max + "^000000";
+		if (callsub(S_ExpRate) != 100)
+			mes "^FF6060Weekend event: mission EXP x" + (callsub(S_ExpRate) / 100) + "." + (callsub(S_ExpRate) % 100 / 10) + "!^000000";
 		mes " ";
 		callsub S_List;
 		next;
@@ -107,6 +111,14 @@ prontera,168,186,4	script	Hunting Board	4_BOARD3,{
 		}
 	}
 	end;
+
+// EXP multiplier in % for turn-ins: .weekend_rate on Fri/Sat/Sun
+// (same days as the Weekend Floating Exp event in floating_exp.txt).
+S_ExpRate:
+	.@er_dow = gettime(DT_DAYOFWEEK);
+	if (.@er_dow == FRIDAY || .@er_dow == SATURDAY || .@er_dow == SUNDAY)
+		return .weekend_rate;
+	return 100;
 
 // Today's date as YYYYMMDD.
 S_Today:
@@ -228,6 +240,7 @@ S_TurnIn:
 		return;
 	}
 	.@t_today = callsub(S_Today);
+	.@t_rate = callsub(S_ExpRate);
 	.@t_got = 0;
 	.@t_bexp = 0;
 	.@t_jexp = 0;
@@ -243,8 +256,8 @@ S_TurnIn:
 		.@t_done++;
 		#HM_DONE = .@t_done;
 		setd callsub(S_DevVar, .@t_uid), .@t_today * 100 + .@t_done;
-		.@t_b = NextBaseExp * .exp_pct / 100;
-		.@t_j = NextJobExp * .exp_pct / 100;
+		.@t_b = NextBaseExp * .exp_pct / 100 * .@t_rate / 100;
+		.@t_j = NextJobExp * .exp_pct / 100 * .@t_rate / 100;
 		.@t_bexp += .@t_b;
 		.@t_jexp += .@t_j;
 		if (.@t_b > 0 || .@t_j > 0)
@@ -268,8 +281,8 @@ S_TurnIn:
 		return;
 	}
 	if (.@t_bonus) {
-		.@t_b = NextBaseExp * .bonus_exp_pct / 100;
-		.@t_j = NextJobExp * .bonus_exp_pct / 100;
+		.@t_b = NextBaseExp * .bonus_exp_pct / 100 * .@t_rate / 100;
+		.@t_j = NextJobExp * .bonus_exp_pct / 100 * .@t_rate / 100;
 		if (.@t_b > 0 || .@t_j > 0)
 			getexp2 .@t_b, .@t_j;
 		if (.bonus_item)
@@ -279,6 +292,8 @@ S_TurnIn:
 	mes "^00AA00" + .@t_got + " mission" + (.@t_got > 1 ? "s" : "") + " turned in!^000000";
 	mes "+" + callfunc("F_InsertComma", .@t_bexp) + " Base EXP";
 	mes "+" + callfunc("F_InsertComma", .@t_jexp) + " Job EXP";
+	if (.@t_rate != 100)
+		mes "^FF6060(Weekend event: x" + (.@t_rate / 100) + "." + (.@t_rate % 100 / 10) + " EXP)^000000";
 	if (.@t_bonus) {
 		mes " ";
 		mes "^0055FFAll " + .daily_max + " missions done today!^000000";
@@ -444,6 +459,7 @@ OnInit:
 	.ah_rate = 50;           // % a kill counts while autohunting (0 = not at all, 100 = full)
 	.party_range = 14;       // party kills count for members within this many cells (0 = off)
 	.party_lv_gap = 15;      // and within this many Base Levels of the killer (0 = no limit)
+	.weekend_rate = 200;     // % mission/bonus EXP on Fri/Sat/Sun (weekend double EXP days), 100 = off
 	.gm_level = 99;
 	bindatcmd "mission", strnpcinfo(3) + "::OnCmd";
 	// ------------------------------------------
