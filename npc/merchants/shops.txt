@@ -270,24 +270,7 @@ prt_in,172,130,0	script	Weapon Dealer#prt30	54,{
 	end;
 
 OnBuyItem:
-	for (.@i = 0; .@i < getarraysize(@bought_nameid); .@i++) {
-		set .@price,getiteminfo (@bought_nameid[.@i],ITEMINFO_BUY);
-		getitem @bought_nameid[.@i],@bought_quantity[.@i];
-		zeny -= .@price;
-		if (@bought_nameid[.@i] == #D_BuyTarget) {
-			set #D_Q4, 1;
-			set #D_Point, #D_Point + 1;
-
-			query_sql(
-				"UPDATE daily_quest SET points = "+#D_Point+
-				" WHERE account_id = "+getcharid(3)+
-				" AND play_date = '"+gettimestr("%Y-%m-%d",21)+"'"
-			);
-
-			dispbottom "[Daily Quest] Purchased: "+getitemname(#D_BuyTarget);
-			end;
-		}
-	}
+	callfunc "F_DailyQuestShopBuy";
 	end;
 }
 //prt_in,172,132,0	shop	Armor Dealer#prt	48,2101:-1,2103:-1,2401:-1,2403:-1,2501:-1,2503:-1,2220:-1,2226:-1,2301:-1,2303:-1,2305:-1,2328:-1,2307:-1,2309:-1,2312:-1,2314:-1,2628:-1,2627:-1
@@ -303,22 +286,40 @@ prt_in,172,132,0	script	Armor Dealer#prt30	54,{
 	end;
 
 OnBuyItem:
-	for (.@i = 0; .@i < getarraysize(@bought_nameid); .@i++) {
-		set .@price,getiteminfo (@bought_nameid[.@i],ITEMINFO_BUY);
-		getitem @bought_nameid[.@i],@bought_quantity[.@i];
-		zeny -= .@price;
-		if (@bought_nameid[.@i] == #D_BuyTarget) {
+	callfunc "F_DailyQuestShopBuy";
+	end;
+}
+
+// Daily Quest buy target shops (Weapon Dealer#prt30 / Armor Dealer#prt30).
+// The shop is attached with npcshopattach, so the script must charge itself:
+// check zeny and weight first, then take the zeny and give the items.
+function	script	F_DailyQuestShopBuy	{
+	.@n = getarraysize(@bought_nameid);
+	for (.@i = 0; .@i < .@n; .@i++) {
+		if (@bought_quantity[.@i] < 1)
+			end;
+		.@total += getiteminfo(@bought_nameid[.@i], ITEMINFO_BUY) * @bought_quantity[.@i];
+	}
+	if (.@total > Zeny) {
+		dispbottom "You don't have enough zeny. You need " + callfunc("F_InsertComma", .@total) + " z.";
+		end;
+	}
+	if (!checkweight2(@bought_nameid, @bought_quantity)) {
+		dispbottom "You can't carry that much.";
+		end;
+	}
+	Zeny -= .@total;
+	for (.@i = 0; .@i < .@n; .@i++) {
+		getitem @bought_nameid[.@i], @bought_quantity[.@i];
+		if (!#D_Q4 && @bought_nameid[.@i] == #D_BuyTarget) {
 			set #D_Q4, 1;
 			set #D_Point, #D_Point + 1;
-
 			query_sql(
 				"UPDATE daily_quest SET points = "+#D_Point+
 				" WHERE account_id = "+getcharid(3)+
 				" AND play_date = '"+gettimestr("%Y-%m-%d",21)+"'"
 			);
-
 			dispbottom "[Daily Quest] Purchased: "+getitemname(#D_BuyTarget);
-			end;
 		}
 	}
 	end;

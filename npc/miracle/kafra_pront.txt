@@ -339,12 +339,19 @@ ReviewPromo:
 
 OnFreebies:
 	mes "[Legacia]";
-	mes "something";
+	mes "Welcome to Legacia!";
+	mes "Each gift can be claimed once";
+	mes "per account and once per computer.";
 	next;
-	switch(select("Freebies")){
+	switch(select("Starter Freebies:Job Rental Pack (7 days):Cancel")){
+	case 2:
+		callsub S_RentalPack;
+		close;
+	case 3:
+		close;
 	case 1:
 	if (#freebies == 1){
-	mes "You have claim your freebies";
+	mes "This account already claimed the Starter Freebies.";
 	close;
 	}
 	if(!gepard_int_get("freebies")){
@@ -364,10 +371,134 @@ OnFreebies:
 		set #freebies,1;
 	close;
 	} else {
-		mes "Dont mess with me. You have claim yours.";
+		mes "This computer already claimed the Starter Freebies.";
 		close;
 	}
 }
+
+// Job Rental Pack: the player picks a job and gets every Cash Shop rental
+// weapon box for it, the 10 race EXP rings (7 days) and 5 rental armor boxes.
+// Once per account (#freebies_rent) and once per Gepard device ("freebies_rent").
+S_RentalPack:
+	.@n$ = "[Legacia]";
+	if (#freebies_rent || gepard_int_get("freebies_rent")) {
+		mes .@n$;
+		mes "This account or computer already";
+		mes "claimed the Job Rental Pack.";
+		return;
+	}
+	mes .@n$;
+	mes "Pick the job you want rental";
+	mes "weapons for. You also get the";
+	mes "10 EXP rings (7 days) and";
+	mes "5 rental armor boxes.";
+	mes "Weapon and armor boxes start";
+	mes "their 7 days when you open them.";
+	next;
+	// Rental box IDs (Cash Shop Rental tab, db/import/item_cash.yml)
+	// 1H swords: Excalibur, Cutlus, Solar Sword, Fireblend, Immaterial Sword, Nagan
+	setarray .@sword[0], 12937, 13509, 13510, 13773, 13774, 13766;
+	// 2H axes: Light Epsilon, Bloody Axe, Great Axe, Tomahawk
+	setarray .@axe[0], 12943, 13506, 13770, 13507;
+	.@md = 13513;	// Moonlight Dagger
+	switch(select("Knight / Lord Knight:Crusader / Paladin:Assassin / Assassin Cross:Rogue / Stalker:Blacksmith / Whitesmith:Alchemist / Creator:Wizard / High Wizard:Sage / Professor:Soul Linker:Priest / High Priest:Monk / Champion:Hunter / Sniper:Bard / Clown:Dancer / Gypsy:Star Gladiator:Ninja:Cancel")) {
+	case 1:
+	case 2:	// + Muramasa, Pole Axe, Brocca
+		copyarray .@box[0], .@sword[0], 6;
+		setarray .@box[6], 12936, 12941, 13767;
+		copyarray .@box[9], .@axe[0], 4;
+		.@box[13] = .@md;
+		break;
+	case 3:	// Infiltrator, Bloody Roar, Unholy Touch
+		setarray .@box[0], 12935, 13771, 13775;
+		copyarray .@box[3], .@sword[0], 6;
+		.@box[9] = .@md;
+		break;
+	case 4:	// + Rudra Bow
+		copyarray .@box[0], .@sword[0], 6;
+		setarray .@box[6], 13508, .@md;
+		break;
+	case 5:
+	case 6:
+		copyarray .@box[0], .@sword[0], 6;
+		copyarray .@box[6], .@axe[0], 4;
+		.@box[10] = .@md;
+		break;
+	case 7:
+	case 9:	// Dagger of Counter, Mighty Staff, Survivor's Rod, Moonlight Dagger, Survivor's Manteau
+		setarray .@box[0], 12939, 12942, 13768, .@md, 13776;
+		break;
+	case 8:	// + Hardcover Book
+		setarray .@box[0], 12939, 12942, 13768, .@md, 13776, 13772;
+		break;
+	case 10:	// Staff of Healing, Mighty Staff, Survivor's Rod, Kaiser Knuckle, Quadrille, Wrench, Hardcover Book
+		setarray .@box[0], 14227, 12942, 13768, 12940, 13769, 13514, 13772;
+		break;
+	case 11:
+		setarray .@box[0], 14227, 12942, 13768, 12940, 13769, 13514;
+		break;
+	case 12:
+	case 13:
+	case 14:	// Ballista, Rudra Bow, Moonlight Dagger
+		setarray .@box[0], 12944, 13508, .@md;
+		break;
+	case 15:	// Hardcover Book
+		.@box[0] = 13772;
+		break;
+	case 16:
+		.@box[0] = .@md;
+		break;
+	default:
+		return;
+	}
+	// Bloody Iron Ball, Spiritual Tunic, Recuperative Armor, Refresh Shoes, Shell of Resistance boxes
+	setarray .@armor[0], 13783, 13954, 13955, 13958, 13956;
+	// EXP rings: Beholder, Hallow, Clamorous, Chemical, Insecticide, Fischer, Decussate, Bloody, Satanic, Dragon
+	for (.@i = 2753; .@i <= 2762; .@i++)
+		.@ring[getarraysize(.@ring)] = .@i;
+
+	.@nb = getarraysize(.@box);
+	mes .@n$;
+	mes "You will get:";
+	for (.@i = 0; .@i < .@nb; .@i++)
+		mes "- " + getitemname(.@box[.@i]);
+	for (.@i = 0; .@i < 5; .@i++)
+		mes "- " + getitemname(.@armor[.@i]);
+	mes "- 10 EXP rings (7 days)";
+	next;
+	if (select("Claim:Cancel") == 2)
+		return;
+
+	copyarray .@all[0], .@box[0], .@nb;
+	copyarray .@all[.@nb], .@armor[0], 5;
+	copyarray .@all[.@nb + 5], .@ring[0], 10;
+	.@na = getarraysize(.@all);
+	for (.@i = 0; .@i < .@na; .@i++)
+		.@amt[.@i] = 1;
+	if (!checkweight2(.@all, .@amt)) {
+		mes .@n$;
+		mes "You don't have enough weight";
+		mes "or inventory space. Make room";
+		mes "and come back.";
+		return;
+	}
+	// check again right before giving, then mark as claimed first
+	if (#freebies_rent || gepard_int_get("freebies_rent"))
+		return;
+	gepard_int_set("freebies_rent", true);
+	#freebies_rent = 1;
+
+	for (.@i = 0; .@i < .@nb; .@i++)
+		getitembound .@box[.@i], 1, Bound_Account;
+	for (.@i = 0; .@i < 5; .@i++)
+		getitembound .@armor[.@i], 1, Bound_Account;
+	for (.@i = 0; .@i < 10; .@i++)
+		rentitem .@ring[.@i], 604800;	// 7 days
+
+	mes .@n$;
+	mes "Enjoy your Job Rental Pack!";
+	mes "The EXP rings expire in 7 days.";
+	return;
 
 }
 
